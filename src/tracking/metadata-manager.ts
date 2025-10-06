@@ -10,8 +10,6 @@ import {
   Metadata,
   MetadataError,
   MetadataErrorType,
-  ProjectMetadata,
-  FileMetadata,
 } from './types.js';
 
 /**
@@ -241,4 +239,44 @@ export async function loadMetadata(
   validateMetadataSchema(parsedData);
 
   return parsedData as Metadata;
+}
+
+/**
+ * Save metadata to file with atomic write
+ *
+ * Uses temp file + rename pattern to prevent corruption
+ *
+ * @param metadata - Metadata to save
+ * @param metadataPath - Path to metadata file (defaults to .kiro/.kirox-meta.json)
+ * @throws MetadataError if write fails
+ */
+export async function saveMetadata(
+  metadata: Metadata,
+  metadataPath: string = METADATA_PATH
+): Promise<void> {
+  const tempPath = `${metadataPath}.tmp`;
+
+  try {
+    // Serialize metadata to JSON with indentation
+    const jsonContent = JSON.stringify(metadata, null, 2);
+
+    // Write to temporary file
+    await fs.writeFile(tempPath, jsonContent, { encoding: 'utf-8', mode: 0o644 });
+
+    // Atomic rename (OS-level atomic operation)
+    await fs.rename(tempPath, metadataPath);
+  } catch (error) {
+    // Clean up temp file if it exists
+    try {
+      await fs.unlink(tempPath);
+    } catch {
+      // Ignore errors during cleanup
+    }
+
+    throw new MetadataError(
+      MetadataErrorType.WRITE_FAILED,
+      'Failed to write metadata file',
+      error instanceof Error ? error.message : String(error)
+    );
+  }
 }
