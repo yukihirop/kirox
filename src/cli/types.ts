@@ -41,3 +41,17 @@ export interface ValidationResult {
   /** List of validation errors (empty if valid) */
   errors: ValidationError[];
 }
+
+/**
+ * Result of CLI execution
+ */
+export interface ExecutionResult {
+  /** Whether execution was successful */
+  success: boolean;
+  /** Number of files downloaded */
+  filesDownloaded: number;
+  /** Number of files that failed */
+  filesFailed: number;
+  /** Exit code (0=success, 1=user error, 2=system error) */
+  exitCode: number;
+}

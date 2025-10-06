@@ -6,19 +6,14 @@
  * CLI tool to fetch Kiro specification and steering files from remote GitHub repositories.
  */
 
-import { parseArguments } from './cli/parser.js';
+import { execute } from './cli/entry.js';
 
-try {
-  // Parse command-line arguments (this will handle --help, --version automatically)
-  const args = parseArguments(process.argv);
-
-  // TODO: Implement main CLI logic here
-  console.log('Parsed arguments:', args);
-  console.log('Kirox CLI - Implementation in progress');
-} catch (error) {
-  if (error instanceof Error) {
-    console.error('Error:', error.message);
-    process.exit(1);
-  }
-  throw error;
-}
+// Execute main CLI logic
+execute(process.argv)
+  .then((result) => {
+    process.exit(result.exitCode);
+  })
+  .catch((error) => {
+    console.error('Unexpected error:', error);
+    process.exit(2);
+  });
