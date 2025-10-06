@@ -4,17 +4,24 @@
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { promises as fs } from 'fs';
-import { ensureDirectory } from '@/filesystem/writer';
+import { ensureDirectory, checkFileExists, writeFile } from '@/filesystem/writer';
+import type { WriteOptions } from '@/filesystem/types';
 
 // Mock fs/promises
 vi.mock('fs', () => ({
   promises: {
     mkdir: vi.fn(),
     access: vi.fn(),
+    writeFile: vi.fn(),
   },
   constants: {
     F_OK: 0,
   },
+}));
+
+// Mock prompt service
+vi.mock('@/filesystem/prompt', () => ({
+  confirm: vi.fn(),
 }));
 
 describe('FileWriter', () => {
@@ -92,6 +99,173 @@ describe('FileWriter', () => {
       expect(fs.mkdir).toHaveBeenCalledWith(expect.stringContaining('.kiro'), {
         recursive: true,
       });
+    });
+  });
+
+  describe('checkFileExists', () => {
+    it('should return true if file exists', async () => {
+      vi.mocked(fs.access).mockResolvedValue(undefined);
+
+      const result = await checkFileExists('.kiro/specs/project/file.md');
+
+      expect(result).toBe(true);
+      expect(fs.access).toHaveBeenCalledWith('.kiro/specs/project/file.md', 0);
+    });
+
+    it('should return false if file does not exist', async () => {
+      vi.mocked(fs.access).mockRejectedValue(new Error('ENOENT'));
+
+      const result = await checkFileExists('.kiro/specs/project/file.md');
+
+      expect(result).toBe(false);
+    });
+
+    it('should return false for directory access errors', async () => {
+      vi.mocked(fs.access).mockRejectedValue(new Error('EACCES'));
+
+      const result = await checkFileExists('.kiro/specs/project/file.md');
+
+      expect(result).toBe(false);
+    });
+  });
+
+  describe('writeFile', () => {
+    beforeEach(async () => {
+      // Import confirm after mock is set up
+      const { confirm } = await import('@/filesystem/prompt');
+      vi.mocked(confirm).mockResolvedValue(true);
+    });
+
+    it('should write file when it does not exist', async () => {
+      vi.mocked(fs.access).mockRejectedValue(new Error('ENOENT'));
+      vi.mocked(fs.writeFile).mockResolvedValue(undefined);
+
+      const options: WriteOptions = {
+        force: false,
+        prompt: true,
+        dryRun: false,
+        verbose: false,
+      };
+
+      const result = await writeFile('.kiro/specs/project/new.md', 'content', options);
+
+      expect(result.written).toBe(true);
+      expect(result.skipped).toBe(false);
+      expect(fs.writeFile).toHaveBeenCalledWith('.kiro/specs/project/new.md', 'content', 'utf-8');
+    });
+
+    it('should skip file write in dry-run mode', async () => {
+      vi.mocked(fs.access).mockRejectedValue(new Error('ENOENT'));
+
+      const options: WriteOptions = {
+        force: false,
+        prompt: true,
+        dryRun: true,
+        verbose: false,
+      };
+
+      const result = await writeFile('.kiro/specs/project/file.md', 'content', options);
+
+      expect(result.written).toBe(false);
+      expect(result.skipped).toBe(true);
+      expect(result.reason).toContain('dry-run');
+      expect(fs.writeFile).not.toHaveBeenCalled();
+    });
+
+    it('should prompt user when file exists and force is false', async () => {
+      const { confirm } = await import('@/filesystem/prompt');
+
+      vi.mocked(fs.access).mockResolvedValue(undefined); // File exists
+      vi.mocked(confirm).mockResolvedValue(true);
+      vi.mocked(fs.writeFile).mockResolvedValue(undefined);
+
+      const options: WriteOptions = {
+        force: false,
+        prompt: true,
+        dryRun: false,
+        verbose: false,
+      };
+
+      const result = await writeFile('.kiro/specs/project/existing.md', 'content', options);
+
+      expect(confirm).toHaveBeenCalledWith(expect.stringContaining('existing.md'));
+      expect(result.written).toBe(true);
+    });
+
+    it('should skip file when user declines overwrite', async () => {
+      const { confirm } = await import('@/filesystem/prompt');
+
+      vi.mocked(fs.access).mockResolvedValue(undefined);
+      vi.mocked(confirm).mockResolvedValue(false);
+
+      const options: WriteOptions = {
+        force: false,
+        prompt: true,
+        dryRun: false,
+        verbose: false,
+      };
+
+      const result = await writeFile('.kiro/specs/project/existing.md', 'content', options);
+
+      expect(result.written).toBe(false);
+      expect(result.skipped).toBe(true);
+      expect(result.reason).toContain('declined');
+      expect(fs.writeFile).not.toHaveBeenCalled();
+    });
+
+    it('should not prompt when force option is true', async () => {
+      const { confirm } = await import('@/filesystem/prompt');
+
+      vi.mocked(fs.access).mockResolvedValue(undefined);
+      vi.mocked(fs.writeFile).mockResolvedValue(undefined);
+
+      const options: WriteOptions = {
+        force: true,
+        prompt: false,
+        dryRun: false,
+        verbose: false,
+      };
+
+      const result = await writeFile('.kiro/specs/project/existing.md', 'content', options);
+
+      expect(confirm).not.toHaveBeenCalled();
+      expect(result.written).toBe(true);
+      expect(fs.writeFile).toHaveBeenCalled();
+    });
+
+    it('should handle write errors gracefully', async () => {
+      vi.mocked(fs.access).mockRejectedValue(new Error('ENOENT'));
+      vi.mocked(fs.writeFile).mockRejectedValue(new Error('EACCES: permission denied'));
+
+      const options: WriteOptions = {
+        force: false,
+        prompt: true,
+        dryRun: false,
+        verbose: false,
+      };
+
+      await expect(
+        writeFile('.kiro/specs/project/file.md', 'content', options)
+      ).rejects.toThrow('permission denied');
+    });
+
+    it('should not prompt when prompt option is false', async () => {
+      const { confirm } = await import('@/filesystem/prompt');
+
+      vi.mocked(fs.access).mockResolvedValue(undefined);
+      vi.mocked(fs.writeFile).mockResolvedValue(undefined);
+
+      const options: WriteOptions = {
+        force: false,
+        prompt: false,
+        dryRun: false,
+        verbose: false,
+      };
+
+      const result = await writeFile('.kiro/specs/project/existing.md', 'content', options);
+
+      expect(confirm).not.toHaveBeenCalled();
+      expect(result.written).toBe(true);
     });
   });
 });
