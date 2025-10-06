@@ -53,6 +53,52 @@ export function normalizeSubdirPath(subdirPath: string): string {
 }
 
 /**
+ * Validate subdirectory path for security
+ *
+ * Ensures subdirectory paths don't contain path traversal sequences (..) or absolute paths,
+ * which could be used to access files outside the intended directory.
+ *
+ * @param subdirPath - Normalized subdirectory path to validate
+ * @throws Error if path contains path traversal or is absolute
+ *
+ * @example
+ * ```typescript
+ * validateSubdirPath('packages/api')    // No throw (valid)
+ * validateSubdirPath('')                // No throw (root directory)
+ * validateSubdirPath('../etc')          // Throws error (path traversal)
+ * validateSubdirPath('/etc/passwd')     // Throws error (absolute path)
+ * ```
+ */
+export function validateSubdirPath(subdirPath: string): void {
+  // Empty string is valid (indicates root directory)
+  if (subdirPath === '') {
+    return;
+  }
+
+  // Check for path traversal attempts
+  if (subdirPath.includes('..')) {
+    throw new Error(
+      '無効なサブディレクトリパスです: パストラバーサルは禁止されています'
+    );
+  }
+
+  // Check for absolute paths (Unix-style and Windows-style)
+  if (path.isAbsolute(subdirPath)) {
+    throw new Error(
+      '無効なサブディレクトリパスです: 絶対パスは禁止されています'
+    );
+  }
+
+  // Check for Windows-style absolute paths (C:/, D:/, etc.)
+  // path.isAbsolute() may not detect these on non-Windows platforms
+  if (/^[a-zA-Z]:[\\/]/.test(subdirPath)) {
+    throw new Error(
+      '無効なサブディレクトリパスです: 絶対パスは禁止されています'
+    );
+  }
+}
+
+/**
  * Validate project name for security (prevent path traversal attacks)
  *
  * Ensures project names don't contain path traversal sequences (..) or path separators,
