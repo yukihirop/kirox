@@ -20,6 +20,12 @@ export interface ParsedArguments {
   verbose: boolean;
   /** Custom config file path */
   config?: string;
+  /** Track fetched files for update detection */
+  track: boolean;
+  /** Check for updates to tracked files */
+  checkUpdates: boolean;
+  /** Apply updates to tracked files */
+  update: boolean;
 }
 
 /**

@@ -7,9 +7,13 @@ describe('InputValidator', () => {
     const createValidArgs = (): ParsedArguments => ({
       repository: 'owner/repo',
       project: 'my-project',
+      output: '.',
       force: false,
       dryRun: false,
       verbose: false,
+      track: false,
+      checkUpdates: false,
+      update: false,
     });
 
     it('should validate correct repository format', () => {
@@ -118,6 +122,143 @@ describe('InputValidator', () => {
 
       expect(result.errors[0]?.message).toBeTruthy();
       expect(result.errors[0]?.message.length).toBeGreaterThan(0);
+    });
+  });
+
+  describe('validateInput - Command option mutual exclusivity', () => {
+    const createValidArgs = (): ParsedArguments => ({
+      repository: 'owner/repo',
+      project: 'my-project',
+      output: '.',
+      force: false,
+      dryRun: false,
+      verbose: false,
+      track: false,
+      checkUpdates: false,
+      update: false,
+    });
+
+    it('should allow --track with repository and project', () => {
+      const args = createValidArgs();
+      args.track = true;
+      const result = validateInput(args);
+
+      expect(result.valid).toBe(true);
+      expect(result.errors).toHaveLength(0);
+    });
+
+    it('should allow --check-updates without repository and project', () => {
+      const args = createValidArgs();
+      args.checkUpdates = true;
+      args.repository = '';
+      args.project = '';
+      const result = validateInput(args);
+
+      expect(result.valid).toBe(true);
+      expect(result.errors).toHaveLength(0);
+    });
+
+    it('should allow --update without repository and project', () => {
+      const args = createValidArgs();
+      args.update = true;
+      args.repository = '';
+      args.project = '';
+      const result = validateInput(args);
+
+      expect(result.valid).toBe(true);
+      expect(result.errors).toHaveLength(0);
+    });
+
+    it('should reject --track and --check-updates together', () => {
+      const args = createValidArgs();
+      args.track = true;
+      args.checkUpdates = true;
+      const result = validateInput(args);
+
+      expect(result.valid).toBe(false);
+      expect(result.errors).toHaveLength(1);
+      expect(result.errors[0]?.field).toBe('options');
+      expect(result.errors[0]?.message).toContain('--track');
+      expect(result.errors[0]?.message).toContain('--check-updates');
+    });
+
+    it('should reject --track and --update together', () => {
+      const args = createValidArgs();
+      args.track = true;
+      args.update = true;
+      const result = validateInput(args);
+
+      expect(result.valid).toBe(false);
+      expect(result.errors).toHaveLength(1);
+      expect(result.errors[0]?.field).toBe('options');
+      expect(result.errors[0]?.message).toContain('--track');
+      expect(result.errors[0]?.message).toContain('--update');
+    });
+
+    it('should reject --check-updates and --update together', () => {
+      const args = createValidArgs();
+      args.checkUpdates = true;
+      args.update = true;
+      const result = validateInput(args);
+
+      expect(result.valid).toBe(false);
+      expect(result.errors).toHaveLength(1);
+      expect(result.errors[0]?.field).toBe('options');
+      expect(result.errors[0]?.message).toContain('--check-updates');
+      expect(result.errors[0]?.message).toContain('--update');
+    });
+
+    it('should reject all three options together', () => {
+      const args = createValidArgs();
+      args.track = true;
+      args.checkUpdates = true;
+      args.update = true;
+      const result = validateInput(args);
+
+      expect(result.valid).toBe(false);
+      expect(result.errors).toHaveLength(1);
+      expect(result.errors[0]?.field).toBe('options');
+    });
+
+    it('should not require repository/project for --check-updates', () => {
+      const args = createValidArgs();
+      args.checkUpdates = true;
+      args.repository = '';
+      args.project = '';
+      const result = validateInput(args);
+
+      expect(result.valid).toBe(true);
+    });
+
+    it('should not require repository/project for --update', () => {
+      const args = createValidArgs();
+      args.update = true;
+      args.repository = '';
+      args.project = '';
+      const result = validateInput(args);
+
+      expect(result.valid).toBe(true);
+    });
+
+    it('should require repository/project for regular fetch', () => {
+      const args = createValidArgs();
+      args.repository = '';
+      args.project = '';
+      const result = validateInput(args);
+
+      expect(result.valid).toBe(false);
+      expect(result.errors.some((e) => e.field === 'repository')).toBe(true);
+    });
+
+    it('should require repository/project for --track', () => {
+      const args = createValidArgs();
+      args.track = true;
+      args.repository = '';
+      args.project = '';
+      const result = validateInput(args);
+
+      expect(result.valid).toBe(false);
+      expect(result.errors.some((e) => e.field === 'repository')).toBe(true);
     });
   });
 });
