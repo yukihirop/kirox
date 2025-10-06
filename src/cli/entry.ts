@@ -19,6 +19,17 @@ import { calculateFileHash } from '../tracking/hash-calculator.js';
 import type { ExecutionResult, ParsedArguments } from './types.js';
 import type { ContentItem } from '../github/fetcher.js';
 import type { FileMetadata } from '../tracking/types.js';
+import path from 'path';
+
+/**
+ * Get metadata file path based on output directory
+ *
+ * @param outputDir - Output directory from args
+ * @returns Metadata file path
+ */
+function getMetadataPath(outputDir: string): string {
+  return path.join(outputDir, '.kiro', '.kirox-meta.json');
+}
 
 /**
  * Execute main CLI logic
@@ -208,9 +219,11 @@ export async function execute(argv: string[]): Promise<ExecutionResult> {
           });
         }
 
+        const metadataPath = getMetadataPath(args.output);
+
         // Check if metadata exists
         try {
-          const existingMetadata = await loadMetadata();
+          const existingMetadata = await loadMetadata(metadataPath);
           if (args.verbose) {
             logger.info('Loaded existing metadata', {
               projectsCount: existingMetadata.projects.length,
@@ -229,7 +242,7 @@ export async function execute(argv: string[]): Promise<ExecutionResult> {
           projectName: args.project,
           fetchedAt: new Date().toISOString(),
           files: [],
-        });
+        }, metadataPath);
 
         // Calculate hashes and upsert files
         for (const file of writtenFiles) {
@@ -245,7 +258,7 @@ export async function execute(argv: string[]): Promise<ExecutionResult> {
               fetchedAt: new Date().toISOString(),
             };
 
-            await upsertFile(args.repository, args.project, fileMetadata);
+            await upsertFile(args.repository, args.project, fileMetadata, metadataPath);
 
             if (args.verbose) {
               logger.info('File metadata saved', {
@@ -330,12 +343,14 @@ async function handleCheckUpdates(
   const errorHandler = new ErrorHandler();
 
   try {
+    const metadataPath = getMetadataPath(args.output);
+
     // Step 1: Load metadata
     if (args.verbose) {
       logger.info('Loading tracking metadata');
     }
 
-    const metadata = await loadMetadata();
+    const metadata = await loadMetadata(metadataPath);
 
     if (args.verbose) {
       logger.info('Metadata loaded', {
@@ -481,12 +496,14 @@ async function handleUpdate(
   const errorHandler = new ErrorHandler();
 
   try {
+    const metadataPath = getMetadataPath(args.output);
+
     // Step 1: Load metadata
     if (args.verbose) {
       logger.info('Loading tracking metadata');
     }
 
-    const metadata = await loadMetadata();
+    const metadata = await loadMetadata(metadataPath);
 
     if (args.verbose) {
       logger.info('Metadata loaded', {
