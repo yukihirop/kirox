@@ -32,6 +32,9 @@ export async function loadConfig(customPath?: string): Promise<KiroxConfig> {
   try {
     return await loadConfigFile(currentDirConfig, false);
   } catch (error) {
+    if (!isFileNotFoundError(error)) {
+      throw error; // Re-throw invalid JSON or other errors
+    }
     // File doesn't exist, continue to next priority
   }
 
@@ -40,6 +43,9 @@ export async function loadConfig(customPath?: string): Promise<KiroxConfig> {
   try {
     return await loadConfigFile(homeDirConfig, false);
   } catch (error) {
+    if (!isFileNotFoundError(error)) {
+      throw error; // Re-throw invalid JSON or other errors
+    }
     // File doesn't exist, return empty config
   }
 
@@ -61,7 +67,7 @@ async function loadConfigFile(filePath: string, required: boolean): Promise<Kiro
     return config;
   } catch (error) {
     if (error instanceof Error) {
-      if ('code' in error && error.code === 'ENOENT') {
+      if (isFileNotFoundError(error)) {
         if (required) {
           throw new Error(`Config file not found: ${filePath}`);
         }
@@ -72,4 +78,14 @@ async function loadConfigFile(filePath: string, required: boolean): Promise<Kiro
     }
     throw error;
   }
+}
+
+/**
+ * Check if error is a file not found error (ENOENT)
+ *
+ * @param error - Error to check
+ * @returns true if error is ENOENT
+ */
+function isFileNotFoundError(error: unknown): boolean {
+  return error instanceof Error && 'code' in error && error.code === 'ENOENT';
 }
