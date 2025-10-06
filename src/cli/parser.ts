@@ -28,7 +28,7 @@ export function parseArguments(argv: string[]): ParsedArguments {
     .option('--dry-run', 'Dry-run mode (no actual writes)', false)
     .option('--verbose', 'Verbose logging', false)
     .option('--config <path>', 'Custom config file path')
-    .option('--track', 'Track fetched files for update detection', false)
+    .option('--track', 'Track fetched files for update detection', true)
     .option('--check-updates', 'Check for updates to tracked files', false)
     .option('--update', 'Apply updates to tracked files', false)
     .allowExcessArguments(false);
@@ -59,6 +59,9 @@ export function parseArguments(argv: string[]): ParsedArguments {
     }
   }
 
+  // If --check-updates or --update is specified, disable --track
+  const track = (options.checkUpdates || options.update) ? false : options.track;
+
   return {
     repository,
     project: options.project || '',
@@ -67,7 +70,7 @@ export function parseArguments(argv: string[]): ParsedArguments {
     dryRun: options.dryRun,
     verbose: options.verbose,
     config: options.config,
-    track: options.track,
+    track,
     checkUpdates: options.checkUpdates,
     update: options.update,
   };

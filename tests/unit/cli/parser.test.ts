@@ -131,7 +131,7 @@ describe('ArgumentParser', () => {
       const argv = ['node', 'kirox', 'owner/repo', '-p', 'project'];
       const result = parseArguments(argv);
 
-      expect(result.track).toBe(false);
+      expect(result.track).toBe(true); // Default is now true
       expect(result.checkUpdates).toBe(false);
       expect(result.update).toBe(false);
     });
