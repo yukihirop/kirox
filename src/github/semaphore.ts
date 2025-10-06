@@ -21,20 +21,20 @@
  */
 export class Semaphore {
   private available: number;
-  private readonly max: number;
+  private readonly maxConcurrent: number;
   private readonly waitQueue: Array<() => void> = [];
 
   /**
    * Create a new semaphore
    *
-   * @param max - Maximum number of concurrent operations allowed
+   * @param maxConcurrent - Maximum number of concurrent operations allowed
    */
-  constructor(max: number) {
-    if (max <= 0) {
+  constructor(maxConcurrent: number) {
+    if (maxConcurrent <= 0) {
       throw new Error('Semaphore max must be greater than 0');
     }
-    this.max = max;
-    this.available = max;
+    this.maxConcurrent = maxConcurrent;
+    this.available = maxConcurrent;
   }
 
   /**
@@ -67,6 +67,15 @@ export class Semaphore {
       // No one waiting, increment available slots
       this.available++;
     }
+  }
+
+  /**
+   * Get maximum number of concurrent operations
+   *
+   * @returns Maximum concurrency limit
+   */
+  getMax(): number {
+    return this.maxConcurrent;
   }
 
   /**

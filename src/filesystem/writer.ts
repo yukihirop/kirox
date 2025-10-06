@@ -6,8 +6,8 @@
 
 import { promises as fs, constants } from 'fs';
 import path from 'path';
-import { confirm } from './prompt';
-import type { WriteOptions, WriteResult } from './types';
+import { confirm } from './prompt.js';
+import type { WriteOptions, WriteResult } from './types.js';
 
 /**
  * Ensure directory exists, create if it doesn't exist
@@ -95,7 +95,7 @@ export async function writeFile(
   content: string,
   options: WriteOptions
 ): Promise<WriteResult> {
-  const { force, prompt: shouldPrompt, dryRun, verbose } = options;
+  const { force, prompt: shouldPrompt, dryRun } = options;
 
   // Dry-run mode: skip actual write
   if (dryRun) {

@@ -6,7 +6,7 @@
  */
 
 import type { Octokit } from 'octokit';
-import { Semaphore } from './semaphore';
+import { Semaphore } from './semaphore.js';
 
 /**
  * Maximum file size allowed (1MB)
