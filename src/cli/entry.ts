@@ -16,7 +16,7 @@ import { Logger } from '../reporting/logger.js';
 import { resolveOutputPath, getSpecDirectoryPath, getSteeringDirectoryPath } from '../filesystem/path-utils.js';
 import { loadMetadata, upsertProject, upsertFile } from '../tracking/metadata-manager.js';
 import { calculateFileHash } from '../tracking/hash-calculator.js';
-import type { ExecutionResult } from './types.js';
+import type { ExecutionResult, ParsedArguments } from './types.js';
 import type { ContentItem } from '../github/fetcher.js';
 import type { FileMetadata } from '../tracking/types.js';
 
@@ -52,6 +52,16 @@ export async function execute(argv: string[]): Promise<ExecutionResult> {
         filesFailed: 0,
         exitCode: 1, // User error
       };
+    }
+
+    // Step 2.5: Handle --check-updates command
+    if (args.checkUpdates) {
+      return await handleCheckUpdates(args, logger);
+    }
+
+    // Step 2.6: Handle --update command
+    if (args.update) {
+      return await handleUpdate(args, logger);
     }
 
     // Step 3: Initialize progress reporter
@@ -290,6 +300,315 @@ export async function execute(argv: string[]): Promise<ExecutionResult> {
     // Log error with details for debugging
     if (error instanceof Error) {
       logger.error('Unexpected error', {
+        message: error.message,
+        stack: error.stack,
+      });
+    }
+
+    logger.logError(errorResult);
+
+    return {
+      success: false,
+      filesDownloaded: 0,
+      filesFailed: 0,
+      exitCode: errorResult.exitCode,
+    };
+  }
+}
+
+/**
+ * Handle --check-updates command
+ *
+ * @param args - Parsed arguments
+ * @param logger - Logger instance
+ * @returns Execution result
+ */
+async function handleCheckUpdates(
+  args: ParsedArguments,
+  logger: Logger
+): Promise<ExecutionResult> {
+  const errorHandler = new ErrorHandler();
+
+  try {
+    // Step 1: Load metadata
+    if (args.verbose) {
+      logger.info('Loading tracking metadata');
+    }
+
+    const metadata = await loadMetadata();
+
+    if (args.verbose) {
+      logger.info('Metadata loaded', {
+        projectsCount: metadata.projects.length,
+        totalFiles: metadata.projects.reduce((sum, p) => sum + p.files.length, 0),
+      });
+    }
+
+    // Step 2: Initialize Octokit client
+    const { Octokit } = await import('octokit');
+    const octokit = new Octokit({
+      auth: process.env.GITHUB_TOKEN,
+    });
+
+    // Step 3: Check updates for all projects
+    const { checkAllFiles } = await import('../tracking/batch-update-checker.js');
+    const { parseRepositoryPath } = await import('../github/fetcher.js');
+
+    // Initialize totals
+    let totalFiles = 0;
+    let totalUpToDate = 0;
+    let totalRemoteUpdated = 0;
+    let totalLocalEdited = 0;
+    let totalConflict = 0;
+    let totalLocalDeleted = 0;
+    let totalRemoteDeleted = 0;
+    let totalError = 0;
+
+    for (const project of metadata.projects) {
+      const { owner, repo } = parseRepositoryPath(project.repository);
+
+      if (args.verbose) {
+        logger.info('Checking updates for project', {
+          repository: project.repository,
+          projectName: project.projectName,
+          filesCount: project.files.length,
+        });
+      }
+
+      const checkResult = await checkAllFiles(octokit, owner, repo, '.', project);
+
+      // Aggregate summary
+      totalFiles += checkResult.totalFiles;
+      totalUpToDate += checkResult.upToDate;
+      totalRemoteUpdated += checkResult.updatable;
+      totalLocalEdited += checkResult.localEdited;
+      totalConflict += checkResult.conflict;
+      totalLocalDeleted += checkResult.localDeleted;
+      totalRemoteDeleted += checkResult.remoteDeleted;
+      totalError += checkResult.errors;
+
+      // Display results for this project
+      console.log(`\nProject: ${project.repository}/${project.projectName}`);
+
+      if (checkResult.updatable > 0) {
+        console.log(`\n📥 Updates available (${checkResult.updatable} files):`);
+        for (const update of checkResult.files) {
+          if (update.status === 'REMOTE_UPDATED') {
+            console.log(`  - ${update.path}`);
+          }
+        }
+      }
+
+      if (checkResult.localEdited > 0) {
+        console.log(`\n✏️  Locally edited (${checkResult.localEdited} files):`);
+        for (const update of checkResult.files) {
+          if (update.status === 'LOCAL_EDITED') {
+            console.log(`  - ${update.path}`);
+          }
+        }
+      }
+
+      if (checkResult.conflict > 0) {
+        console.log(`\n⚠️  Conflicts (${checkResult.conflict} files):`);
+        for (const update of checkResult.files) {
+          if (update.status === 'CONFLICT') {
+            console.log(`  - ${update.path}`);
+          }
+        }
+      }
+
+      if (checkResult.upToDate > 0 && args.verbose) {
+        console.log(`\n✓ Up to date (${checkResult.upToDate} files)`);
+      }
+    }
+
+    // Step 4: Display summary
+    console.log('\n=== Summary ===');
+    console.log(`Total files checked: ${totalFiles}`);
+    console.log(`✓ Up to date: ${totalUpToDate}`);
+    console.log(`📥 Updates available: ${totalRemoteUpdated}`);
+    console.log(`✏️  Locally edited: ${totalLocalEdited}`);
+    console.log(`⚠️  Conflicts: ${totalConflict}`);
+
+    if (totalLocalDeleted > 0) {
+      console.log(`🗑️  Locally deleted: ${totalLocalDeleted}`);
+    }
+    if (totalRemoteDeleted > 0) {
+      console.log(`🗑️  Remotely deleted: ${totalRemoteDeleted}`);
+    }
+    if (totalError > 0) {
+      console.log(`❌ Errors: ${totalError}`);
+    }
+
+    return {
+      success: true,
+      filesDownloaded: 0,
+      filesFailed: 0,
+      exitCode: 0,
+    };
+  } catch (error) {
+    const errorResult = errorHandler.handle(error);
+
+    if (error instanceof Error) {
+      logger.error('Failed to check updates', {
+        message: error.message,
+        stack: error.stack,
+      });
+    }
+
+    logger.logError(errorResult);
+
+    return {
+      success: false,
+      filesDownloaded: 0,
+      filesFailed: 0,
+      exitCode: errorResult.exitCode,
+    };
+  }
+}
+
+/**
+ * Handle --update command
+ *
+ * @param args - Parsed arguments
+ * @param logger - Logger instance
+ * @returns Execution result
+ */
+async function handleUpdate(
+  args: ParsedArguments,
+  logger: Logger
+): Promise<ExecutionResult> {
+  const errorHandler = new ErrorHandler();
+
+  try {
+    // Step 1: Load metadata
+    if (args.verbose) {
+      logger.info('Loading tracking metadata');
+    }
+
+    const metadata = await loadMetadata();
+
+    if (args.verbose) {
+      logger.info('Metadata loaded', {
+        projectsCount: metadata.projects.length,
+        totalFiles: metadata.projects.reduce((sum, p) => sum + p.files.length, 0),
+      });
+    }
+
+    // Step 2: Initialize Octokit client
+    const { Octokit } = await import('octokit');
+    const octokit = new Octokit({
+      auth: process.env.GITHUB_TOKEN,
+    });
+
+    // Step 3: Import required modules
+    const { checkAllFiles } = await import('../tracking/batch-update-checker.js');
+    const { applyUpdates } = await import('../tracking/batch-file-updater.js');
+    const { parseRepositoryPath } = await import('../github/fetcher.js');
+
+    // Initialize totals
+    let totalFiles = 0;
+    let totalUpdated = 0;
+    let totalSkipped = 0;
+    let totalFailed = 0;
+
+    for (const project of metadata.projects) {
+      const { owner, repo } = parseRepositoryPath(project.repository);
+
+      if (args.verbose) {
+        logger.info('Checking updates for project', {
+          repository: project.repository,
+          projectName: project.projectName,
+          filesCount: project.files.length,
+        });
+      }
+
+      // Step 4: Check for updates
+      const checkResult = await checkAllFiles(octokit, owner, repo, '.', project);
+
+      if (args.verbose) {
+        logger.info('Update check completed', {
+          updatable: checkResult.updatable,
+          conflicts: checkResult.conflict,
+          upToDate: checkResult.upToDate,
+        });
+      }
+
+      // Step 5: Apply updates
+      console.log(`\nProject: ${project.repository}/${project.projectName}`);
+
+      const applyResult = await applyUpdates(
+        octokit,
+        owner,
+        repo,
+        '.',
+        checkResult.files,
+        { force: args.force }
+      );
+
+      // Aggregate totals
+      totalFiles += applyResult.totalFiles;
+      totalUpdated += applyResult.updated;
+      totalSkipped += applyResult.skipped;
+      totalFailed += applyResult.failed;
+
+      // Display results for this project
+      if (applyResult.updated > 0) {
+        console.log(`\n✅ Updated (${applyResult.updated} files):`);
+        for (const file of applyResult.updatedFiles) {
+          console.log(`  - ${file.path}`);
+        }
+      }
+
+      if (applyResult.skipped > 0) {
+        console.log(`\n⏭️  Skipped (${applyResult.skipped} files):`);
+        for (const file of applyResult.skippedFiles) {
+          const reasonText = {
+            'up-to-date': 'Already up to date',
+            'local-edit': 'Locally edited',
+            'conflict': 'Conflict (both remote and local changed)',
+            'local-deleted': 'Locally deleted',
+            'remote-deleted': 'Remotely deleted',
+            'error': 'Error during check',
+          }[file.reason] || file.reason;
+
+          console.log(`  - ${file.path} (${reasonText})`);
+        }
+      }
+
+      if (applyResult.failed > 0) {
+        console.log(`\n❌ Failed (${applyResult.failed} files):`);
+        for (const file of applyResult.failedFiles) {
+          console.log(`  - ${file.path}: ${file.error}`);
+        }
+      }
+
+      if (applyResult.updated === 0 && applyResult.skipped === 0 && applyResult.failed === 0) {
+        console.log('\n✓ All files are up to date');
+      }
+    }
+
+    // Step 6: Display summary
+    console.log('\n=== Summary ===');
+    console.log(`Total files processed: ${totalFiles}`);
+    console.log(`✅ Updated: ${totalUpdated}`);
+    console.log(`⏭️  Skipped: ${totalSkipped}`);
+
+    if (totalFailed > 0) {
+      console.log(`❌ Failed: ${totalFailed}`);
+    }
+
+    return {
+      success: totalFailed === 0,
+      filesDownloaded: totalUpdated,
+      filesFailed: totalFailed,
+      exitCode: totalFailed > 0 ? 1 : 0,
+    };
+  } catch (error) {
+    const errorResult = errorHandler.handle(error);
+
+    if (error instanceof Error) {
+      logger.error('Failed to apply updates', {
         message: error.message,
         stack: error.stack,
       });
