@@ -157,6 +157,7 @@ export async function execute(argv: string[]): Promise<ExecutionResult> {
         filesFailed++;
         const errorResult = errorHandler.handle(error, {
           filePath: file.path,
+          details: error instanceof Error ? error.message : String(error),
         });
         reporter.reportError(`Failed: ${file.path} - ${errorResult.message}`);
         logger.logError(errorResult);
@@ -165,8 +166,9 @@ export async function execute(argv: string[]): Promise<ExecutionResult> {
 
     // Report fetch failures
     for (const failedFile of fetchResult.failed) {
-      const errorResult = errorHandler.handle(failedFile.error, {
+      const errorResult = errorHandler.handle(new Error(failedFile.error), {
         filePath: failedFile.path,
+        details: failedFile.error,
       });
       reporter.reportError(`Failed to fetch: ${failedFile.path} - ${errorResult.message}`);
       logger.logError(errorResult);

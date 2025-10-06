@@ -128,6 +128,10 @@ export async function writeFile(
     }
   }
 
+  // Ensure directory exists before writing
+  const directory = path.dirname(filePath);
+  await ensureDirectory(directory);
+
   // Write file
   try {
     await fs.writeFile(filePath, content, 'utf-8');

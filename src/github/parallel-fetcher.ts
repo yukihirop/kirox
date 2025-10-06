@@ -53,14 +53,17 @@ export interface ParallelFetchResult {
  * @throws Error if base64 decoding fails
  */
 export function decodeBase64Content(base64Content: string): string {
+  // Remove whitespace characters (newlines, spaces, tabs) that GitHub API may include
+  const cleanedContent = base64Content.replace(/\s/g, '');
+
   // Validate base64 format (basic validation)
   const base64Regex = /^[A-Za-z0-9+/]*={0,2}$/;
-  if (!base64Regex.test(base64Content)) {
+  if (!base64Regex.test(cleanedContent)) {
     throw new Error('Invalid base64 string format');
   }
 
   try {
-    return Buffer.from(base64Content, 'base64').toString('utf-8');
+    return Buffer.from(cleanedContent, 'base64').toString('utf-8');
   } catch (error) {
     throw new Error(
       `Failed to decode base64 content: ${error instanceof Error ? error.message : 'Unknown error'}`
