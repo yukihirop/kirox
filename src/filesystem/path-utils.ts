@@ -8,6 +8,51 @@
 import path from 'path';
 
 /**
+ * Normalize subdirectory path for .kiro folder location
+ *
+ * Removes leading/trailing slashes, converts backslashes to forward slashes,
+ * normalizes consecutive slashes, and handles root directory cases.
+ *
+ * @param subdirPath - User input subdirectory path
+ * @returns Normalized path (empty string indicates root directory)
+ *
+ * @example
+ * ```typescript
+ * normalizeSubdirPath('/packages/api/')    // 'packages/api'
+ * normalizeSubdirPath('./services/auth')   // 'services/auth'
+ * normalizeSubdirPath('packages\\api')     // 'packages/api'
+ * normalizeSubdirPath('.')                 // ''
+ * normalizeSubdirPath('')                  // ''
+ * ```
+ */
+export function normalizeSubdirPath(subdirPath: string): string {
+  if (!subdirPath || typeof subdirPath !== 'string') {
+    return '';
+  }
+
+  let normalized = subdirPath.trim();
+
+  // Convert backslashes to forward slashes first
+  normalized = normalized.replace(/\\/g, '/');
+
+  // Remove leading / or ./
+  normalized = normalized.replace(/^\/+/, '').replace(/^\.\//, '');
+
+  // Normalize consecutive slashes to single slash
+  normalized = normalized.replace(/\/+/g, '/');
+
+  // Remove trailing /
+  normalized = normalized.replace(/\/+$/, '');
+
+  // Return empty string for . or empty string (root directory)
+  if (normalized === '.' || normalized === '') {
+    return '';
+  }
+
+  return normalized;
+}
+
+/**
  * Validate project name for security (prevent path traversal attacks)
  *
  * Ensures project names don't contain path traversal sequences (..) or path separators,
