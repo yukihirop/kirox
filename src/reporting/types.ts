@@ -55,3 +55,8 @@ export interface ErrorContext {
   count?: number;
   details?: string;
 }
+
+/**
+ * Log level for structured logging
+ */
+export type LogLevel = 'INFO' | 'WARN' | 'ERROR';
