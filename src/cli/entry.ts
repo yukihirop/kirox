@@ -91,15 +91,14 @@ export async function execute(argv: string[]): Promise<ExecutionResult> {
     }
 
     // Collect all file items
-    const allFiles: ContentItem[] = [
-      ...specContents.filter((item) => item.type === 'file'),
-      ...steeringContents.filter((item) => item.type === 'file'),
-    ];
+    const specFiles = specContents.filter((item) => item.type === 'file');
+    const steeringFiles = steeringContents.filter((item) => item.type === 'file');
+    const allFiles: ContentItem[] = [...specFiles, ...steeringFiles];
 
     if (args.verbose) {
       logger.info('Directory listings fetched', {
-        specFiles: specContents.filter((item) => item.type === 'file').length,
-        steeringFiles: steeringContents.filter((item) => item.type === 'file').length,
+        specFiles: specFiles.length,
+        steeringFiles: steeringFiles.length,
         total: allFiles.length,
       });
     }
