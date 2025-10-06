@@ -276,8 +276,14 @@ export async function execute(argv: string[]): Promise<ExecutionResult> {
           }
         }
 
+        // Success message for metadata save
+        reporter.reportSuccess(`Saved metadata: ${metadataPath}`);
+
         if (args.verbose) {
-          logger.info('Metadata saved successfully');
+          logger.info('Metadata saved successfully', {
+            path: metadataPath,
+            filesTracked: writtenFiles.length,
+          });
         }
       } catch (error) {
         // Metadata save failure should not fail the entire operation
