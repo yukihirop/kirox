@@ -51,7 +51,7 @@ describe('GitHubFetcher', () => {
       expect(contents).toBeDefined();
       expect(Array.isArray(contents)).toBe(true);
       expect(contents.length).toBeGreaterThan(0);
-    });
+    }, 10000);
 
     it('should return array of file/directory objects', async () => {
       const client = createGitHubClient();
@@ -67,7 +67,7 @@ describe('GitHubFetcher', () => {
         expect(contents[0]).toHaveProperty('path');
         expect(contents[0]).toHaveProperty('type');
       }
-    });
+    }, 10000);
 
     it('should throw error for non-existent repository', async () => {
       const client = createGitHubClient();
@@ -78,7 +78,7 @@ describe('GitHubFetcher', () => {
       await expect(
         fetchDirectoryContents(client, owner, repo, path)
       ).rejects.toThrow();
-    });
+    }, 10000);
 
     it('should throw error for non-existent directory path', async () => {
       const client = createGitHubClient();
@@ -89,7 +89,7 @@ describe('GitHubFetcher', () => {
       await expect(
         fetchDirectoryContents(client, owner, repo, path)
       ).rejects.toThrow();
-    });
+    }, 10000);
 
     it('should handle root directory path (empty string)', async () => {
       const client = createGitHubClient();
@@ -101,7 +101,7 @@ describe('GitHubFetcher', () => {
 
       expect(contents).toBeDefined();
       expect(Array.isArray(contents)).toBe(true);
-    });
+    }, 10000);
 
     it('should differentiate between files and directories', async () => {
       const client = createGitHubClient();
@@ -115,7 +115,7 @@ describe('GitHubFetcher', () => {
       const item = contents.find((item) => item.type === 'file' || item.type === 'dir');
       expect(item).toBeDefined();
       expect(['file', 'dir']).toContain(item?.type);
-    });
+    }, 10000);
 
     it('should include necessary metadata (name, path, type, sha)', async () => {
       const client = createGitHubClient();
@@ -132,7 +132,7 @@ describe('GitHubFetcher', () => {
         expect(item).toHaveProperty('type');
         expect(item).toHaveProperty('sha');
       }
-    });
+    }, 10000);
   });
 
   describe('Error Handling', () => {
@@ -145,7 +145,7 @@ describe('GitHubFetcher', () => {
       await expect(
         fetchDirectoryContents(client, owner, repo, path)
       ).rejects.toThrow();
-    });
+    }, 10000);
 
     it('should handle network errors gracefully', async () => {
       const client = createGitHubClient();
@@ -157,6 +157,6 @@ describe('GitHubFetcher', () => {
       await expect(
         fetchDirectoryContents(client, owner, repo, path)
       ).rejects.toThrow();
-    });
+    }, 10000);
   });
 });

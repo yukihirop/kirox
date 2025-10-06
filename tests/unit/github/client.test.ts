@@ -59,7 +59,7 @@ describe('GitHubClient', () => {
       expect(rateLimit.remaining).toBeGreaterThanOrEqual(0);
       expect(rateLimit.limit).toBeGreaterThan(0);
       expect(rateLimit.resetAt).toBeInstanceOf(Date);
-    });
+    }, 10000); // 10 second timeout for API call
 
     it('should return resetAt as future date', async () => {
       const client = createGitHubClient();
@@ -67,7 +67,7 @@ describe('GitHubClient', () => {
       const rateLimit = await getRateLimit(client);
 
       expect(rateLimit.resetAt.getTime()).toBeGreaterThan(Date.now());
-    });
+    }, 10000);
 
     it('should convert Unix timestamp to Date correctly', async () => {
       const client = createGitHubClient();
@@ -77,7 +77,7 @@ describe('GitHubClient', () => {
       // Verify that resetAt is a valid Date object with reasonable value
       expect(rateLimit.resetAt).toBeInstanceOf(Date);
       expect(rateLimit.resetAt.getFullYear()).toBeGreaterThanOrEqual(2024);
-    });
+    }, 10000);
   });
 
   describe('Authentication Error Handling', () => {
@@ -92,7 +92,7 @@ describe('GitHubClient', () => {
 
       expect(result.data).toBeDefined();
       expect(result.data.name).toBe('Hello-World');
-    });
+    }, 10000);
 
     it('should track rate limit information', async () => {
       const client = createGitHubClient();
@@ -102,7 +102,7 @@ describe('GitHubClient', () => {
       expect(rateLimit.remaining).toBeDefined();
       expect(rateLimit.limit).toBeDefined();
       expect(rateLimit.resetAt).toBeDefined();
-    });
+    }, 10000);
 
     it('should create client with userAgent header', () => {
       const client = createGitHubClient();
