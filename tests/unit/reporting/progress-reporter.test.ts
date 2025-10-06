@@ -281,4 +281,97 @@ describe('ProgressReporter', () => {
       expect(hasGrayCode).toBe(true);
     });
   });
+
+  describe('reportDryRunFileList', () => {
+    it('should display list of files to be fetched in dry-run mode', () => {
+      const options: ReporterOptions = { verbose: false, useColor: true };
+      const reporter = new ProgressReporter(options);
+
+      const files = ['file1.md', 'file2.md', 'file3.md'];
+      reporter.reportDryRunFileList(files);
+
+      // Check that all files are displayed
+      const allCalls = consoleLogSpy.mock.calls.map((call) => call[0]);
+      const hasFile1 = allCalls.some((msg) => String(msg).includes('file1.md'));
+      const hasFile2 = allCalls.some((msg) => String(msg).includes('file2.md'));
+      const hasFile3 = allCalls.some((msg) => String(msg).includes('file3.md'));
+
+      expect(hasFile1).toBe(true);
+      expect(hasFile2).toBe(true);
+      expect(hasFile3).toBe(true);
+    });
+
+    it('should display dry-run header message', () => {
+      const options: ReporterOptions = { verbose: false, useColor: true };
+      const reporter = new ProgressReporter(options);
+
+      const files = ['test.md'];
+      reporter.reportDryRunFileList(files);
+
+      const allCalls = consoleLogSpy.mock.calls.map((call) => call[0]);
+      const hasDryRunMessage = allCalls.some((msg) =>
+        /dry.*run/i.test(String(msg))
+      );
+
+      expect(hasDryRunMessage).toBe(true);
+    });
+
+    it('should display file count in dry-run mode', () => {
+      const options: ReporterOptions = { verbose: false, useColor: true };
+      const reporter = new ProgressReporter(options);
+
+      const files = ['file1.md', 'file2.md', 'file3.md'];
+      reporter.reportDryRunFileList(files);
+
+      const allCalls = consoleLogSpy.mock.calls.map((call) => call[0]);
+      const hasCount = allCalls.some((msg) => /3.*file/i.test(String(msg)));
+
+      expect(hasCount).toBe(true);
+    });
+
+    it('should use cyan color for dry-run messages when useColor is true', () => {
+      const options: ReporterOptions = { verbose: false, useColor: true };
+      const reporter = new ProgressReporter(options);
+
+      const files = ['test.md'];
+      reporter.reportDryRunFileList(files);
+
+      const calls = consoleLogSpy.mock.calls.flat();
+      const hasCyanCode = calls.some((arg) =>
+        String(arg).includes('\x1b[36m')
+      );
+
+      expect(hasCyanCode).toBe(true);
+    });
+
+    it('should not use color codes when useColor is false', () => {
+      const options: ReporterOptions = { verbose: false, useColor: false };
+      const reporter = new ProgressReporter(options);
+
+      const files = ['test.md'];
+      reporter.reportDryRunFileList(files);
+
+      const calls = consoleLogSpy.mock.calls.flat();
+      const hasColorCodes = calls.some((arg) =>
+        String(arg).includes('\x1b[')
+      );
+
+      expect(hasColorCodes).toBe(false);
+    });
+
+    it('should handle empty file list', () => {
+      const options: ReporterOptions = { verbose: false, useColor: true };
+      const reporter = new ProgressReporter(options);
+
+      const files: string[] = [];
+      reporter.reportDryRunFileList(files);
+
+      const allCalls = consoleLogSpy.mock.calls.map((call) => call[0]);
+      const hasNoFilesMessage = allCalls.some((msg) =>
+        /0.*file|no.*file/i.test(String(msg))
+      );
+
+      expect(hasNoFilesMessage).toBe(true);
+    });
+  });
 });

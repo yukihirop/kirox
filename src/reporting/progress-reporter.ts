@@ -153,4 +153,35 @@ export class ProgressReporter {
 
     console.log(this.chalk.gray(formattedMessage));
   }
+
+  /**
+   * Report dry-run file list
+   *
+   * Displays list of files that would be fetched in dry-run mode
+   *
+   * @param files - Array of file paths to be fetched
+   *
+   * @example
+   * ```typescript
+   * reporter.reportDryRunFileList(['file1.md', 'file2.md']);
+   * // Output: [DRY-RUN] Would fetch 2 files:
+   * //           - file1.md
+   * //           - file2.md
+   * ```
+   */
+  reportDryRunFileList(files: string[]): void {
+    const count = files.length;
+    const headerMessage = `\n[DRY-RUN] Would fetch ${count} file${count !== 1 ? 's' : ''}:`;
+
+    console.log(this.chalk.cyan(headerMessage));
+
+    if (count === 0) {
+      console.log(this.chalk.gray('  (no files to fetch)'));
+      return;
+    }
+
+    files.forEach((file) => {
+      console.log(this.chalk.cyan(`  - ${file}`));
+    });
+  }
 }
