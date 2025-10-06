@@ -57,11 +57,11 @@ describe('PathUtils', () => {
     });
 
     it('should throw error for invalid project name', () => {
-      expect(() => getSpecDirectoryPath('../etc')).toThrow('Invalid project name');
+      expect(() => getSpecDirectoryPath('../etc')).toThrow('無効なプロジェクト名です');
     });
 
     it('should throw error for empty project name', () => {
-      expect(() => getSpecDirectoryPath('')).toThrow('Invalid project name');
+      expect(() => getSpecDirectoryPath('')).toThrow('無効なプロジェクト名です');
     });
   });
 

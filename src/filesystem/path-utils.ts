@@ -99,6 +99,50 @@ export function validateSubdirPath(subdirPath: string): void {
 }
 
 /**
+ * Build remote path from subdirectory and project name
+ *
+ * Constructs the remote repository path for fetching .kiro files.
+ * Supports both specs and steering directories, with or without subdirectories.
+ *
+ * @param subdir - Normalized subdirectory path (empty string indicates root)
+ * @param projectName - Project name (required for specs, ignored for steering)
+ * @param type - Type of directory: "specs" or "steering"
+ * @returns Remote path (e.g., "packages/api/.kiro/specs/my-project")
+ * @throws Error if project name is invalid for specs type
+ *
+ * @example
+ * ```typescript
+ * buildRemotePath('packages/api', 'my-project', 'specs')
+ * // Returns: 'packages/api/.kiro/specs/my-project'
+ *
+ * buildRemotePath('', 'my-project', 'specs')
+ * // Returns: '.kiro/specs/my-project'
+ *
+ * buildRemotePath('packages/api', '', 'steering')
+ * // Returns: 'packages/api/.kiro/steering'
+ *
+ * buildRemotePath('', '', 'steering')
+ * // Returns: '.kiro/steering'
+ * ```
+ */
+export function buildRemotePath(
+  subdir: string,
+  projectName: string,
+  type: 'specs' | 'steering'
+): string {
+  const kiroBase = subdir ? `${subdir}/.kiro` : '.kiro';
+
+  if (type === 'specs') {
+    if (!isValidProjectName(projectName)) {
+      throw new Error(`無効なプロジェクト名です: "${projectName}"`);
+    }
+    return `${kiroBase}/specs/${projectName}`;
+  } else {
+    return `${kiroBase}/steering`;
+  }
+}
+
+/**
  * Validate project name for security (prevent path traversal attacks)
  *
  * Ensures project names don't contain path traversal sequences (..) or path separators,
@@ -142,27 +186,23 @@ export function isValidProjectName(projectName: string): boolean {
 /**
  * Get spec directory path for a project
  *
+ * @deprecated Use buildRemotePath(subdir, projectName, 'specs') instead
  * @param projectName - Project name
  * @returns Spec directory path (.kiro/specs/<project>)
  * @throws Error if project name is invalid
  */
 export function getSpecDirectoryPath(projectName: string): string {
-  if (!isValidProjectName(projectName)) {
-    throw new Error(
-      `Invalid project name: "${projectName}". Project name must not contain path traversal or separators.`
-    );
-  }
-
-  return `.kiro/specs/${projectName}`;
+  return buildRemotePath('', projectName, 'specs');
 }
 
 /**
  * Get steering directory path
  *
+ * @deprecated Use buildRemotePath(subdir, '', 'steering') instead
  * @returns Steering directory path (.kiro/steering)
  */
 export function getSteeringDirectoryPath(): string {
-  return '.kiro/steering';
+  return buildRemotePath('', '', 'steering');
 }
 
 /**
