@@ -1,0 +1,300 @@
+/**
+ * Integration tests for CLI → GitHub API → File System flow
+ */
+
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { execute } from '@/cli/entry';
+import { promises as fs } from 'fs';
+import { Octokit } from 'octokit';
+import path from 'path';
+
+// Mock Octokit
+vi.mock('octokit');
+
+describe('CLI to GitHub to FileSystem Integration', () => {
+  const testOutputDir = path.join(process.cwd(), 'tests', 'integration', 'test-output');
+
+  beforeEach(async () => {
+    // Clean up test output directory
+    try {
+      await fs.rm(testOutputDir, { recursive: true, force: true });
+    } catch {
+      // Directory doesn't exist, ignore
+    }
+    await fs.mkdir(testOutputDir, { recursive: true });
+  });
+
+  afterEach(async () => {
+    // Clean up after tests
+    try {
+      await fs.rm(testOutputDir, { recursive: true, force: true });
+    } catch {
+      // Ignore cleanup errors
+    }
+    vi.clearAllMocks();
+  });
+
+  describe('Full flow integration', () => {
+    it('should fetch files from GitHub and write to local filesystem', async () => {
+      // Mock Octokit responses
+      const mockOctokit = {
+        rest: {
+          repos: {
+            getContent: vi.fn()
+              .mockResolvedValueOnce({
+                // Mock .kiro/specs/test-project directory listing
+                data: [
+                  {
+                    name: 'spec.json',
+                    path: '.kiro/specs/test-project/spec.json',
+                    type: 'file',
+                    sha: 'abc123',
+                    size: 100,
+                  },
+                ],
+              })
+              .mockResolvedValueOnce({
+                // Mock .kiro/steering directory listing
+                data: [
+                  {
+                    name: 'product.md',
+                    path: '.kiro/steering/product.md',
+                    type: 'file',
+                    sha: 'def456',
+                    size: 200,
+                  },
+                ],
+              })
+              .mockResolvedValueOnce({
+                // Mock spec.json file content
+                data: {
+                  type: 'file',
+                  encoding: 'base64',
+                  content: Buffer.from('{"test": "data"}', 'utf-8').toString('base64'),
+                  size: 100,
+                  path: '.kiro/specs/test-project/spec.json',
+                  sha: 'abc123',
+                },
+              })
+              .mockResolvedValueOnce({
+                // Mock product.md file content
+                data: {
+                  type: 'file',
+                  encoding: 'base64',
+                  content: Buffer.from('# Product Documentation', 'utf-8').toString('base64'),
+                  size: 200,
+                  path: '.kiro/steering/product.md',
+                  sha: 'def456',
+                },
+              }),
+          },
+          rateLimit: {
+            get: vi.fn().mockResolvedValue({
+              data: {
+                rate: {
+                  remaining: 5000,
+                  limit: 5000,
+                  reset: Date.now() / 1000 + 3600,
+                },
+              },
+            }),
+          },
+        },
+      };
+
+      vi.mocked(Octokit).mockImplementation(() => mockOctokit as any);
+
+      // Execute CLI command
+      const argv = [
+        'node',
+        'kirox',
+        'owner/repo',
+        '-p',
+        'test-project',
+        '-o',
+        testOutputDir,
+        '--force',
+      ];
+
+      const result = await execute(argv);
+
+      // Verify execution succeeded
+      expect(result.success).toBe(true);
+      expect(result.filesDownloaded).toBe(2);
+      expect(result.filesFailed).toBe(0);
+
+      // Verify files were written to filesystem
+      const specJsonPath = path.join(testOutputDir, '.kiro/specs/test-project/spec.json');
+      const productMdPath = path.join(testOutputDir, '.kiro/steering/product.md');
+
+      const specJsonExists = await fs
+        .access(specJsonPath)
+        .then(() => true)
+        .catch(() => false);
+      const productMdExists = await fs
+        .access(productMdPath)
+        .then(() => true)
+        .catch(() => false);
+
+      expect(specJsonExists).toBe(true);
+      expect(productMdExists).toBe(true);
+
+      // Verify file contents
+      const specJsonContent = await fs.readFile(specJsonPath, 'utf-8');
+      const productMdContent = await fs.readFile(productMdPath, 'utf-8');
+
+      expect(specJsonContent).toBe('{"test": "data"}');
+      expect(productMdContent).toBe('# Product Documentation');
+    });
+
+    it('should handle partial failures gracefully', async () => {
+      const mockOctokit = {
+        rest: {
+          repos: {
+            getContent: vi.fn()
+              .mockResolvedValueOnce({
+                // Mock directory listing with 2 files
+                data: [
+                  {
+                    name: 'file1.md',
+                    path: '.kiro/specs/test-project/file1.md',
+                    type: 'file',
+                    sha: 'abc',
+                    size: 100,
+                  },
+                  {
+                    name: 'file2.md',
+                    path: '.kiro/specs/test-project/file2.md',
+                    type: 'file',
+                    sha: 'def',
+                    size: 100,
+                  },
+                ],
+              })
+              .mockResolvedValueOnce({
+                // Mock empty steering directory
+                data: [],
+              })
+              .mockResolvedValueOnce({
+                // Mock file1.md content (success)
+                data: {
+                  type: 'file',
+                  encoding: 'base64',
+                  content: Buffer.from('Content 1', 'utf-8').toString('base64'),
+                  size: 100,
+                  path: '.kiro/specs/test-project/file1.md',
+                  sha: 'abc',
+                },
+              })
+              .mockRejectedValueOnce(new Error('File not found')), // file2.md fails
+          },
+          rateLimit: {
+            get: vi.fn().mockResolvedValue({
+              data: {
+                rate: {
+                  remaining: 5000,
+                  limit: 5000,
+                  reset: Date.now() / 1000 + 3600,
+                },
+              },
+            }),
+          },
+        },
+      };
+
+      vi.mocked(Octokit).mockImplementation(() => mockOctokit as any);
+
+      const argv = [
+        'node',
+        'kirox',
+        'owner/repo',
+        '-p',
+        'test-project',
+        '-o',
+        testOutputDir,
+        '--force',
+      ];
+
+      const result = await execute(argv);
+
+      // Verify partial success
+      expect(result.filesDownloaded).toBe(1);
+      expect(result.filesFailed).toBe(1);
+      expect(result.exitCode).toBe(1);
+
+      // Verify successful file was written
+      const file1Path = path.join(testOutputDir, '.kiro/specs/test-project/file1.md');
+      const file1Exists = await fs
+        .access(file1Path)
+        .then(() => true)
+        .catch(() => false);
+
+      expect(file1Exists).toBe(true);
+    });
+  });
+
+  describe('Directory creation', () => {
+    it('should create nested directories automatically', async () => {
+      const mockOctokit = {
+        rest: {
+          repos: {
+            getContent: vi.fn()
+              .mockResolvedValueOnce({
+                data: [
+                  {
+                    name: 'deep.md',
+                    path: '.kiro/specs/test-project/deep.md',
+                    type: 'file',
+                    sha: 'abc',
+                    size: 50,
+                  },
+                ],
+              })
+              .mockResolvedValueOnce({ data: [] })
+              .mockResolvedValueOnce({
+                data: {
+                  type: 'file',
+                  encoding: 'base64',
+                  content: Buffer.from('Deep content', 'utf-8').toString('base64'),
+                  size: 50,
+                  path: '.kiro/specs/test-project/deep.md',
+                  sha: 'abc',
+                },
+              }),
+          },
+          rateLimit: {
+            get: vi.fn().mockResolvedValue({
+              data: {
+                rate: { remaining: 5000, limit: 5000, reset: Date.now() / 1000 + 3600 },
+              },
+            }),
+          },
+        },
+      };
+
+      vi.mocked(Octokit).mockImplementation(() => mockOctokit as any);
+
+      const argv = [
+        'node',
+        'kirox',
+        'owner/repo',
+        '-p',
+        'test-project',
+        '-o',
+        testOutputDir,
+        '--force',
+      ];
+
+      await execute(argv);
+
+      // Verify nested directory was created
+      const deepFilePath = path.join(testOutputDir, '.kiro/specs/test-project/deep.md');
+      const deepFileExists = await fs
+        .access(deepFilePath)
+        .then(() => true)
+        .catch(() => false);
+
+      expect(deepFileExists).toBe(true);
+    });
+  });
+});

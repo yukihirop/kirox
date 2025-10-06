@@ -54,6 +54,19 @@ export function isRetryableError(error: unknown): boolean {
     return false;
   }
 
+  // Check error code (for network errors)
+  if (typeof error === 'object' && 'code' in error) {
+    const code = (error as { code: string }).code;
+    if (
+      code === 'ECONNRESET' ||
+      code === 'ECONNREFUSED' ||
+      code === 'ETIMEDOUT' ||
+      code === 'ENOTFOUND'
+    ) {
+      return true;
+    }
+  }
+
   // Network errors (ECONNRESET, ETIMEDOUT, etc.)
   if (error instanceof Error) {
     const message = error.message.toUpperCase();
