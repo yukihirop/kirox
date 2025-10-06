@@ -23,6 +23,7 @@ export function parseArguments(argv: string[]): ParsedArguments {
     .version('0.1.0')
     .argument('<repository>', 'GitHub repository in format "owner/repo"')
     .requiredOption('-p, --project <name>', 'Project name to fetch')
+    .option('-o, --output <path>', 'Output directory (default: current directory)', '.')
     .option('--force', 'Force overwrite without confirmation', false)
     .option('--dry-run', 'Dry-run mode (no actual writes)', false)
     .option('--verbose', 'Verbose logging', false)
@@ -34,6 +35,7 @@ export function parseArguments(argv: string[]): ParsedArguments {
   const repository = program.args[0];
   const options = program.opts<{
     project: string;
+    output: string;
     force: boolean;
     dryRun: boolean;
     verbose: boolean;
@@ -47,6 +49,7 @@ export function parseArguments(argv: string[]): ParsedArguments {
   return {
     repository,
     project: options.project,
+    output: options.output,
     force: options.force,
     dryRun: options.dryRun,
     verbose: options.verbose,

@@ -67,6 +67,7 @@ describe('ArgumentParser', () => {
       expect(result.force).toBe(false);
       expect(result.dryRun).toBe(false);
       expect(result.verbose).toBe(false);
+      expect(result.output).toBe('.');
       expect(result.config).toBeUndefined();
     });
 
@@ -75,6 +76,34 @@ describe('ArgumentParser', () => {
       const result = parseArguments(argv);
 
       expect(result.project).toBe('project');
+    });
+
+    it('should parse --output option with current directory', () => {
+      const argv = ['node', 'kirox', 'owner/repo', '-p', 'project', '--output', '.'];
+      const result = parseArguments(argv);
+
+      expect(result.output).toBe('.');
+    });
+
+    it('should parse -o short flag for output', () => {
+      const argv = ['node', 'kirox', 'owner/repo', '-p', 'project', '-o', './external'];
+      const result = parseArguments(argv);
+
+      expect(result.output).toBe('./external');
+    });
+
+    it('should parse --output option with relative path', () => {
+      const argv = ['node', 'kirox', 'owner/repo', '-p', 'project', '--output', '../shared-specs'];
+      const result = parseArguments(argv);
+
+      expect(result.output).toBe('../shared-specs');
+    });
+
+    it('should parse --output option with absolute path', () => {
+      const argv = ['node', 'kirox', 'owner/repo', '-p', 'project', '--output', '/tmp/kiro-test'];
+      const result = parseArguments(argv);
+
+      expect(result.output).toBe('/tmp/kiro-test');
     });
   });
 });

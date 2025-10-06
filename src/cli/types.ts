@@ -10,6 +10,8 @@ export interface ParsedArguments {
   repository: string;
   /** Project name to fetch */
   project: string;
+  /** Output directory (default: current directory) */
+  output: string;
   /** Force overwrite without confirmation */
   force: boolean;
   /** Dry-run mode (no actual writes) */

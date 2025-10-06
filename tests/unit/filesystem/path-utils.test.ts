@@ -3,11 +3,13 @@
  */
 
 import { describe, it, expect } from 'vitest';
+import path from 'path';
 import {
   convertRemoteToLocalPath,
   getSpecDirectoryPath,
   getSteeringDirectoryPath,
   isValidProjectName,
+  resolveOutputPath,
 } from '@/filesystem/path-utils';
 
 describe('PathUtils', () => {
@@ -111,6 +113,63 @@ describe('PathUtils', () => {
       const remotePath = '.kiro//specs//project//file.md';
       const result = convertRemoteToLocalPath(remotePath);
       expect(result).toBe('.kiro/specs/project/file.md');
+    });
+  });
+
+  describe('resolveOutputPath', () => {
+    it('should resolve output path with current directory', () => {
+      const result = resolveOutputPath('.', '.kiro/specs/myapp/requirements.md');
+      const expected = path.resolve('.', '.kiro/specs/myapp/requirements.md');
+      expect(result).toBe(expected);
+    });
+
+    it('should resolve output path with relative directory', () => {
+      const result = resolveOutputPath('./external', '.kiro/specs/myapp/requirements.md');
+      const expected = path.resolve('./external', '.kiro/specs/myapp/requirements.md');
+      expect(result).toBe(expected);
+    });
+
+    it('should resolve output path with absolute directory', () => {
+      const result = resolveOutputPath('/tmp/test', '.kiro/steering/tech.md');
+      const expected = path.normalize('/tmp/test/.kiro/steering/tech.md');
+      expect(result).toBe(expected);
+    });
+
+    it('should handle nested relative paths', () => {
+      const result = resolveOutputPath('../shared-specs', '.kiro/specs/project/file.md');
+      const expected = path.resolve('../shared-specs', '.kiro/specs/project/file.md');
+      expect(result).toBe(expected);
+    });
+
+    it('should throw error for empty output directory', () => {
+      expect(() => resolveOutputPath('', '.kiro/specs/project/file.md')).toThrow(
+        'Output directory must be a non-empty string'
+      );
+    });
+
+    it('should throw error for invalid remote path', () => {
+      expect(() => resolveOutputPath('.', 'src/index.ts')).toThrow(
+        'Path must be within .kiro directory'
+      );
+    });
+
+    it('should throw error for remote path with traversal', () => {
+      // After normalization, '.kiro/specs/../../etc/passwd' becomes 'etc/passwd'
+      // which doesn't start with '.kiro/', so it triggers "Path must be within .kiro directory"
+      expect(() => resolveOutputPath('.', '.kiro/specs/../../etc/passwd')).toThrow(
+        'Path must be within .kiro directory'
+      );
+    });
+
+    it('should normalize paths correctly', () => {
+      const result = resolveOutputPath('./output', '.kiro/specs/project/file.md');
+      // Should be absolute path
+      expect(path.isAbsolute(result)).toBe(true);
+      // Should contain .kiro/specs/project/file.md
+      expect(result).toContain('.kiro');
+      expect(result).toContain('specs');
+      expect(result).toContain('project');
+      expect(result).toContain('file.md');
     });
   });
 });

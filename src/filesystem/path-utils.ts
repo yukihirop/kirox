@@ -104,3 +104,48 @@ export function convertRemoteToLocalPath(remotePath: string): string {
 
   return cleaned;
 }
+
+/**
+ * Resolve output path by combining output directory with remote path
+ *
+ * Supports both relative and absolute output directory paths.
+ * The remote path is appended to the output directory.
+ *
+ * @param outputDir - Output directory (e.g., '.', './specs', '/absolute/path')
+ * @param remotePath - Path in remote repository (e.g., '.kiro/specs/project/file.md')
+ * @returns Resolved absolute local file path
+ * @throws Error if paths are invalid
+ *
+ * @example
+ * ```typescript
+ * resolveOutputPath('.', '.kiro/specs/myapp/requirements.md')
+ * // Returns: '/current/dir/.kiro/specs/myapp/requirements.md'
+ *
+ * resolveOutputPath('./external', '.kiro/specs/myapp/requirements.md')
+ * // Returns: '/current/dir/external/.kiro/specs/myapp/requirements.md'
+ *
+ * resolveOutputPath('/tmp/test', '.kiro/steering/tech.md')
+ * // Returns: '/tmp/test/.kiro/steering/tech.md'
+ * ```
+ */
+export function resolveOutputPath(
+  outputDir: string,
+  remotePath: string
+): string {
+  if (!outputDir || typeof outputDir !== 'string') {
+    throw new Error('Output directory must be a non-empty string');
+  }
+
+  // Validate and normalize remote path
+  const normalizedRemotePath = convertRemoteToLocalPath(remotePath);
+
+  // Resolve output directory to absolute path
+  // path.resolve handles both relative and absolute paths
+  const absoluteOutputDir = path.resolve(outputDir);
+
+  // Combine output directory with remote path
+  const fullPath = path.join(absoluteOutputDir, normalizedRemotePath);
+
+  // Normalize and return
+  return path.normalize(fullPath);
+}
