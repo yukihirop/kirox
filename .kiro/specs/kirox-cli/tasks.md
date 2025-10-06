@@ -1,6 +1,6 @@
 # 実装計画
 
-- [ ] 1. プロジェクト基盤とTypeScript環境のセットアップ
+- [x] 1. プロジェクト基盤とTypeScript環境のセットアップ
   - Node.js 18+とTypeScript 5.xでプロジェクトを初期化
   - package.jsonでnpx実行可能な設定（binフィールド）を構成
   - TypeScriptコンパイラ設定（tsconfig.json）をESM形式で準備
