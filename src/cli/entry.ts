@@ -14,8 +14,11 @@ import { ProgressReporter } from '../reporting/progress-reporter.js';
 import { ErrorHandler } from '../reporting/error-handler.js';
 import { Logger } from '../reporting/logger.js';
 import { resolveOutputPath, getSpecDirectoryPath, getSteeringDirectoryPath } from '../filesystem/path-utils.js';
+import { loadMetadata, upsertProject, upsertFile } from '../tracking/metadata-manager.js';
+import { calculateFileHash } from '../tracking/hash-calculator.js';
 import type { ExecutionResult } from './types.js';
 import type { ContentItem } from '../github/fetcher.js';
+import type { FileMetadata } from '../tracking/types.js';
 
 /**
  * Execute main CLI logic
@@ -126,6 +129,9 @@ export async function execute(argv: string[]): Promise<ExecutionResult> {
     let filesDownloaded = 0;
     let filesFailed = fetchResult.failed.length;
 
+    // Track written files for metadata (when --track is used)
+    const writtenFiles: Array<{ path: string; sha: string; size: number; localPath: string }> = [];
+
     for (const file of fetchResult.success) {
       const currentIndex = fetchResult.success.indexOf(file) + 1;
       const totalFiles = fetchResult.success.length;
@@ -147,6 +153,16 @@ export async function execute(argv: string[]): Promise<ExecutionResult> {
         if (writeResult.written) {
           filesDownloaded++;
           reporter.reportSuccess(`Saved: ${file.path}`);
+
+          // Track written file for metadata
+          if (args.track) {
+            writtenFiles.push({
+              path: file.path,
+              sha: file.sha,
+              size: file.size,
+              localPath,
+            });
+          }
         } else if (writeResult.skipped) {
           reporter.reportVerbose(
             `Skipped: ${file.path} (${writeResult.reason})`
@@ -173,7 +189,86 @@ export async function execute(argv: string[]): Promise<ExecutionResult> {
       logger.logError(errorResult);
     }
 
-    // Step 6: Report summary
+    // Step 8: Save metadata if --track option is used
+    if (args.track && writtenFiles.length > 0) {
+      try {
+        if (args.verbose) {
+          logger.info('Saving tracking metadata', {
+            filesCount: writtenFiles.length,
+          });
+        }
+
+        // Check if metadata exists
+        try {
+          const existingMetadata = await loadMetadata();
+          if (args.verbose) {
+            logger.info('Loaded existing metadata', {
+              projectsCount: existingMetadata.projects.length,
+            });
+          }
+        } catch (error) {
+          // Metadata doesn't exist
+          if (args.verbose) {
+            logger.info('Creating new metadata file');
+          }
+        }
+
+        // Upsert project
+        await upsertProject({
+          repository: args.repository,
+          projectName: args.project,
+          fetchedAt: new Date().toISOString(),
+          files: [],
+        });
+
+        // Calculate hashes and upsert files
+        for (const file of writtenFiles) {
+          try {
+            // Calculate local file hash
+            const localHash = await calculateFileHash(file.localPath);
+
+            const fileMetadata: FileMetadata = {
+              path: file.path,
+              sha: file.sha,
+              size: file.size,
+              localHash,
+              fetchedAt: new Date().toISOString(),
+            };
+
+            await upsertFile(args.repository, args.project, fileMetadata);
+
+            if (args.verbose) {
+              logger.info('File metadata saved', {
+                path: file.path,
+                sha: file.sha,
+                hash: localHash,
+              });
+            }
+          } catch (error) {
+            // Log hash calculation error but continue
+            logger.warn('Failed to calculate file hash', {
+              path: file.path,
+              error: error instanceof Error ? error.message : String(error),
+            });
+          }
+        }
+
+        if (args.verbose) {
+          logger.info('Metadata saved successfully');
+        }
+      } catch (error) {
+        // Metadata save failure should not fail the entire operation
+        // Files were already successfully downloaded
+        logger.warn('Failed to save tracking metadata', {
+          error: error instanceof Error ? error.message : String(error),
+        });
+        reporter.reportVerbose(
+          'Warning: Failed to save tracking metadata, but files were downloaded successfully'
+        );
+      }
+    }
+
+    // Step 9: Report summary
     reporter.reportSummary(filesDownloaded, filesFailed);
 
     logger.info('Execution completed', {
