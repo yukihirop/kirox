@@ -9,10 +9,11 @@ import {
   loadMetadata,
   saveMetadata,
   upsertProject,
+  upsertFile,
   METADATA_PATH,
 } from '../../../src/tracking/metadata-manager.js';
 import { MetadataErrorType } from '../../../src/tracking/types.js';
-import type { Metadata, ProjectMetadata } from '../../../src/tracking/types.js';
+import type { Metadata, ProjectMetadata, FileMetadata } from '../../../src/tracking/types.js';
 
 describe('MetadataManager - loadMetadata', () => {
   const testDir = path.join(process.cwd(), '.test-kiro');
@@ -749,6 +750,342 @@ describe('MetadataManager - upsertProject', () => {
       await expect(upsertProject(project, nonExistentPath)).rejects.toThrow();
       await expect(upsertProject(project, nonExistentPath)).rejects.toMatchObject({
         type: MetadataErrorType.WRITE_FAILED,
+      });
+    });
+  });
+});
+
+describe('MetadataManager - upsertFile', () => {
+  const testDir = path.join(process.cwd(), '.test-kiro-upsert-file');
+  const testMetadataPath = path.join(testDir, '.kirox-meta.json');
+
+  beforeEach(async () => {
+    // Create test directory
+    await fs.mkdir(testDir, { recursive: true });
+  });
+
+  afterEach(async () => {
+    // Clean up test directory
+    await fs.rm(testDir, { recursive: true, force: true });
+  });
+
+  describe('正常系: 新規ファイル追加', () => {
+    it('プロジェクトに新規ファイルを追加できる', async () => {
+      // Arrange
+      const initialMetadata: Metadata = {
+        version: '1.0',
+        projects: [
+          {
+            repository: 'owner/repo',
+            projectName: 'test-project',
+            fetchedAt: '2025-10-06T10:00:00Z',
+            files: [],
+          },
+        ],
+      };
+      await fs.writeFile(
+        testMetadataPath,
+        JSON.stringify(initialMetadata, null, 2),
+        'utf-8'
+      );
+
+      const newFile: FileMetadata = {
+        path: '.kiro/specs/test-project/spec.json',
+        sha: 'abc123',
+        localHash: 'def456',
+        size: 1024,
+        fetchedAt: '2025-10-06T10:00:00Z',
+      };
+
+      // Act
+      await upsertFile('owner/repo', 'test-project', newFile, testMetadataPath);
+
+      // Assert
+      const metadata = await loadMetadata(testMetadataPath);
+      expect(metadata.projects[0].files).toHaveLength(1);
+      expect(metadata.projects[0].files[0]).toEqual(newFile);
+    });
+
+    it('既存ファイルがある場合、新規ファイルを追加できる', async () => {
+      // Arrange
+      const initialMetadata: Metadata = {
+        version: '1.0',
+        projects: [
+          {
+            repository: 'owner/repo',
+            projectName: 'test-project',
+            fetchedAt: '2025-10-06T10:00:00Z',
+            files: [
+              {
+                path: '.kiro/specs/test-project/existing.md',
+                sha: 'existing-sha',
+                localHash: 'existing-hash',
+                size: 500,
+                fetchedAt: '2025-10-06T09:00:00Z',
+              },
+            ],
+          },
+        ],
+      };
+      await fs.writeFile(
+        testMetadataPath,
+        JSON.stringify(initialMetadata, null, 2),
+        'utf-8'
+      );
+
+      const newFile: FileMetadata = {
+        path: '.kiro/specs/test-project/spec.json',
+        sha: 'abc123',
+        localHash: 'def456',
+        size: 1024,
+        fetchedAt: '2025-10-06T10:00:00Z',
+      };
+
+      // Act
+      await upsertFile('owner/repo', 'test-project', newFile, testMetadataPath);
+
+      // Assert
+      const metadata = await loadMetadata(testMetadataPath);
+      expect(metadata.projects[0].files).toHaveLength(2);
+      expect(metadata.projects[0].files[1]).toEqual(newFile);
+    });
+  });
+
+  describe('正常系: 既存ファイル更新', () => {
+    it('同一パスのファイルが存在する場合、更新する', async () => {
+      // Arrange
+      const initialMetadata: Metadata = {
+        version: '1.0',
+        projects: [
+          {
+            repository: 'owner/repo',
+            projectName: 'test-project',
+            fetchedAt: '2025-10-06T10:00:00Z',
+            files: [
+              {
+                path: '.kiro/specs/test-project/spec.json',
+                sha: 'old-sha',
+                localHash: 'old-hash',
+                size: 500,
+                fetchedAt: '2025-10-06T09:00:00Z',
+              },
+            ],
+          },
+        ],
+      };
+      await fs.writeFile(
+        testMetadataPath,
+        JSON.stringify(initialMetadata, null, 2),
+        'utf-8'
+      );
+
+      const updatedFile: FileMetadata = {
+        path: '.kiro/specs/test-project/spec.json',
+        sha: 'new-sha',
+        localHash: 'new-hash',
+        size: 1024,
+        fetchedAt: '2025-10-06T11:00:00Z',
+      };
+
+      // Act
+      await upsertFile('owner/repo', 'test-project', updatedFile, testMetadataPath);
+
+      // Assert
+      const metadata = await loadMetadata(testMetadataPath);
+      expect(metadata.projects[0].files).toHaveLength(1);
+      expect(metadata.projects[0].files[0]).toEqual(updatedFile);
+      expect(metadata.projects[0].files[0].sha).toBe('new-sha');
+      expect(metadata.projects[0].files[0].localHash).toBe('new-hash');
+      expect(metadata.projects[0].files[0].fetchedAt).toBe('2025-10-06T11:00:00Z');
+    });
+
+    it('SHA、ハッシュ、日時が更新される', async () => {
+      // Arrange
+      const initialMetadata: Metadata = {
+        version: '1.0',
+        projects: [
+          {
+            repository: 'owner/repo',
+            projectName: 'test-project',
+            fetchedAt: '2025-10-06T10:00:00Z',
+            files: [
+              {
+                path: '.kiro/specs/test-project/file.md',
+                sha: 'sha1',
+                localHash: 'hash1',
+                size: 100,
+                fetchedAt: '2025-10-06T09:00:00Z',
+              },
+            ],
+          },
+        ],
+      };
+      await fs.writeFile(
+        testMetadataPath,
+        JSON.stringify(initialMetadata, null, 2),
+        'utf-8'
+      );
+
+      const updatedFile: FileMetadata = {
+        path: '.kiro/specs/test-project/file.md',
+        sha: 'sha2',
+        localHash: 'hash2',
+        size: 200,
+        fetchedAt: '2025-10-06T12:00:00Z',
+      };
+
+      // Act
+      await upsertFile('owner/repo', 'test-project', updatedFile, testMetadataPath);
+
+      // Assert
+      const metadata = await loadMetadata(testMetadataPath);
+      const file = metadata.projects[0].files[0];
+      expect(file.sha).toBe('sha2');
+      expect(file.localHash).toBe('hash2');
+      expect(file.size).toBe(200);
+      expect(file.fetchedAt).toBe('2025-10-06T12:00:00Z');
+    });
+  });
+
+  describe('重複チェック', () => {
+    it('ファイルパスが異なる場合、別ファイルとして追加される', async () => {
+      // Arrange
+      const initialMetadata: Metadata = {
+        version: '1.0',
+        projects: [
+          {
+            repository: 'owner/repo',
+            projectName: 'test-project',
+            fetchedAt: '2025-10-06T10:00:00Z',
+            files: [
+              {
+                path: '.kiro/specs/test-project/file1.md',
+                sha: 'sha1',
+                localHash: 'hash1',
+                size: 100,
+                fetchedAt: '2025-10-06T09:00:00Z',
+              },
+            ],
+          },
+        ],
+      };
+      await fs.writeFile(
+        testMetadataPath,
+        JSON.stringify(initialMetadata, null, 2),
+        'utf-8'
+      );
+
+      const newFile: FileMetadata = {
+        path: '.kiro/specs/test-project/file2.md',
+        sha: 'sha2',
+        localHash: 'hash2',
+        size: 200,
+        fetchedAt: '2025-10-06T10:00:00Z',
+      };
+
+      // Act
+      await upsertFile('owner/repo', 'test-project', newFile, testMetadataPath);
+
+      // Assert
+      const metadata = await loadMetadata(testMetadataPath);
+      expect(metadata.projects[0].files).toHaveLength(2);
+    });
+
+    it('ファイルパスが一致する場合のみ更新される', async () => {
+      // Arrange
+      const initialMetadata: Metadata = {
+        version: '1.0',
+        projects: [
+          {
+            repository: 'owner/repo',
+            projectName: 'test-project',
+            fetchedAt: '2025-10-06T10:00:00Z',
+            files: [
+              {
+                path: '.kiro/specs/test-project/file.md',
+                sha: 'old-sha',
+                localHash: 'old-hash',
+                size: 100,
+                fetchedAt: '2025-10-06T09:00:00Z',
+              },
+            ],
+          },
+        ],
+      };
+      await fs.writeFile(
+        testMetadataPath,
+        JSON.stringify(initialMetadata, null, 2),
+        'utf-8'
+      );
+
+      const updatedFile: FileMetadata = {
+        path: '.kiro/specs/test-project/file.md',
+        sha: 'new-sha',
+        localHash: 'new-hash',
+        size: 200,
+        fetchedAt: '2025-10-06T10:00:00Z',
+      };
+
+      // Act
+      await upsertFile('owner/repo', 'test-project', updatedFile, testMetadataPath);
+
+      // Assert
+      const metadata = await loadMetadata(testMetadataPath);
+      expect(metadata.projects[0].files).toHaveLength(1);
+      expect(metadata.projects[0].files[0].sha).toBe('new-sha');
+    });
+  });
+
+  describe('異常系', () => {
+    it('プロジェクトが存在しない場合にエラーを投げる', async () => {
+      // Arrange
+      const initialMetadata: Metadata = {
+        version: '1.0',
+        projects: [],
+      };
+      await fs.writeFile(
+        testMetadataPath,
+        JSON.stringify(initialMetadata, null, 2),
+        'utf-8'
+      );
+
+      const file: FileMetadata = {
+        path: '.kiro/specs/test-project/spec.json',
+        sha: 'abc123',
+        localHash: 'def456',
+        size: 1024,
+        fetchedAt: '2025-10-06T10:00:00Z',
+      };
+
+      // Act & Assert
+      await expect(
+        upsertFile('owner/repo', 'test-project', file, testMetadataPath)
+      ).rejects.toThrow();
+      await expect(
+        upsertFile('owner/repo', 'test-project', file, testMetadataPath)
+      ).rejects.toMatchObject({
+        type: MetadataErrorType.NOT_FOUND,
+      });
+    });
+
+    it('メタデータファイルが存在しない場合にエラーを投げる', async () => {
+      // Arrange
+      const file: FileMetadata = {
+        path: '.kiro/specs/test-project/spec.json',
+        sha: 'abc123',
+        localHash: 'def456',
+        size: 1024,
+        fetchedAt: '2025-10-06T10:00:00Z',
+      };
+
+      // Act & Assert
+      await expect(
+        upsertFile('owner/repo', 'test-project', file, testMetadataPath)
+      ).rejects.toThrow();
+      await expect(
+        upsertFile('owner/repo', 'test-project', file, testMetadataPath)
+      ).rejects.toMatchObject({
+        type: MetadataErrorType.NOT_FOUND,
       });
     });
   });

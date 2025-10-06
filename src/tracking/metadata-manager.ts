@@ -11,6 +11,7 @@ import {
   MetadataError,
   MetadataErrorType,
   ProjectMetadata,
+  FileMetadata,
 } from './types.js';
 
 /**
@@ -324,6 +325,55 @@ export async function upsertProject(
   } else {
     // Add new project
     metadata.projects.push(project);
+  }
+
+  // Save updated metadata
+  await saveMetadata(metadata, metadataPath);
+}
+
+/**
+ * Upsert (insert or update) a file in project metadata
+ *
+ * Adds a new file if it doesn't exist, or updates existing file
+ * if path matches.
+ *
+ * @param repository - Repository in "owner/repo" format
+ * @param projectName - Project name
+ * @param file - File metadata to upsert
+ * @param metadataPath - Path to metadata file (defaults to .kiro/.kirox-meta.json)
+ * @throws MetadataError if project doesn't exist or operation fails
+ */
+export async function upsertFile(
+  repository: string,
+  projectName: string,
+  file: FileMetadata,
+  metadataPath: string = METADATA_PATH
+): Promise<void> {
+  // Load existing metadata
+  const metadata = await loadMetadata(metadataPath);
+
+  // Find project by repository + projectName
+  const project = metadata.projects.find(
+    (p) => p.repository === repository && p.projectName === projectName
+  );
+
+  if (!project) {
+    throw new MetadataError(
+      MetadataErrorType.NOT_FOUND,
+      `Project not found: ${repository}/${projectName}`,
+      `No project found with repository "${repository}" and name "${projectName}"`
+    );
+  }
+
+  // Find existing file by path
+  const existingIndex = project.files.findIndex((f) => f.path === file.path);
+
+  if (existingIndex >= 0) {
+    // Update existing file
+    project.files[existingIndex] = file;
+  } else {
+    // Add new file
+    project.files.push(file);
   }
 
   // Save updated metadata
