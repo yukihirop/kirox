@@ -26,6 +26,8 @@ export interface ParsedArguments {
   checkUpdates: boolean;
   /** Apply updates to tracked files */
   update: boolean;
+  /** Subdirectory path containing .kiro folder */
+  subdir?: string;
 }
 
 /**

@@ -7,7 +7,7 @@
 ## 実装タスク
 
 - [ ] 1. 型定義の拡張とパス正規化・検証ユーティリティの実装
-- [ ] 1.1 CLI層とConfig層の型定義を拡張
+- [x] 1.1 CLI層とConfig層の型定義を拡張
   - ParsedArguments型に`subdir`フィールドを追加
   - KiroxConfig型に`subdir`フィールドを追加
   - MergedConfig型に`subdir`フィールドを追加

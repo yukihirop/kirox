@@ -16,6 +16,8 @@ export interface KiroxConfig {
   verbose?: boolean;
   /** Force overwrite without confirmation by default */
   force?: boolean;
+  /** Default subdirectory path containing .kiro folder */
+  subdir?: string;
 }
 
 /**
@@ -35,4 +37,6 @@ export interface MergedConfig {
   force: boolean;
   /** Dry-run mode (no actual writes) */
   dryRun: boolean;
+  /** Subdirectory path containing .kiro folder */
+  subdir?: string;
 }
