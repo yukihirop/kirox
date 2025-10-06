@@ -1,0 +1,41 @@
+/**
+ * CLI Layer Type Definitions
+ */
+
+/**
+ * Parsed command-line arguments
+ */
+export interface ParsedArguments {
+  /** Repository in format "owner/repo" */
+  repository: string;
+  /** Project name to fetch */
+  project: string;
+  /** Force overwrite without confirmation */
+  force: boolean;
+  /** Dry-run mode (no actual writes) */
+  dryRun: boolean;
+  /** Verbose logging */
+  verbose: boolean;
+  /** Custom config file path */
+  config?: string;
+}
+
+/**
+ * Validation error for a specific field
+ */
+export interface ValidationError {
+  /** Field name that failed validation */
+  field: string;
+  /** Error message describing the issue */
+  message: string;
+}
+
+/**
+ * Result of input validation
+ */
+export interface ValidationResult {
+  /** Whether validation passed */
+  valid: boolean;
+  /** List of validation errors (empty if valid) */
+  errors: ValidationError[];
+}
