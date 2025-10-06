@@ -23,30 +23,51 @@ const REPOSITORY_PATTERN = /^[a-zA-Z0-9._-]+\/[a-zA-Z0-9._-]+$/;
 export function validateInput(args: ParsedArguments): ValidationResult {
   const errors: ValidationError[] = [];
 
-  // Validate repository format
-  if (!REPOSITORY_PATTERN.test(args.repository)) {
+  // Check mutual exclusivity of --track, --check-updates, and --update
+  const exclusiveOptions = [args.track, args.checkUpdates, args.update];
+  const activeOptionsCount = exclusiveOptions.filter(Boolean).length;
+
+  if (activeOptionsCount > 1) {
+    const activeNames: string[] = [];
+    if (args.track) activeNames.push('--track');
+    if (args.checkUpdates) activeNames.push('--check-updates');
+    if (args.update) activeNames.push('--update');
+
     errors.push({
-      field: 'repository',
-      message: 'Repository must be in format "owner/repo" (e.g., "facebook/react")',
+      field: 'options',
+      message: `Options ${activeNames.join(', ')} are mutually exclusive. Use only one at a time.`,
     });
   }
 
-  // Validate project name
-  if (!args.project || args.project.trim() === '') {
-    errors.push({
-      field: 'project',
-      message: 'Project name cannot be empty',
-    });
-  } else if (args.project.includes('..')) {
-    errors.push({
-      field: 'project',
-      message: 'Project name cannot contain ".." (path traversal attempt)',
-    });
-  } else if (args.project.includes('/') || args.project.includes('\\')) {
-    errors.push({
-      field: 'project',
-      message: 'Project name cannot contain path separators ("/" or "\\")',
-    });
+  // For --check-updates and --update, repository and project are optional
+  const requiresRepositoryAndProject = !args.checkUpdates && !args.update;
+
+  if (requiresRepositoryAndProject) {
+    // Validate repository format
+    if (!args.repository || !REPOSITORY_PATTERN.test(args.repository)) {
+      errors.push({
+        field: 'repository',
+        message: 'Repository must be in format "owner/repo" (e.g., "facebook/react")',
+      });
+    }
+
+    // Validate project name
+    if (!args.project || args.project.trim() === '') {
+      errors.push({
+        field: 'project',
+        message: 'Project name cannot be empty',
+      });
+    } else if (args.project.includes('..')) {
+      errors.push({
+        field: 'project',
+        message: 'Project name cannot contain ".." (path traversal attempt)',
+      });
+    } else if (args.project.includes('/') || args.project.includes('\\')) {
+      errors.push({
+        field: 'project',
+        message: 'Project name cannot contain path separators ("/" or "\\")',
+      });
+    }
   }
 
   return {

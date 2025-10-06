@@ -105,5 +105,45 @@ describe('ArgumentParser', () => {
 
       expect(result.output).toBe('/tmp/kiro-test');
     });
+
+    it('should parse --track flag', () => {
+      const argv = ['node', 'kirox', 'owner/repo', '-p', 'project', '--track'];
+      const result = parseArguments(argv);
+
+      expect(result.track).toBe(true);
+    });
+
+    it('should parse --check-updates flag', () => {
+      const argv = ['node', 'kirox', '--check-updates'];
+      const result = parseArguments(argv);
+
+      expect(result.checkUpdates).toBe(true);
+    });
+
+    it('should parse --update flag', () => {
+      const argv = ['node', 'kirox', '--update'];
+      const result = parseArguments(argv);
+
+      expect(result.update).toBe(true);
+    });
+
+    it('should set default values for new tracking flags', () => {
+      const argv = ['node', 'kirox', 'owner/repo', '-p', 'project'];
+      const result = parseArguments(argv);
+
+      expect(result.track).toBe(false);
+      expect(result.checkUpdates).toBe(false);
+      expect(result.update).toBe(false);
+    });
+
+    it('should parse --track with other options', () => {
+      const argv = ['node', 'kirox', 'owner/repo', '-p', 'project', '--track', '--verbose'];
+      const result = parseArguments(argv);
+
+      expect(result.track).toBe(true);
+      expect(result.verbose).toBe(true);
+      expect(result.checkUpdates).toBe(false);
+      expect(result.update).toBe(false);
+    });
   });
 });
