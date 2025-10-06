@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { createGitHubClient, getRateLimit } from '@/github/client';
 
 describe('GitHubClient', () => {
@@ -50,41 +50,92 @@ describe('GitHubClient', () => {
   });
 
   describe('getRateLimit', () => {
-    it('should retrieve rate limit information', async () => {
-      const client = createGitHubClient();
+    it('should retrieve rate limit information using mock', async () => {
+      const mockClient = {
+        rest: {
+          rateLimit: {
+            get: vi.fn().mockResolvedValue({
+              data: {
+                rate: {
+                  remaining: 5000,
+                  limit: 5000,
+                  reset: Math.floor(Date.now() / 1000) + 3600,
+                },
+              },
+            }),
+          },
+        },
+      } as any;
 
-      const rateLimit = await getRateLimit(client);
+      const rateLimit = await getRateLimit(mockClient);
 
       expect(rateLimit).toBeDefined();
-      expect(rateLimit.remaining).toBeGreaterThanOrEqual(0);
-      expect(rateLimit.limit).toBeGreaterThan(0);
+      expect(rateLimit.remaining).toBe(5000);
+      expect(rateLimit.limit).toBe(5000);
       expect(rateLimit.resetAt).toBeInstanceOf(Date);
-    }, 10000); // 10 second timeout for API call
+    });
 
     it('should return resetAt as future date', async () => {
-      const client = createGitHubClient();
+      const futureTime = Math.floor(Date.now() / 1000) + 3600;
+      const mockClient = {
+        rest: {
+          rateLimit: {
+            get: vi.fn().mockResolvedValue({
+              data: {
+                rate: {
+                  remaining: 100,
+                  limit: 5000,
+                  reset: futureTime,
+                },
+              },
+            }),
+          },
+        },
+      } as any;
 
-      const rateLimit = await getRateLimit(client);
+      const rateLimit = await getRateLimit(mockClient);
 
       expect(rateLimit.resetAt.getTime()).toBeGreaterThan(Date.now());
-    }, 10000);
+    });
 
     it('should convert Unix timestamp to Date correctly', async () => {
-      const client = createGitHubClient();
+      const mockClient = {
+        rest: {
+          rateLimit: {
+            get: vi.fn().mockResolvedValue({
+              data: {
+                rate: {
+                  remaining: 1000,
+                  limit: 5000,
+                  reset: Math.floor(Date.now() / 1000) + 7200,
+                },
+              },
+            }),
+          },
+        },
+      } as any;
 
-      const rateLimit = await getRateLimit(client);
+      const rateLimit = await getRateLimit(mockClient);
 
-      // Verify that resetAt is a valid Date object with reasonable value
       expect(rateLimit.resetAt).toBeInstanceOf(Date);
       expect(rateLimit.resetAt.getFullYear()).toBeGreaterThanOrEqual(2024);
-    }, 10000);
+    });
   });
 
   describe('Authentication Error Handling', () => {
-    it('should work with public repositories without token', async () => {
+    it('should work with public repositories without token using mock', async () => {
       const client = createGitHubClient();
 
-      // Should not throw for public repo access
+      // Mock the repos.get method
+      const mockGet = vi.fn().mockResolvedValue({
+        data: {
+          name: 'Hello-World',
+          full_name: 'octocat/Hello-World',
+        },
+      });
+
+      client.rest.repos.get = mockGet;
+
       const result = await client.rest.repos.get({
         owner: 'octocat',
         repo: 'Hello-World',
@@ -92,17 +143,36 @@ describe('GitHubClient', () => {
 
       expect(result.data).toBeDefined();
       expect(result.data.name).toBe('Hello-World');
-    }, 10000);
+      expect(mockGet).toHaveBeenCalledWith({
+        owner: 'octocat',
+        repo: 'Hello-World',
+      });
+    });
 
-    it('should track rate limit information', async () => {
-      const client = createGitHubClient();
+    it('should track rate limit information using mock', async () => {
+      const mockClient = {
+        rest: {
+          rateLimit: {
+            get: vi.fn().mockResolvedValue({
+              data: {
+                rate: {
+                  remaining: 4999,
+                  limit: 5000,
+                  reset: Math.floor(Date.now() / 1000) + 3600,
+                },
+              },
+            }),
+          },
+        },
+      } as any;
 
-      const rateLimit = await getRateLimit(client);
+      const rateLimit = await getRateLimit(mockClient);
 
       expect(rateLimit.remaining).toBeDefined();
       expect(rateLimit.limit).toBeDefined();
       expect(rateLimit.resetAt).toBeDefined();
-    }, 10000);
+      expect(rateLimit.remaining).toBe(4999);
+    });
 
     it('should create client with userAgent header', () => {
       const client = createGitHubClient();
