@@ -16,6 +16,7 @@ Kiro-style Spec Driven Development implementation using claude code slash comman
 
 ### Active Specifications
 - `kirox-cli`: CLI tool to fetch Kiro specification and steering files from remote repositories
+- `kirox-update-tracking`: Update tracking feature for remote repository changes
 - Use `/kiro:spec-status [feature-name]` to check progress
 
 ## Development Guidelines
