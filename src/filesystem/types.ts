@@ -19,4 +19,6 @@ export interface WriteResult {
   written: boolean; // File was written
   skipped: boolean; // File was skipped
   reason?: string; // Reason for skip or failure
+  filePath?: string; // Path to the file
+  size?: number; // File size in bytes (for dry-run or verbose mode)
 }

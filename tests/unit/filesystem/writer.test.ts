@@ -267,5 +267,108 @@ describe('FileWriter', () => {
       expect(confirm).not.toHaveBeenCalled();
       expect(result.written).toBe(true);
     });
+
+    it('should handle disk full errors (ENOSPC)', async () => {
+      vi.mocked(fs.access).mockRejectedValue(new Error('ENOENT'));
+      vi.mocked(fs.writeFile).mockRejectedValue(new Error('ENOSPC: no space left on device'));
+
+      const options: WriteOptions = {
+        force: false,
+        prompt: true,
+        dryRun: false,
+        verbose: false,
+      };
+
+      await expect(
+        writeFile('.kiro/specs/project/file.md', 'content', options)
+      ).rejects.toThrow('no space left on device');
+    });
+
+    it('should return file path in result when written successfully', async () => {
+      vi.mocked(fs.access).mockRejectedValue(new Error('ENOENT'));
+      vi.mocked(fs.writeFile).mockResolvedValue(undefined);
+
+      const options: WriteOptions = {
+        force: false,
+        prompt: true,
+        dryRun: false,
+        verbose: false,
+      };
+
+      const filePath = '.kiro/specs/project/new-file.md';
+      const result = await writeFile(filePath, 'test content', options);
+
+      expect(result.written).toBe(true);
+      expect(result.skipped).toBe(false);
+      expect(result.filePath).toBe(filePath);
+    });
+
+    it('should return file path in result when skipped', async () => {
+      const { confirm } = await import('@/filesystem/prompt');
+
+      vi.mocked(fs.access).mockResolvedValue(undefined);
+      vi.mocked(confirm).mockResolvedValue(false);
+
+      const options: WriteOptions = {
+        force: false,
+        prompt: true,
+        dryRun: false,
+        verbose: false,
+      };
+
+      const filePath = '.kiro/specs/project/existing.md';
+      const result = await writeFile(filePath, 'content', options);
+
+      expect(result.written).toBe(false);
+      expect(result.skipped).toBe(true);
+      expect(result.filePath).toBe(filePath);
+    });
+
+    it('should include file size in dry-run result', async () => {
+      const options: WriteOptions = {
+        force: false,
+        prompt: true,
+        dryRun: true,
+        verbose: false,
+      };
+
+      const content = 'This is test content with some length';
+      const filePath = '.kiro/specs/project/file.md';
+      const result = await writeFile(filePath, content, options);
+
+      expect(result.written).toBe(false);
+      expect(result.skipped).toBe(true);
+      expect(result.filePath).toBe(filePath);
+      expect(result.size).toBe(Buffer.byteLength(content, 'utf-8'));
+    });
+
+    it('should write file even if directory does not exist (integration with ensureDirectory)', async () => {
+      const filePath = '.kiro/specs/new-project/file.md';
+      const dirPath = '.kiro/specs/new-project';
+
+      // Mock: directory does not exist, will be created
+      vi.mocked(fs.access)
+        .mockRejectedValueOnce(new Error('ENOENT')) // checkFileExists
+        .mockRejectedValueOnce(new Error('ENOENT')); // ensureDirectory check
+
+      vi.mocked(fs.mkdir).mockResolvedValue(undefined);
+      vi.mocked(fs.writeFile).mockResolvedValue(undefined);
+
+      const options: WriteOptions = {
+        force: false,
+        prompt: true,
+        dryRun: false,
+        verbose: false,
+      };
+
+      // First ensure directory exists
+      await ensureDirectory(dirPath);
+
+      // Then write file
+      const result = await writeFile(filePath, 'content', options);
+
+      expect(fs.mkdir).toHaveBeenCalledWith(dirPath, { recursive: true });
+      expect(result.written).toBe(true);
+    });
   });
 });

@@ -97,12 +97,17 @@ export async function writeFile(
 ): Promise<WriteResult> {
   const { force, prompt: shouldPrompt, dryRun } = options;
 
+  // Calculate file size
+  const size = Buffer.byteLength(content, 'utf-8');
+
   // Dry-run mode: skip actual write
   if (dryRun) {
     return {
       written: false,
       skipped: true,
       reason: 'Skipped due to dry-run mode',
+      filePath,
+      size,
     };
   }
 
@@ -118,6 +123,7 @@ export async function writeFile(
         written: false,
         skipped: true,
         reason: 'User declined to overwrite existing file',
+        filePath,
       };
     }
   }
@@ -129,6 +135,8 @@ export async function writeFile(
     return {
       written: true,
       skipped: false,
+      filePath,
+      size,
     };
   } catch (error) {
     // Re-throw to let caller handle
