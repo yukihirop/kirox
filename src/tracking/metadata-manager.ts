@@ -10,6 +10,7 @@ import {
   Metadata,
   MetadataError,
   MetadataErrorType,
+  ProjectMetadata,
 } from './types.js';
 
 /**
@@ -279,4 +280,52 @@ export async function saveMetadata(
       error instanceof Error ? error.message : String(error)
     );
   }
+}
+
+/**
+ * Upsert (insert or update) a project in metadata
+ *
+ * Adds a new project if it doesn't exist, or updates existing project
+ * if repository and projectName match.
+ *
+ * @param project - Project metadata to upsert
+ * @param metadataPath - Path to metadata file (defaults to .kiro/.kirox-meta.json)
+ * @throws MetadataError if operation fails
+ */
+export async function upsertProject(
+  project: ProjectMetadata,
+  metadataPath: string = METADATA_PATH
+): Promise<void> {
+  // Load existing metadata or create new
+  let metadata: Metadata;
+  try {
+    metadata = await loadMetadata(metadataPath);
+  } catch (error) {
+    // If metadata file doesn't exist, create new metadata
+    if (error instanceof MetadataError && error.type === MetadataErrorType.NOT_FOUND) {
+      metadata = {
+        version: '1.0',
+        projects: [],
+      };
+    } else {
+      // Re-throw other errors
+      throw error;
+    }
+  }
+
+  // Find existing project by repository + projectName
+  const existingIndex = metadata.projects.findIndex(
+    (p) => p.repository === project.repository && p.projectName === project.projectName
+  );
+
+  if (existingIndex >= 0) {
+    // Update existing project
+    metadata.projects[existingIndex] = project;
+  } else {
+    // Add new project
+    metadata.projects.push(project);
+  }
+
+  // Save updated metadata
+  await saveMetadata(metadata, metadataPath);
 }
