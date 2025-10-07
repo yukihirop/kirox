@@ -225,8 +225,8 @@ export function convertRemoteToLocalPath(remotePath: string): string {
     throw new Error('Invalid path: contains path traversal');
   }
 
-  // Must start with .kiro/
-  if (!normalized.startsWith('.kiro/')) {
+  // Must contain .kiro/ (can be at start or after a subdirectory)
+  if (!normalized.includes('.kiro/')) {
     throw new Error('Path must be within .kiro directory');
   }
 

@@ -13,7 +13,7 @@ import { writeFile } from '../filesystem/writer.js';
 import { ProgressReporter } from '../reporting/progress-reporter.js';
 import { ErrorHandler } from '../reporting/error-handler.js';
 import { Logger } from '../reporting/logger.js';
-import { resolveOutputPath, getSpecDirectoryPath, getSteeringDirectoryPath } from '../filesystem/path-utils.js';
+import { resolveOutputPath, buildRemotePath } from '../filesystem/path-utils.js';
 import { loadMetadata, upsertProject, upsertFile } from '../tracking/metadata-manager.js';
 import { calculateFileHash } from '../tracking/hash-calculator.js';
 import { loadConfig } from '../config/loader.js';
@@ -109,8 +109,8 @@ export async function execute(argv: string[]): Promise<ExecutionResult> {
       project: args.project,
     });
 
-    const specPath = getSpecDirectoryPath(args.project);
-    const steeringPath = getSteeringDirectoryPath();
+    const specPath = buildRemotePath(subdir, args.project, 'specs');
+    const steeringPath = buildRemotePath(subdir, '', 'steering');
 
     // Fetch spec directory (required)
     const specContents = await fetchDirectoryContents(octokit, owner, repo, specPath);

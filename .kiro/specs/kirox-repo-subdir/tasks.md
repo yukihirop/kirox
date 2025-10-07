@@ -74,7 +74,7 @@
   - 取得したサブディレクトリパスが正規化済みであることを前提とする
   - _Requirements: 2.1, 2.2_
 
-- [ ] 4.2 リモートパス構築ロジックを新しい関数に移行
+- [x] 4.2 リモートパス構築ロジックを新しい関数に移行
   - 既存の`getSpecDirectoryPath`呼び出しを`buildRemotePath`に置き換え
   - 既存の`getSteeringDirectoryPath`呼び出しを`buildRemotePath`に置き換え
   - サブディレクトリ、プロジェクト名、タイプ（specs/steering）を渡して構築
