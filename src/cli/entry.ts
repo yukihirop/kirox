@@ -137,6 +137,7 @@ export async function execute(argv: string[]): Promise<ExecutionResult> {
         specFiles: specFiles.length,
         steeringFiles: steeringFiles.length,
         total: allFiles.length,
+        ...(subdir && { subdir }),
       });
     }
 
