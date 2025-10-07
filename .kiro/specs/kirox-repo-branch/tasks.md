@@ -102,7 +102,7 @@
   - フォーマット: "owner/repo#\<branch\>/\<file-path\>から取得中"
   - _Requirements: 6.3_
 
-- [ ] 6.3 サマリーメッセージにブランチ情報を追加
+- [x] 6.3 サマリーメッセージにブランチ情報を追加
   - `reportSummary()`メソッドにbranchパラメータを追加
   - サマリーに取得元ブランチ情報を表示
   - _Requirements: 6.4_

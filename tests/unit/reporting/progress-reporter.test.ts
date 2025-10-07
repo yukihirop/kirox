@@ -386,6 +386,66 @@ describe('ProgressReporter', () => {
 
       expect(hasSubdirMention).toBe(false);
     });
+
+    it('should display branch information when branch is specified', () => {
+      const options: ReporterOptions = { verbose: false, useColor: true };
+      const reporter = new ProgressReporter(options);
+
+      reporter.reportSummary(8, 2, undefined, 'feature-branch');
+
+      const allCalls = consoleLogSpy.mock.calls.map((call) => call[0]);
+      const hasBranchInfo = allCalls.some((msg) =>
+        String(msg).includes('feature-branch')
+      );
+
+      expect(hasBranchInfo).toBe(true);
+    });
+
+    it('should display default branch information when branch is not specified', () => {
+      const options: ReporterOptions = { verbose: false, useColor: true };
+      const reporter = new ProgressReporter(options);
+
+      reporter.reportSummary(8, 2);
+
+      const allCalls = consoleLogSpy.mock.calls.map((call) => call[0]);
+      const hasDefaultBranch = allCalls.some((msg) =>
+        /デフォルトブランチ/.test(String(msg))
+      );
+
+      expect(hasDefaultBranch).toBe(true);
+    });
+
+    it('should display both subdirectory and branch when both provided', () => {
+      const options: ReporterOptions = { verbose: false, useColor: true };
+      const reporter = new ProgressReporter(options);
+
+      reporter.reportSummary(8, 2, 'packages/api', 'develop');
+
+      const allCalls = consoleLogSpy.mock.calls.map((call) => call[0]);
+      const hasSubdir = allCalls.some((msg) =>
+        String(msg).includes('packages/api')
+      );
+      const hasBranch = allCalls.some((msg) =>
+        String(msg).includes('develop')
+      );
+
+      expect(hasSubdir).toBe(true);
+      expect(hasBranch).toBe(true);
+    });
+
+    it('should not display branch info when branch is empty string', () => {
+      const options: ReporterOptions = { verbose: false, useColor: true };
+      const reporter = new ProgressReporter(options);
+
+      reporter.reportSummary(8, 2, undefined, '');
+
+      const allCalls = consoleLogSpy.mock.calls.map((call) => call[0]);
+      const hasDefaultBranch = allCalls.some((msg) =>
+        /デフォルトブランチ/.test(String(msg))
+      );
+
+      expect(hasDefaultBranch).toBe(true);
+    });
   });
 
   describe('reportVerbose', () => {

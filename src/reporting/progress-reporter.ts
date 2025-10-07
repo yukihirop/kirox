@@ -136,27 +136,45 @@ export class ProgressReporter {
    * @param success - Number of successful operations
    * @param failed - Number of failed operations
    * @param subdir - Optional subdirectory path
+   * @param branch - Optional branch name
    *
    * @example
    * ```typescript
    * reporter.reportSummary(8, 2);
    * // Output: Summary:
+   * //         取得元: (デフォルトブランチ)
    * //         8 files succeeded (in green)
    * //         2 files failed (in red)
    *
    * reporter.reportSummary(8, 2, 'packages/api');
    * // Output: Summary:
    * //         Fetched from: packages/api
+   * //         取得元: (デフォルトブランチ)
+   * //         8 files succeeded (in green)
+   * //         2 files failed (in red)
+   *
+   * reporter.reportSummary(8, 2, undefined, 'feature-branch');
+   * // Output: Summary:
+   * //         取得元: (ブランチ: feature-branch)
    * //         8 files succeeded (in green)
    * //         2 files failed (in red)
    * ```
    */
-  reportSummary(success: number, failed: number, subdir?: string): void {
+  reportSummary(success: number, failed: number, subdir?: string, branch?: string): void {
     console.log('\nSummary:');
 
     if (subdir) {
       console.log(this.chalk.cyan(`  Fetched from: ${subdir}`));
     }
+
+    // Build branch information text
+    let branchInfo: string;
+    if (branch) {
+      branchInfo = `  取得元: (ブランチ: ${branch})`;
+    } else {
+      branchInfo = `  取得元: (デフォルトブランチ)`;
+    }
+    console.log(this.chalk.cyan(branchInfo));
 
     console.log(this.chalk.green(`  ${success} files succeeded`));
     console.log(this.chalk.red(`  ${failed} files failed`));

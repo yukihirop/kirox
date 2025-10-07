@@ -690,5 +690,169 @@ describe('CLI to GitHub to FileSystem Integration', () => {
       // Note: This test verifies the expected format, implementation will add this feature
       expect(hasVerboseWithBranch).toBe(true);
     });
+
+    it('should display branch info in summary', async () => {
+      // Mock Octokit responses
+      const mockOctokit = {
+        rest: {
+          repos: {
+            getContent: vi.fn()
+              .mockResolvedValueOnce({
+                // Mock .kiro/specs/test-project directory listing
+                data: [
+                  {
+                    name: 'spec.json',
+                    path: '.kiro/specs/test-project/spec.json',
+                    type: 'file',
+                    sha: 'abc123',
+                    size: 100,
+                  },
+                ],
+              })
+              .mockResolvedValueOnce({
+                // Mock .kiro/steering directory listing (empty)
+                data: [],
+              })
+              .mockResolvedValueOnce({
+                // Mock spec.json file content
+                data: {
+                  type: 'file',
+                  encoding: 'base64',
+                  content: Buffer.from('{"name": "test"}', 'utf-8').toString('base64'),
+                  size: 100,
+                  path: '.kiro/specs/test-project/spec.json',
+                  sha: 'abc123',
+                },
+              }),
+          },
+          rateLimit: {
+            get: vi.fn().mockResolvedValue({
+              data: {
+                rate: {
+                  remaining: 5000,
+                  limit: 5000,
+                  reset: Date.now() / 1000 + 3600,
+                },
+              },
+            }),
+          },
+        },
+      };
+
+      (Octokit as any).mockImplementation(() => mockOctokit);
+
+      // Capture console output
+      const consoleLogs: string[] = [];
+      const originalLog = console.log;
+      console.log = vi.fn((...args) => {
+        consoleLogs.push(args.join(' '));
+      });
+
+      const argv = [
+        'node',
+        'kirox',
+        'owner/repo#feature',
+        '-p',
+        'test-project',
+        '-o',
+        testOutputDir,
+        '--force',
+      ];
+
+      const result = await execute(argv);
+
+      // Restore console.log
+      console.log = originalLog;
+
+      // Verify execution succeeded
+      expect(result.success).toBe(true);
+
+      // Verify branch info appears in summary
+      const summaryOutput = consoleLogs.join('\n');
+      expect(summaryOutput).toMatch(/Summary/);
+      expect(summaryOutput).toMatch(/取得元.*ブランチ.*feature/);
+    });
+
+    it('should display default branch in summary when no branch specified', async () => {
+      // Mock Octokit responses
+      const mockOctokit = {
+        rest: {
+          repos: {
+            getContent: vi.fn()
+              .mockResolvedValueOnce({
+                // Mock .kiro/specs/test-project directory listing
+                data: [
+                  {
+                    name: 'spec.json',
+                    path: '.kiro/specs/test-project/spec.json',
+                    type: 'file',
+                    sha: 'abc123',
+                    size: 100,
+                  },
+                ],
+              })
+              .mockResolvedValueOnce({
+                // Mock .kiro/steering directory listing (empty)
+                data: [],
+              })
+              .mockResolvedValueOnce({
+                // Mock spec.json file content
+                data: {
+                  type: 'file',
+                  encoding: 'base64',
+                  content: Buffer.from('{"name": "test"}', 'utf-8').toString('base64'),
+                  size: 100,
+                  path: '.kiro/specs/test-project/spec.json',
+                  sha: 'abc123',
+                },
+              }),
+          },
+          rateLimit: {
+            get: vi.fn().mockResolvedValue({
+              data: {
+                rate: {
+                  remaining: 5000,
+                  limit: 5000,
+                  reset: Date.now() / 1000 + 3600,
+                },
+              },
+            }),
+          },
+        },
+      };
+
+      (Octokit as any).mockImplementation(() => mockOctokit);
+
+      // Capture console output
+      const consoleLogs: string[] = [];
+      const originalLog = console.log;
+      console.log = vi.fn((...args) => {
+        consoleLogs.push(args.join(' '));
+      });
+
+      const argv = [
+        'node',
+        'kirox',
+        'owner/repo',
+        '-p',
+        'test-project',
+        '-o',
+        testOutputDir,
+        '--force',
+      ];
+
+      const result = await execute(argv);
+
+      // Restore console.log
+      console.log = originalLog;
+
+      // Verify execution succeeded
+      expect(result.success).toBe(true);
+
+      // Verify default branch info appears in summary
+      const summaryOutput = consoleLogs.join('\n');
+      expect(summaryOutput).toMatch(/Summary/);
+      expect(summaryOutput).toMatch(/取得元.*デフォルトブランチ/);
+    });
   });
 });
