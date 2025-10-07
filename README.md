@@ -1,5 +1,8 @@
 # Kirox (♻️ Recycle `.kiro` CLI)
 
+[![CI](https://github.com/yukihirop/kirox/actions/workflows/ci.yml/badge.svg)](https://github.com/yukihirop/kirox/actions/workflows/ci.yml)
+[![Release](https://github.com/yukihirop/kirox/actions/workflows/release.yml/badge.svg)](https://github.com/yukihirop/kirox/actions/workflows/release.yml)
+
 CLI tool to fetch Kiro specification and steering files from remote GitHub repositories.
 
 ## Features
