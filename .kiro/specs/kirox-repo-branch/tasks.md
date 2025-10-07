@@ -113,7 +113,7 @@
   - "owner/repo" または "owner/repo#branch" 形式であることを明記
   - _Requirements: 9.1_
 
-- [ ] 7.2 ヘルプメッセージに使用例を追加
+- [x] 7.2 ヘルプメッセージに使用例を追加
   - ブランチ指定の使用例を追加: `npx kirox owner/repo#feature/new-api -p my-project`
   - ブランチ指定の説明を追加: "ブランチ指定は#の後に指定（例: owner/repo#develop）"
   - _Requirements: 9.2, 9.3_

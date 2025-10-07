@@ -365,5 +365,52 @@ describe('E2E CLI Options', () => {
       expect(helpOutput).toMatch(/owner\/repo#branch/i);
       expect(helpOutput).toMatch(/owner\/repo/);
     });
+
+    it('should display branch usage examples in help message', async () => {
+      const argv = ['node', 'kirox', '--help'];
+
+      let helpOutput = '';
+      const originalWrite = process.stdout.write;
+      process.stdout.write = vi.fn((chunk: any) => {
+        helpOutput += chunk.toString();
+        return true;
+      }) as any;
+
+      try {
+        await execute(argv);
+      } catch (error: any) {
+        // Expected: Commander.js calls process.exit() on --help
+      }
+
+      // Restore stdout
+      process.stdout.write = originalWrite;
+
+      // Verify help message includes usage examples with branch
+      expect(helpOutput).toMatch(/npx kirox owner\/repo#feature\/new-api -p my-project/i);
+      expect(helpOutput).toMatch(/owner\/repo#develop/i);
+    });
+
+    it('should display branch specification explanation in help message', async () => {
+      const argv = ['node', 'kirox', '--help'];
+
+      let helpOutput = '';
+      const originalWrite = process.stdout.write;
+      process.stdout.write = vi.fn((chunk: any) => {
+        helpOutput += chunk.toString();
+        return true;
+      }) as any;
+
+      try {
+        await execute(argv);
+      } catch (error: any) {
+        // Expected: Commander.js calls process.exit() on --help
+      }
+
+      // Restore stdout
+      process.stdout.write = originalWrite;
+
+      // Verify help message includes explanation about branch specification
+      expect(helpOutput).toMatch(/ブランチ指定は#の後に指定/i);
+    });
   });
 });
