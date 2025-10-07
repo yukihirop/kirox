@@ -57,7 +57,7 @@ graph TB
 ### 技術アラインメント
 
 **既存パターンの維持**:
-- Node.js組み込み`readline/promises`モジュールを使用（既存の`readline`モジュールとの一貫性）
+- `@inquirer/prompts`を使用（対話的プロンプトのデファクトスタンダード）
 - `src/cli/`配下に新規ファイルを追加（レイヤー分離の維持）
 - 既存の型定義（`ParsedArguments`、`ValidationError`）を拡張
 - Commanderによる引数パースは維持し、対話モードは補完のみ
@@ -67,8 +67,9 @@ graph TB
 - 既存の`prompt.ts`は単純なconfirm機能のみで、複雑な入力フローには不十分
 
 **技術スタック整合性**:
-- Node.js 18+の組み込みモジュール（`readline/promises`）を使用
-- 外部依存追加なし、既存のTypeScript/ESM環境を維持
+- `@inquirer/prompts`を新規依存として追加（軽量かつモジュール化）
+- 既存のTypeScript/ESM環境を維持
+- chalk（既存依存）と統合してカラフルなプロンプトを実現
 
 **ステアリング準拠**:
 - 単一責任原則（SRP）: 対話ロジックを独立したモジュールに分離
@@ -77,34 +78,37 @@ graph TB
 
 ### 主要な設計決定
 
-#### 決定1: Node.js組み込み`readline/promises`の使用
+#### 決定1: `@inquirer/prompts`の採用
 
-**決定**: 外部ライブラリ（Inquirer.js等）を使用せず、Node.js組み込みの`readline/promises`を使用
+**決定**: Node.js組み込み`readline/promises`ではなく、`@inquirer/prompts`を使用
 
 **コンテキスト**: 対話的なCLIプロンプトを実装するために、プロンプト表示と入力受付の機能が必要。既存コードでは`readline`の`createInterface`を使用している。
 
 **検討した代替案**:
-1. **Inquirer.js/[@inquirer/prompts]**: 高機能な対話的プロンプトライブラリ
-   - メリット: リスト選択、チェックボックス、パスワード入力など豊富な機能
-   - デメリット: 外部依存の追加、バンドルサイズ増加
+1. **readline/promises（Node.js組み込み）**: 標準ライブラリによる実装
+   - メリット: 外部依存なし、軽量
+   - デメリット: 低レベルAPI、エラーハンドリングやバリデーションを自前実装する必要がある
 2. **readline（コールバック版）**: 既存の`prompt.ts`で使用されているパターン
    - メリット: 既存コードとの一貫性
-   - デメリット: Promise化が必要、async/awaitとの親和性が低い
-3. **readline/promises**: Node.js 17+で安定版となった組み込みモジュール
-   - メリット: 外部依存なし、async/await対応、TypeScript型定義内蔵
-   - デメリット: Inquirerほど高機能ではない
+   - デメリット: Promise化が必要、async/awaitとの親和性が低い、機能が限定的
+3. **@inquirer/prompts**: モジュール化された対話的プロンプトライブラリ
+   - メリット: TypeScript完全サポート、async/awaitネイティブ、豊富な機能、広く使われている
+   - デメリット: 外部依存の追加
 
-**選択したアプローチ**: `readline/promises`を使用し、必要な機能（テキスト入力、確認プロンプト）を自前で実装
+**選択したアプローチ**: `@inquirer/prompts`を使用し、`input`と`confirm`プロンプトを活用
 
 **根拠**:
-- Kirox CLIは最小限の依存で軽量であることを重視（chalk、commander、octokitのみ）
-- 必要な機能は単純なテキスト入力と確認のみで、Inquirerの高度な機能は不要
-- Node.js 18+が要件のため、`readline/promises`は利用可能
-- 既存の`prompt.ts`のコールバック版と統一感を持たせつつ、非同期処理を改善
+- **モジュール化されており軽量**: 必要なプロンプト（`input`, `confirm`）のみをインポート可能
+- **TypeScript完全サポート**: 型定義が組み込まれており、開発者体験が向上
+- **Promise/async-awaitネイティブ**: `readline/promises`より使いやすく、読みやすいAPI
+- **豊富なエラーハンドリング**: Ctrl+C、AbortSignalなどが組み込みでサポートされている
+- **メンテナンス性**: npmで週800万DL以上、コミュニティサポートが充実
+- **将来の拡張性**: select、checkbox等の高度なプロンプトが必要になった場合、同じライブラリで対応可能
+- **既存パターンとの整合性**: 既存の`prompt.ts`もシンプルなconfirm機能であり、`@inquirer/prompts`のconfirmで置き換え可能
 
 **トレードオフ**:
-- 獲得: 軽量性、外部依存なし、既存技術スタックとの整合性
-- 犠牲: リスト選択などのリッチなUI機能（現時点では不要）
+- 獲得: 開発速度の向上、保守性、テスト容易性、将来の拡張性、優れたUX
+- 犠牲: 外部依存の追加（約50KB、モジュール化されているため最小限）
 
 #### 決定2: 引数パースと対話モードの分離
 
@@ -257,33 +261,46 @@ flowchart TD
 
 - **インバウンド**: CLI Entry Point（`index.ts`）から呼び出される
 - **アウトバウンド**:
-  - `readline/promises`（Node.js組み込みモジュール）
+  - `@inquirer/prompts`（外部ライブラリ - input, confirm）
   - `validateInput`（既存バリデーター）
   - `validateBranchName`（既存バリデーター）
-- **外部**: Node.js標準ライブラリのみ（外部依存なし）
+- **外部**: `@inquirer/prompts` npm パッケージ
 
-**外部依存の調査**: Node.js組み込み`readline/promises`モジュール
+**外部依存の調査**: `@inquirer/prompts`
 
 - **API署名**:
   ```typescript
-  import { createInterface } from 'readline/promises';
-  const rl = createInterface({
-    input: process.stdin,
-    output: process.stdout
+  import { input, confirm } from '@inquirer/prompts';
+
+  // テキスト入力プロンプト
+  const answer = await input({
+    message: '質問メッセージ',
+    default: 'デフォルト値',
+    validate: (value) => {
+      // バリデーションロジック
+      return value.length > 0 ? true : 'エラーメッセージ';
+    }
   });
-  const answer = await rl.question('質問: ');
-  rl.close();
+
+  // 確認プロンプト
+  const confirmed = await confirm({
+    message: '確認メッセージ',
+    default: false
+  });
   ```
-- **認証**: 不要（ローカルモジュール）
+- **認証**: 不要（npm公開パッケージ）
 - **レート制限**: なし
-- **バージョン互換性**: Node.js 17.0.0+で安定版、Kiroxの要件（Node.js 18+）で利用可能
+- **バージョン互換性**: Node.js 18.0.0+（ESM対応）、TypeScript 5.x完全サポート
+- **パッケージサイズ**: 約50KB（モジュール化されており、inputとconfirmのみで約20KB）
 - **一般的な問題**:
-  - Ctrl+Cによる中断時は`SIGINT`シグナルを処理する必要あり
-  - `rl.close()`を適切に呼び出さないとプロセスが終了しない
+  - 非TTY環境では動作しない（`process.stdin.isTTY`チェックが必要）
+  - Ctrl+C中断時は`ExitPromptError`がスローされる
+  - nodemonと併用時は`--no-stdin`フラグが必要
 - **ベストプラクティス**:
-  - async/await構文で使用
-  - `try-finally`で`rl.close()`を保証
-  - エラーハンドリングで`process.exit()`を適切に設定
+  - `validate`関数でリアルタイムバリデーション
+  - `try-catch`で`ExitPromptError`をハンドリング
+  - AbortSignalでタイムアウトやキャンセル制御可能
+  - TypeScript型推論により、戻り値の型が自動的に決定される
 
 **契約定義**
 
@@ -300,7 +317,7 @@ interface InteractivePromptService {
    *
    * @param args - パース済み引数（不完全な状態）
    * @returns 補完された引数
-   * @throws PromptCancelledError - ユーザーがCtrl+Cで中断した場合
+   * @throws ExitPromptError - ユーザーがCtrl+Cで中断した場合（@inquirer/prompts）
    */
   promptMissingArguments(
     args: ParsedArguments
@@ -308,6 +325,7 @@ interface InteractivePromptService {
 
   /**
    * リポジトリ情報の入力を促す
+   * @inquirer/prompts の input を使用
    *
    * @param currentValue - 現在の値（部分的に指定されている場合）
    * @returns バリデート済みのリポジトリ文字列
@@ -316,6 +334,7 @@ interface InteractivePromptService {
 
   /**
    * プロジェクト名の入力を促す
+   * @inquirer/prompts の input を使用
    *
    * @param currentValue - 現在の値（部分的に指定されている場合）
    * @returns バリデート済みのプロジェクト名
@@ -324,6 +343,7 @@ interface InteractivePromptService {
 
   /**
    * 出力ディレクトリの入力を促す
+   * @inquirer/prompts の input を使用、デフォルト値あり
    *
    * @param defaultValue - デフォルト値（'.'）
    * @returns 出力ディレクトリパス
@@ -332,6 +352,7 @@ interface InteractivePromptService {
 
   /**
    * サブディレクトリの入力を促す（オプション）
+   * @inquirer/prompts の input を使用
    *
    * @returns サブディレクトリパス（空文字列の場合はundefined）
    */
@@ -339,6 +360,7 @@ interface InteractivePromptService {
 
   /**
    * 実行確認プロンプトを表示
+   * @inquirer/prompts の confirm を使用
    *
    * @param args - 補完された引数
    * @returns ユーザーが承認した場合true
@@ -347,20 +369,48 @@ interface InteractivePromptService {
 }
 
 /**
- * プロンプトキャンセルエラー（Ctrl+C）
+ * 実装例（@inquirer/prompts使用）
  */
-class PromptCancelledError extends Error {
-  exitCode: number; // 130 (SIGINT)
+async function promptRepository(currentValue: string): Promise<string> {
+  if (currentValue) {
+    return currentValue;
+  }
+
+  return await input({
+    message: 'GitHubリポジトリを入力してください',
+    validate: (value: string) => {
+      const errors = validateRepositoryFormat(value);
+      if (errors.length > 0) {
+        return errors[0].message;
+      }
+      return true;
+    }
+  });
+}
+
+async function confirmExecution(args: ParsedArguments): Promise<boolean> {
+  console.log('\n設定内容:');
+  console.log(`  リポジトリ: ${args.repository}`);
+  console.log(`  プロジェクト: ${args.project}`);
+  console.log(`  出力先: ${args.output}`);
+  if (args.subdir) {
+    console.log(`  サブディレクトリ: ${args.subdir}`);
+  }
+
+  return await confirm({
+    message: 'この設定で実行しますか?',
+    default: false
+  });
 }
 ```
 
 **事前条件**:
-- `process.stdin`と`process.stdout`が利用可能
-- TTY環境で実行されている（パイプ入力の場合は対話モード不可）
+- `process.stdin.isTTY`がtrue（TTY環境）
+- `@inquirer/prompts`がインストールされている
 
 **事後条件**:
 - 成功時: 全ての必須項目がバリデート済みの状態で`ParsedArguments`を返却
-- 中断時: `PromptCancelledError`をスローし、プロセスはexitCode 130で終了
+- 中断時: `ExitPromptError`がスローされ、呼び出し側でハンドリング
 
 **不変条件**:
 - リポジトリ形式は`owner/repo`または`owner/repo#branch`
@@ -495,16 +545,23 @@ function validateProjectName(project: string): ValidationError[];
 
 **実装**:
 ```typescript
-while (true) {
-  const input = await rl.question('リポジトリを入力してください (owner/repo): ');
-  const errors = validateRepositoryFormat(input);
-  if (errors.length === 0) {
-    return input;
+// @inquirer/prompts の validate 機能を使用
+const repository = await input({
+  message: 'GitHubリポジトリを入力してください (owner/repo)',
+  validate: (value: string) => {
+    const errors = validateRepositoryFormat(value);
+    if (errors.length > 0) {
+      return errors[0].message; // エラーメッセージを返すと自動的に再プロンプト
+    }
+    return true; // true を返すとバリデーション成功
   }
-  console.error(chalk.red(`✗ ${errors[0].message}`));
-  console.log(chalk.yellow('例: facebook/react または facebook/react#main'));
-}
+});
 ```
+
+**@inquirer/promptsの利点**:
+- `validate`関数がfalseやエラーメッセージを返すと自動的に再入力を促す
+- whileループが不要、宣言的なバリデーション
+- エラーメッセージが自動的に赤色で表示される
 
 #### ユーザーキャンセル（Ctrl+C、確認拒否）
 
@@ -516,10 +573,17 @@ while (true) {
 
 **実装**:
 ```typescript
-process.on('SIGINT', () => {
-  console.log('\n処理を中断しました');
-  process.exit(130);
-});
+// @inquirer/prompts は Ctrl+C で ExitPromptError をスローする
+try {
+  const args = await promptMissingArguments(parsedArgs);
+  // ... 実行処理
+} catch (error) {
+  if (error instanceof Error && error.name === 'ExitPromptError') {
+    console.log('\n処理を中断しました');
+    process.exit(130);
+  }
+  throw error; // その他のエラーは再スロー
+}
 ```
 
 **シナリオ2: 確認プロンプトでのキャンセル（n/N入力）**
@@ -561,20 +625,20 @@ if (!process.stdin.isTTY) {
 flowchart TD
     A[対話モード開始] --> B{TTYチェック}
     B -->|非TTY| C[エラーメッセージ + exit 1]
-    B -->|TTY| D[SIGINT監視設定]
-    D --> E[プロンプト表示]
+    B -->|TTY| D[try-catch設定]
+    D --> E[@inquirer/prompts プロンプト表示]
     E --> F{ユーザー入力}
-    F -->|Ctrl+C| G[中断メッセージ + exit 130]
-    F -->|入力| H{バリデーション}
-    H -->|無効| I[エラーメッセージ表示]
+    F -->|Ctrl+C| G[ExitPromptError → 中断 + exit 130]
+    F -->|入力| H{validate関数}
+    H -->|エラー文字列| I[エラー表示 + 自動再プロンプト]
     I --> E
-    H -->|有効| J[次の入力へ]
+    H -->|true| J[次の入力へ]
     J --> K{全入力完了?}
     K -->|No| E
-    K -->|Yes| L[確認プロンプト]
+    K -->|Yes| L[confirm プロンプト]
     L --> M{承認?}
-    M -->|No| N[中断メッセージ + exit 0]
-    M -->|Yes| O[実行開始]
+    M -->|false| N[中断メッセージ + exit 0]
+    M -->|true| O[実行開始]
     O --> P{実行成功?}
     P -->|No| Q[既存エラーハンドリング]
     P -->|Yes| R[正常終了 + exit 0]
