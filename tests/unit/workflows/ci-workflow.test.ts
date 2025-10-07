@@ -52,4 +52,72 @@ describe('CI Workflow Configuration', () => {
     // This will throw if YAML is invalid
     expect(() => yaml.parse(workflowContent)).not.toThrow();
   });
+
+  describe('Matrix Strategy', () => {
+    it('should have matrix strategy configured', () => {
+      // RED: This test will fail initially because matrix is not yet configured
+      const workflowContent = readFileSync(workflowPath, 'utf-8');
+      const workflow = yaml.parse(workflowContent);
+
+      expect(workflow.jobs.test.strategy).toBeDefined();
+      expect(workflow.jobs.test.strategy.matrix).toBeDefined();
+    });
+
+    it('should include Node.js 18.x in matrix', () => {
+      // RED: This test will fail initially
+      const workflowContent = readFileSync(workflowPath, 'utf-8');
+      const workflow = yaml.parse(workflowContent);
+
+      const nodeVersions = workflow.jobs.test.strategy.matrix['node-version'];
+      expect(nodeVersions).toContain('18.x');
+    });
+
+    it('should include Node.js 20.x in matrix', () => {
+      // RED: This test will fail initially
+      const workflowContent = readFileSync(workflowPath, 'utf-8');
+      const workflow = yaml.parse(workflowContent);
+
+      const nodeVersions = workflow.jobs.test.strategy.matrix['node-version'];
+      expect(nodeVersions).toContain('20.x');
+    });
+
+    it('should include Node.js 22.x in matrix', () => {
+      // RED: This test will fail initially
+      const workflowContent = readFileSync(workflowPath, 'utf-8');
+      const workflow = yaml.parse(workflowContent);
+
+      const nodeVersions = workflow.jobs.test.strategy.matrix['node-version'];
+      expect(nodeVersions).toContain('22.x');
+    });
+
+    it('should have exactly 3 Node.js versions', () => {
+      // RED: This test will fail initially
+      const workflowContent = readFileSync(workflowPath, 'utf-8');
+      const workflow = yaml.parse(workflowContent);
+
+      const nodeVersions = workflow.jobs.test.strategy.matrix['node-version'];
+      expect(nodeVersions).toHaveLength(3);
+    });
+
+    it('should run on ubuntu-latest', () => {
+      // This test should already pass, verifying existing configuration
+      const workflowContent = readFileSync(workflowPath, 'utf-8');
+      const workflow = yaml.parse(workflowContent);
+
+      expect(workflow.jobs.test['runs-on']).toBe('ubuntu-latest');
+    });
+
+    it('should use matrix node-version in setup-node step', () => {
+      // RED: This test will fail initially because matrix variable is not used
+      const workflowContent = readFileSync(workflowPath, 'utf-8');
+      const workflow = yaml.parse(workflowContent);
+
+      const setupNodeStep = workflow.jobs.test.steps.find(
+        (step: any) => step.uses && step.uses.startsWith('actions/setup-node')
+      );
+
+      expect(setupNodeStep).toBeDefined();
+      expect(setupNodeStep.with['node-version']).toBe('${{ matrix.node-version }}');
+    });
+  });
 });
