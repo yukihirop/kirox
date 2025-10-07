@@ -203,7 +203,7 @@ describe('CI Workflow Configuration', () => {
       expect(buildStep.run).toBe('npm run build');
     });
 
-    it('should have test step', () => {
+    it('should have test step for Node.js 18 and 22', () => {
       // This should already pass
       const workflowContent = readFileSync(workflowPath, 'utf-8');
       const workflow = yaml.parse(workflowContent);
@@ -213,6 +213,19 @@ describe('CI Workflow Configuration', () => {
       );
 
       expect(testStep).toBeDefined();
+      expect(testStep.if).toBe("matrix.node-version != '20.x'");
+    });
+
+    it('should have test with coverage step for Node.js 20', () => {
+      const workflowContent = readFileSync(workflowPath, 'utf-8');
+      const workflow = yaml.parse(workflowContent);
+
+      const coverageStep = workflow.jobs.test.steps.find(
+        (step: any) => step.run && step.run === 'npm run test:coverage'
+      );
+
+      expect(coverageStep).toBeDefined();
+      expect(coverageStep.if).toBe("matrix.node-version == '20.x'");
     });
 
     it('should run validation steps in correct order', () => {
