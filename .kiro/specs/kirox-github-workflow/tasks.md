@@ -1,7 +1,7 @@
 # Implementation Plan
 
 - [ ] 1. Vitestカバレッジ設定の拡張
-- [ ] 1.1 カバレッジレポート形式の追加設定
+- [x] 1.1 カバレッジレポート形式の追加設定
   - vitest.config.tsでカバレッジレポーターに`json-summary`と`json`を追加
   - 既存の`text`, `html`レポーターを維持
   - カバレッジ出力ディレクトリが`coverage/`であることを確認
