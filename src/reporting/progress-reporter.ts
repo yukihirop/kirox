@@ -32,16 +32,22 @@ export class ProgressReporter {
    *
    * @param repository - GitHub repository (owner/repo)
    * @param project - Project name
+   * @param subdir - Optional subdirectory path containing .kiro folder
    *
    * @example
    * ```typescript
    * reporter.reportStart('owner/repo', 'my-project');
-   * // Output: Fetching files from owner/repo
+   * // Output: Fetching files from owner/repo/.kiro
+   * //         Project: my-project
+   *
+   * reporter.reportStart('owner/repo', 'my-project', 'packages/api');
+   * // Output: Fetching files from owner/repo/packages/api/.kiro
    * //         Project: my-project
    * ```
    */
-  reportStart(repository: string, project: string): void {
-    const repoText = `Fetching files from ${repository}`;
+  reportStart(repository: string, project: string, subdir?: string): void {
+    const kiroPath = subdir ? `${subdir}/.kiro` : '.kiro';
+    const repoText = `Fetching files from ${repository}/${kiroPath}`;
     const projectText = `Project: ${project}`;
 
     console.log(this.chalk.cyan(repoText));

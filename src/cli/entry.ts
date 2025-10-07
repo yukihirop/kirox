@@ -94,7 +94,7 @@ export async function execute(argv: string[]): Promise<ExecutionResult> {
       useColor: true,
     });
 
-    reporter.reportStart(args.repository, args.project);
+    reporter.reportStart(args.repository, args.project, subdir);
 
     // Step 4: Initialize Octokit client
     const octokit = new Octokit({
