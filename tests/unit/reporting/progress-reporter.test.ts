@@ -122,7 +122,7 @@ describe('ProgressReporter', () => {
       expect(hasRootPath).toBe(true);
     });
 
-    it('should display branch information when branch is specified', () => {
+    it('should display branch information when branch is specified (task 5.5)', () => {
       const options: ReporterOptions = { verbose: false, useColor: true };
       const reporter = new ProgressReporter(options);
 
@@ -130,13 +130,13 @@ describe('ProgressReporter', () => {
 
       const allCalls = consoleLogSpy.mock.calls.map((call) => call[0]);
       const hasBranchInfo = allCalls.some((msg) =>
-        String(msg).includes('ブランチ: feature-branch')
+        String(msg).includes('branch: feature-branch')
       );
 
       expect(hasBranchInfo).toBe(true);
     });
 
-    it('should display default branch information when branch is not specified', () => {
+    it('should display default branch information when branch is not specified (task 5.5)', () => {
       const options: ReporterOptions = { verbose: false, useColor: true };
       const reporter = new ProgressReporter(options);
 
@@ -144,13 +144,13 @@ describe('ProgressReporter', () => {
 
       const allCalls = consoleLogSpy.mock.calls.map((call) => call[0]);
       const hasDefaultBranchInfo = allCalls.some((msg) =>
-        String(msg).includes('デフォルトブランチ')
+        String(msg).includes('default branch')
       );
 
       expect(hasDefaultBranchInfo).toBe(true);
     });
 
-    it('should display branch information with subdirectory', () => {
+    it('should display branch information with subdirectory (task 5.5)', () => {
       const options: ReporterOptions = { verbose: false, useColor: true };
       const reporter = new ProgressReporter(options);
 
@@ -161,14 +161,14 @@ describe('ProgressReporter', () => {
         String(msg).includes('packages/api/.kiro')
       );
       const hasBranchInfo = allCalls.some((msg) =>
-        String(msg).includes('ブランチ: develop')
+        String(msg).includes('branch: develop')
       );
 
       expect(hasSubdirPath).toBe(true);
       expect(hasBranchInfo).toBe(true);
     });
 
-    it('should not display branch info when branch is empty string', () => {
+    it('should not display branch info when branch is empty string (task 5.5)', () => {
       const options: ReporterOptions = { verbose: false, useColor: true };
       const reporter = new ProgressReporter(options);
 
@@ -176,7 +176,7 @@ describe('ProgressReporter', () => {
 
       const allCalls = consoleLogSpy.mock.calls.map((call) => call[0]);
       const hasDefaultBranchInfo = allCalls.some((msg) =>
-        String(msg).includes('デフォルトブランチ')
+        String(msg).includes('default branch')
       );
 
       expect(hasDefaultBranchInfo).toBe(true);
@@ -471,7 +471,7 @@ describe('ProgressReporter', () => {
       expect(hasBranchInfo).toBe(true);
     });
 
-    it('should display default branch information when branch is not specified', () => {
+    it('should display default branch information when branch is not specified (task 5.5)', () => {
       const options: ReporterOptions = { verbose: false, useColor: true };
       const reporter = new ProgressReporter(options);
 
@@ -479,7 +479,7 @@ describe('ProgressReporter', () => {
 
       const allCalls = consoleLogSpy.mock.calls.map((call) => call[0]);
       const hasDefaultBranch = allCalls.some((msg) =>
-        /デフォルトブランチ/.test(String(msg))
+        /default branch/.test(String(msg))
       );
 
       expect(hasDefaultBranch).toBe(true);
@@ -503,7 +503,7 @@ describe('ProgressReporter', () => {
       expect(hasBranch).toBe(true);
     });
 
-    it('should not display branch info when branch is empty string', () => {
+    it('should not display branch info when branch is empty string (task 5.5)', () => {
       const options: ReporterOptions = { verbose: false, useColor: true };
       const reporter = new ProgressReporter(options);
 
@@ -511,7 +511,7 @@ describe('ProgressReporter', () => {
 
       const allCalls = consoleLogSpy.mock.calls.map((call) => call[0]);
       const hasDefaultBranch = allCalls.some((msg) =>
-        /デフォルトブランチ/.test(String(msg))
+        /default branch/.test(String(msg))
       );
 
       expect(hasDefaultBranch).toBe(true);

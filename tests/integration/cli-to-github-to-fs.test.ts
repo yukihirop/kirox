@@ -779,10 +779,10 @@ describe('CLI to GitHub to FileSystem Integration', () => {
       // Verify execution succeeded
       expect(result.success).toBe(true);
 
-      // Verify branch info appears in summary
+      // Verify branch info appears in summary (task 5.5: English messages)
       const summaryOutput = consoleLogs.join('\n');
       expect(summaryOutput).toMatch(/Summary/);
-      expect(summaryOutput).toMatch(/取得元.*ブランチ.*feature/);
+      expect(summaryOutput).toMatch(/Source.*branch.*feature/);
     });
 
     it('should display default branch in summary when no branch specified', async () => {
@@ -861,10 +861,10 @@ describe('CLI to GitHub to FileSystem Integration', () => {
       // Verify execution succeeded
       expect(result.success).toBe(true);
 
-      // Verify default branch info appears in summary
+      // Verify default branch info appears in summary (task 5.5: English messages)
       const summaryOutput = consoleLogs.join('\n');
       expect(summaryOutput).toMatch(/Summary/);
-      expect(summaryOutput).toMatch(/取得元.*デフォルトブランチ/);
+      expect(summaryOutput).toMatch(/Source.*default branch/);
     });
   });
 

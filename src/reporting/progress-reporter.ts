@@ -40,12 +40,12 @@ export class ProgressReporter {
    * reporter.reportStart('owner/repo', 'my-project');
    * // Output: Fetching files from owner/repo/.kiro
    * //         Project: my-project
-   * //         取得元: owner/repo (デフォルトブランチ)
+   * //         Source: owner/repo (default branch)
    *
    * reporter.reportStart('owner/repo', 'my-project', 'packages/api', 'feature-branch');
    * // Output: Fetching files from owner/repo/packages/api/.kiro
    * //         Project: my-project
-   * //         取得元: owner/repo (ブランチ: feature-branch)
+   * //         Source: owner/repo (branch: feature-branch)
    * ```
    */
   reportStart(repository: string, project: string, subdir?: string, branch?: string): void {
@@ -59,9 +59,9 @@ export class ProgressReporter {
     // Build branch information text
     let branchInfo: string;
     if (branch) {
-      branchInfo = `取得元: ${repoOnly} (ブランチ: ${branch})`;
+      branchInfo = `Source: ${repoOnly} (branch: ${branch})`;
     } else {
-      branchInfo = `取得元: ${repoOnly} (デフォルトブランチ)`;
+      branchInfo = `Source: ${repoOnly} (default branch)`;
     }
 
     console.log(this.chalk.cyan(repoText));
@@ -203,20 +203,20 @@ export class ProgressReporter {
    * ```typescript
    * reporter.reportSummary(8, 2);
    * // Output: Summary:
-   * //         取得元: (デフォルトブランチ)
+   * //         Source: (default branch)
    * //         8 files succeeded (in green)
    * //         2 files failed (in red)
    *
    * reporter.reportSummary(8, 2, 'packages/api');
    * // Output: Summary:
    * //         Fetched from: packages/api
-   * //         取得元: (デフォルトブランチ)
+   * //         Source: (default branch)
    * //         8 files succeeded (in green)
    * //         2 files failed (in red)
    *
    * reporter.reportSummary(8, 2, undefined, 'feature-branch');
    * // Output: Summary:
-   * //         取得元: (ブランチ: feature-branch)
+   * //         Source: (branch: feature-branch)
    * //         8 files succeeded (in green)
    * //         2 files failed (in red)
    * ```
@@ -231,9 +231,9 @@ export class ProgressReporter {
     // Build branch information text
     let branchInfo: string;
     if (branch) {
-      branchInfo = `  取得元: (ブランチ: ${branch})`;
+      branchInfo = `  Source: (branch: ${branch})`;
     } else {
-      branchInfo = `  取得元: (デフォルトブランチ)`;
+      branchInfo = `  Source: (default branch)`;
     }
     console.log(this.chalk.cyan(branchInfo));
 
