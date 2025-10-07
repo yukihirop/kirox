@@ -232,6 +232,53 @@ export interface InteractiveErrorResult {
 }
 
 /**
+ * TTY environment check result
+ */
+export interface TTYCheckResult {
+  success: boolean;
+  exitCode: number;
+}
+
+/**
+ * Check if the current environment supports TTY (interactive terminal)
+ *
+ * This function verifies that the process is running in a TTY environment,
+ * which is required for interactive prompts to work.
+ *
+ * Task 5.3: 非TTY環境エラーハンドリングの実装
+ *
+ * @param logger - Logger instance for recording events
+ * @returns TTY check result with success flag and exit code
+ */
+export function checkTTYEnvironment(logger: Logger): TTYCheckResult {
+  // Check if stdin is a TTY (terminal)
+  if (!process.stdin.isTTY) {
+    // Display error message
+    console.error('対話モードはTTY環境でのみ利用可能です。引数を明示的に指定してください。');
+
+    // Display usage example
+    console.log('使用例: npx kirox owner/repo -p project-name');
+
+    // Log the error
+    logger.error('Interactive mode requires TTY environment', {
+      isTTY: process.stdin.isTTY,
+      stdin: 'not a TTY',
+    });
+
+    return {
+      success: false,
+      exitCode: 1,
+    };
+  }
+
+  // TTY environment is available
+  return {
+    success: true,
+    exitCode: 0,
+  };
+}
+
+/**
  * Handle errors that occur during interactive mode
  *
  * This function handles three types of errors:

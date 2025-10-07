@@ -96,7 +96,7 @@
   - _Requirements: 5.4, 7.1_
   - _Note: タスク5.1で既に実装済み（src/cli/interactive-prompt.ts:217-221, 267-275）_
 
-- [ ] 5.3 非TTY環境エラーハンドリングの実装
+- [x] 5.3 非TTY環境エラーハンドリングの実装
   - process.stdin.isTTYがfalseの場合のエラー処理を実装
   - 適切なエラーメッセージと使用例を表示
   - exitCode 1でプロセスを終了
