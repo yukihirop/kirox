@@ -120,6 +120,7 @@ export class ProgressReporter {
    *
    * @param success - Number of successful operations
    * @param failed - Number of failed operations
+   * @param subdir - Optional subdirectory path
    *
    * @example
    * ```typescript
@@ -127,10 +128,20 @@ export class ProgressReporter {
    * // Output: Summary:
    * //         8 files succeeded (in green)
    * //         2 files failed (in red)
+   *
+   * reporter.reportSummary(8, 2, 'packages/api');
+   * // Output: Summary:
+   * //         Fetched from: packages/api
+   * //         8 files succeeded (in green)
+   * //         2 files failed (in red)
    * ```
    */
-  reportSummary(success: number, failed: number): void {
+  reportSummary(success: number, failed: number, subdir?: string): void {
     console.log('\nSummary:');
+
+    if (subdir) {
+      console.log(this.chalk.cyan(`  Fetched from: ${subdir}`));
+    }
 
     console.log(this.chalk.green(`  ${success} files succeeded`));
     console.log(this.chalk.red(`  ${failed} files failed`));

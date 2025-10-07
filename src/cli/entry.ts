@@ -311,7 +311,7 @@ export async function execute(argv: string[]): Promise<ExecutionResult> {
     }
 
     // Step 9: Report summary
-    reporter.reportSummary(filesDownloaded, filesFailed);
+    reporter.reportSummary(filesDownloaded, filesFailed, subdir);
 
     logger.info('Execution completed', {
       filesDownloaded,

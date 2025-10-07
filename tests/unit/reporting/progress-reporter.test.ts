@@ -284,6 +284,48 @@ describe('ProgressReporter', () => {
       expect(hasGreenCode).toBe(true);
       expect(hasRedCode).toBe(true);
     });
+
+    it('should display subdirectory path when provided', () => {
+      const options: ReporterOptions = { verbose: false, useColor: true };
+      const reporter = new ProgressReporter(options);
+
+      reporter.reportSummary(8, 2, 'packages/api');
+
+      const allCalls = consoleLogSpy.mock.calls.map((call) => call[0]);
+      const hasSubdirPath = allCalls.some((msg) =>
+        String(msg).includes('packages/api')
+      );
+
+      expect(hasSubdirPath).toBe(true);
+    });
+
+    it('should not display subdirectory path when not provided', () => {
+      const options: ReporterOptions = { verbose: false, useColor: true };
+      const reporter = new ProgressReporter(options);
+
+      reporter.reportSummary(8, 2);
+
+      const allCalls = consoleLogSpy.mock.calls.map((call) => call[0]);
+      const hasSubdirMention = allCalls.some((msg) =>
+        /from|subdirectory/i.test(String(msg))
+      );
+
+      expect(hasSubdirMention).toBe(false);
+    });
+
+    it('should not display subdirectory path when empty string', () => {
+      const options: ReporterOptions = { verbose: false, useColor: true };
+      const reporter = new ProgressReporter(options);
+
+      reporter.reportSummary(8, 2, '');
+
+      const allCalls = consoleLogSpy.mock.calls.map((call) => call[0]);
+      const hasSubdirMention = allCalls.some((msg) =>
+        /from|subdirectory/i.test(String(msg))
+      );
+
+      expect(hasSubdirMention).toBe(false);
+    });
   });
 
   describe('reportVerbose', () => {
