@@ -94,6 +94,7 @@ export function parseRepositoryPath(repositoryPath: string): RepositoryRef {
  * @param owner - Repository owner
  * @param repo - Repository name
  * @param path - Directory path (empty string for root)
+ * @param ref - Branch/tag/commit SHA (optional, defaults to repository's default branch)
  * @returns Array of content items (files and directories)
  * @throws Error if repository or path not found, or API request fails
  */
@@ -101,14 +102,28 @@ export async function fetchDirectoryContents(
   client: Octokit,
   owner: string,
   repo: string,
-  path: string
+  path: string,
+  ref?: string
 ): Promise<ContentItem[]> {
   try {
-    const response = await client.rest.repos.getContent({
+    // Build request parameters - only include ref if specified
+    const params: {
+      owner: string;
+      repo: string;
+      path: string;
+      ref?: string;
+    } = {
       owner,
       repo,
       path,
-    });
+    };
+
+    // Only add ref parameter if branch is specified
+    if (ref !== undefined) {
+      params.ref = ref;
+    }
+
+    const response = await client.rest.repos.getContent(params);
 
     // GitHub API returns array for directories, object for files
     if (!Array.isArray(response.data)) {
@@ -128,8 +143,29 @@ export async function fetchDirectoryContents(
       // Check for HTTP error with status code
       if ('status' in error) {
         const status = (error as { status: number }).status;
+
+        // Task 3.3: Enhanced branch-related error handling
         if (status === 404) {
-          // Check if path contains subdirectory (path before .kiro)
+          // Branch specified but not found
+          if (ref !== undefined) {
+            // Check if .kiro directory path is involved
+            if (path.includes('.kiro')) {
+              const kiroIndex = path.indexOf('.kiro');
+              if (kiroIndex > 0) {
+                // Extract subdirectory path (everything before .kiro/)
+                const subdir = path.substring(0, kiroIndex).replace(/\/$/, '');
+                throw new Error(
+                  `ブランチ ${ref} のサブディレクトリ ${subdir} に.kiroフォルダが見つかりません`
+                );
+              }
+              // .kiro path at root level
+              throw new Error(`ブランチ ${ref} に.kiroフォルダが見つかりません`);
+            }
+            // No .kiro in path - branch itself not found
+            throw new Error(`ブランチが見つかりません: ${ref}`);
+          }
+
+          // No branch specified - check subdirectory error
           const kiroIndex = path.indexOf('.kiro');
           if (kiroIndex > 0) {
             // Extract subdirectory path (everything before .kiro/)
@@ -142,6 +178,15 @@ export async function fetchDirectoryContents(
           throw new Error(
             `Repository "${owner}/${repo}" or path "${path}" not found`
           );
+        }
+
+        // Task 3.3: Handle 401/403 errors for branch access
+        if (status === 401 || status === 403) {
+          if (ref !== undefined) {
+            throw new Error(
+              `ブランチへのアクセスに失敗しました: ${ref}（権限不足の可能性があります）`
+            );
+          }
         }
       }
       throw new Error(
