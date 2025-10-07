@@ -101,24 +101,28 @@ export async function execute(argv: string[]): Promise<ExecutionResult> {
       auth: process.env.GITHUB_TOKEN,
     });
 
-    const { owner, repo } = parseRepositoryPath(args.repository);
+    const { owner, repo, branch } = parseRepositoryPath(args.repository);
+
+    // Get branch from merged config (CLI branch takes precedence over config file)
+    const effectiveBranch = branch || mergedConfig.branch;
 
     // Step 5: Fetch directory listings
     logger.info('Fetching directory listings from GitHub', {
       repository: args.repository,
       project: args.project,
+      ...(effectiveBranch && { branch: effectiveBranch }),
     });
 
     const specPath = buildRemotePath(subdir, args.project, 'specs');
     const steeringPath = buildRemotePath(subdir, '', 'steering');
 
     // Fetch spec directory (required)
-    const specContents = await fetchDirectoryContents(octokit, owner, repo, specPath);
+    const specContents = await fetchDirectoryContents(octokit, owner, repo, specPath, effectiveBranch);
 
     // Fetch steering directory (optional - may not exist)
     let steeringContents: ContentItem[] = [];
     try {
-      steeringContents = await fetchDirectoryContents(octokit, owner, repo, steeringPath);
+      steeringContents = await fetchDirectoryContents(octokit, owner, repo, steeringPath, effectiveBranch);
     } catch (error) {
       if (args.verbose) {
         logger.warn('Steering directory not found, skipping', {
@@ -150,7 +154,8 @@ export async function execute(argv: string[]): Promise<ExecutionResult> {
       owner,
       repo,
       filePaths,
-      5 // maxConcurrency
+      5, // maxConcurrency
+      effectiveBranch
     );
 
     if (args.verbose) {

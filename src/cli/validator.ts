@@ -8,12 +8,14 @@ import type { ParsedArguments, ValidationResult, ValidationError } from './types
 import { normalizeSubdirPath, validateSubdirPath } from '@/filesystem/path-utils.js';
 
 /**
- * Regular expression for valid repository format: owner/repo
- * - Must contain exactly one slash
+ * Regular expression for valid repository format: owner/repo or owner/repo#branch
+ * - Must contain exactly one slash for owner/repo separation
  * - Owner and repo names must not be empty
  * - Alphanumeric, hyphens, underscores, and dots allowed
+ * - Optional branch specification with # (e.g., owner/repo#branch-name)
+ * - Branch name can contain alphanumeric, hyphens, underscores, dots, and slashes
  */
-const REPOSITORY_PATTERN = /^[a-zA-Z0-9._-]+\/[a-zA-Z0-9._-]+$/;
+const REPOSITORY_PATTERN = /^[a-zA-Z0-9._-]+\/[a-zA-Z0-9._-]+(?:#[a-zA-Z0-9._\/-]+)?$/;
 
 /**
  * Regular expression to detect control characters in branch names

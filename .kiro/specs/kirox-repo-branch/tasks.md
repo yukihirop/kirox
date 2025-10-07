@@ -77,7 +77,7 @@
   - _Requirements: 5.4_
 
 - [ ] 5. CLI Entry Pointの統合
-- [ ] 5.1 ブランチ情報の抽出とフロー統合
+- [x] 5.1 ブランチ情報の抽出とフロー統合
   - `parseRepositoryPath()`でリポジトリ文字列からブランチを抽出
   - 抽出したブランチ情報を設定マージ処理に統合
   - マージ後のブランチ情報をGitHub Fetcherに渡す

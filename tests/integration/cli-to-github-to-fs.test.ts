@@ -297,4 +297,195 @@ describe('CLI to GitHub to FileSystem Integration', () => {
       expect(deepFileExists).toBe(true);
     });
   });
+
+  describe('Branch specification integration', () => {
+    it('should fetch files from specified branch using owner/repo#branch format', async () => {
+      // Mock Octokit responses with ref parameter
+      const mockOctokit = {
+        rest: {
+          repos: {
+            getContent: vi.fn()
+              .mockResolvedValueOnce({
+                // Mock .kiro/specs/test-project directory listing with ref
+                data: [
+                  {
+                    name: 'spec.json',
+                    path: '.kiro/specs/test-project/spec.json',
+                    type: 'file',
+                    sha: 'branch-abc',
+                    size: 150,
+                  },
+                ],
+              })
+              .mockResolvedValueOnce({
+                // Mock .kiro/steering directory listing with ref
+                data: [
+                  {
+                    name: 'tech.md',
+                    path: '.kiro/steering/tech.md',
+                    type: 'file',
+                    sha: 'branch-def',
+                    size: 250,
+                  },
+                ],
+              })
+              .mockResolvedValueOnce({
+                // Mock spec.json file content from branch
+                data: {
+                  type: 'file',
+                  encoding: 'base64',
+                  content: Buffer.from('{"branch": "feature"}', 'utf-8').toString('base64'),
+                  size: 150,
+                  path: '.kiro/specs/test-project/spec.json',
+                  sha: 'branch-abc',
+                },
+              })
+              .mockResolvedValueOnce({
+                // Mock tech.md file content from branch
+                data: {
+                  type: 'file',
+                  encoding: 'base64',
+                  content: Buffer.from('# Tech from feature branch', 'utf-8').toString('base64'),
+                  size: 250,
+                  path: '.kiro/steering/tech.md',
+                  sha: 'branch-def',
+                },
+              }),
+          },
+          rateLimit: {
+            get: vi.fn().mockResolvedValue({
+              data: {
+                rate: {
+                  remaining: 5000,
+                  limit: 5000,
+                  reset: Date.now() / 1000 + 3600,
+                },
+              },
+            }),
+          },
+        },
+      };
+
+      vi.mocked(Octokit).mockImplementation(() => mockOctokit as any);
+
+      // Execute CLI command with branch specification
+      const argv = [
+        'node',
+        'kirox',
+        'owner/repo#feature-branch',
+        '-p',
+        'test-project',
+        '-o',
+        testOutputDir,
+        '--force',
+      ];
+
+      const result = await execute(argv);
+
+      // Verify execution succeeded
+      expect(result.success).toBe(true);
+      expect(result.filesDownloaded).toBe(2);
+      expect(result.filesFailed).toBe(0);
+
+      // Verify that getContent was called with ref parameter
+      const getContentCalls = mockOctokit.rest.repos.getContent.mock.calls;
+
+      // Check first call (specs directory)
+      expect(getContentCalls[0][0]).toMatchObject({
+        owner: 'owner',
+        repo: 'repo',
+        path: '.kiro/specs/test-project',
+        ref: 'feature-branch',
+      });
+
+      // Check second call (steering directory)
+      expect(getContentCalls[1][0]).toMatchObject({
+        owner: 'owner',
+        repo: 'repo',
+        path: '.kiro/steering',
+        ref: 'feature-branch',
+      });
+
+      // Verify files were written to filesystem
+      const specJsonPath = path.join(testOutputDir, '.kiro/specs/test-project/spec.json');
+      const techMdPath = path.join(testOutputDir, '.kiro/steering/tech.md');
+
+      const specJsonContent = await fs.readFile(specJsonPath, 'utf-8');
+      const techMdContent = await fs.readFile(techMdPath, 'utf-8');
+
+      expect(specJsonContent).toBe('{"branch": "feature"}');
+      expect(techMdContent).toBe('# Tech from feature branch');
+    });
+
+    it('should fetch files from default branch when no branch specified', async () => {
+      // Mock Octokit responses without ref parameter
+      const mockOctokit = {
+        rest: {
+          repos: {
+            getContent: vi.fn()
+              .mockResolvedValueOnce({
+                data: [
+                  {
+                    name: 'spec.json',
+                    path: '.kiro/specs/test-project/spec.json',
+                    type: 'file',
+                    sha: 'default-abc',
+                    size: 100,
+                  },
+                ],
+              })
+              .mockResolvedValueOnce({ data: [] })
+              .mockResolvedValueOnce({
+                data: {
+                  type: 'file',
+                  encoding: 'base64',
+                  content: Buffer.from('{"branch": "main"}', 'utf-8').toString('base64'),
+                  size: 100,
+                  path: '.kiro/specs/test-project/spec.json',
+                  sha: 'default-abc',
+                },
+              }),
+          },
+          rateLimit: {
+            get: vi.fn().mockResolvedValue({
+              data: {
+                rate: {
+                  remaining: 5000,
+                  limit: 5000,
+                  reset: Date.now() / 1000 + 3600,
+                },
+              },
+            }),
+          },
+        },
+      };
+
+      vi.mocked(Octokit).mockImplementation(() => mockOctokit as any);
+
+      // Execute CLI command without branch specification
+      const argv = [
+        'node',
+        'kirox',
+        'owner/repo',
+        '-p',
+        'test-project',
+        '-o',
+        testOutputDir,
+        '--force',
+      ];
+
+      const result = await execute(argv);
+
+      // Verify execution succeeded
+      expect(result.success).toBe(true);
+      expect(result.filesDownloaded).toBe(1);
+
+      // Verify that getContent was called WITHOUT ref parameter
+      const getContentCalls = mockOctokit.rest.repos.getContent.mock.calls;
+
+      // Check that ref is undefined (not passed)
+      expect(getContentCalls[0][0].ref).toBeUndefined();
+      expect(getContentCalls[1][0].ref).toBeUndefined();
+    });
+  });
 });
