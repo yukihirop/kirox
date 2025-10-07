@@ -8,6 +8,11 @@ import type { Octokit } from 'octokit';
 
 /**
  * Repository reference (owner/repo with optional branch)
+ *
+ * @remarks
+ * Backward compatibility: The optional `branch` field allows existing code
+ * that only uses `owner` and `repo` to continue working without modifications.
+ * When `branch` is undefined, it indicates the repository's default branch should be used.
  */
 export interface RepositoryRef {
   owner: string;

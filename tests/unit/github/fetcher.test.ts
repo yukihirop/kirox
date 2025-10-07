@@ -99,6 +99,31 @@ describe('GitHubFetcher', () => {
       });
     });
 
+    // Task 1.3: Backward compatibility tests
+    it('should maintain backward compatibility with owner/repo format', () => {
+      const result = parseRepositoryPath('facebook/react');
+
+      expect(result).toEqual({
+        owner: 'facebook',
+        repo: 'react',
+        branch: undefined,
+      });
+    });
+
+    it('should handle branch: undefined in result object correctly', () => {
+      const result = parseRepositoryPath('nodejs/node');
+
+      // Verify branch property exists and is undefined
+      expect(result).toHaveProperty('branch');
+      expect(result.branch).toBeUndefined();
+
+      // Verify existing code can destructure safely
+      const { owner, repo, branch } = result;
+      expect(owner).toBe('nodejs');
+      expect(repo).toBe('node');
+      expect(branch).toBeUndefined();
+    });
+
     // Task 1.2: Invalid repository format validation tests
     it('should throw error for repository path starting with # only', () => {
       expect(() => parseRepositoryPath('#branch')).toThrow(
