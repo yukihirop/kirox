@@ -487,5 +487,125 @@ describe('CLI to GitHub to FileSystem Integration', () => {
       expect(getContentCalls[0][0].ref).toBeUndefined();
       expect(getContentCalls[1][0].ref).toBeUndefined();
     });
+
+    it('should fetch files from specified branch and subdirectory', async () => {
+      // Mock Octokit responses with both ref and subdir
+      const mockOctokit = {
+        rest: {
+          repos: {
+            getContent: vi.fn()
+              .mockResolvedValueOnce({
+                // Mock subdir/.kiro/specs/test-project directory listing with ref
+                data: [
+                  {
+                    name: 'spec.json',
+                    path: 'packages/api/.kiro/specs/test-project/spec.json',
+                    type: 'file',
+                    sha: 'subdir-branch-abc',
+                    size: 200,
+                  },
+                ],
+              })
+              .mockResolvedValueOnce({
+                // Mock subdir/.kiro/steering directory listing with ref
+                data: [
+                  {
+                    name: 'product.md',
+                    path: 'packages/api/.kiro/steering/product.md',
+                    type: 'file',
+                    sha: 'subdir-branch-def',
+                    size: 300,
+                  },
+                ],
+              })
+              .mockResolvedValueOnce({
+                // Mock spec.json file content from branch and subdir
+                data: {
+                  type: 'file',
+                  encoding: 'base64',
+                  content: Buffer.from('{"branch": "develop", "subdir": "packages/api"}', 'utf-8').toString('base64'),
+                  size: 200,
+                  path: 'packages/api/.kiro/specs/test-project/spec.json',
+                  sha: 'subdir-branch-abc',
+                },
+              })
+              .mockResolvedValueOnce({
+                // Mock product.md file content from branch and subdir
+                data: {
+                  type: 'file',
+                  encoding: 'base64',
+                  content: Buffer.from('# Product from develop branch, packages/api', 'utf-8').toString('base64'),
+                  size: 300,
+                  path: 'packages/api/.kiro/steering/product.md',
+                  sha: 'subdir-branch-def',
+                },
+              }),
+          },
+          rateLimit: {
+            get: vi.fn().mockResolvedValue({
+              data: {
+                rate: {
+                  remaining: 5000,
+                  limit: 5000,
+                  reset: Date.now() / 1000 + 3600,
+                },
+              },
+            }),
+          },
+        },
+      };
+
+      vi.mocked(Octokit).mockImplementation(() => mockOctokit as any);
+
+      // Execute CLI command with branch and subdir
+      const argv = [
+        'node',
+        'kirox',
+        'owner/repo#develop',
+        '-p',
+        'test-project',
+        '--subdir',
+        'packages/api',
+        '-o',
+        testOutputDir,
+        '--force',
+      ];
+
+      const result = await execute(argv);
+
+      // Verify execution succeeded
+      expect(result.success).toBe(true);
+      expect(result.filesDownloaded).toBe(2);
+      expect(result.filesFailed).toBe(0);
+
+      // Verify that getContent was called with both ref and correct path
+      const getContentCalls = mockOctokit.rest.repos.getContent.mock.calls;
+
+      // Check first call (specs directory with subdir and ref)
+      expect(getContentCalls[0][0]).toMatchObject({
+        owner: 'owner',
+        repo: 'repo',
+        path: 'packages/api/.kiro/specs/test-project',
+        ref: 'develop',
+      });
+
+      // Check second call (steering directory with subdir and ref)
+      expect(getContentCalls[1][0]).toMatchObject({
+        owner: 'owner',
+        repo: 'repo',
+        path: 'packages/api/.kiro/steering',
+        ref: 'develop',
+      });
+
+      // Verify files were written to filesystem with subdir prefix
+      const specJsonPath = path.join(testOutputDir, 'packages/api/.kiro/specs/test-project/spec.json');
+      const productMdPath = path.join(testOutputDir, 'packages/api/.kiro/steering/product.md');
+
+      const specJsonContent = await fs.readFile(specJsonPath, 'utf-8');
+      const productMdContent = await fs.readFile(productMdPath, 'utf-8');
+
+      expect(specJsonContent).toBe('{"branch": "develop", "subdir": "packages/api"}');
+      expect(productMdContent).toBe('# Product from develop branch, packages/api');
+    });
   });
 });
