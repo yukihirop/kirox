@@ -12,6 +12,7 @@
 import { input, confirm } from '@inquirer/prompts';
 import type { ParsedArguments } from './types.js';
 import { validateRepositoryFormat, validateProjectName } from './validator.js';
+import type { Logger } from '../reporting/logger.js';
 
 /**
  * Determine if interactive mode should be entered
@@ -220,4 +221,79 @@ export async function promptMissingArguments(
   }
 
   return completedArgs;
+}
+
+/**
+ * Error handling result for interactive mode
+ */
+export interface InteractiveErrorResult {
+  exitCode: number;
+  shouldExit: boolean;
+}
+
+/**
+ * Handle errors that occur during interactive mode
+ *
+ * This function handles three types of errors:
+ * 1. ExitPromptError (Ctrl+C) - exitCode 130
+ * 2. Confirmation cancellation ('処理を中断しました') - exitCode 0
+ * 3. Other errors - exitCode 1
+ *
+ * Task 5.1: Ctrl+C中断処理の実装
+ *
+ * @param error - Error that occurred during interactive mode
+ * @param logger - Logger instance for recording events
+ * @returns Error handling result with exit code and exit flag
+ */
+export function handleInteractiveError(
+  error: unknown,
+  logger: Logger
+): InteractiveErrorResult {
+  if (error instanceof Error) {
+    // Case 1: ExitPromptError (Ctrl+C by user)
+    if (error.name === 'ExitPromptError') {
+      console.log('\n処理を中断しました');
+      logger.info('User cancelled interactive mode', {
+        reason: 'Ctrl+C',
+        errorName: error.name,
+      });
+      return {
+        exitCode: 130, // Standard SIGINT exit code
+        shouldExit: true,
+      };
+    }
+
+    // Case 2: Confirmation cancellation ('処理を中断しました')
+    if (error.message === '処理を中断しました') {
+      console.log('処理を中断しました');
+      logger.info('User cancelled execution at confirmation', {
+        reason: 'Declined confirmation',
+      });
+      return {
+        exitCode: 0, // User intentionally cancelled, not an error
+        shouldExit: true,
+      };
+    }
+
+    // Case 3: Other errors
+    console.log(`エラーが発生しました: ${error.message}`);
+    logger.error('Interactive mode error', {
+      message: error.message,
+      stack: error.stack,
+    });
+    return {
+      exitCode: 1,
+      shouldExit: true,
+    };
+  }
+
+  // Unknown error type
+  console.log('エラーが発生しました');
+  logger.error('Interactive mode error', {
+    error: String(error),
+  });
+  return {
+    exitCode: 1,
+    shouldExit: true,
+  };
 }
