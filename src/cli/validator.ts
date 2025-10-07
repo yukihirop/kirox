@@ -16,6 +16,12 @@ import { normalizeSubdirPath, validateSubdirPath } from '@/filesystem/path-utils
 const REPOSITORY_PATTERN = /^[a-zA-Z0-9._-]+\/[a-zA-Z0-9._-]+$/;
 
 /**
+ * Regular expression to detect control characters in branch names
+ * - Matches: \0 (null), \t (tab), \n (newline), \r (carriage return), etc.
+ */
+const CONTROL_CHARS_PATTERN = /[\x00-\x1F\x7F]/;
+
+/**
  * Validate input arguments
  *
  * @param args - Parsed arguments to validate
@@ -91,4 +97,58 @@ export function validateInput(args: ParsedArguments): ValidationResult {
     valid: errors.length === 0,
     errors,
   };
+}
+
+/**
+ * Validate branch name for control characters and whitespace issues
+ *
+ * Task 4.3: Branch name validation
+ *
+ * @param branch - Branch name to validate (undefined or empty string means default branch)
+ * @returns Array of validation errors (empty if valid)
+ */
+export function validateBranchName(
+  branch: string | undefined
+): ValidationError[] {
+  const errors: ValidationError[] = [];
+
+  // undefined or empty string means default branch - valid
+  if (branch === undefined || branch === '') {
+    return errors;
+  }
+
+  // Check for control characters (tab, newline, null, etc.)
+  if (CONTROL_CHARS_PATTERN.test(branch)) {
+    errors.push({
+      field: 'branch',
+      message: `無効なブランチ名です: ${branch}`,
+    });
+    return errors;
+  }
+
+  // Check for leading or trailing whitespace
+  const trimmed = branch.trim();
+  if (branch !== trimmed) {
+    const hasLeading = branch.startsWith(' ');
+    const hasTrailing = branch.endsWith(' ');
+
+    if (hasLeading && hasTrailing) {
+      errors.push({
+        field: 'branch',
+        message: `ブランチ名の先頭と末尾に空白があります: "${branch}" (トリミング推奨)`,
+      });
+    } else if (hasLeading) {
+      errors.push({
+        field: 'branch',
+        message: `ブランチ名の先頭に空白があります: "${branch}" (トリミング推奨)`,
+      });
+    } else if (hasTrailing) {
+      errors.push({
+        field: 'branch',
+        message: `ブランチ名の末尾に空白があります: "${branch}" (トリミング推奨)`,
+      });
+    }
+  }
+
+  return errors;
 }
