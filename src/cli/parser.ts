@@ -24,6 +24,7 @@ export function parseArguments(argv: string[]): ParsedArguments {
     .argument('[repository]', 'GitHub repository in format "owner/repo"')
     .option('-p, --project <name>', 'Project name to fetch')
     .option('-o, --output <path>', 'Output directory (default: current directory)', '.')
+    .option('-s, --subdir <path>', 'Subdirectory path containing .kiro folder')
     .option('--force', 'Force overwrite without confirmation', false)
     .option('--dry-run', 'Dry-run mode (no actual writes)', false)
     .option('--verbose', 'Verbose logging', false)
@@ -39,6 +40,7 @@ export function parseArguments(argv: string[]): ParsedArguments {
   const options = program.opts<{
     project?: string;
     output: string;
+    subdir?: string;
     force: boolean;
     dryRun: boolean;
     verbose: boolean;
@@ -73,5 +75,6 @@ export function parseArguments(argv: string[]): ParsedArguments {
     track,
     checkUpdates: options.checkUpdates,
     update: options.update,
+    subdir: options.subdir,
   };
 }
