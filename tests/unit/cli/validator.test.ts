@@ -313,6 +313,17 @@ describe('InputValidator', () => {
       expect(result.errors[0]?.message).toContain('パストラバーサル');
     });
 
+    it('should provide clear error message for path traversal in subdirectory', () => {
+      const args = createValidArgs();
+      args.subdir = '../malicious';
+      const result = validateInput(args);
+
+      expect(result.valid).toBe(false);
+      expect(result.errors[0]?.message).toBe(
+        'サブディレクトリパスにパストラバーサル (..) は使用できません: ../malicious'
+      );
+    });
+
     it('should reject subdirectory path with .. in the middle', () => {
       const args = createValidArgs();
       args.subdir = 'packages/../etc';
@@ -331,6 +342,17 @@ describe('InputValidator', () => {
       expect(result.errors).toHaveLength(1);
       expect(result.errors[0]?.field).toBe('subdir');
       expect(result.errors[0]?.message).toContain('絶対パス');
+    });
+
+    it('should provide clear error message for absolute path in subdirectory', () => {
+      const args = createValidArgs();
+      args.subdir = '/etc/passwd';
+      const result = validateInput(args);
+
+      expect(result.valid).toBe(false);
+      expect(result.errors[0]?.message).toBe(
+        'サブディレクトリパスに絶対パスは使用できません: /etc/passwd'
+      );
     });
 
     it('should not affect existing validation when subdir is not specified', () => {

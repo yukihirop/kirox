@@ -92,6 +92,16 @@ export async function fetchDirectoryContents(
       if ('status' in error) {
         const status = (error as { status: number }).status;
         if (status === 404) {
+          // Check if path contains subdirectory (path before .kiro)
+          const kiroIndex = path.indexOf('.kiro');
+          if (kiroIndex > 0) {
+            // Extract subdirectory path (everything before .kiro/)
+            const subdir = path.substring(0, kiroIndex).replace(/\/$/, '');
+            throw new Error(
+              `Subdirectory "${subdir}" or .kiro folder not found in repository "${owner}/${repo}"`
+            );
+          }
+
           throw new Error(
             `Repository "${owner}/${repo}" or path "${path}" not found`
           );

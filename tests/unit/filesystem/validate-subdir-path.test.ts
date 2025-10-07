@@ -31,31 +31,31 @@ describe('validateSubdirPath', () => {
   describe('Path traversal detection', () => {
     it('should reject path with .. in the middle', () => {
       expect(() => validateSubdirPath('packages/../etc')).toThrow(
-        '無効なサブディレクトリパスです: パストラバーサルは禁止されています'
+        'サブディレクトリパスにパストラバーサル (..) は使用できません: packages/../etc'
       );
     });
 
     it('should reject path starting with ..', () => {
       expect(() => validateSubdirPath('../packages')).toThrow(
-        '無効なサブディレクトリパスです: パストラバーサルは禁止されています'
+        'サブディレクトリパスにパストラバーサル (..) は使用できません: ../packages'
       );
     });
 
     it('should reject path ending with ..', () => {
       expect(() => validateSubdirPath('packages/..')).toThrow(
-        '無効なサブディレクトリパスです: パストラバーサルは禁止されています'
+        'サブディレクトリパスにパストラバーサル (..) は使用できません: packages/..'
       );
     });
 
     it('should reject path with only ..', () => {
       expect(() => validateSubdirPath('..')).toThrow(
-        '無効なサブディレクトリパスです: パストラバーサルは禁止されています'
+        'サブディレクトリパスにパストラバーサル (..) は使用できません: ..'
       );
     });
 
     it('should reject path with multiple ..', () => {
       expect(() => validateSubdirPath('../../etc/passwd')).toThrow(
-        '無効なサブディレクトリパスです: パストラバーサルは禁止されています'
+        'サブディレクトリパスにパストラバーサル (..) は使用できません: ../../etc/passwd'
       );
     });
   });
@@ -63,25 +63,25 @@ describe('validateSubdirPath', () => {
   describe('Absolute path detection', () => {
     it('should reject Unix absolute path', () => {
       expect(() => validateSubdirPath('/etc/passwd')).toThrow(
-        '無効なサブディレクトリパスです: 絶対パスは禁止されています'
+        'サブディレクトリパスに絶対パスは使用できません: /etc/passwd'
       );
     });
 
     it('should reject Windows absolute path with drive letter', () => {
       expect(() => validateSubdirPath('C:/Windows/System32')).toThrow(
-        '無効なサブディレクトリパスです: 絶対パスは禁止されています'
+        'サブディレクトリパスに絶対パスは使用できません: C:/Windows/System32'
       );
     });
 
     it('should reject Windows UNC path', () => {
       expect(() => validateSubdirPath('//server/share')).toThrow(
-        '無効なサブディレクトリパスです: 絶対パスは禁止されています'
+        'サブディレクトリパスに絶対パスは使用できません: //server/share'
       );
     });
 
     it('should reject absolute path starting with /', () => {
       expect(() => validateSubdirPath('/packages/api')).toThrow(
-        '無効なサブディレクトリパスです: 絶対パスは禁止されています'
+        'サブディレクトリパスに絶対パスは使用できません: /packages/api'
       );
     });
   });
@@ -94,7 +94,7 @@ describe('validateSubdirPath', () => {
     it('should reject path with .. but not at boundary', () => {
       // This should still be rejected as it contains ..
       expect(() => validateSubdirPath('pack..ages/api')).toThrow(
-        '無効なサブディレクトリパスです: パストラバーサルは禁止されています'
+        'サブディレクトリパスにパストラバーサル (..) は使用できません: pack..ages/api'
       );
     });
   });

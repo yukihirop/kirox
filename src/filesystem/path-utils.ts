@@ -78,14 +78,14 @@ export function validateSubdirPath(subdirPath: string): void {
   // Check for path traversal attempts
   if (subdirPath.includes('..')) {
     throw new Error(
-      '無効なサブディレクトリパスです: パストラバーサルは禁止されています'
+      `サブディレクトリパスにパストラバーサル (..) は使用できません: ${subdirPath}`
     );
   }
 
   // Check for absolute paths (Unix-style and Windows-style)
   if (path.isAbsolute(subdirPath)) {
     throw new Error(
-      '無効なサブディレクトリパスです: 絶対パスは禁止されています'
+      `サブディレクトリパスに絶対パスは使用できません: ${subdirPath}`
     );
   }
 
@@ -93,7 +93,7 @@ export function validateSubdirPath(subdirPath: string): void {
   // path.isAbsolute() may not detect these on non-Windows platforms
   if (/^[a-zA-Z]:[\\/]/.test(subdirPath)) {
     throw new Error(
-      '無効なサブディレクトリパスです: 絶対パスは禁止されています'
+      `サブディレクトリパスに絶対パスは使用できません: ${subdirPath}`
     );
   }
 }
