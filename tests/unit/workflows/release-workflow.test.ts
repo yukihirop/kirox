@@ -298,4 +298,44 @@ describe('Release Workflow Configuration', () => {
       expect(releaseIndex).toBeGreaterThan(publishIndex);
     });
   });
+
+  describe('Workflow Permissions', () => {
+    it('should have permissions defined at workflow level', () => {
+      // RED: This test will fail initially
+      const workflowContent = readFileSync(workflowPath, 'utf-8');
+      const workflow = yaml.parse(workflowContent);
+
+      expect(workflow.permissions).toBeDefined();
+    });
+
+    it('should have contents: write permission', () => {
+      // RED: This test will fail initially
+      const workflowContent = readFileSync(workflowPath, 'utf-8');
+      const workflow = yaml.parse(workflowContent);
+
+      expect(workflow.permissions).toBeDefined();
+      expect(workflow.permissions.contents).toBe('write');
+    });
+
+    it('should have id-token: write permission', () => {
+      // RED: This test will fail initially
+      const workflowContent = readFileSync(workflowPath, 'utf-8');
+      const workflow = yaml.parse(workflowContent);
+
+      expect(workflow.permissions).toBeDefined();
+      expect(workflow.permissions['id-token']).toBe('write');
+    });
+
+    it('should only have minimal permissions (contents and id-token)', () => {
+      // RED: This test will fail initially
+      const workflowContent = readFileSync(workflowPath, 'utf-8');
+      const workflow = yaml.parse(workflowContent);
+
+      expect(workflow.permissions).toBeDefined();
+      const permissionKeys = Object.keys(workflow.permissions);
+      expect(permissionKeys).toHaveLength(2);
+      expect(permissionKeys).toContain('contents');
+      expect(permissionKeys).toContain('id-token');
+    });
+  });
 });

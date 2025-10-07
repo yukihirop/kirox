@@ -85,7 +85,7 @@
   - リリースURLをログに出力
   - _Requirements: 5.6_
 
-- [ ] 3.5 Releaseワークフロー権限の設定
+- [x] 3.5 Releaseワークフロー権限の設定
   - contents: write権限を設定（GitHubリリース作成用）
   - id-token: write権限を設定（将来的なOIDC認証用）
   - _Requirements: セキュリティ要件全般_
