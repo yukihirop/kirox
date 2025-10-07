@@ -59,7 +59,7 @@
   - _Requirements: 4.4_
 
 - [ ] 4. 設定管理の拡張
-- [ ] 4.1 設定ファイル型定義の拡張
+- [x] 4.1 設定ファイル型定義の拡張
   - `KiroxConfig`インターフェースに`branch?: string`フィールドを追加
   - `MergedConfig`インターフェースに`branch?: string`フィールドを追加
   - _Requirements: 5.1_
