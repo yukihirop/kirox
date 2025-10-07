@@ -162,4 +162,91 @@ describe('CI Workflow Configuration', () => {
       // package-lock.json as the cache key (no explicit configuration needed)
     });
   });
+
+  describe('Code Quality Validation Steps', () => {
+    it('should have TypeScript type check step', () => {
+      // RED: This test will fail initially
+      const workflowContent = readFileSync(workflowPath, 'utf-8');
+      const workflow = yaml.parse(workflowContent);
+
+      const typeCheckStep = workflow.jobs.test.steps.find(
+        (step: any) => step.run && step.run.includes('type-check')
+      );
+
+      expect(typeCheckStep).toBeDefined();
+      expect(typeCheckStep.run).toBe('npm run type-check');
+    });
+
+    it('should have ESLint step', () => {
+      // RED: This test will fail initially
+      const workflowContent = readFileSync(workflowPath, 'utf-8');
+      const workflow = yaml.parse(workflowContent);
+
+      const lintStep = workflow.jobs.test.steps.find(
+        (step: any) => step.run && step.run.includes('lint')
+      );
+
+      expect(lintStep).toBeDefined();
+      expect(lintStep.run).toBe('npm run lint');
+    });
+
+    it('should have build step', () => {
+      // RED: This test will fail initially
+      const workflowContent = readFileSync(workflowPath, 'utf-8');
+      const workflow = yaml.parse(workflowContent);
+
+      const buildStep = workflow.jobs.test.steps.find(
+        (step: any) => step.run && step.run.includes('build')
+      );
+
+      expect(buildStep).toBeDefined();
+      expect(buildStep.run).toBe('npm run build');
+    });
+
+    it('should have test step', () => {
+      // This should already pass
+      const workflowContent = readFileSync(workflowPath, 'utf-8');
+      const workflow = yaml.parse(workflowContent);
+
+      const testStep = workflow.jobs.test.steps.find(
+        (step: any) => step.run && step.run === 'npm test'
+      );
+
+      expect(testStep).toBeDefined();
+    });
+
+    it('should run validation steps in correct order', () => {
+      // RED: This test will fail initially
+      const workflowContent = readFileSync(workflowPath, 'utf-8');
+      const workflow = yaml.parse(workflowContent);
+
+      const steps = workflow.jobs.test.steps;
+      const stepNames = steps.map((step: any) => step.run || step.name);
+
+      // Find indices of validation steps
+      const typeCheckIndex = stepNames.findIndex((name: string) =>
+        name && name.includes('type-check')
+      );
+      const lintIndex = stepNames.findIndex((name: string) =>
+        name && name.includes('lint')
+      );
+      const buildIndex = stepNames.findIndex((name: string) =>
+        name && name.includes('build')
+      );
+      const testIndex = stepNames.findIndex((name: string) =>
+        name && name === 'npm test'
+      );
+
+      // Verify all steps exist
+      expect(typeCheckIndex).toBeGreaterThan(-1);
+      expect(lintIndex).toBeGreaterThan(-1);
+      expect(buildIndex).toBeGreaterThan(-1);
+      expect(testIndex).toBeGreaterThan(-1);
+
+      // Verify order: type-check -> lint -> build -> test
+      expect(typeCheckIndex).toBeLessThan(lintIndex);
+      expect(lintIndex).toBeLessThan(buildIndex);
+      expect(buildIndex).toBeLessThan(testIndex);
+    });
+  });
 });

@@ -29,7 +29,7 @@
   - キャッシュヒット時のログ出力を確認
   - _Requirements: 3.1, 3.2, 3.3, 3.4_
 
-- [ ] 2.4 コード品質検証ステップの実装
+- [x] 2.4 コード品質検証ステップの実装
   - actions/checkout@v5でコードをチェックアウト
   - npm ciで依存関係をインストール
   - TypeScript型チェック（npm run type-check）を実行
