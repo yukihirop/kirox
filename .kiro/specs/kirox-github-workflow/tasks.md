@@ -70,7 +70,7 @@
   - いずれかの検証が失敗した場合はワークフロー全体を失敗
   - _Requirements: 5.2, 5.3, 5.5_
 
-- [ ] 3.3 npm公開ステップの実装
+- [x] 3.3 npm公開ステップの実装
   - npmレジストリURLを設定（registry-url: 'https://registry.npmjs.org'）
   - GitHub SecretsからNPM_TOKENを環境変数NODE_AUTH_TOKENとして設定
   - npm publishコマンドを実行

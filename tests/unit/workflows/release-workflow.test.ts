@@ -172,4 +172,66 @@ describe('Release Workflow Configuration', () => {
       expect(buildIndex).toBeLessThan(testIndex);
     });
   });
+
+  describe('NPM Publish Step', () => {
+    it('should have setup-node step with registry-url configured', () => {
+      // RED: This test will fail initially
+      const workflowContent = readFileSync(workflowPath, 'utf-8');
+      const workflow = yaml.parse(workflowContent);
+
+      const setupNodeStep = workflow.jobs.release.steps.find(
+        (step: any) => step.uses && step.uses.startsWith('actions/setup-node')
+      );
+
+      expect(setupNodeStep).toBeDefined();
+      expect(setupNodeStep.with['registry-url']).toBe('https://registry.npmjs.org');
+    });
+
+    it('should have npm publish step', () => {
+      // RED: This test will fail initially
+      const workflowContent = readFileSync(workflowPath, 'utf-8');
+      const workflow = yaml.parse(workflowContent);
+
+      const publishStep = workflow.jobs.release.steps.find(
+        (step: any) => step.run && step.run.includes('npm publish')
+      );
+
+      expect(publishStep).toBeDefined();
+      expect(publishStep.run).toBe('npm publish');
+    });
+
+    it('should configure NODE_AUTH_TOKEN from secrets', () => {
+      // RED: This test will fail initially
+      const workflowContent = readFileSync(workflowPath, 'utf-8');
+      const workflow = yaml.parse(workflowContent);
+
+      const publishStep = workflow.jobs.release.steps.find(
+        (step: any) => step.run && step.run.includes('npm publish')
+      );
+
+      expect(publishStep).toBeDefined();
+      expect(publishStep.env).toBeDefined();
+      expect(publishStep.env.NODE_AUTH_TOKEN).toBe('${{ secrets.NPM_TOKEN }}');
+    });
+
+    it('should run publish step after all CI validation steps', () => {
+      // RED: This test will fail initially
+      const workflowContent = readFileSync(workflowPath, 'utf-8');
+      const workflow = yaml.parse(workflowContent);
+
+      const steps = workflow.jobs.release.steps;
+      const stepNames = steps.map((step: any) => step.run || step.name);
+
+      const testIndex = stepNames.findIndex((name: string) =>
+        name && name === 'npm test'
+      );
+      const publishIndex = stepNames.findIndex((name: string) =>
+        name && name.includes('npm publish')
+      );
+
+      expect(testIndex).toBeGreaterThan(-1);
+      expect(publishIndex).toBeGreaterThan(-1);
+      expect(publishIndex).toBeGreaterThan(testIndex);
+    });
+  });
 });
