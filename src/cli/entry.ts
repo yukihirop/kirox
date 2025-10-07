@@ -179,6 +179,12 @@ export async function execute(argv: string[]): Promise<ExecutionResult> {
 
       reporter.reportProgress(currentIndex, totalFiles, file.path);
 
+      // Verbose: Show detailed fetch information with branch
+      if (args.verbose && effectiveBranch) {
+        const branchInfo = `${owner}/${repo}#${effectiveBranch}/${file.path}`;
+        reporter.reportVerbose(`取得中: ${branchInfo}`);
+      }
+
       try {
         // Resolve output path
         const localPath = resolveOutputPath(args.output, file.path);

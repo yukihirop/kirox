@@ -97,7 +97,7 @@
   - サブディレクトリとの併用: "取得元: owner/repo/subdir (ブランチ: \<branch\>)"
   - _Requirements: 6.1, 6.2_
 
-- [ ] 6.2 verboseオプション時のブランチ情報表示
+- [x] 6.2 verboseオプション時のブランチ情報表示
   - ファイル取得時のログにブランチ情報を含める
   - フォーマット: "owner/repo#\<branch\>/\<file-path\>から取得中"
   - _Requirements: 6.3_

@@ -607,5 +607,88 @@ describe('CLI to GitHub to FileSystem Integration', () => {
       expect(specJsonContent).toBe('{"branch": "develop", "subdir": "packages/api"}');
       expect(productMdContent).toBe('# Product from develop branch, packages/api');
     });
+
+    it('should display branch info in verbose mode', async () => {
+      // Mock Octokit responses
+      const mockOctokit = {
+        rest: {
+          repos: {
+            getContent: vi.fn()
+              .mockResolvedValueOnce({
+                data: [
+                  {
+                    name: 'spec.json',
+                    path: '.kiro/specs/test-project/spec.json',
+                    type: 'file',
+                    sha: 'abc',
+                    size: 100,
+                  },
+                ],
+              })
+              .mockResolvedValueOnce({ data: [] })
+              .mockResolvedValueOnce({
+                data: {
+                  type: 'file',
+                  encoding: 'base64',
+                  content: Buffer.from('{"test": "data"}', 'utf-8').toString('base64'),
+                  size: 100,
+                  path: '.kiro/specs/test-project/spec.json',
+                  sha: 'abc',
+                },
+              }),
+          },
+          rateLimit: {
+            get: vi.fn().mockResolvedValue({
+              data: {
+                rate: {
+                  remaining: 5000,
+                  limit: 5000,
+                  reset: Date.now() / 1000 + 3600,
+                },
+              },
+            }),
+          },
+        },
+      };
+
+      vi.mocked(Octokit).mockImplementation(() => mockOctokit as any);
+
+      // Capture console output
+      const consoleOutput: string[] = [];
+      const originalLog = console.log;
+      console.log = vi.fn((...args) => {
+        consoleOutput.push(args.join(' '));
+        originalLog(...args);
+      });
+
+      // Execute CLI command with verbose and branch
+      const argv = [
+        'node',
+        'kirox',
+        'owner/repo#feature',
+        '-p',
+        'test-project',
+        '-o',
+        testOutputDir,
+        '--force',
+        '--verbose',
+      ];
+
+      const result = await execute(argv);
+
+      // Restore console.log
+      console.log = originalLog;
+
+      // Verify execution succeeded
+      expect(result.success).toBe(true);
+
+      // Verify that verbose output includes branch info in format: owner/repo#feature/<path>
+      const hasVerboseWithBranch = consoleOutput.some((line) =>
+        /owner\/repo#feature\//i.test(line) || /feature.*spec\.json/i.test(line)
+      );
+
+      // Note: This test verifies the expected format, implementation will add this feature
+      expect(hasVerboseWithBranch).toBe(true);
+    });
   });
 });
