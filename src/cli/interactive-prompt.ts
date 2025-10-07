@@ -5,6 +5,7 @@
  * Task 3.1: 対話モード起動条件の実装
  * Task 4.1: リポジトリ入力プロンプトの実装
  * Task 4.2: プロジェクト名入力プロンプトの実装
+ * Task 4.3: オプションパラメータ入力プロンプトの実装
  */
 
 import { input } from '@inquirer/prompts';
@@ -98,4 +99,41 @@ export async function promptProject(currentValue: string): Promise<string> {
       return true;
     },
   });
+}
+
+/**
+ * Prompt for output directory
+ *
+ * Displays an interactive prompt with default value ".".
+ * User can press Enter to accept default or specify a custom path.
+ *
+ * @returns Output directory path (defaults to ".")
+ */
+export async function promptOutput(): Promise<string> {
+  return await input({
+    message: '出力ディレクトリを入力してください',
+    default: '.',
+  });
+}
+
+/**
+ * Prompt for subdirectory path (optional)
+ *
+ * Displays an interactive prompt for optional subdirectory path.
+ * If user provides an empty string or whitespace only, returns undefined.
+ *
+ * @returns Subdirectory path, or undefined if empty
+ */
+export async function promptSubdir(): Promise<string | undefined> {
+  const value = await input({
+    message: 'サブディレクトリを入力してください (オプション)',
+    default: '',
+  });
+
+  // Return undefined if empty or whitespace only
+  if (!value || value.trim() === '') {
+    return undefined;
+  }
+
+  return value;
 }
