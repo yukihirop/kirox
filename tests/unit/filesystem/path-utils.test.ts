@@ -123,6 +123,30 @@ describe('PathUtils', () => {
       expect(result).toBe(expected);
     });
 
+    it('should strip subdirectory prefix from remote path when saving locally', () => {
+      // Remote path includes subdirectory: lib/a/.kiro/specs/project/requirements.md
+      // Local path should be: <outputDir>/.kiro/specs/project/requirements.md
+      const result = resolveOutputPath('./tmp', 'lib/a/.kiro/specs/project/requirements.md');
+      const expected = path.resolve('./tmp', '.kiro/specs/project/requirements.md');
+      expect(result).toBe(expected);
+    });
+
+    it('should strip nested subdirectory prefix from remote path', () => {
+      // Remote path: packages/api/v2/.kiro/steering/tech.md
+      // Local path should be: <outputDir>/.kiro/steering/tech.md
+      const result = resolveOutputPath('/tmp/test', 'packages/api/v2/.kiro/steering/tech.md');
+      const expected = path.normalize('/tmp/test/.kiro/steering/tech.md');
+      expect(result).toBe(expected);
+    });
+
+    it('should handle remote path without subdirectory prefix', () => {
+      // Remote path without subdirectory: .kiro/specs/project/requirements.md
+      // Local path should remain: <outputDir>/.kiro/specs/project/requirements.md
+      const result = resolveOutputPath('./tmp', '.kiro/specs/project/requirements.md');
+      const expected = path.resolve('./tmp', '.kiro/specs/project/requirements.md');
+      expect(result).toBe(expected);
+    });
+
     it('should resolve output path with relative directory', () => {
       const result = resolveOutputPath('./external', '.kiro/specs/myapp/requirements.md');
       const expected = path.resolve('./external', '.kiro/specs/myapp/requirements.md');

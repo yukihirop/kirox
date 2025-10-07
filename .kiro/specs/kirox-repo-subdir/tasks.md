@@ -81,6 +81,14 @@
   - 構築されたリモートパスをGitHub APIに渡す
   - _Requirements: 4.1, 4.2_
 
+- [x] 4.3 ローカル保存先パスの計算ロジックを修正【バグ修正】
+  - 現在の問題: `--subdir lib/a`指定時に`tmp/lib/a/.kiro`に保存されているが、設計では`tmp/.kiro`に保存すべき
+  - FileWriter層の`getLocalFilePath`または`writeFile`関数を調査
+  - リモートファイルパスからサブディレクトリ部分を除去するロジックを実装
+  - サブディレクトリ指定時もローカルパスは`<outputDir>/.kiro/...`となるように修正
+  - 例: リモートパス`lib/a/.kiro/specs/project/requirements.md`→ローカルパス`tmp/.kiro/specs/project/requirements.md`
+  - _Requirements: 4.1, 4.2_
+
 - [ ] 5. Reporting層の進捗表示とサマリーの拡張
 - [x] 5.1 進捗レポーターの開始メッセージにサブディレクトリパスを追加
   - サブディレクトリが指定されている場合は`<owner>/<repo>/<subdir>/.kiro`を表示
@@ -172,6 +180,7 @@
 
 - [ ] 9.2 GitHub to FileSystem統合テストを作成
   - サブディレクトリから取得したファイルの正しい書き込み先確認
+  - ローカル保存先パスがサブディレクトリ構造を含まないことの確認（タスク4.3のバグ修正検証）
   - 進捗表示にサブディレクトリパスが含まれることの確認
   - _Requirements: 5.1, 5.3_
 
@@ -185,7 +194,7 @@
 - [ ] 10.1 基本フローのE2Eテストを作成
   - `npx kirox owner/repo --subdir packages/api -p my-project`の完全フロー
   - 取得元表示、進捗表示、サマリー表示の確認
-  - ファイルが正しいローカルパスに書き込まれることの確認
+  - ファイルが正しいローカルパス`<outputDir>/.kiro/...`に書き込まれることの確認（サブディレクトリ構造を含まない）
   - _Requirements: 1.1, 4.1, 5.1, 5.3_
 
 - [ ] 10.2 設定ファイル使用フローのE2Eテストを作成
