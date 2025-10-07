@@ -313,4 +313,44 @@ describe('CI Workflow Configuration', () => {
       expect(coverageStep.if).toContain("matrix.node-version == '20.x'");
     });
   });
+
+  describe('Workflow Permissions', () => {
+    it('should have permissions defined at workflow level', () => {
+      // RED: This test will fail initially
+      const workflowContent = readFileSync(workflowPath, 'utf-8');
+      const workflow = yaml.parse(workflowContent);
+
+      expect(workflow.permissions).toBeDefined();
+    });
+
+    it('should have contents: read permission', () => {
+      // RED: This test will fail initially
+      const workflowContent = readFileSync(workflowPath, 'utf-8');
+      const workflow = yaml.parse(workflowContent);
+
+      expect(workflow.permissions).toBeDefined();
+      expect(workflow.permissions.contents).toBe('read');
+    });
+
+    it('should have pull-requests: write permission', () => {
+      // RED: This test will fail initially
+      const workflowContent = readFileSync(workflowPath, 'utf-8');
+      const workflow = yaml.parse(workflowContent);
+
+      expect(workflow.permissions).toBeDefined();
+      expect(workflow.permissions['pull-requests']).toBe('write');
+    });
+
+    it('should only have minimal permissions (contents and pull-requests)', () => {
+      // RED: This test will fail initially
+      const workflowContent = readFileSync(workflowPath, 'utf-8');
+      const workflow = yaml.parse(workflowContent);
+
+      expect(workflow.permissions).toBeDefined();
+      const permissionKeys = Object.keys(workflow.permissions);
+      expect(permissionKeys).toHaveLength(2);
+      expect(permissionKeys).toContain('contents');
+      expect(permissionKeys).toContain('pull-requests');
+    });
+  });
 });
