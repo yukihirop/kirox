@@ -66,6 +66,9 @@ export function mergeConfig(
   if (fileConfig.force !== undefined) {
     config.force = fileConfig.force;
   }
+  if (fileConfig.subdir !== undefined) {
+    config.subdir = fileConfig.subdir;
+  }
 
   // Priority 1 & 2: CLI options (highest priority)
   if (cliArgs.verbose) {
@@ -76,6 +79,9 @@ export function mergeConfig(
   }
   if (cliArgs.dryRun) {
     config.dryRun = true;
+  }
+  if (cliArgs.subdir !== undefined) {
+    config.subdir = cliArgs.subdir;
   }
 
   return config;
