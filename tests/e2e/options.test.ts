@@ -337,4 +337,33 @@ describe('E2E CLI Options', () => {
       expect(result.exitCode).toBe(0);
     });
   });
+
+  describe('--help option', () => {
+    it('should display repository format with branch support', async () => {
+      const argv = ['node', 'kirox', '--help'];
+
+      // Commander.js exits with code 0 on --help, which throws in test environment
+      // We need to capture stdout to verify the help message
+      let helpOutput = '';
+      const originalWrite = process.stdout.write;
+      process.stdout.write = vi.fn((chunk: any) => {
+        helpOutput += chunk.toString();
+        return true;
+      }) as any;
+
+      try {
+        await execute(argv);
+      } catch (error: any) {
+        // Expected: Commander.js calls process.exit() on --help
+        // We catch this to continue testing
+      }
+
+      // Restore stdout
+      process.stdout.write = originalWrite;
+
+      // Verify help message includes branch format
+      expect(helpOutput).toMatch(/owner\/repo#branch/i);
+      expect(helpOutput).toMatch(/owner\/repo/);
+    });
+  });
 });

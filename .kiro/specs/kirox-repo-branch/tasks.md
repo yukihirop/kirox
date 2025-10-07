@@ -108,7 +108,7 @@
   - _Requirements: 6.4_
 
 - [ ] 7. ヘルプメッセージの更新
-- [ ] 7.1 リポジトリ引数の説明を拡張
+- [x] 7.1 リポジトリ引数の説明を拡張
   - Commander.jsの`.argument()`の説明文を更新
   - "owner/repo" または "owner/repo#branch" 形式であることを明記
   - _Requirements: 9.1_

@@ -21,7 +21,7 @@ export function parseArguments(argv: string[]): ParsedArguments {
     .name('kirox')
     .description('CLI tool to fetch Kiro specification and steering files from remote GitHub repositories')
     .version('0.1.0')
-    .argument('[repository]', 'GitHub repository in format "owner/repo"')
+    .argument('[repository]', 'GitHub repository in format "owner/repo" or "owner/repo#branch"')
     .option('-p, --project <name>', 'Project name to fetch')
     .option('-o, --output <path>', 'Output directory (default: current directory)', '.')
     .option('-s, --subdir <path>', 'Subdirectory path containing .kiro folder')
