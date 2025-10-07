@@ -234,4 +234,68 @@ describe('Release Workflow Configuration', () => {
       expect(publishIndex).toBeGreaterThan(testIndex);
     });
   });
+
+  describe('GitHub Release Creation', () => {
+    it('should have GitHub release creation step', () => {
+      // RED: This test will fail initially
+      const workflowContent = readFileSync(workflowPath, 'utf-8');
+      const workflow = yaml.parse(workflowContent);
+
+      const releaseStep = workflow.jobs.release.steps.find(
+        (step: any) =>
+          step.uses && step.uses.includes('softprops/action-gh-release')
+      );
+
+      expect(releaseStep).toBeDefined();
+    });
+
+    it('should use softprops/action-gh-release@v2', () => {
+      // RED: This test will fail initially
+      const workflowContent = readFileSync(workflowPath, 'utf-8');
+      const workflow = yaml.parse(workflowContent);
+
+      const releaseStep = workflow.jobs.release.steps.find(
+        (step: any) =>
+          step.uses && step.uses.includes('softprops/action-gh-release')
+      );
+
+      expect(releaseStep).toBeDefined();
+      expect(releaseStep.uses).toContain('softprops/action-gh-release@v2');
+    });
+
+    it('should configure generate_release_notes to true', () => {
+      // RED: This test will fail initially
+      const workflowContent = readFileSync(workflowPath, 'utf-8');
+      const workflow = yaml.parse(workflowContent);
+
+      const releaseStep = workflow.jobs.release.steps.find(
+        (step: any) =>
+          step.uses && step.uses.includes('softprops/action-gh-release')
+      );
+
+      expect(releaseStep).toBeDefined();
+      expect(releaseStep.with).toBeDefined();
+      expect(releaseStep.with.generate_release_notes).toBe(true);
+    });
+
+    it('should run release step after npm publish', () => {
+      // RED: This test will fail initially
+      const workflowContent = readFileSync(workflowPath, 'utf-8');
+      const workflow = yaml.parse(workflowContent);
+
+      const steps = workflow.jobs.release.steps;
+      const stepNames = steps.map((step: any) => step.uses || step.run || step.name);
+
+      const publishIndex = stepNames.findIndex((name: string) =>
+        name && name.includes('npm publish')
+      );
+      const releaseIndex = stepNames.findIndex((name: string) =>
+        name && name.includes('softprops/action-gh-release')
+      );
+
+      expect(publishIndex).toBeGreaterThan(-1);
+      expect(releaseIndex).toBeGreaterThan(-1);
+      expect(releaseIndex).toBeGreaterThan(publishIndex);
+    });
+  });
 });
