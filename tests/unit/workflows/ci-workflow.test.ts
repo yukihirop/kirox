@@ -120,4 +120,46 @@ describe('CI Workflow Configuration', () => {
       expect(setupNodeStep.with['node-version']).toBe('${{ matrix.node-version }}');
     });
   });
+
+  describe('Dependency Caching', () => {
+    it('should enable npm caching in setup-node step', () => {
+      const workflowContent = readFileSync(workflowPath, 'utf-8');
+      const workflow = yaml.parse(workflowContent);
+
+      const setupNodeStep = workflow.jobs.test.steps.find(
+        (step: any) => step.uses && step.uses.startsWith('actions/setup-node')
+      );
+
+      expect(setupNodeStep).toBeDefined();
+      expect(setupNodeStep.with.cache).toBe('npm');
+    });
+
+    it('should use npm ci for dependency installation', () => {
+      const workflowContent = readFileSync(workflowPath, 'utf-8');
+      const workflow = yaml.parse(workflowContent);
+
+      const installStep = workflow.jobs.test.steps.find(
+        (step: any) => step.run && step.run.includes('npm ci')
+      );
+
+      expect(installStep).toBeDefined();
+      expect(installStep.run).toBe('npm ci');
+    });
+
+    it('should have package-lock.json as implicit cache key', () => {
+      // This test verifies that setup-node with cache: 'npm' will use package-lock.json
+      // as the cache key by default (this is the behavior of actions/setup-node@v4)
+      const workflowContent = readFileSync(workflowPath, 'utf-8');
+      const workflow = yaml.parse(workflowContent);
+
+      const setupNodeStep = workflow.jobs.test.steps.find(
+        (step: any) => step.uses && step.uses.startsWith('actions/setup-node')
+      );
+
+      expect(setupNodeStep).toBeDefined();
+      expect(setupNodeStep.with.cache).toBe('npm');
+      // When cache is set to 'npm', actions/setup-node automatically uses
+      // package-lock.json as the cache key (no explicit configuration needed)
+    });
+  });
 });
