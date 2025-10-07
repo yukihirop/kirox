@@ -3,10 +3,12 @@
  *
  * Tests for validateRepositoryFormat and validateProjectName functions
  * Task 2.1: 個別フィールドバリデーション関数の追加
+ * Task 2.2: バリデーション関数の単体テスト作成
  */
 
 import { describe, it, expect } from 'vitest';
-import { validateRepositoryFormat, validateProjectName } from '@/cli/validator.js';
+import { validateRepositoryFormat, validateProjectName, validateInput } from '@/cli/validator.js';
+import type { ParsedArguments } from '@/cli/types.js';
 
 describe('validateRepositoryFormat', () => {
   describe('正常系', () => {
@@ -170,6 +172,115 @@ describe('validateProjectName', () => {
       const longName = 'a'.repeat(255);
       const errors = validateProjectName(longName);
       expect(errors).toEqual([]);
+    });
+  });
+});
+
+describe('validateInput関数との互換性', () => {
+  const createValidArgs = (): ParsedArguments => ({
+    repository: 'owner/repo',
+    project: 'my-project',
+    output: '.',
+    force: false,
+    dryRun: false,
+    verbose: false,
+    track: false,
+    checkUpdates: false,
+    update: false,
+  });
+
+  describe('validateRepositoryFormat互換性', () => {
+    it('validateInputと同じリポジトリバリデーションロジックを使用する', () => {
+      const testCases = [
+        { repo: 'facebook/react', shouldBeValid: true },
+        { repo: 'owner/repo#branch', shouldBeValid: true },
+        { repo: 'invalid-repo', shouldBeValid: false },
+        { repo: '/repo', shouldBeValid: false },
+        { repo: 'owner/', shouldBeValid: false },
+        { repo: 'owner/repo/extra', shouldBeValid: false },
+      ];
+
+      testCases.forEach(({ repo, shouldBeValid }) => {
+        const args = createValidArgs();
+        args.repository = repo;
+        const validateInputResult = validateInput(args);
+        const validateFormatErrors = validateRepositoryFormat(repo);
+
+        // Both should agree on validity
+        const inputHasRepoError = validateInputResult.errors.some(e => e.field === 'repository');
+        const formatHasError = validateFormatErrors.length > 0;
+
+        if (shouldBeValid) {
+          expect(inputHasRepoError).toBe(false);
+          expect(formatHasError).toBe(false);
+        } else {
+          expect(inputHasRepoError).toBe(true);
+          expect(formatHasError).toBe(true);
+        }
+      });
+    });
+  });
+
+  describe('validateProjectName互換性', () => {
+    it('validateInputと同じプロジェクト名バリデーションロジックを使用する', () => {
+      const testCases = [
+        { project: 'my-project', shouldBeValid: true },
+        { project: 'project_123', shouldBeValid: true },
+        { project: '', shouldBeValid: false },
+        { project: '   ', shouldBeValid: false },
+        { project: '../evil', shouldBeValid: false },
+        { project: 'my/project', shouldBeValid: false },
+        { project: 'my\\project', shouldBeValid: false },
+      ];
+
+      testCases.forEach(({ project, shouldBeValid }) => {
+        const args = createValidArgs();
+        args.project = project;
+        const validateInputResult = validateInput(args);
+        const validateNameErrors = validateProjectName(project);
+
+        // Both should agree on validity
+        const inputHasProjectError = validateInputResult.errors.some(e => e.field === 'project');
+        const nameHasError = validateNameErrors.length > 0;
+
+        if (shouldBeValid) {
+          expect(inputHasProjectError).toBe(false);
+          expect(nameHasError).toBe(false);
+        } else {
+          expect(inputHasProjectError).toBe(true);
+          expect(nameHasError).toBe(true);
+        }
+      });
+    });
+  });
+
+  describe('エラーメッセージの一貫性', () => {
+    it('リポジトリエラーメッセージが一貫している', () => {
+      const args = createValidArgs();
+      args.repository = 'invalid';
+      const validateInputResult = validateInput(args);
+      const validateFormatErrors = validateRepositoryFormat('invalid');
+
+      const inputRepoError = validateInputResult.errors.find(e => e.field === 'repository');
+      const formatError = validateFormatErrors[0];
+
+      expect(inputRepoError).toBeDefined();
+      expect(formatError).toBeDefined();
+      expect(inputRepoError?.message).toBe(formatError?.message);
+    });
+
+    it('プロジェクト名エラーメッセージが一貫している', () => {
+      const args = createValidArgs();
+      args.project = '';
+      const validateInputResult = validateInput(args);
+      const validateNameErrors = validateProjectName('');
+
+      const inputProjectError = validateInputResult.errors.find(e => e.field === 'project');
+      const nameError = validateNameErrors[0];
+
+      expect(inputProjectError).toBeDefined();
+      expect(nameError).toBeDefined();
+      expect(inputProjectError?.message).toBe(nameError?.message);
     });
   });
 });

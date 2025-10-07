@@ -53,29 +53,23 @@ export function validateInput(args: ParsedArguments): ValidationResult {
   const requiresRepositoryAndProject = !args.checkUpdates && !args.update;
 
   if (requiresRepositoryAndProject) {
-    // Validate repository format
-    if (!args.repository || !REPOSITORY_PATTERN.test(args.repository)) {
+    // Validate repository format using individual validation function
+    if (args.repository) {
+      errors.push(...validateRepositoryFormat(args.repository));
+    } else {
       errors.push({
         field: 'repository',
         message: 'Repository must be in format "owner/repo" (e.g., "facebook/react")',
       });
     }
 
-    // Validate project name
-    if (!args.project || args.project.trim() === '') {
+    // Validate project name using individual validation function
+    if (args.project) {
+      errors.push(...validateProjectName(args.project));
+    } else {
       errors.push({
         field: 'project',
         message: 'Project name cannot be empty',
-      });
-    } else if (args.project.includes('..')) {
-      errors.push({
-        field: 'project',
-        message: 'Project name cannot contain ".." (path traversal attempt)',
-      });
-    } else if (args.project.includes('/') || args.project.includes('\\')) {
-      errors.push({
-        field: 'project',
-        message: 'Project name cannot contain path separators ("/" or "\\")',
       });
     }
   }
