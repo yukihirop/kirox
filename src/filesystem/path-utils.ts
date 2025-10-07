@@ -240,10 +240,11 @@ export function convertRemoteToLocalPath(remotePath: string): string {
  * Resolve output path by combining output directory with remote path
  *
  * Supports both relative and absolute output directory paths.
- * The remote path is appended to the output directory.
+ * The remote path is appended to the output directory, with subdirectory
+ * prefixes stripped to ensure local paths always use <outputDir>/.kiro/...
  *
  * @param outputDir - Output directory (e.g., '.', './specs', '/absolute/path')
- * @param remotePath - Path in remote repository (e.g., '.kiro/specs/project/file.md')
+ * @param remotePath - Path in remote repository (e.g., '.kiro/specs/project/file.md' or 'lib/a/.kiro/specs/project/file.md')
  * @returns Resolved absolute local file path
  * @throws Error if paths are invalid
  *
@@ -252,11 +253,11 @@ export function convertRemoteToLocalPath(remotePath: string): string {
  * resolveOutputPath('.', '.kiro/specs/myapp/requirements.md')
  * // Returns: '/current/dir/.kiro/specs/myapp/requirements.md'
  *
- * resolveOutputPath('./external', '.kiro/specs/myapp/requirements.md')
- * // Returns: '/current/dir/external/.kiro/specs/myapp/requirements.md'
+ * resolveOutputPath('./tmp', 'lib/a/.kiro/specs/myapp/requirements.md')
+ * // Returns: '/current/dir/tmp/.kiro/specs/myapp/requirements.md' (subdirectory stripped)
  *
- * resolveOutputPath('/tmp/test', '.kiro/steering/tech.md')
- * // Returns: '/tmp/test/.kiro/steering/tech.md'
+ * resolveOutputPath('/tmp/test', 'packages/api/.kiro/steering/tech.md')
+ * // Returns: '/tmp/test/.kiro/steering/tech.md' (subdirectory stripped)
  * ```
  */
 export function resolveOutputPath(
@@ -270,12 +271,23 @@ export function resolveOutputPath(
   // Validate and normalize remote path
   const normalizedRemotePath = convertRemoteToLocalPath(remotePath);
 
+  // Strip subdirectory prefix from remote path
+  // Remote path may be: "lib/a/.kiro/specs/project/file.md"
+  // We want to extract: ".kiro/specs/project/file.md"
+  const kiroIndex = normalizedRemotePath.indexOf('.kiro/');
+  if (kiroIndex === -1) {
+    throw new Error('Path must contain .kiro/ directory');
+  }
+
+  // Extract path starting from .kiro/
+  const pathWithoutSubdir = normalizedRemotePath.substring(kiroIndex);
+
   // Resolve output directory to absolute path
   // path.resolve handles both relative and absolute paths
   const absoluteOutputDir = path.resolve(outputDir);
 
-  // Combine output directory with remote path
-  const fullPath = path.join(absoluteOutputDir, normalizedRemotePath);
+  // Combine output directory with stripped remote path
+  const fullPath = path.join(absoluteOutputDir, pathWithoutSubdir);
 
   // Normalize and return
   return path.normalize(fullPath);

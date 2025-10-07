@@ -1,4 +1,4 @@
-# Kirox
+# Kirox (♻️ Recycle `.kiro` CLI)
 
 CLI tool to fetch Kiro specification and steering files from remote GitHub repositories.
 
@@ -13,6 +13,41 @@ CLI tool to fetch Kiro specification and steering files from remote GitHub repos
 - 🎨 Colorized output and progress indicators
 - 🔍 Verbose logging for debugging
 - 🏃 Dry-run mode to preview operations
+
+
+```bash
+npx kirox yukihirop/eg-kanban#test -p simple-kanban-board-a -o ./tmp -s lib/a
+
+Fetching files from yukihirop/eg-kanban#test/lib/a/.kiro
+Project: simple-kanban-board-a
+Source: yukihirop/eg-kanban (branch: test)
+[INFO] 2025-10-07T13:21:12 Fetching directory listings from GitHub {"repository":"yukihirop/eg-kanban#test","project":"simple-kanban-board-a","branch":"test"}
+[INFO] 2025-10-07T13:21:12 Fetching file contents {"count":8}
+[1/8] Fetching .kiro/specs/simple-kanban-board-a/spec.json...
+✓ Saved: .kiro/specs/simple-kanban-board-a/spec.json
+[2/8] Fetching .kiro/steering/product.md...
+✓ Saved: .kiro/steering/product.md
+[3/8] Fetching .kiro/specs/simple-kanban-board-a/tasks.md...
+✓ Saved: .kiro/specs/simple-kanban-board-a/tasks.md
+[4/8] Fetching .kiro/specs/simple-kanban-board-a/requirements.md...
+✓ Saved: .kiro/specs/simple-kanban-board-a/requirements.md
+[5/8] Fetching .kiro/specs/simple-kanban-board-a/design.md...
+✓ Saved: .kiro/specs/simple-kanban-board-a/design.md
+[6/8] Fetching .kiro/steering/structure.md...
+✓ Saved: .kiro/steering/structure.md
+[7/8] Fetching .kiro/steering/testing.md...
+✓ Saved: .kiro/steering/testing.md
+[8/8] Fetching .kiro/steering/tech.md...
+✓ Saved: .kiro/steering/tech.md
+✓ Saved metadata: .kiro/.kirox-meta.json
+
+Summary:
+  Fetched from: lib/a
+  Source: (branch: test)
+  8 files succeeded
+  0 files failed
+[INFO] 2025-10-07T13:21:13 Execution completed {"filesDownloaded":8,"filesFailed":0,"total":8}
+```
 
 ## Installation
 
