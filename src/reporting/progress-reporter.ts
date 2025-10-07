@@ -73,27 +73,61 @@ export class ProgressReporter {
    * Report progress for current file fetch
    *
    * Displays progress in [current/total] filename format
+   * Strips subdirectory prefix from file paths to match local save paths
    *
    * @param current - Current file number (1-indexed)
    * @param total - Total number of files
-   * @param fileName - Name of file being fetched
+   * @param fileName - Name of file being fetched (may include subdirectory prefix)
    *
    * @example
    * ```typescript
    * reporter.reportProgress(3, 10, 'example.md');
    * // Output: [3/10] Fetching example.md...
+   *
+   * reporter.reportProgress(1, 8, 'lib/a/.kiro/specs/project/requirements.md');
+   * // Output: [1/8] Fetching .kiro/specs/project/requirements.md...
    * ```
    */
   reportProgress(current: number, total: number, fileName: string): void {
-    const message = `[${current}/${total}] Fetching ${fileName}...`;
+    // Strip subdirectory prefix from file path to match local save paths
+    // Example: lib/a/.kiro/specs/project/file.md -> .kiro/specs/project/file.md
+    const displayPath = this.stripSubdirPrefix(fileName);
+    const message = `[${current}/${total}] Fetching ${displayPath}...`;
 
     console.log(this.chalk.cyan(message));
+  }
+
+  /**
+   * Strip subdirectory prefix from file path
+   *
+   * Removes subdirectory prefix before .kiro/ to match local save paths.
+   * If path doesn't contain .kiro/, returns the original path.
+   *
+   * @param filePath - File path (may include subdirectory prefix)
+   * @returns Path without subdirectory prefix
+   *
+   * @example
+   * ```typescript
+   * stripSubdirPrefix('lib/a/.kiro/specs/project/file.md')
+   * // Returns: '.kiro/specs/project/file.md'
+   *
+   * stripSubdirPrefix('.kiro/specs/project/file.md')
+   * // Returns: '.kiro/specs/project/file.md'
+   * ```
+   */
+  private stripSubdirPrefix(filePath: string): string {
+    const kiroIndex = filePath.indexOf('.kiro/');
+    if (kiroIndex === -1) {
+      return filePath;
+    }
+    return filePath.substring(kiroIndex);
   }
 
   /**
    * Report success message
    *
    * Displays success message in green color
+   * If message contains a file path with subdirectory prefix, strips it
    *
    * @param message - Success message to display
    *
@@ -101,12 +135,39 @@ export class ProgressReporter {
    * ```typescript
    * reporter.reportSuccess('File downloaded successfully');
    * // Output: ✓ File downloaded successfully (in green)
+   *
+   * reporter.reportSuccess('Saved: lib/a/.kiro/specs/project/file.md');
+   * // Output: ✓ Saved: .kiro/specs/project/file.md (in green)
    * ```
    */
   reportSuccess(message: string): void {
-    const formattedMessage = `✓ ${message}`;
+    // Strip subdirectory prefix from file paths in success messages
+    const displayMessage = this.stripSubdirPrefixFromMessage(message);
+    const formattedMessage = `✓ ${displayMessage}`;
 
     console.log(this.chalk.green(formattedMessage));
+  }
+
+  /**
+   * Strip subdirectory prefix from message containing file paths
+   *
+   * @param message - Message that may contain file paths
+   * @returns Message with subdirectory prefixes stripped
+   */
+  private stripSubdirPrefixFromMessage(message: string): string {
+    // If message contains .kiro/, strip subdirectory prefix
+    const kiroIndex = message.indexOf('.kiro/');
+    if (kiroIndex === -1) {
+      return message;
+    }
+
+    // Find the start of the path (after "Saved: " or similar prefix)
+    const pathStartIndex = message.lastIndexOf(' ', kiroIndex) + 1;
+    const prefix = message.substring(0, pathStartIndex);
+    const filePath = message.substring(pathStartIndex);
+    const displayPath = this.stripSubdirPrefix(filePath);
+
+    return prefix + displayPath;
   }
 
   /**

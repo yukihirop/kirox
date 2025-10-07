@@ -195,6 +195,44 @@ describe('ProgressReporter', () => {
       );
     });
 
+    it('should strip subdirectory prefix from file paths (bug fix task 5.4)', () => {
+      const options: ReporterOptions = { verbose: false, useColor: true };
+      const reporter = new ProgressReporter(options);
+
+      // Remote path includes subdirectory: lib/a/.kiro/specs/project/requirements.md
+      // Display should show: .kiro/specs/project/requirements.md (WITHOUT subdirectory prefix)
+      reporter.reportProgress(1, 8, 'lib/a/.kiro/specs/project/requirements.md');
+
+      const call = consoleLogSpy.mock.calls[0][0];
+      expect(String(call)).toMatch(/\[1\/8\].*Fetching \.kiro\/specs\/project\/requirements\.md/);
+      expect(String(call)).not.toContain('lib/a/.kiro');
+    });
+
+    it('should strip nested subdirectory prefix from file paths', () => {
+      const options: ReporterOptions = { verbose: false, useColor: true };
+      const reporter = new ProgressReporter(options);
+
+      // Remote path with nested subdirectory: packages/api/v2/.kiro/steering/tech.md
+      // Display should show: .kiro/steering/tech.md
+      reporter.reportProgress(2, 5, 'packages/api/v2/.kiro/steering/tech.md');
+
+      const call = consoleLogSpy.mock.calls[0][0];
+      expect(String(call)).toMatch(/\[2\/5\].*Fetching \.kiro\/steering\/tech\.md/);
+      expect(String(call)).not.toContain('packages/api/v2');
+    });
+
+    it('should handle file paths without subdirectory prefix', () => {
+      const options: ReporterOptions = { verbose: false, useColor: true };
+      const reporter = new ProgressReporter(options);
+
+      // Remote path without subdirectory: .kiro/specs/project/tasks.md
+      // Display should remain: .kiro/specs/project/tasks.md
+      reporter.reportProgress(3, 10, '.kiro/specs/project/tasks.md');
+
+      const call = consoleLogSpy.mock.calls[0][0];
+      expect(String(call)).toMatch(/\[3\/10\].*Fetching \.kiro\/specs\/project\/tasks\.md/);
+    });
+
     it('should show different messages for different progress states', () => {
       const options: ReporterOptions = { verbose: false, useColor: true };
       const reporter = new ProgressReporter(options);
@@ -258,6 +296,38 @@ describe('ProgressReporter', () => {
       );
 
       expect(hasColorCodes).toBe(false);
+    });
+
+    it('should strip subdirectory prefix from success messages (bug fix task 5.4)', () => {
+      const options: ReporterOptions = { verbose: false, useColor: true };
+      const reporter = new ProgressReporter(options);
+
+      reporter.reportSuccess('Saved: lib/a/.kiro/specs/project/requirements.md');
+
+      const call = consoleLogSpy.mock.calls[0][0];
+      expect(String(call)).toMatch(/✓ Saved: \.kiro\/specs\/project\/requirements\.md/);
+      expect(String(call)).not.toContain('lib/a/.kiro');
+    });
+
+    it('should strip nested subdirectory prefix from success messages', () => {
+      const options: ReporterOptions = { verbose: false, useColor: true };
+      const reporter = new ProgressReporter(options);
+
+      reporter.reportSuccess('Saved: packages/api/v2/.kiro/steering/tech.md');
+
+      const call = consoleLogSpy.mock.calls[0][0];
+      expect(String(call)).toMatch(/✓ Saved: \.kiro\/steering\/tech\.md/);
+      expect(String(call)).not.toContain('packages/api/v2');
+    });
+
+    it('should handle success messages without .kiro/ prefix', () => {
+      const options: ReporterOptions = { verbose: false, useColor: true };
+      const reporter = new ProgressReporter(options);
+
+      reporter.reportSuccess('Operation completed successfully');
+
+      const call = consoleLogSpy.mock.calls[0][0];
+      expect(String(call)).toMatch(/✓ Operation completed successfully/);
     });
   });
 
