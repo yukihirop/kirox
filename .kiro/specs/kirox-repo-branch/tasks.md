@@ -119,7 +119,7 @@
   - _Requirements: 9.2, 9.3_
 
 - [ ] 8. 単体テストの実装
-- [ ] 8.1 リポジトリパーサーのテスト
+- [x] 8.1 リポジトリパーサーのテスト
   - `owner/repo#branch`形式のパース成功テスト
   - `owner/repo`形式のパース成功テスト（branch: undefined）
   - `owner/repo#`形式のパーステスト（branch: undefined）
