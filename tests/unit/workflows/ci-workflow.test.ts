@@ -249,4 +249,68 @@ describe('CI Workflow Configuration', () => {
       expect(buildIndex).toBeLessThan(testIndex);
     });
   });
+
+  describe('Coverage Report', () => {
+    it('should have coverage report step using vitest-coverage-report-action', () => {
+      // RED: This test will fail initially
+      const workflowContent = readFileSync(workflowPath, 'utf-8');
+      const workflow = yaml.parse(workflowContent);
+
+      const coverageStep = workflow.jobs.test.steps.find(
+        (step: any) =>
+          step.uses &&
+          step.uses.includes('davelosert/vitest-coverage-report-action')
+      );
+
+      expect(coverageStep).toBeDefined();
+      expect(coverageStep.uses).toContain('davelosert/vitest-coverage-report-action@v2');
+    });
+
+    it('should run coverage report with if: always() condition', () => {
+      // RED: This test will fail initially
+      const workflowContent = readFileSync(workflowPath, 'utf-8');
+      const workflow = yaml.parse(workflowContent);
+
+      const coverageStep = workflow.jobs.test.steps.find(
+        (step: any) =>
+          step.uses &&
+          step.uses.includes('davelosert/vitest-coverage-report-action')
+      );
+
+      expect(coverageStep).toBeDefined();
+      expect(coverageStep.if).toBe("always() && matrix.node-version == '20.x'");
+    });
+
+    it('should configure coverage report with file-coverage-mode: changes', () => {
+      // RED: This test will fail initially
+      const workflowContent = readFileSync(workflowPath, 'utf-8');
+      const workflow = yaml.parse(workflowContent);
+
+      const coverageStep = workflow.jobs.test.steps.find(
+        (step: any) =>
+          step.uses &&
+          step.uses.includes('davelosert/vitest-coverage-report-action')
+      );
+
+      expect(coverageStep).toBeDefined();
+      expect(coverageStep.with).toBeDefined();
+      expect(coverageStep.with['file-coverage-mode']).toBe('changes');
+    });
+
+    it('should only run coverage report on Node.js 20.x', () => {
+      // RED: This test will fail initially
+      const workflowContent = readFileSync(workflowPath, 'utf-8');
+      const workflow = yaml.parse(workflowContent);
+
+      const coverageStep = workflow.jobs.test.steps.find(
+        (step: any) =>
+          step.uses &&
+          step.uses.includes('davelosert/vitest-coverage-report-action')
+      );
+
+      expect(coverageStep).toBeDefined();
+      // The condition should check for Node.js 20.x
+      expect(coverageStep.if).toContain("matrix.node-version == '20.x'");
+    });
+  });
 });

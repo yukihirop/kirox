@@ -39,7 +39,7 @@
   - 各ステップに明確な名前を付ける
   - _Requirements: 1.4, 1.5, 1.6, 1.7, 1.8, 1.9_
 
-- [ ] 2.5 カバレッジレポートPR投稿の実装
+- [x] 2.5 カバレッジレポートPR投稿の実装
   - Node.js 20ジョブでのみカバレッジレポートを生成
   - davelosert/vitest-coverage-report-action@v2を使用
   - テスト失敗時もカバレッジレポートを生成（if: always()）
