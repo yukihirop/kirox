@@ -205,7 +205,7 @@ export async function loadMetadata(
   try {
     // Check if file exists
     await fs.access(metadataPath);
-  } catch (error) {
+  } catch (_error) {
     throw new MetadataError(
       MetadataErrorType.NOT_FOUND,
       'Metadata file not found',

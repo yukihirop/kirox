@@ -124,7 +124,7 @@ export async function execute(argv: string[]): Promise<ExecutionResult> {
     let steeringContents: ContentItem[] = [];
     try {
       steeringContents = await fetchDirectoryContents(octokit, owner, repo, steeringPath, effectiveBranch);
-    } catch (error) {
+    } catch (_error) {
       if (args.verbose) {
         logger.warn('Steering directory not found, skipping', {
           path: steeringPath,
@@ -255,7 +255,7 @@ export async function execute(argv: string[]): Promise<ExecutionResult> {
               projectsCount: existingMetadata.projects.length,
             });
           }
-        } catch (error) {
+        } catch (_error) {
           // Metadata doesn't exist
           if (args.verbose) {
             logger.info('Creating new metadata file');

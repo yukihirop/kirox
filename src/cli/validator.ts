@@ -15,12 +15,13 @@ import { normalizeSubdirPath, validateSubdirPath } from '@/filesystem/path-utils
  * - Optional branch specification with # (e.g., owner/repo#branch-name)
  * - Branch name can contain alphanumeric, hyphens, underscores, dots, and slashes
  */
-const REPOSITORY_PATTERN = /^[a-zA-Z0-9._-]+\/[a-zA-Z0-9._-]+(?:#[a-zA-Z0-9._\/-]+)?$/;
+const REPOSITORY_PATTERN = /^[a-zA-Z0-9._-]+\/[a-zA-Z0-9._-]+(?:#[a-zA-Z0-9._/-]+)?$/;
 
 /**
  * Regular expression to detect control characters in branch names
  * - Matches: \0 (null), \t (tab), \n (newline), \r (carriage return), etc.
  */
+// eslint-disable-next-line no-control-regex
 const CONTROL_CHARS_PATTERN = /[\x00-\x1F\x7F]/;
 
 /**
