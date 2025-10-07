@@ -33,7 +33,7 @@ export async function ensureDirectory(dirPath: string): Promise<void> {
     // Check if directory exists
     await fs.access(normalizedPath, constants.F_OK);
     // Directory exists, no need to create
-  } catch (error) {
+  } catch (_error) {
     // Directory does not exist, create it recursively
     try {
       await fs.mkdir(normalizedPath, { recursive: true });
