@@ -183,5 +183,55 @@ describe('ConfigLoader', () => {
       expect(config).toEqual(fullConfig);
       expect(config.subdir).toBe('services/auth');
     });
+
+    // Task 4.3: Branch name validation in config file
+    it('should accept valid branch name in config file', async () => {
+      const validConfig: KiroxConfig = {
+        githubToken: 'ghp_test',
+        branch: 'develop',
+      };
+      await fs.writeFile('.kiroxrc.json', JSON.stringify(validConfig));
+
+      const config = await loadConfig();
+      expect(config.branch).toBe('develop');
+    });
+
+    it('should accept branch name with slashes in config file', async () => {
+      const validConfig: KiroxConfig = {
+        branch: 'feature/new-api',
+      };
+      await fs.writeFile('.kiroxrc.json', JSON.stringify(validConfig));
+
+      const config = await loadConfig();
+      expect(config.branch).toBe('feature/new-api');
+    });
+
+    it('should throw error for invalid branch name with control characters', async () => {
+      const invalidConfig = {
+        branch: 'branch\twith\ttab',
+      };
+      await fs.writeFile('.kiroxrc.json', JSON.stringify(invalidConfig));
+
+      await expect(loadConfig()).rejects.toThrow('設定ファイルのブランチ名が無効です');
+      await expect(loadConfig()).rejects.toThrow('branch\twith\ttab');
+    });
+
+    it('should throw error for branch name with newline', async () => {
+      const invalidConfig = {
+        branch: 'branch\nwith\nnewline',
+      };
+      await fs.writeFile('.kiroxrc.json', JSON.stringify(invalidConfig));
+
+      await expect(loadConfig()).rejects.toThrow('設定ファイルのブランチ名が無効です');
+    });
+
+    it('should throw error for branch name with leading/trailing whitespace', async () => {
+      const invalidConfig = {
+        branch: '  branch-with-spaces  ',
+      };
+      await fs.writeFile('.kiroxrc.json', JSON.stringify(invalidConfig));
+
+      await expect(loadConfig()).rejects.toThrow('設定ファイルのブランチ名が無効です');
+    });
   });
 });

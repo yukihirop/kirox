@@ -21,7 +21,7 @@ export function parseArguments(argv: string[]): ParsedArguments {
     .name('kirox')
     .description('CLI tool to fetch Kiro specification and steering files from remote GitHub repositories')
     .version('0.1.0')
-    .argument('[repository]', 'GitHub repository in format "owner/repo"')
+    .argument('[repository]', 'GitHub repository in format "owner/repo" or "owner/repo#branch"')
     .option('-p, --project <name>', 'Project name to fetch')
     .option('-o, --output <path>', 'Output directory (default: current directory)', '.')
     .option('-s, --subdir <path>', 'Subdirectory path containing .kiro folder')
@@ -32,6 +32,16 @@ export function parseArguments(argv: string[]): ParsedArguments {
     .option('--track', 'Track fetched files for update detection', true)
     .option('--check-updates', 'Check for updates to tracked files', false)
     .option('--update', 'Apply updates to tracked files', false)
+    .addHelpText('after', `
+Examples:
+  $ npx kirox owner/repo -p my-project
+  $ npx kirox owner/repo#feature/new-api -p my-project
+  $ npx kirox owner/repo --subdir packages/api -p my-project
+  $ npx kirox owner/repo#develop --subdir packages/api -p my-project
+
+Note:
+  ブランチ指定は#の後に指定（例: owner/repo#develop）
+`)
     .allowExcessArguments(false);
 
   program.parse(argv);

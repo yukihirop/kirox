@@ -8,6 +8,7 @@ import { promises as fs } from 'fs';
 import path from 'path';
 import os from 'os';
 import type { KiroxConfig } from './types.js';
+import { validateBranchName } from '@/cli/validator.js';
 
 /**
  * Load configuration from file
@@ -64,6 +65,15 @@ async function loadConfigFile(filePath: string, required: boolean): Promise<Kiro
   try {
     const content = await fs.readFile(filePath, 'utf-8');
     const config = JSON.parse(content) as KiroxConfig;
+
+    // Task 4.3: Validate branch name in config file
+    if (config.branch !== undefined) {
+      const branchErrors = validateBranchName(config.branch);
+      if (branchErrors.length > 0) {
+        throw new Error(`設定ファイルのブランチ名が無効です: ${config.branch}`);
+      }
+    }
+
     return config;
   } catch (error) {
     if (error instanceof Error) {

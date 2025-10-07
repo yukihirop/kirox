@@ -33,25 +33,40 @@ export class ProgressReporter {
    * @param repository - GitHub repository (owner/repo)
    * @param project - Project name
    * @param subdir - Optional subdirectory path containing .kiro folder
+   * @param branch - Optional branch name
    *
    * @example
    * ```typescript
    * reporter.reportStart('owner/repo', 'my-project');
    * // Output: Fetching files from owner/repo/.kiro
    * //         Project: my-project
+   * //         取得元: owner/repo (デフォルトブランチ)
    *
-   * reporter.reportStart('owner/repo', 'my-project', 'packages/api');
+   * reporter.reportStart('owner/repo', 'my-project', 'packages/api', 'feature-branch');
    * // Output: Fetching files from owner/repo/packages/api/.kiro
    * //         Project: my-project
+   * //         取得元: owner/repo (ブランチ: feature-branch)
    * ```
    */
-  reportStart(repository: string, project: string, subdir?: string): void {
+  reportStart(repository: string, project: string, subdir?: string, branch?: string): void {
     const kiroPath = subdir ? `${subdir}/.kiro` : '.kiro';
     const repoText = `Fetching files from ${repository}/${kiroPath}`;
     const projectText = `Project: ${project}`;
 
+    // Extract owner/repo from repository (remove branch if present)
+    const repoOnly = repository.split('#')[0];
+
+    // Build branch information text
+    let branchInfo: string;
+    if (branch) {
+      branchInfo = `取得元: ${repoOnly} (ブランチ: ${branch})`;
+    } else {
+      branchInfo = `取得元: ${repoOnly} (デフォルトブランチ)`;
+    }
+
     console.log(this.chalk.cyan(repoText));
     console.log(this.chalk.cyan(projectText));
+    console.log(this.chalk.cyan(branchInfo));
   }
 
   /**
@@ -121,27 +136,45 @@ export class ProgressReporter {
    * @param success - Number of successful operations
    * @param failed - Number of failed operations
    * @param subdir - Optional subdirectory path
+   * @param branch - Optional branch name
    *
    * @example
    * ```typescript
    * reporter.reportSummary(8, 2);
    * // Output: Summary:
+   * //         取得元: (デフォルトブランチ)
    * //         8 files succeeded (in green)
    * //         2 files failed (in red)
    *
    * reporter.reportSummary(8, 2, 'packages/api');
    * // Output: Summary:
    * //         Fetched from: packages/api
+   * //         取得元: (デフォルトブランチ)
+   * //         8 files succeeded (in green)
+   * //         2 files failed (in red)
+   *
+   * reporter.reportSummary(8, 2, undefined, 'feature-branch');
+   * // Output: Summary:
+   * //         取得元: (ブランチ: feature-branch)
    * //         8 files succeeded (in green)
    * //         2 files failed (in red)
    * ```
    */
-  reportSummary(success: number, failed: number, subdir?: string): void {
+  reportSummary(success: number, failed: number, subdir?: string, branch?: string): void {
     console.log('\nSummary:');
 
     if (subdir) {
       console.log(this.chalk.cyan(`  Fetched from: ${subdir}`));
     }
+
+    // Build branch information text
+    let branchInfo: string;
+    if (branch) {
+      branchInfo = `  取得元: (ブランチ: ${branch})`;
+    } else {
+      branchInfo = `  取得元: (デフォルトブランチ)`;
+    }
+    console.log(this.chalk.cyan(branchInfo));
 
     console.log(this.chalk.green(`  ${success} files succeeded`));
     console.log(this.chalk.red(`  ${failed} files failed`));

@@ -98,6 +98,7 @@ export function validateTotalFileCount(count: number): boolean {
  * @param owner - Repository owner
  * @param repo - Repository name
  * @param path - File path
+ * @param ref - Branch/tag/commit SHA (optional, defaults to repository's default branch)
  * @returns Fetched file with decoded content
  * @throws Error if file size exceeds limit or fetch fails
  */
@@ -105,14 +106,28 @@ export async function fetchFileContents(
   client: Octokit,
   owner: string,
   repo: string,
-  path: string
+  path: string,
+  ref?: string
 ): Promise<FetchedFile> {
   try {
-    const response = await client.rest.repos.getContent({
+    // Build request parameters - only include ref if specified
+    const params: {
+      owner: string;
+      repo: string;
+      path: string;
+      ref?: string;
+    } = {
       owner,
       repo,
       path,
-    });
+    };
+
+    // Only add ref parameter if branch is specified
+    if (ref !== undefined) {
+      params.ref = ref;
+    }
+
+    const response = await client.rest.repos.getContent(params);
 
     // Ensure response is a file (not directory)
     if (Array.isArray(response.data)) {
@@ -169,6 +184,7 @@ export async function fetchFileContents(
  * @param repo - Repository name
  * @param filePaths - Array of file paths to fetch
  * @param maxConcurrency - Maximum concurrent requests (default: 5)
+ * @param ref - Branch/tag/commit SHA (optional, defaults to repository's default branch)
  * @returns Result with successful and failed file fetches
  * @throws Error if total file count exceeds limit
  */
@@ -177,7 +193,8 @@ export async function fetchFilesInParallel(
   owner: string,
   repo: string,
   filePaths: string[],
-  maxConcurrency: number = 5
+  maxConcurrency: number = 5,
+  ref?: string
 ): Promise<ParallelFetchResult> {
   // Validate total file count
   if (!validateTotalFileCount(filePaths.length)) {
@@ -197,7 +214,7 @@ export async function fetchFilesInParallel(
     await semaphore.acquire();
 
     try {
-      const file = await fetchFileContents(client, owner, repo, path);
+      const file = await fetchFileContents(client, owner, repo, path, ref);
       success.push(file);
     } catch (error) {
       const errorMessage =

@@ -18,6 +18,8 @@ export interface KiroxConfig {
   force?: boolean;
   /** Default subdirectory path containing .kiro folder */
   subdir?: string;
+  /** Default branch/tag/commit SHA to fetch from */
+  branch?: string;
 }
 
 /**
@@ -39,4 +41,6 @@ export interface MergedConfig {
   dryRun: boolean;
   /** Subdirectory path containing .kiro folder */
   subdir?: string;
+  /** Branch/tag/commit SHA to fetch from (undefined means default branch) */
+  branch?: string;
 }

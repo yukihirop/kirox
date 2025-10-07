@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { validateInput } from '@/cli/validator';
+import { validateInput, validateBranchName } from '@/cli/validator';
 import type { ParsedArguments } from '@/cli/types';
 
 describe('InputValidator', () => {
@@ -375,6 +375,85 @@ describe('InputValidator', () => {
       expect(result.errors).toHaveLength(2);
       expect(result.errors.some((e) => e.field === 'repository')).toBe(true);
       expect(result.errors.some((e) => e.field === 'subdir')).toBe(true);
+    });
+  });
+
+  // Task 4.3: Branch name validation tests
+  describe('validateBranchName', () => {
+    it('should accept valid branch name', () => {
+      const errors = validateBranchName('main');
+      expect(errors).toHaveLength(0);
+    });
+
+    it('should accept branch name with hyphens', () => {
+      const errors = validateBranchName('feature-branch');
+      expect(errors).toHaveLength(0);
+    });
+
+    it('should accept branch name with slashes', () => {
+      const errors = validateBranchName('feature/new-api');
+      expect(errors).toHaveLength(0);
+    });
+
+    it('should accept version tag', () => {
+      const errors = validateBranchName('v1.2.3');
+      expect(errors).toHaveLength(0);
+    });
+
+    it('should accept undefined branch (default branch)', () => {
+      const errors = validateBranchName(undefined);
+      expect(errors).toHaveLength(0);
+    });
+
+    it('should accept empty string (default branch)', () => {
+      const errors = validateBranchName('');
+      expect(errors).toHaveLength(0);
+    });
+
+    it('should reject branch name with tab character', () => {
+      const errors = validateBranchName('branch\twith\ttab');
+      expect(errors).toHaveLength(1);
+      expect(errors[0]?.message).toContain('無効なブランチ名です');
+      expect(errors[0]?.message).toContain('branch\twith\ttab');
+    });
+
+    it('should reject branch name with newline character', () => {
+      const errors = validateBranchName('branch\nwith\nnewline');
+      expect(errors).toHaveLength(1);
+      expect(errors[0]?.message).toContain('無効なブランチ名です');
+    });
+
+    it('should reject branch name with null character', () => {
+      const errors = validateBranchName('branch\0null');
+      expect(errors).toHaveLength(1);
+      expect(errors[0]?.message).toContain('無効なブランチ名です');
+    });
+
+    it('should reject branch name with carriage return', () => {
+      const errors = validateBranchName('branch\rwith\rcarriage');
+      expect(errors).toHaveLength(1);
+      expect(errors[0]?.message).toContain('無効なブランチ名です');
+    });
+
+    it('should warn about leading whitespace', () => {
+      const errors = validateBranchName('  leading-space');
+      expect(errors).toHaveLength(1);
+      expect(errors[0]?.message).toContain('先頭');
+      expect(errors[0]?.message).toContain('空白');
+    });
+
+    it('should warn about trailing whitespace', () => {
+      const errors = validateBranchName('trailing-space  ');
+      expect(errors).toHaveLength(1);
+      expect(errors[0]?.message).toContain('末尾');
+      expect(errors[0]?.message).toContain('空白');
+    });
+
+    it('should warn about both leading and trailing whitespace', () => {
+      const errors = validateBranchName('  both-sides  ');
+      expect(errors).toHaveLength(1);
+      expect(errors[0]?.message).toContain('先頭');
+      expect(errors[0]?.message).toContain('末尾');
     });
   });
 });

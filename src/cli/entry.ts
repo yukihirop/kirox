@@ -88,37 +88,42 @@ export async function execute(argv: string[]): Promise<ExecutionResult> {
       return await handleUpdate(args, logger);
     }
 
-    // Step 3: Initialize progress reporter
+    // Step 3: Parse repository and determine effective branch
+    const { owner, repo, branch } = parseRepositoryPath(args.repository);
+
+    // Get branch from merged config (CLI branch takes precedence over config file)
+    const effectiveBranch = branch || mergedConfig.branch;
+
+    // Step 3.5: Initialize progress reporter and report start
     const reporter = new ProgressReporter({
       verbose: args.verbose,
       useColor: true,
     });
 
-    reporter.reportStart(args.repository, args.project, subdir);
+    reporter.reportStart(args.repository, args.project, subdir, effectiveBranch);
 
     // Step 4: Initialize Octokit client
     const octokit = new Octokit({
       auth: process.env.GITHUB_TOKEN,
     });
 
-    const { owner, repo } = parseRepositoryPath(args.repository);
-
     // Step 5: Fetch directory listings
     logger.info('Fetching directory listings from GitHub', {
       repository: args.repository,
       project: args.project,
+      ...(effectiveBranch && { branch: effectiveBranch }),
     });
 
     const specPath = buildRemotePath(subdir, args.project, 'specs');
     const steeringPath = buildRemotePath(subdir, '', 'steering');
 
     // Fetch spec directory (required)
-    const specContents = await fetchDirectoryContents(octokit, owner, repo, specPath);
+    const specContents = await fetchDirectoryContents(octokit, owner, repo, specPath, effectiveBranch);
 
     // Fetch steering directory (optional - may not exist)
     let steeringContents: ContentItem[] = [];
     try {
-      steeringContents = await fetchDirectoryContents(octokit, owner, repo, steeringPath);
+      steeringContents = await fetchDirectoryContents(octokit, owner, repo, steeringPath, effectiveBranch);
     } catch (error) {
       if (args.verbose) {
         logger.warn('Steering directory not found, skipping', {
@@ -150,7 +155,8 @@ export async function execute(argv: string[]): Promise<ExecutionResult> {
       owner,
       repo,
       filePaths,
-      5 // maxConcurrency
+      5, // maxConcurrency
+      effectiveBranch
     );
 
     if (args.verbose) {
@@ -172,6 +178,12 @@ export async function execute(argv: string[]): Promise<ExecutionResult> {
       const totalFiles = fetchResult.success.length;
 
       reporter.reportProgress(currentIndex, totalFiles, file.path);
+
+      // Verbose: Show detailed fetch information with branch
+      if (args.verbose && effectiveBranch) {
+        const branchInfo = `${owner}/${repo}#${effectiveBranch}/${file.path}`;
+        reporter.reportVerbose(`取得中: ${branchInfo}`);
+      }
 
       try {
         // Resolve output path
@@ -312,7 +324,7 @@ export async function execute(argv: string[]): Promise<ExecutionResult> {
     }
 
     // Step 9: Report summary
-    reporter.reportSummary(filesDownloaded, filesFailed, subdir);
+    reporter.reportSummary(filesDownloaded, filesFailed, subdir, effectiveBranch);
 
     logger.info('Execution completed', {
       filesDownloaded,

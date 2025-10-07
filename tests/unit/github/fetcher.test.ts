@@ -37,6 +37,111 @@ describe('GitHubFetcher', () => {
         'Invalid repository format'
       );
     });
+
+    // Task 1.1: Branch extraction tests
+    it('should parse repository path with branch (owner/repo#branch)', () => {
+      const result = parseRepositoryPath('octocat/Hello-World#feature-branch');
+
+      expect(result).toEqual({
+        owner: 'octocat',
+        repo: 'Hello-World',
+        branch: 'feature-branch',
+      });
+    });
+
+    it('should parse repository path without branch as undefined', () => {
+      const result = parseRepositoryPath('octocat/Hello-World');
+
+      expect(result).toEqual({
+        owner: 'octocat',
+        repo: 'Hello-World',
+        branch: undefined,
+      });
+    });
+
+    it('should parse repository path with empty branch (owner/repo#) as undefined', () => {
+      const result = parseRepositoryPath('octocat/Hello-World#');
+
+      expect(result).toEqual({
+        owner: 'octocat',
+        repo: 'Hello-World',
+        branch: undefined,
+      });
+    });
+
+    it('should parse repository path with branch containing slashes', () => {
+      const result = parseRepositoryPath('octocat/Hello-World#feature/new-api');
+
+      expect(result).toEqual({
+        owner: 'octocat',
+        repo: 'Hello-World',
+        branch: 'feature/new-api',
+      });
+    });
+
+    it('should parse repository path with tag (owner/repo#v1.2.3)', () => {
+      const result = parseRepositoryPath('octocat/Hello-World#v1.2.3');
+
+      expect(result).toEqual({
+        owner: 'octocat',
+        repo: 'Hello-World',
+        branch: 'v1.2.3',
+      });
+    });
+
+    it('should parse repository path with multiple # using first as separator', () => {
+      const result = parseRepositoryPath('octocat/Hello-World#branch#extra');
+
+      expect(result).toEqual({
+        owner: 'octocat',
+        repo: 'Hello-World',
+        branch: 'branch#extra',
+      });
+    });
+
+    // Task 1.3: Backward compatibility tests
+    it('should maintain backward compatibility with owner/repo format', () => {
+      const result = parseRepositoryPath('facebook/react');
+
+      expect(result).toEqual({
+        owner: 'facebook',
+        repo: 'react',
+        branch: undefined,
+      });
+    });
+
+    it('should handle branch: undefined in result object correctly', () => {
+      const result = parseRepositoryPath('nodejs/node');
+
+      // Verify branch property exists and is undefined
+      expect(result).toHaveProperty('branch');
+      expect(result.branch).toBeUndefined();
+
+      // Verify existing code can destructure safely
+      const { owner, repo, branch } = result;
+      expect(owner).toBe('nodejs');
+      expect(repo).toBe('node');
+      expect(branch).toBeUndefined();
+    });
+
+    // Task 1.2: Invalid repository format validation tests
+    it('should throw error for repository path starting with # only', () => {
+      expect(() => parseRepositoryPath('#branch')).toThrow(
+        '無効なリポジトリ形式です: owner/repo#branch形式で指定してください'
+      );
+    });
+
+    it('should throw error for repository path containing /#', () => {
+      expect(() => parseRepositoryPath('owner/#repo')).toThrow(
+        '無効なリポジトリ形式です: owner/repo#branch形式で指定してください'
+      );
+    });
+
+    it('should throw error for repository path with / before #', () => {
+      expect(() => parseRepositoryPath('owner/repo/#branch')).toThrow(
+        '無効なリポジトリ形式です: owner/repo#branch形式で指定してください'
+      );
+    });
   });
 
   describe('fetchDirectoryContents', () => {
@@ -347,6 +452,255 @@ describe('GitHubFetcher', () => {
       await expect(
         fetchDirectoryContents(mockClient, 'owner', 'repo', '.kiro/specs/project')
       ).rejects.toThrow(/Repository "owner\/repo" or path ".kiro\/specs\/project" not found/);
+    });
+  });
+
+  // Task 3.1: Branch support with ref parameter
+  describe('Branch support (ref parameter)', () => {
+    it('should pass ref parameter to GitHub API when branch is specified', async () => {
+      const mockClient = {
+        rest: {
+          repos: {
+            getContent: vi.fn().mockResolvedValue({
+              data: [
+                {
+                  name: 'README.md',
+                  path: 'README.md',
+                  type: 'file',
+                  sha: 'abc123',
+                },
+              ],
+            }),
+          },
+        },
+      } as unknown as Octokit;
+
+      await fetchDirectoryContents(mockClient, 'octocat', 'Hello-World', '', 'feature-branch');
+
+      expect(mockClient.rest.repos.getContent).toHaveBeenCalledWith({
+        owner: 'octocat',
+        repo: 'Hello-World',
+        path: '',
+        ref: 'feature-branch',
+      });
+    });
+
+    it('should not pass ref parameter when branch is undefined (default branch)', async () => {
+      const mockClient = {
+        rest: {
+          repos: {
+            getContent: vi.fn().mockResolvedValue({
+              data: [
+                {
+                  name: 'README.md',
+                  path: 'README.md',
+                  type: 'file',
+                  sha: 'abc123',
+                },
+              ],
+            }),
+          },
+        },
+      } as unknown as Octokit;
+
+      await fetchDirectoryContents(mockClient, 'octocat', 'Hello-World', '', undefined);
+
+      expect(mockClient.rest.repos.getContent).toHaveBeenCalledWith({
+        owner: 'octocat',
+        repo: 'Hello-World',
+        path: '',
+      });
+    });
+
+    it('should fetch directory contents from specified branch', async () => {
+      const mockClient = {
+        rest: {
+          repos: {
+            getContent: vi.fn().mockResolvedValue({
+              data: [
+                {
+                  name: 'feature.md',
+                  path: '.kiro/specs/feature.md',
+                  type: 'file',
+                  sha: 'feature123',
+                },
+              ],
+            }),
+          },
+        },
+      } as unknown as Octokit;
+
+      const contents = await fetchDirectoryContents(
+        mockClient,
+        'octocat',
+        'Hello-World',
+        '.kiro/specs',
+        'develop'
+      );
+
+      expect(contents).toHaveLength(1);
+      expect(contents[0].name).toBe('feature.md');
+      expect(mockClient.rest.repos.getContent).toHaveBeenCalledWith({
+        owner: 'octocat',
+        repo: 'Hello-World',
+        path: '.kiro/specs',
+        ref: 'develop',
+      });
+    });
+
+    it('should handle branch with slashes (feature/new-api)', async () => {
+      const mockClient = {
+        rest: {
+          repos: {
+            getContent: vi.fn().mockResolvedValue({
+              data: [
+                {
+                  name: 'api.md',
+                  path: 'api.md',
+                  type: 'file',
+                  sha: 'api123',
+                },
+              ],
+            }),
+          },
+        },
+      } as unknown as Octokit;
+
+      await fetchDirectoryContents(
+        mockClient,
+        'octocat',
+        'Hello-World',
+        '',
+        'feature/new-api'
+      );
+
+      expect(mockClient.rest.repos.getContent).toHaveBeenCalledWith({
+        owner: 'octocat',
+        repo: 'Hello-World',
+        path: '',
+        ref: 'feature/new-api',
+      });
+    });
+
+    it('should handle tag reference (v1.2.3)', async () => {
+      const mockClient = {
+        rest: {
+          repos: {
+            getContent: vi.fn().mockResolvedValue({
+              data: [
+                {
+                  name: 'release.md',
+                  path: 'release.md',
+                  type: 'file',
+                  sha: 'release123',
+                },
+              ],
+            }),
+          },
+        },
+      } as unknown as Octokit;
+
+      await fetchDirectoryContents(mockClient, 'octocat', 'Hello-World', '', 'v1.2.3');
+
+      expect(mockClient.rest.repos.getContent).toHaveBeenCalledWith({
+        owner: 'octocat',
+        repo: 'Hello-World',
+        path: '',
+        ref: 'v1.2.3',
+      });
+    });
+
+    it('should throw "ブランチが見つかりません" error for non-existent branch (404)', async () => {
+      const mockError = Object.assign(new Error('Not Found'), { status: 404 });
+      const mockClient = {
+        rest: {
+          repos: {
+            getContent: vi.fn().mockRejectedValue(mockError),
+          },
+        },
+      } as unknown as Octokit;
+
+      await expect(
+        fetchDirectoryContents(mockClient, 'octocat', 'Hello-World', '', 'nonexistent-branch')
+      ).rejects.toThrow('ブランチが見つかりません: nonexistent-branch');
+    });
+
+    it('should throw "ブランチへのアクセスに失敗" error for 401 (Unauthorized)', async () => {
+      const mockError = Object.assign(new Error('Unauthorized'), { status: 401 });
+      const mockClient = {
+        rest: {
+          repos: {
+            getContent: vi.fn().mockRejectedValue(mockError),
+          },
+        },
+      } as unknown as Octokit;
+
+      await expect(
+        fetchDirectoryContents(mockClient, 'octocat', 'Hello-World', '', 'private-branch')
+      ).rejects.toThrow(
+        'ブランチへのアクセスに失敗しました: private-branch（権限不足の可能性があります）'
+      );
+    });
+
+    it('should throw "ブランチへのアクセスに失敗" error for 403 (Forbidden)', async () => {
+      const mockError = Object.assign(new Error('Forbidden'), { status: 403 });
+      const mockClient = {
+        rest: {
+          repos: {
+            getContent: vi.fn().mockRejectedValue(mockError),
+          },
+        },
+      } as unknown as Octokit;
+
+      await expect(
+        fetchDirectoryContents(mockClient, 'octocat', 'Hello-World', '', 'restricted-branch')
+      ).rejects.toThrow(
+        'ブランチへのアクセスに失敗しました: restricted-branch（権限不足の可能性があります）'
+      );
+    });
+
+    it('should throw specific error when .kiro folder not found on specified branch', async () => {
+      const mockError = Object.assign(new Error('Not Found'), { status: 404 });
+      const mockClient = {
+        rest: {
+          repos: {
+            getContent: vi.fn().mockRejectedValue(mockError),
+          },
+        },
+      } as unknown as Octokit;
+
+      await expect(
+        fetchDirectoryContents(
+          mockClient,
+          'octocat',
+          'Hello-World',
+          '.kiro/specs',
+          'feature-branch'
+        )
+      ).rejects.toThrow('ブランチ feature-branch に.kiroフォルダが見つかりません');
+    });
+
+    it('should throw specific error when .kiro folder with subdirectory not found on branch', async () => {
+      const mockError = Object.assign(new Error('Not Found'), { status: 404 });
+      const mockClient = {
+        rest: {
+          repos: {
+            getContent: vi.fn().mockRejectedValue(mockError),
+          },
+        },
+      } as unknown as Octokit;
+
+      await expect(
+        fetchDirectoryContents(
+          mockClient,
+          'octocat',
+          'Hello-World',
+          'packages/api/.kiro/specs',
+          'feature-branch'
+        )
+      ).rejects.toThrow(
+        'ブランチ feature-branch のサブディレクトリ packages/api に.kiroフォルダが見つかりません'
+      );
     });
   });
 });

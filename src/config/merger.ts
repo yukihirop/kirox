@@ -6,6 +6,7 @@
 
 import type { ParsedArguments } from '@/cli/types.js';
 import type { KiroxConfig, MergedConfig } from './types.js';
+import { parseRepositoryPath } from '@/github/fetcher.js';
 
 /**
  * Default configuration values
@@ -69,6 +70,11 @@ export function mergeConfig(
   if (fileConfig.subdir !== undefined) {
     config.subdir = fileConfig.subdir;
   }
+  // Task 4.2: Merge branch from config file
+  if (fileConfig.branch !== undefined) {
+    // Normalize empty string to undefined (default branch)
+    config.branch = fileConfig.branch === '' ? undefined : fileConfig.branch;
+  }
 
   // Priority 1 & 2: CLI options (highest priority)
   if (cliArgs.verbose) {
@@ -82,6 +88,17 @@ export function mergeConfig(
   }
   if (cliArgs.subdir !== undefined) {
     config.subdir = cliArgs.subdir;
+  }
+
+  // Task 4.2: Extract and prioritize branch from CLI repository argument
+  try {
+    const { branch: cliBranch } = parseRepositoryPath(cliArgs.repository);
+    if (cliBranch !== undefined) {
+      // CLI branch takes highest priority
+      config.branch = cliBranch;
+    }
+  } catch {
+    // If parsing fails, ignore branch extraction (validation happens elsewhere)
   }
 
   return config;
