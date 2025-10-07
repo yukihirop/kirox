@@ -64,7 +64,7 @@
   - `MergedConfig`インターフェースに`branch?: string`フィールドを追加
   - _Requirements: 5.1_
 
-- [ ] 4.2 設定マージロジックの拡張
+- [x] 4.2 設定マージロジックの拡張
   - CLI引数でパースしたブランチと設定ファイルのbranchフィールドをマージ
   - 優先順位: CLI引数 > 設定ファイル > undefined（デフォルトブランチ）
   - 空文字列のブランチはundefinedに正規化

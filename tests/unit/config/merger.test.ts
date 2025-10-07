@@ -222,5 +222,102 @@ describe('ConfigMerger', () => {
         expect(config.subdir).toBe('');
       });
     });
+
+    // Task 4.2: Branch configuration merge tests
+    describe('branch configuration merge', () => {
+      it('should use config file branch when CLI has no branch', () => {
+        const args = createDefaultArgs();
+        // No branch in repository (owner/repo format)
+
+        const fileConfig: KiroxConfig = {
+          branch: 'develop',
+        };
+
+        const config = mergeConfig(args, fileConfig);
+        expect(config.branch).toBe('develop');
+      });
+
+      it('should prioritize CLI branch over config file branch', () => {
+        const args = createDefaultArgs();
+        args.repository = 'owner/repo#feature-branch';
+
+        const fileConfig: KiroxConfig = {
+          branch: 'develop',
+        };
+
+        const config = mergeConfig(args, fileConfig);
+        expect(config.branch).toBe('feature-branch');
+      });
+
+      it('should leave branch undefined when not specified anywhere', () => {
+        const args = createDefaultArgs();
+        // No branch in repository or config
+
+        const fileConfig: KiroxConfig = {};
+
+        const config = mergeConfig(args, fileConfig);
+        expect(config.branch).toBeUndefined();
+      });
+
+      it('should normalize empty string branch to undefined', () => {
+        const args = createDefaultArgs();
+
+        const fileConfig: KiroxConfig = {
+          branch: '',
+        };
+
+        const config = mergeConfig(args, fileConfig);
+        expect(config.branch).toBeUndefined();
+      });
+
+      it('should normalize empty string branch from CLI to undefined', () => {
+        const args = createDefaultArgs();
+        args.repository = 'owner/repo#'; // Empty branch after #
+
+        const fileConfig: KiroxConfig = {};
+
+        const config = mergeConfig(args, fileConfig);
+        expect(config.branch).toBeUndefined();
+      });
+
+      it('should handle branch with slashes (feature/new-api)', () => {
+        const args = createDefaultArgs();
+
+        const fileConfig: KiroxConfig = {
+          branch: 'feature/new-api',
+        };
+
+        const config = mergeConfig(args, fileConfig);
+        expect(config.branch).toBe('feature/new-api');
+      });
+
+      it('should handle version tag (v1.2.3)', () => {
+        const args = createDefaultArgs();
+        args.repository = 'owner/repo#v1.2.3';
+
+        const fileConfig: KiroxConfig = {};
+
+        const config = mergeConfig(args, fileConfig);
+        expect(config.branch).toBe('v1.2.3');
+      });
+
+      it('should merge branch alongside other config values', () => {
+        const args = createDefaultArgs();
+        args.verbose = true;
+        args.repository = 'owner/repo#release/v2.0';
+
+        const fileConfig: KiroxConfig = {
+          branch: 'develop',
+          subdir: 'packages/core',
+          defaultConcurrency: 3,
+        };
+
+        const config = mergeConfig(args, fileConfig);
+        expect(config.branch).toBe('release/v2.0');
+        expect(config.subdir).toBe('packages/core');
+        expect(config.concurrency).toBe(3);
+        expect(config.verbose).toBe(true);
+      });
+    });
   });
 });
