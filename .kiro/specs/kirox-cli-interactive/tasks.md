@@ -104,7 +104,7 @@
   - _Requirements: 7.1, 7.2_
 
 - [ ] 6. CLIエントリポイントの統合
-- [ ] 6.1 index.tsへの対話モード統合
+- [x] 6.1 index.tsへの対話モード統合
   - parseArguments呼び出し後に対話モード判定を追加
   - shouldEnterInteractiveMode関数で対話モード起動判定
   - promptMissingArguments関数で引数補完

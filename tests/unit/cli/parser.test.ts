@@ -48,16 +48,22 @@ describe('ArgumentParser', () => {
       expect(result.dryRun).toBe(false);
     });
 
-    it('should throw error when repository is missing', () => {
+    it('should allow empty repository for interactive mode', () => {
       const argv = ['node', 'kirox', '-p', 'project'];
 
-      expect(() => parseArguments(argv)).toThrow();
+      // Should not throw - interactive mode will handle missing arguments
+      const result = parseArguments(argv);
+      expect(result.repository).toBe('');
+      expect(result.project).toBe('project');
     });
 
-    it('should throw error when project option is missing', () => {
+    it('should allow empty project for interactive mode', () => {
       const argv = ['node', 'kirox', 'owner/repo'];
 
-      expect(() => parseArguments(argv)).toThrow();
+      // Should not throw - interactive mode will handle missing arguments
+      const result = parseArguments(argv);
+      expect(result.repository).toBe('owner/repo');
+      expect(result.project).toBe('');
     });
 
     it('should set default values for optional flags', () => {

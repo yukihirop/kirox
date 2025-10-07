@@ -62,13 +62,11 @@ Note:
 
   // For --check-updates and --update, repository and project are optional
   // For regular fetch, repository and project are required
+  // NOTE: Interactive mode will handle missing arguments, so we allow empty repository/project
+  // The validation will be performed after interactive prompts in entry.ts
   if (!options.checkUpdates && !options.update) {
-    if (!repository) {
-      throw new Error('Repository argument is required');
-    }
-    if (!options.project) {
-      throw new Error('Project option is required');
-    }
+    // Allow empty repository and project for interactive mode
+    // Validation will be performed later in the flow
   }
 
   // If --check-updates or --update is specified, disable --track

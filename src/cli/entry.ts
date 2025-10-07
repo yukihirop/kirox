@@ -7,6 +7,12 @@
 import { Octokit } from 'octokit';
 import { parseArguments } from './parser.js';
 import { validateInput } from './validator.js';
+import {
+  shouldEnterInteractiveMode,
+  promptMissingArguments,
+  checkTTYEnvironment,
+  handleInteractiveError,
+} from './interactive-prompt.js';
 import { parseRepositoryPath, fetchDirectoryContents } from '../github/fetcher.js';
 import { fetchFilesInParallel } from '../github/parallel-fetcher.js';
 import { writeFile } from '../filesystem/writer.js';
@@ -52,7 +58,35 @@ export async function execute(argv: string[]): Promise<ExecutionResult> {
 
   try {
     // Step 1: Parse arguments
-    const args = parseArguments(argv);
+    let args = parseArguments(argv);
+
+    // Step 1.5: Check if interactive mode is needed
+    if (shouldEnterInteractiveMode(args)) {
+      // Check TTY environment
+      const ttyCheck = checkTTYEnvironment(logger);
+      if (!ttyCheck.success) {
+        return {
+          success: false,
+          filesDownloaded: 0,
+          filesFailed: 0,
+          exitCode: ttyCheck.exitCode,
+        };
+      }
+
+      // Prompt for missing arguments
+      try {
+        args = await promptMissingArguments(args);
+      } catch (error) {
+        // Handle interactive mode errors
+        const errorResult = handleInteractiveError(error, logger);
+        return {
+          success: false,
+          filesDownloaded: 0,
+          filesFailed: 0,
+          exitCode: errorResult.exitCode,
+        };
+      }
+    }
 
     // Step 2: Validate input
     const validation = validateInput(args);
