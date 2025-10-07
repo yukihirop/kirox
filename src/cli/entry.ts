@@ -88,23 +88,24 @@ export async function execute(argv: string[]): Promise<ExecutionResult> {
       return await handleUpdate(args, logger);
     }
 
-    // Step 3: Initialize progress reporter
+    // Step 3: Parse repository and determine effective branch
+    const { owner, repo, branch } = parseRepositoryPath(args.repository);
+
+    // Get branch from merged config (CLI branch takes precedence over config file)
+    const effectiveBranch = branch || mergedConfig.branch;
+
+    // Step 3.5: Initialize progress reporter and report start
     const reporter = new ProgressReporter({
       verbose: args.verbose,
       useColor: true,
     });
 
-    reporter.reportStart(args.repository, args.project, subdir);
+    reporter.reportStart(args.repository, args.project, subdir, effectiveBranch);
 
     // Step 4: Initialize Octokit client
     const octokit = new Octokit({
       auth: process.env.GITHUB_TOKEN,
     });
-
-    const { owner, repo, branch } = parseRepositoryPath(args.repository);
-
-    // Get branch from merged config (CLI branch takes precedence over config file)
-    const effectiveBranch = branch || mergedConfig.branch;
 
     // Step 5: Fetch directory listings
     logger.info('Fetching directory listings from GitHub', {

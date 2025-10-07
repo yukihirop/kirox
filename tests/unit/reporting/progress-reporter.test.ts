@@ -121,6 +121,66 @@ describe('ProgressReporter', () => {
 
       expect(hasRootPath).toBe(true);
     });
+
+    it('should display branch information when branch is specified', () => {
+      const options: ReporterOptions = { verbose: false, useColor: true };
+      const reporter = new ProgressReporter(options);
+
+      reporter.reportStart('owner/repo', 'my-project', undefined, 'feature-branch');
+
+      const allCalls = consoleLogSpy.mock.calls.map((call) => call[0]);
+      const hasBranchInfo = allCalls.some((msg) =>
+        String(msg).includes('ブランチ: feature-branch')
+      );
+
+      expect(hasBranchInfo).toBe(true);
+    });
+
+    it('should display default branch information when branch is not specified', () => {
+      const options: ReporterOptions = { verbose: false, useColor: true };
+      const reporter = new ProgressReporter(options);
+
+      reporter.reportStart('owner/repo', 'my-project', undefined, undefined);
+
+      const allCalls = consoleLogSpy.mock.calls.map((call) => call[0]);
+      const hasDefaultBranchInfo = allCalls.some((msg) =>
+        String(msg).includes('デフォルトブランチ')
+      );
+
+      expect(hasDefaultBranchInfo).toBe(true);
+    });
+
+    it('should display branch information with subdirectory', () => {
+      const options: ReporterOptions = { verbose: false, useColor: true };
+      const reporter = new ProgressReporter(options);
+
+      reporter.reportStart('owner/repo', 'my-project', 'packages/api', 'develop');
+
+      const allCalls = consoleLogSpy.mock.calls.map((call) => call[0]);
+      const hasSubdirPath = allCalls.some((msg) =>
+        String(msg).includes('packages/api/.kiro')
+      );
+      const hasBranchInfo = allCalls.some((msg) =>
+        String(msg).includes('ブランチ: develop')
+      );
+
+      expect(hasSubdirPath).toBe(true);
+      expect(hasBranchInfo).toBe(true);
+    });
+
+    it('should not display branch info when branch is empty string', () => {
+      const options: ReporterOptions = { verbose: false, useColor: true };
+      const reporter = new ProgressReporter(options);
+
+      reporter.reportStart('owner/repo', 'my-project', undefined, '');
+
+      const allCalls = consoleLogSpy.mock.calls.map((call) => call[0]);
+      const hasDefaultBranchInfo = allCalls.some((msg) =>
+        String(msg).includes('デフォルトブランチ')
+      );
+
+      expect(hasDefaultBranchInfo).toBe(true);
+    });
   });
 
   describe('reportProgress', () => {
