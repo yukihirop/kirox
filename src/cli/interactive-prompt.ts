@@ -4,11 +4,12 @@
  * Provides interactive prompts for missing CLI arguments
  * Task 3.1: 対話モード起動条件の実装
  * Task 4.1: リポジトリ入力プロンプトの実装
+ * Task 4.2: プロジェクト名入力プロンプトの実装
  */
 
 import { input } from '@inquirer/prompts';
 import type { ParsedArguments } from './types.js';
-import { validateRepositoryFormat } from './validator.js';
+import { validateRepositoryFormat, validateProjectName } from './validator.js';
 
 /**
  * Determine if interactive mode should be entered
@@ -64,6 +65,35 @@ export async function promptRepository(currentValue: string): Promise<string> {
       if (errors.length > 0) {
         // Return first error message, or fallback message if array is somehow empty
         return errors[0]?.message || 'Invalid repository format';
+      }
+      return true;
+    },
+  });
+}
+
+/**
+ * Prompt for project name input
+ *
+ * If a valid project name is already provided, returns it immediately.
+ * Otherwise, displays an interactive prompt with real-time validation.
+ *
+ * @param currentValue - Current project name value (may be empty or whitespace)
+ * @returns Validated project name string
+ */
+export async function promptProject(currentValue: string): Promise<string> {
+  // Skip prompt if value is already provided (non-empty after trim)
+  if (currentValue && currentValue.trim() !== '') {
+    return currentValue;
+  }
+
+  // Display interactive prompt with validation
+  return await input({
+    message: 'プロジェクト名を入力してください',
+    validate: (value: string) => {
+      const errors = validateProjectName(value);
+      if (errors.length > 0) {
+        // Return first error message, or fallback message if array is somehow empty
+        return errors[0]?.message || 'Invalid project name';
       }
       return true;
     },
