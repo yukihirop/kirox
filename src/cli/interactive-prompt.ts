@@ -6,9 +6,10 @@
  * Task 4.1: リポジトリ入力プロンプトの実装
  * Task 4.2: プロジェクト名入力プロンプトの実装
  * Task 4.3: オプションパラメータ入力プロンプトの実装
+ * Task 4.4: 確認プロンプトの実装
  */
 
-import { input } from '@inquirer/prompts';
+import { input, confirm } from '@inquirer/prompts';
 import type { ParsedArguments } from './types.js';
 import { validateRepositoryFormat, validateProjectName } from './validator.js';
 
@@ -136,4 +137,38 @@ export async function promptSubdir(): Promise<string | undefined> {
   }
 
   return value;
+}
+
+/**
+ * Display execution summary and confirm execution
+ *
+ * Shows a summary of the configuration (repository, project, output, subdir)
+ * and prompts user to confirm execution.
+ *
+ * @param args - Parsed command-line arguments
+ * @returns true if user confirms, false otherwise
+ */
+export async function confirmExecution(args: ParsedArguments): Promise<boolean> {
+  // Display summary header
+  console.log('\n設定内容:');
+
+  // Display repository
+  console.log(`  リポジトリ: ${args.repository}`);
+
+  // Display project name
+  console.log(`  プロジェクト: ${args.project}`);
+
+  // Display output directory
+  console.log(`  出力先: ${args.output}`);
+
+  // Display subdirectory if specified
+  if (args.subdir) {
+    console.log(`  サブディレクトリ: ${args.subdir}`);
+  }
+
+  // Show confirmation prompt with default: false
+  return await confirm({
+    message: 'この設定で実行しますか?',
+    default: false,
+  });
 }
