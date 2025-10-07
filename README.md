@@ -1,4 +1,4 @@
-# Kirox
+# Kirox (♻️ Recycle `.kiro` CLI)
 
 CLI tool to fetch Kiro specification and steering files from remote GitHub repositories.
 
