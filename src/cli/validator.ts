@@ -5,6 +5,7 @@
  */
 
 import type { ParsedArguments, ValidationResult, ValidationError } from './types.js';
+import { normalizeSubdirPath, validateSubdirPath } from '@/filesystem/path-utils.js';
 
 /**
  * Regular expression for valid repository format: owner/repo
@@ -66,6 +67,22 @@ export function validateInput(args: ParsedArguments): ValidationResult {
       errors.push({
         field: 'project',
         message: 'Project name cannot contain path separators ("/" or "\\")',
+      });
+    }
+  }
+
+  // Validate subdirectory path (if specified)
+  if (args.subdir !== undefined) {
+    try {
+      // Validate before normalization to catch absolute paths
+      validateSubdirPath(args.subdir);
+      // Also validate after normalization
+      const normalized = normalizeSubdirPath(args.subdir);
+      validateSubdirPath(normalized);
+    } catch (error) {
+      errors.push({
+        field: 'subdir',
+        message: error instanceof Error ? error.message : '無効なサブディレクトリパスです',
       });
     }
   }
