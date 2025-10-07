@@ -3,9 +3,12 @@
  *
  * Provides interactive prompts for missing CLI arguments
  * Task 3.1: 対話モード起動条件の実装
+ * Task 4.1: リポジトリ入力プロンプトの実装
  */
 
+import { input } from '@inquirer/prompts';
 import type { ParsedArguments } from './types.js';
+import { validateRepositoryFormat } from './validator.js';
 
 /**
  * Determine if interactive mode should be entered
@@ -36,4 +39,33 @@ export function shouldEnterInteractiveMode(args: ParsedArguments): boolean {
 
   // Enter interactive mode if either is missing
   return !hasRepository || !hasProject;
+}
+
+/**
+ * Prompt for repository input
+ *
+ * If a valid repository value is already provided, returns it immediately.
+ * Otherwise, displays an interactive prompt with real-time validation.
+ *
+ * @param currentValue - Current repository value (may be empty or whitespace)
+ * @returns Validated repository string in format "owner/repo" or "owner/repo#branch"
+ */
+export async function promptRepository(currentValue: string): Promise<string> {
+  // Skip prompt if value is already provided (non-empty after trim)
+  if (currentValue && currentValue.trim() !== '') {
+    return currentValue;
+  }
+
+  // Display interactive prompt with validation
+  return await input({
+    message: 'GitHubリポジトリを入力してください (owner/repo)',
+    validate: (value: string) => {
+      const errors = validateRepositoryFormat(value);
+      if (errors.length > 0) {
+        // Return first error message, or fallback message if array is somehow empty
+        return errors[0]?.message || 'Invalid repository format';
+      }
+      return true;
+    },
+  });
 }
