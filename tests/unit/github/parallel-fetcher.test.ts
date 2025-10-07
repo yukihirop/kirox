@@ -340,5 +340,139 @@ describe('ParallelFileFetcher', () => {
       expect(results.failed[0].path).toBe('large.md');
       expect(results.failed[0].error).toContain('size');
     });
+
+    // Task 8.3: ref parameter tests for fetchFilesInParallel
+    it('should pass ref parameter to Octokit API when branch is specified', async () => {
+      const mockClient = {
+        rest: {
+          repos: {
+            getContent: vi.fn().mockImplementation((params) => {
+              return Promise.resolve({
+                data: {
+                  type: 'file',
+                  name: params.path,
+                  path: params.path,
+                  content: Buffer.from(`Content of ${params.path}`, 'utf-8').toString('base64'),
+                  encoding: 'base64',
+                  size: 20,
+                  sha: 'abc123',
+                },
+              });
+            }),
+          },
+        },
+      } as unknown as Octokit;
+
+      const filePaths = ['file1.md', 'file2.md'];
+
+      await fetchFilesInParallel(
+        mockClient,
+        'owner',
+        'repo',
+        filePaths,
+        5,
+        'feature-branch'
+      );
+
+      expect(mockClient.rest.repos.getContent).toHaveBeenCalledWith({
+        owner: 'owner',
+        repo: 'repo',
+        path: 'file1.md',
+        ref: 'feature-branch',
+      });
+
+      expect(mockClient.rest.repos.getContent).toHaveBeenCalledWith({
+        owner: 'owner',
+        repo: 'repo',
+        path: 'file2.md',
+        ref: 'feature-branch',
+      });
+    });
+
+    it('should not pass ref parameter when branch is undefined (default branch)', async () => {
+      const mockClient = {
+        rest: {
+          repos: {
+            getContent: vi.fn().mockImplementation((params) => {
+              return Promise.resolve({
+                data: {
+                  type: 'file',
+                  name: params.path,
+                  path: params.path,
+                  content: Buffer.from(`Content of ${params.path}`, 'utf-8').toString('base64'),
+                  encoding: 'base64',
+                  size: 20,
+                  sha: 'abc123',
+                },
+              });
+            }),
+          },
+        },
+      } as unknown as Octokit;
+
+      const filePaths = ['file1.md', 'file2.md'];
+
+      await fetchFilesInParallel(
+        mockClient,
+        'owner',
+        'repo',
+        filePaths,
+        5,
+        undefined
+      );
+
+      expect(mockClient.rest.repos.getContent).toHaveBeenCalledWith({
+        owner: 'owner',
+        repo: 'repo',
+        path: 'file1.md',
+      });
+
+      expect(mockClient.rest.repos.getContent).toHaveBeenCalledWith({
+        owner: 'owner',
+        repo: 'repo',
+        path: 'file2.md',
+      });
+    });
+
+    it('should fetch files from specified branch with slashes (feature/new-api)', async () => {
+      const mockClient = {
+        rest: {
+          repos: {
+            getContent: vi.fn().mockImplementation((params) => {
+              return Promise.resolve({
+                data: {
+                  type: 'file',
+                  name: params.path,
+                  path: params.path,
+                  content: Buffer.from(`Content from branch`, 'utf-8').toString('base64'),
+                  encoding: 'base64',
+                  size: 20,
+                  sha: 'branch123',
+                },
+              });
+            }),
+          },
+        },
+      } as unknown as Octokit;
+
+      const filePaths = ['api.md'];
+
+      const results = await fetchFilesInParallel(
+        mockClient,
+        'owner',
+        'repo',
+        filePaths,
+        5,
+        'feature/new-api'
+      );
+
+      expect(results.success).toHaveLength(1);
+      expect(mockClient.rest.repos.getContent).toHaveBeenCalledWith({
+        owner: 'owner',
+        repo: 'repo',
+        path: 'api.md',
+        ref: 'feature/new-api',
+      });
+    });
   });
 });
