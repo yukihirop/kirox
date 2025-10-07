@@ -597,15 +597,27 @@ describe('CLI to GitHub to FileSystem Integration', () => {
         ref: 'develop',
       });
 
-      // Verify files were written to filesystem with subdir prefix
-      const specJsonPath = path.join(testOutputDir, 'packages/api/.kiro/specs/test-project/spec.json');
-      const productMdPath = path.join(testOutputDir, 'packages/api/.kiro/steering/product.md');
+      // Verify files were written to filesystem WITHOUT subdir prefix (bug fix task 4.3)
+      // Files should be saved to <outputDir>/.kiro/... even when subdir is specified
+      const specJsonPath = path.join(testOutputDir, '.kiro/specs/test-project/spec.json');
+      const productMdPath = path.join(testOutputDir, '.kiro/steering/product.md');
 
       const specJsonContent = await fs.readFile(specJsonPath, 'utf-8');
       const productMdContent = await fs.readFile(productMdPath, 'utf-8');
 
       expect(specJsonContent).toBe('{"branch": "develop", "subdir": "packages/api"}');
       expect(productMdContent).toBe('# Product from develop branch, packages/api');
+
+      // Verify subdirectory structure is NOT created locally
+      const subdirPath = path.join(testOutputDir, 'packages/api/.kiro');
+      let subdirExists = false;
+      try {
+        await fs.access(subdirPath);
+        subdirExists = true;
+      } catch {
+        subdirExists = false;
+      }
+      expect(subdirExists).toBe(false); // Subdirectory structure should NOT exist
     });
 
     it('should display branch info in verbose mode', async () => {
@@ -853,6 +865,279 @@ describe('CLI to GitHub to FileSystem Integration', () => {
       const summaryOutput = consoleLogs.join('\n');
       expect(summaryOutput).toMatch(/Summary/);
       expect(summaryOutput).toMatch(/取得元.*デフォルトブランチ/);
+    });
+  });
+
+  describe('Subdirectory local path handling (Task 4.3 bug fix)', () => {
+    it('should save files to <outputDir>/.kiro/... when subdir is specified', async () => {
+      // Mock Octokit responses for subdirectory fetch
+      const mockOctokit = {
+        rest: {
+          repos: {
+            getContent: vi.fn()
+              .mockResolvedValueOnce({
+                // Mock lib/a/.kiro/specs/test-project directory listing
+                data: [
+                  {
+                    name: 'requirements.md',
+                    path: 'lib/a/.kiro/specs/test-project/requirements.md',
+                    type: 'file',
+                    sha: 'req123',
+                    size: 150,
+                  },
+                ],
+              })
+              .mockResolvedValueOnce({
+                // Mock lib/a/.kiro/steering directory listing
+                data: [
+                  {
+                    name: 'tech.md',
+                    path: 'lib/a/.kiro/steering/tech.md',
+                    type: 'file',
+                    sha: 'tech456',
+                    size: 250,
+                  },
+                ],
+              })
+              .mockResolvedValueOnce({
+                // Mock requirements.md file content
+                data: {
+                  type: 'file',
+                  encoding: 'base64',
+                  content: Buffer.from('# Requirements from lib/a', 'utf-8').toString('base64'),
+                  size: 150,
+                  path: 'lib/a/.kiro/specs/test-project/requirements.md',
+                  sha: 'req123',
+                },
+              })
+              .mockResolvedValueOnce({
+                // Mock tech.md file content
+                data: {
+                  type: 'file',
+                  encoding: 'base64',
+                  content: Buffer.from('# Tech from lib/a', 'utf-8').toString('base64'),
+                  size: 250,
+                  path: 'lib/a/.kiro/steering/tech.md',
+                  sha: 'tech456',
+                },
+              }),
+          },
+          rateLimit: {
+            get: vi.fn().mockResolvedValue({
+              data: {
+                rate: {
+                  remaining: 5000,
+                  limit: 5000,
+                  reset: Date.now() / 1000 + 3600,
+                },
+              },
+            }),
+          },
+        },
+      };
+
+      (Octokit as any).mockImplementation(() => mockOctokit);
+
+      // Execute CLI command with subdirectory
+      const argv = [
+        'node',
+        'kirox',
+        'owner/repo',
+        '-p',
+        'test-project',
+        '-o',
+        testOutputDir,
+        '--subdir',
+        'lib/a',
+        '--force',
+      ];
+
+      const result = await execute(argv);
+
+      // Verify execution succeeded
+      expect(result.success).toBe(true);
+      expect(result.filesDownloaded).toBe(2);
+
+      // Verify files are saved to <outputDir>/.kiro/... (WITHOUT subdirectory prefix)
+      const requirementsPath = path.join(testOutputDir, '.kiro/specs/test-project/requirements.md');
+      const techPath = path.join(testOutputDir, '.kiro/steering/tech.md');
+
+      const requirementsContent = await fs.readFile(requirementsPath, 'utf-8');
+      const techContent = await fs.readFile(techPath, 'utf-8');
+
+      expect(requirementsContent).toBe('# Requirements from lib/a');
+      expect(techContent).toBe('# Tech from lib/a');
+
+      // Verify subdirectory structure is NOT created in output directory
+      const subdirInOutput = path.join(testOutputDir, 'lib/a/.kiro');
+      let subdirExists = false;
+      try {
+        await fs.access(subdirInOutput);
+        subdirExists = true;
+      } catch {
+        subdirExists = false;
+      }
+      expect(subdirExists).toBe(false); // lib/a/.kiro should NOT exist locally
+    });
+
+    it('should display subdirectory info in progress messages', async () => {
+      // Mock Octokit responses
+      const mockOctokit = {
+        rest: {
+          repos: {
+            getContent: vi.fn()
+              .mockResolvedValueOnce({
+                data: [
+                  {
+                    name: 'spec.json',
+                    path: 'packages/api/.kiro/specs/test-project/spec.json',
+                    type: 'file',
+                    sha: 'abc',
+                    size: 100,
+                  },
+                ],
+              })
+              .mockResolvedValueOnce({ data: [] })
+              .mockResolvedValueOnce({
+                data: {
+                  type: 'file',
+                  encoding: 'base64',
+                  content: Buffer.from('{"name": "test"}', 'utf-8').toString('base64'),
+                  size: 100,
+                  path: 'packages/api/.kiro/specs/test-project/spec.json',
+                  sha: 'abc',
+                },
+              }),
+          },
+          rateLimit: {
+            get: vi.fn().mockResolvedValue({
+              data: {
+                rate: {
+                  remaining: 5000,
+                  limit: 5000,
+                  reset: Date.now() / 1000 + 3600,
+                },
+              },
+            }),
+          },
+        },
+      };
+
+      (Octokit as any).mockImplementation(() => mockOctokit);
+
+      // Capture console output
+      const consoleLogs: string[] = [];
+      const originalLog = console.log;
+      console.log = vi.fn((...args) => {
+        consoleLogs.push(args.join(' '));
+      });
+
+      const argv = [
+        'node',
+        'kirox',
+        'owner/repo',
+        '-p',
+        'test-project',
+        '-o',
+        testOutputDir,
+        '--subdir',
+        'packages/api',
+        '--force',
+      ];
+
+      const result = await execute(argv);
+
+      // Restore console.log
+      console.log = originalLog;
+
+      // Verify execution succeeded
+      expect(result.success).toBe(true);
+
+      // Verify subdirectory is displayed in progress messages
+      const output = consoleLogs.join('\n');
+      expect(output).toMatch(/Fetching files from.*packages\/api\/.kiro/);
+      expect(output).toMatch(/Fetched from: packages\/api/);
+    });
+
+    it('should handle nested subdirectories correctly', async () => {
+      // Mock Octokit responses for nested subdirectory
+      const mockOctokit = {
+        rest: {
+          repos: {
+            getContent: vi.fn()
+              .mockResolvedValueOnce({
+                // Mock services/auth/v2/.kiro/specs directory
+                data: [
+                  {
+                    name: 'design.md',
+                    path: 'services/auth/v2/.kiro/specs/test-project/design.md',
+                    type: 'file',
+                    sha: 'design789',
+                    size: 300,
+                  },
+                ],
+              })
+              .mockResolvedValueOnce({ data: [] })
+              .mockResolvedValueOnce({
+                data: {
+                  type: 'file',
+                  encoding: 'base64',
+                  content: Buffer.from('# Design from services/auth/v2', 'utf-8').toString('base64'),
+                  size: 300,
+                  path: 'services/auth/v2/.kiro/specs/test-project/design.md',
+                  sha: 'design789',
+                },
+              }),
+          },
+          rateLimit: {
+            get: vi.fn().mockResolvedValue({
+              data: {
+                rate: {
+                  remaining: 5000,
+                  limit: 5000,
+                  reset: Date.now() / 1000 + 3600,
+                },
+              },
+            }),
+          },
+        },
+      };
+
+      (Octokit as any).mockImplementation(() => mockOctokit);
+
+      const argv = [
+        'node',
+        'kirox',
+        'owner/repo',
+        '-p',
+        'test-project',
+        '-o',
+        testOutputDir,
+        '--subdir',
+        'services/auth/v2',
+        '--force',
+      ];
+
+      const result = await execute(argv);
+
+      // Verify execution succeeded
+      expect(result.success).toBe(true);
+
+      // Verify file is saved to <outputDir>/.kiro/... (WITHOUT nested subdirectory prefix)
+      const designPath = path.join(testOutputDir, '.kiro/specs/test-project/design.md');
+      const designContent = await fs.readFile(designPath, 'utf-8');
+      expect(designContent).toBe('# Design from services/auth/v2');
+
+      // Verify nested subdirectory structure is NOT created
+      const nestedSubdirPath = path.join(testOutputDir, 'services/auth/v2/.kiro');
+      let nestedSubdirExists = false;
+      try {
+        await fs.access(nestedSubdirPath);
+        nestedSubdirExists = true;
+      } catch {
+        nestedSubdirExists = false;
+      }
+      expect(nestedSubdirExists).toBe(false);
     });
   });
 });
