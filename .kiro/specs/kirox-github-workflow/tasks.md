@@ -62,7 +62,7 @@
   - Node.js 20を使用
   - _Requirements: 5.1_
 
-- [ ] 3.2 CI検証ステップの実装
+- [x] 3.2 CI検証ステップの実装
   - actions/checkout@v5でコードをチェックアウト
   - actions/setup-node@v4でNode.js環境をセットアップ
   - npm ciで依存関係をインストール
