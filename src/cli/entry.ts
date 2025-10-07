@@ -16,6 +16,8 @@ import { Logger } from '../reporting/logger.js';
 import { resolveOutputPath, getSpecDirectoryPath, getSteeringDirectoryPath } from '../filesystem/path-utils.js';
 import { loadMetadata, upsertProject, upsertFile } from '../tracking/metadata-manager.js';
 import { calculateFileHash } from '../tracking/hash-calculator.js';
+import { loadConfig } from '../config/loader.js';
+import { mergeConfig } from '../config/merger.js';
 import type { ExecutionResult, ParsedArguments } from './types.js';
 import type { ContentItem } from '../github/fetcher.js';
 import type { FileMetadata } from '../tracking/types.js';
@@ -63,6 +65,17 @@ export async function execute(argv: string[]): Promise<ExecutionResult> {
         filesFailed: 0,
         exitCode: 1, // User error
       };
+    }
+
+    // Step 2.3: Load and merge configuration
+    const fileConfig = await loadConfig(args.config);
+    const mergedConfig = mergeConfig(args, fileConfig);
+
+    // Get subdir from merged config (default to empty string if undefined)
+    const subdir = mergedConfig.subdir || '';
+
+    if (args.verbose && subdir) {
+      logger.info('Using subdirectory', { subdir });
     }
 
     // Step 2.5: Handle --check-updates command
