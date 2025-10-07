@@ -107,6 +107,21 @@
   - ファイルパスの表示形式が既存の形式と一貫していることを確認
   - _Requirements: 5.2_
 
+- [ ] 5.4 進捗ログのファイルパス表示を修正【バグ修正】
+  - 現在の問題: `[1/8] Fetching lib/a/.kiro/specs/...` と表示されているが、ローカル保存先と一貫性を保つため `.kiro/specs/...` と表示すべき
+  - 進捗メッセージのファイルパス表示からサブディレクトリプレフィックスを除去
+  - 例: `lib/a/.kiro/specs/project/file.md` → `.kiro/specs/project/file.md`
+  - ProgressReporter層で表示用のパス変換ロジックを実装
+  - _Requirements: 5.2_
+
+- [ ] 5.5 全てのログメッセージを英語に統一
+  - 現在の問題: 「取得元」「ブランチ」などの日本語メッセージが混在している
+  - 全てのユーザー向けメッセージを英語に統一
+  - 例: 「取得元: (ブランチ: test)」 → 「Source: (branch: test)」
+  - 例: 「files succeeded」「files failed」は既に英語なので維持
+  - ProgressReporter、Logger、ErrorHandlerの全メッセージを英語化
+  - _Requirements: 5.1, 5.2, 5.3, 5.4_
+
 - [ ] 6. エラーハンドリングの追加とエラーメッセージの改善
 - [x] 6.1 GitHubFetcherでのサブディレクトリ関連エラーメッセージを追加
   - 404エラー時にサブディレクトリが存在しない旨のメッセージを表示
