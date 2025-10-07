@@ -39,6 +39,17 @@ export function parseRepositoryPath(repositoryPath: string): RepositoryRef {
     throw new Error('Invalid repository format: must be "owner/repo"');
   }
 
+  // Task 1.2: Validate invalid formats with # character
+  // Check for # at the beginning (#branch)
+  if (repositoryPath.startsWith('#')) {
+    throw new Error('無効なリポジトリ形式です: owner/repo#branch形式で指定してください');
+  }
+
+  // Check for /# pattern (owner/#repo or owner/repo/#branch)
+  if (repositoryPath.includes('/#')) {
+    throw new Error('無効なリポジトリ形式です: owner/repo#branch形式で指定してください');
+  }
+
   // Check if branch is specified (owner/repo#branch format)
   const hashIndex = repositoryPath.indexOf('#');
   let ownerRepoPart: string;

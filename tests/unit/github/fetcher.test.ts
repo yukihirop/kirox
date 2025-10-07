@@ -98,6 +98,25 @@ describe('GitHubFetcher', () => {
         branch: 'branch#extra',
       });
     });
+
+    // Task 1.2: Invalid repository format validation tests
+    it('should throw error for repository path starting with # only', () => {
+      expect(() => parseRepositoryPath('#branch')).toThrow(
+        '無効なリポジトリ形式です: owner/repo#branch形式で指定してください'
+      );
+    });
+
+    it('should throw error for repository path containing /#', () => {
+      expect(() => parseRepositoryPath('owner/#repo')).toThrow(
+        '無効なリポジトリ形式です: owner/repo#branch形式で指定してください'
+      );
+    });
+
+    it('should throw error for repository path with / before #', () => {
+      expect(() => parseRepositoryPath('owner/repo/#branch')).toThrow(
+        '無効なリポジトリ形式です: owner/repo#branch形式で指定してください'
+      );
+    });
   });
 
   describe('fetchDirectoryContents', () => {
