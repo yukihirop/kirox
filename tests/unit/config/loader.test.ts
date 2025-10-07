@@ -134,5 +134,54 @@ describe('ConfigLoader', () => {
       expect(config.githubToken).toBe('test');
       // Unknown fields should be preserved (or filtered based on implementation)
     });
+
+    it('should load subdir field from config file', async () => {
+      const configData = {
+        githubToken: 'test-token',
+        subdir: 'packages/api',
+      };
+      await fs.writeFile('.kiroxrc.json', JSON.stringify(configData));
+
+      const config = await loadConfig();
+      expect(config.subdir).toBe('packages/api');
+    });
+
+    it('should return undefined for subdir when not present in config', async () => {
+      const configData = {
+        githubToken: 'test-token',
+        verbose: true,
+      };
+      await fs.writeFile('.kiroxrc.json', JSON.stringify(configData));
+
+      const config = await loadConfig();
+      expect(config.subdir).toBeUndefined();
+    });
+
+    it('should load empty string subdir from config file', async () => {
+      const configData = {
+        githubToken: 'test-token',
+        subdir: '',
+      };
+      await fs.writeFile('.kiroxrc.json', JSON.stringify(configData));
+
+      const config = await loadConfig();
+      expect(config.subdir).toBe('');
+    });
+
+    it('should load config file with subdir and all other fields', async () => {
+      const fullConfig = {
+        githubToken: 'ghp_test123',
+        defaultConcurrency: 3,
+        outputDirectory: '/tmp/kirox',
+        verbose: true,
+        force: false,
+        subdir: 'services/auth',
+      };
+      await fs.writeFile('.kiroxrc.json', JSON.stringify(fullConfig));
+
+      const config = await loadConfig();
+      expect(config).toEqual(fullConfig);
+      expect(config.subdir).toBe('services/auth');
+    });
   });
 });
