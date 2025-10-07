@@ -8,6 +8,141 @@
 import path from 'path';
 
 /**
+ * Normalize subdirectory path for .kiro folder location
+ *
+ * Removes leading/trailing slashes, converts backslashes to forward slashes,
+ * normalizes consecutive slashes, and handles root directory cases.
+ *
+ * @param subdirPath - User input subdirectory path
+ * @returns Normalized path (empty string indicates root directory)
+ *
+ * @example
+ * ```typescript
+ * normalizeSubdirPath('/packages/api/')    // 'packages/api'
+ * normalizeSubdirPath('./services/auth')   // 'services/auth'
+ * normalizeSubdirPath('packages\\api')     // 'packages/api'
+ * normalizeSubdirPath('.')                 // ''
+ * normalizeSubdirPath('')                  // ''
+ * ```
+ */
+export function normalizeSubdirPath(subdirPath: string): string {
+  if (!subdirPath || typeof subdirPath !== 'string') {
+    return '';
+  }
+
+  let normalized = subdirPath.trim();
+
+  // Convert backslashes to forward slashes first
+  normalized = normalized.replace(/\\/g, '/');
+
+  // Remove leading / or ./
+  normalized = normalized.replace(/^\/+/, '').replace(/^\.\//, '');
+
+  // Normalize consecutive slashes to single slash
+  normalized = normalized.replace(/\/+/g, '/');
+
+  // Remove trailing /
+  normalized = normalized.replace(/\/+$/, '');
+
+  // Return empty string for . or empty string (root directory)
+  if (normalized === '.' || normalized === '') {
+    return '';
+  }
+
+  return normalized;
+}
+
+/**
+ * Validate subdirectory path for security
+ *
+ * Ensures subdirectory paths don't contain path traversal sequences (..) or absolute paths,
+ * which could be used to access files outside the intended directory.
+ *
+ * @param subdirPath - Normalized subdirectory path to validate
+ * @throws Error if path contains path traversal or is absolute
+ *
+ * @example
+ * ```typescript
+ * validateSubdirPath('packages/api')    // No throw (valid)
+ * validateSubdirPath('')                // No throw (root directory)
+ * validateSubdirPath('../etc')          // Throws error (path traversal)
+ * validateSubdirPath('/etc/passwd')     // Throws error (absolute path)
+ * ```
+ */
+export function validateSubdirPath(subdirPath: string): void {
+  // Empty string is valid (indicates root directory)
+  if (subdirPath === '') {
+    return;
+  }
+
+  // Check for path traversal attempts
+  if (subdirPath.includes('..')) {
+    throw new Error(
+      `サブディレクトリパスにパストラバーサル (..) は使用できません: ${subdirPath}`
+    );
+  }
+
+  // Check for absolute paths (Unix-style and Windows-style)
+  if (path.isAbsolute(subdirPath)) {
+    throw new Error(
+      `サブディレクトリパスに絶対パスは使用できません: ${subdirPath}`
+    );
+  }
+
+  // Check for Windows-style absolute paths (C:/, D:/, etc.)
+  // path.isAbsolute() may not detect these on non-Windows platforms
+  if (/^[a-zA-Z]:[\\/]/.test(subdirPath)) {
+    throw new Error(
+      `サブディレクトリパスに絶対パスは使用できません: ${subdirPath}`
+    );
+  }
+}
+
+/**
+ * Build remote path from subdirectory and project name
+ *
+ * Constructs the remote repository path for fetching .kiro files.
+ * Supports both specs and steering directories, with or without subdirectories.
+ *
+ * @param subdir - Normalized subdirectory path (empty string indicates root)
+ * @param projectName - Project name (required for specs, ignored for steering)
+ * @param type - Type of directory: "specs" or "steering"
+ * @returns Remote path (e.g., "packages/api/.kiro/specs/my-project")
+ * @throws Error if project name is invalid for specs type
+ *
+ * @example
+ * ```typescript
+ * buildRemotePath('packages/api', 'my-project', 'specs')
+ * // Returns: 'packages/api/.kiro/specs/my-project'
+ *
+ * buildRemotePath('', 'my-project', 'specs')
+ * // Returns: '.kiro/specs/my-project'
+ *
+ * buildRemotePath('packages/api', '', 'steering')
+ * // Returns: 'packages/api/.kiro/steering'
+ *
+ * buildRemotePath('', '', 'steering')
+ * // Returns: '.kiro/steering'
+ * ```
+ */
+export function buildRemotePath(
+  subdir: string,
+  projectName: string,
+  type: 'specs' | 'steering'
+): string {
+  const kiroBase = subdir ? `${subdir}/.kiro` : '.kiro';
+
+  if (type === 'specs') {
+    if (!isValidProjectName(projectName)) {
+      throw new Error(`無効なプロジェクト名です: "${projectName}"`);
+    }
+    return `${kiroBase}/specs/${projectName}`;
+  } else {
+    return `${kiroBase}/steering`;
+  }
+}
+
+/**
  * Validate project name for security (prevent path traversal attacks)
  *
  * Ensures project names don't contain path traversal sequences (..) or path separators,
@@ -51,27 +186,23 @@ export function isValidProjectName(projectName: string): boolean {
 /**
  * Get spec directory path for a project
  *
+ * @deprecated Use buildRemotePath(subdir, projectName, 'specs') instead
  * @param projectName - Project name
  * @returns Spec directory path (.kiro/specs/<project>)
  * @throws Error if project name is invalid
  */
 export function getSpecDirectoryPath(projectName: string): string {
-  if (!isValidProjectName(projectName)) {
-    throw new Error(
-      `Invalid project name: "${projectName}". Project name must not contain path traversal or separators.`
-    );
-  }
-
-  return `.kiro/specs/${projectName}`;
+  return buildRemotePath('', projectName, 'specs');
 }
 
 /**
  * Get steering directory path
  *
+ * @deprecated Use buildRemotePath(subdir, '', 'steering') instead
  * @returns Steering directory path (.kiro/steering)
  */
 export function getSteeringDirectoryPath(): string {
-  return '.kiro/steering';
+  return buildRemotePath('', '', 'steering');
 }
 
 /**
@@ -94,8 +225,8 @@ export function convertRemoteToLocalPath(remotePath: string): string {
     throw new Error('Invalid path: contains path traversal');
   }
 
-  // Must start with .kiro/
-  if (!normalized.startsWith('.kiro/')) {
+  // Must contain .kiro/ (can be at start or after a subdirectory)
+  if (!normalized.includes('.kiro/')) {
     throw new Error('Path must be within .kiro directory');
   }
 

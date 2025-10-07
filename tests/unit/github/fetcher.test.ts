@@ -302,4 +302,51 @@ describe('GitHubFetcher', () => {
       ).rejects.toThrow('Failed to fetch directory contents');
     });
   });
+
+  describe('Subdirectory error messages', () => {
+    it('should provide helpful error for 404 with subdirectory path', async () => {
+      const mockError = Object.assign(new Error('Not Found'), { status: 404 });
+      const mockClient = {
+        rest: {
+          repos: {
+            getContent: vi.fn().mockRejectedValue(mockError),
+          },
+        },
+      } as unknown as Octokit;
+
+      await expect(
+        fetchDirectoryContents(mockClient, 'owner', 'repo', 'packages/api/.kiro/specs/project')
+      ).rejects.toThrow(/Subdirectory "packages\/api" or .kiro folder not found/);
+    });
+
+    it('should provide helpful error for 404 with .kiro path in subdirectory', async () => {
+      const mockError = Object.assign(new Error('Not Found'), { status: 404 });
+      const mockClient = {
+        rest: {
+          repos: {
+            getContent: vi.fn().mockRejectedValue(mockError),
+          },
+        },
+      } as unknown as Octokit;
+
+      await expect(
+        fetchDirectoryContents(mockClient, 'owner', 'repo', 'services/auth/.kiro/steering')
+      ).rejects.toThrow(/Subdirectory "services\/auth" or .kiro folder not found/);
+    });
+
+    it('should use standard error for root .kiro path', async () => {
+      const mockError = Object.assign(new Error('Not Found'), { status: 404 });
+      const mockClient = {
+        rest: {
+          repos: {
+            getContent: vi.fn().mockRejectedValue(mockError),
+          },
+        },
+      } as unknown as Octokit;
+
+      await expect(
+        fetchDirectoryContents(mockClient, 'owner', 'repo', '.kiro/specs/project')
+      ).rejects.toThrow(/Repository "owner\/repo" or path ".kiro\/specs\/project" not found/);
+    });
+  });
 });

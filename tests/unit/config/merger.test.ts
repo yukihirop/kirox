@@ -153,5 +153,74 @@ describe('ConfigMerger', () => {
       expect(config.outputDirectory).toBe('/tmp/output');
       expect(config.githubToken).toBe('env-token');
     });
+
+    describe('subdir configuration merge', () => {
+      it('should prioritize CLI subdir option over config file', () => {
+        const args = createDefaultArgs();
+        args.subdir = 'packages/cli';
+
+        const fileConfig: KiroxConfig = {
+          subdir: 'packages/api',
+        };
+
+        const config = mergeConfig(args, fileConfig);
+        expect(config.subdir).toBe('packages/cli');
+      });
+
+      it('should use config file subdir when CLI option not specified', () => {
+        const args = createDefaultArgs();
+        // subdir not set in args
+
+        const fileConfig: KiroxConfig = {
+          subdir: 'packages/api',
+        };
+
+        const config = mergeConfig(args, fileConfig);
+        expect(config.subdir).toBe('packages/api');
+      });
+
+      it('should handle empty string subdir in CLI as root directory', () => {
+        const args = createDefaultArgs();
+        args.subdir = '';
+
+        const fileConfig: KiroxConfig = {
+          subdir: 'packages/api',
+        };
+
+        const config = mergeConfig(args, fileConfig);
+        expect(config.subdir).toBe('');
+      });
+
+      it('should handle empty string subdir in config file as root directory', () => {
+        const args = createDefaultArgs();
+
+        const fileConfig: KiroxConfig = {
+          subdir: '',
+        };
+
+        const config = mergeConfig(args, fileConfig);
+        expect(config.subdir).toBe('');
+      });
+
+      it('should leave subdir undefined when not specified anywhere', () => {
+        const args = createDefaultArgs();
+        const fileConfig: KiroxConfig = {};
+
+        const config = mergeConfig(args, fileConfig);
+        expect(config.subdir).toBeUndefined();
+      });
+
+      it('should prioritize CLI empty string over config file subdir', () => {
+        const args = createDefaultArgs();
+        args.subdir = '';
+
+        const fileConfig: KiroxConfig = {
+          subdir: 'packages/api',
+        };
+
+        const config = mergeConfig(args, fileConfig);
+        expect(config.subdir).toBe('');
+      });
+    });
   });
 });

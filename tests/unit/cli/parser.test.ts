@@ -145,5 +145,41 @@ describe('ArgumentParser', () => {
       expect(result.checkUpdates).toBe(false);
       expect(result.update).toBe(false);
     });
+
+    it('should parse --subdir option with path', () => {
+      const argv = ['node', 'kirox', 'owner/repo', '-p', 'project', '--subdir', 'packages/api'];
+      const result = parseArguments(argv);
+
+      expect(result.subdir).toBe('packages/api');
+    });
+
+    it('should parse -s short flag for subdir', () => {
+      const argv = ['node', 'kirox', 'owner/repo', '-p', 'project', '-s', 'services/auth'];
+      const result = parseArguments(argv);
+
+      expect(result.subdir).toBe('services/auth');
+    });
+
+    it('should parse --subdir with empty string', () => {
+      const argv = ['node', 'kirox', 'owner/repo', '-p', 'project', '--subdir', ''];
+      const result = parseArguments(argv);
+
+      expect(result.subdir).toBe('');
+    });
+
+    it('should have undefined subdir when not specified', () => {
+      const argv = ['node', 'kirox', 'owner/repo', '-p', 'project'];
+      const result = parseArguments(argv);
+
+      expect(result.subdir).toBeUndefined();
+    });
+
+    it('should parse --subdir with other options', () => {
+      const argv = ['node', 'kirox', 'owner/repo', '-p', 'project', '--subdir', 'apps/frontend', '--verbose'];
+      const result = parseArguments(argv);
+
+      expect(result.subdir).toBe('apps/frontend');
+      expect(result.verbose).toBe(true);
+    });
   });
 });

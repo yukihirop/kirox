@@ -13,9 +13,11 @@ import { writeFile } from '../filesystem/writer.js';
 import { ProgressReporter } from '../reporting/progress-reporter.js';
 import { ErrorHandler } from '../reporting/error-handler.js';
 import { Logger } from '../reporting/logger.js';
-import { resolveOutputPath, getSpecDirectoryPath, getSteeringDirectoryPath } from '../filesystem/path-utils.js';
+import { resolveOutputPath, buildRemotePath } from '../filesystem/path-utils.js';
 import { loadMetadata, upsertProject, upsertFile } from '../tracking/metadata-manager.js';
 import { calculateFileHash } from '../tracking/hash-calculator.js';
+import { loadConfig } from '../config/loader.js';
+import { mergeConfig } from '../config/merger.js';
 import type { ExecutionResult, ParsedArguments } from './types.js';
 import type { ContentItem } from '../github/fetcher.js';
 import type { FileMetadata } from '../tracking/types.js';
@@ -65,6 +67,17 @@ export async function execute(argv: string[]): Promise<ExecutionResult> {
       };
     }
 
+    // Step 2.3: Load and merge configuration
+    const fileConfig = await loadConfig(args.config);
+    const mergedConfig = mergeConfig(args, fileConfig);
+
+    // Get subdir from merged config (default to empty string if undefined)
+    const subdir = mergedConfig.subdir || '';
+
+    if (args.verbose && subdir) {
+      logger.info('Using subdirectory', { subdir });
+    }
+
     // Step 2.5: Handle --check-updates command
     if (args.checkUpdates) {
       return await handleCheckUpdates(args, logger);
@@ -81,7 +94,7 @@ export async function execute(argv: string[]): Promise<ExecutionResult> {
       useColor: true,
     });
 
-    reporter.reportStart(args.repository, args.project);
+    reporter.reportStart(args.repository, args.project, subdir);
 
     // Step 4: Initialize Octokit client
     const octokit = new Octokit({
@@ -96,8 +109,8 @@ export async function execute(argv: string[]): Promise<ExecutionResult> {
       project: args.project,
     });
 
-    const specPath = getSpecDirectoryPath(args.project);
-    const steeringPath = getSteeringDirectoryPath();
+    const specPath = buildRemotePath(subdir, args.project, 'specs');
+    const steeringPath = buildRemotePath(subdir, '', 'steering');
 
     // Fetch spec directory (required)
     const specContents = await fetchDirectoryContents(octokit, owner, repo, specPath);
@@ -124,6 +137,7 @@ export async function execute(argv: string[]): Promise<ExecutionResult> {
         specFiles: specFiles.length,
         steeringFiles: steeringFiles.length,
         total: allFiles.length,
+        ...(subdir && { subdir }),
       });
     }
 
@@ -298,7 +312,7 @@ export async function execute(argv: string[]): Promise<ExecutionResult> {
     }
 
     // Step 9: Report summary
-    reporter.reportSummary(filesDownloaded, filesFailed);
+    reporter.reportSummary(filesDownloaded, filesFailed, subdir);
 
     logger.info('Execution completed', {
       filesDownloaded,
