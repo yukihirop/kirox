@@ -37,6 +37,67 @@ describe('GitHubFetcher', () => {
         'Invalid repository format'
       );
     });
+
+    // Task 1.1: Branch extraction tests
+    it('should parse repository path with branch (owner/repo#branch)', () => {
+      const result = parseRepositoryPath('octocat/Hello-World#feature-branch');
+
+      expect(result).toEqual({
+        owner: 'octocat',
+        repo: 'Hello-World',
+        branch: 'feature-branch',
+      });
+    });
+
+    it('should parse repository path without branch as undefined', () => {
+      const result = parseRepositoryPath('octocat/Hello-World');
+
+      expect(result).toEqual({
+        owner: 'octocat',
+        repo: 'Hello-World',
+        branch: undefined,
+      });
+    });
+
+    it('should parse repository path with empty branch (owner/repo#) as undefined', () => {
+      const result = parseRepositoryPath('octocat/Hello-World#');
+
+      expect(result).toEqual({
+        owner: 'octocat',
+        repo: 'Hello-World',
+        branch: undefined,
+      });
+    });
+
+    it('should parse repository path with branch containing slashes', () => {
+      const result = parseRepositoryPath('octocat/Hello-World#feature/new-api');
+
+      expect(result).toEqual({
+        owner: 'octocat',
+        repo: 'Hello-World',
+        branch: 'feature/new-api',
+      });
+    });
+
+    it('should parse repository path with tag (owner/repo#v1.2.3)', () => {
+      const result = parseRepositoryPath('octocat/Hello-World#v1.2.3');
+
+      expect(result).toEqual({
+        owner: 'octocat',
+        repo: 'Hello-World',
+        branch: 'v1.2.3',
+      });
+    });
+
+    it('should parse repository path with multiple # using first as separator', () => {
+      const result = parseRepositoryPath('octocat/Hello-World#branch#extra');
+
+      expect(result).toEqual({
+        owner: 'octocat',
+        repo: 'Hello-World',
+        branch: 'branch#extra',
+      });
+    });
   });
 
   describe('fetchDirectoryContents', () => {

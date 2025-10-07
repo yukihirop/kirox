@@ -7,11 +7,12 @@
 import type { Octokit } from 'octokit';
 
 /**
- * Repository reference (owner/repo)
+ * Repository reference (owner/repo with optional branch)
  */
 export interface RepositoryRef {
   owner: string;
   repo: string;
+  branch?: string;
 }
 
 /**
@@ -27,10 +28,10 @@ export interface ContentItem {
 }
 
 /**
- * Parse repository path string into owner and repo
+ * Parse repository path string into owner, repo, and optional branch
  *
- * @param repositoryPath - Repository path in "owner/repo" format
- * @returns Object with owner and repo properties
+ * @param repositoryPath - Repository path in "owner/repo" or "owner/repo#branch" format
+ * @returns Object with owner, repo, and optional branch properties
  * @throws Error if repository path format is invalid
  */
 export function parseRepositoryPath(repositoryPath: string): RepositoryRef {
@@ -38,7 +39,26 @@ export function parseRepositoryPath(repositoryPath: string): RepositoryRef {
     throw new Error('Invalid repository format: must be "owner/repo"');
   }
 
-  const parts = repositoryPath.split('/');
+  // Check if branch is specified (owner/repo#branch format)
+  const hashIndex = repositoryPath.indexOf('#');
+  let ownerRepoPart: string;
+  let branch: string | undefined;
+
+  if (hashIndex !== -1) {
+    // Split at first # to separate owner/repo from branch
+    ownerRepoPart = repositoryPath.substring(0, hashIndex);
+    const branchPart = repositoryPath.substring(hashIndex + 1);
+
+    // If branch part is empty, treat as undefined (default branch)
+    branch = branchPart.length > 0 ? branchPart : undefined;
+  } else {
+    // No branch specified
+    ownerRepoPart = repositoryPath;
+    branch = undefined;
+  }
+
+  // Parse owner/repo part
+  const parts = ownerRepoPart.split('/');
 
   if (parts.length !== 2 || !parts[0] || !parts[1]) {
     throw new Error('Invalid repository format: must be "owner/repo"');
@@ -47,6 +67,7 @@ export function parseRepositoryPath(repositoryPath: string): RepositoryRef {
   return {
     owner: parts[0],
     repo: parts[1],
+    branch,
   };
 }
 
