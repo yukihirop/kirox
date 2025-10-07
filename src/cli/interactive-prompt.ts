@@ -172,3 +172,52 @@ export async function confirmExecution(args: ParsedArguments): Promise<boolean> 
     default: false,
   });
 }
+
+/**
+ * Prompt for missing arguments and complete the parsed arguments
+ *
+ * This function orchestrates all interactive prompts in sequence:
+ * 1. Repository (if missing)
+ * 2. Project (if missing)
+ * 3. Output directory (if not specified or is default value)
+ * 4. Subdirectory (if not specified, optional)
+ * 5. Confirmation (always prompt)
+ *
+ * @param args - Partially parsed arguments (may have missing required fields)
+ * @returns Completed ParsedArguments with all required fields filled
+ * @throws Error if user cancels the confirmation prompt
+ */
+export async function promptMissingArguments(
+  args: ParsedArguments
+): Promise<ParsedArguments> {
+  // Create a copy to avoid mutating the input
+  const completedArgs = { ...args };
+
+  // 1. Prompt for repository if missing
+  completedArgs.repository = await promptRepository(completedArgs.repository);
+
+  // 2. Prompt for project if missing
+  completedArgs.project = await promptProject(completedArgs.project);
+
+  // 3. Prompt for output directory only if not already specified
+  // Check if output is the default value or empty
+  if (!completedArgs.output || completedArgs.output === '.') {
+    completedArgs.output = await promptOutput();
+  }
+
+  // 4. Prompt for subdirectory only if not already specified
+  if (!completedArgs.subdir) {
+    const subdir = await promptSubdir();
+    if (subdir) {
+      completedArgs.subdir = subdir;
+    }
+  }
+
+  // 5. Show confirmation prompt
+  const confirmed = await confirmExecution(completedArgs);
+  if (!confirmed) {
+    throw new Error('処理を中断しました');
+  }
+
+  return completedArgs;
+}
