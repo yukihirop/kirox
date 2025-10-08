@@ -190,4 +190,71 @@ describe('shouldEnterInteractiveMode', () => {
       expect(result).toBe(true);
     });
   });
+
+  describe('他のオプションとの共存（Task 6.2）', () => {
+    it('--forceオプションが指定されていても完全引数時は対話モードをスキップ', () => {
+      const args = createValidArgs();
+      args.force = true;
+      const result = shouldEnterInteractiveMode(args);
+      expect(result).toBe(false);
+    });
+
+    it('--forceオプションが指定されていて引数不足時は対話モードに入る', () => {
+      const args = createValidArgs();
+      args.repository = '';
+      args.force = true;
+      const result = shouldEnterInteractiveMode(args);
+      expect(result).toBe(true);
+    });
+
+    it('--dry-runオプションが指定されていても完全引数時は対話モードをスキップ', () => {
+      const args = createValidArgs();
+      args.dryRun = true;
+      const result = shouldEnterInteractiveMode(args);
+      expect(result).toBe(false);
+    });
+
+    it('--dry-runオプションが指定されていて引数不足時は対話モードに入る', () => {
+      const args = createValidArgs();
+      args.project = '';
+      args.dryRun = true;
+      const result = shouldEnterInteractiveMode(args);
+      expect(result).toBe(true);
+    });
+
+    it('--verboseオプションが指定されていても完全引数時は対話モードをスキップ', () => {
+      const args = createValidArgs();
+      args.verbose = true;
+      const result = shouldEnterInteractiveMode(args);
+      expect(result).toBe(false);
+    });
+
+    it('--verboseオプションが指定されていて引数不足時は対話モードに入る', () => {
+      const args = createValidArgs();
+      args.repository = '';
+      args.project = '';
+      args.verbose = true;
+      const result = shouldEnterInteractiveMode(args);
+      expect(result).toBe(true);
+    });
+
+    it('複数のオプション（--force --dry-run --verbose）が同時に指定されていても完全引数時は対話モードをスキップ', () => {
+      const args = createValidArgs();
+      args.force = true;
+      args.dryRun = true;
+      args.verbose = true;
+      const result = shouldEnterInteractiveMode(args);
+      expect(result).toBe(false);
+    });
+
+    it('複数のオプションが指定されていて引数不足時は対話モードに入る', () => {
+      const args = createValidArgs();
+      args.repository = '';
+      args.force = true;
+      args.dryRun = true;
+      args.verbose = true;
+      const result = shouldEnterInteractiveMode(args);
+      expect(result).toBe(true);
+    });
+  });
 });
