@@ -251,12 +251,13 @@
   - checkTTYEnvironment: '使用例: npx kirox owner/repo -p project-name' → 'Usage: npx kirox owner/repo -p project-name'
   - _Requirements: 7.3 (ユーザビリティ向上)_
 
-- [ ] 12.3 テストコードのメッセージ検証更新
+- [x] 12.3 テストコードのメッセージ検証更新
   - 英語化されたメッセージに合わせてテストコードを更新
   - interactive-error-handler.test.ts: エラーメッセージの検証を英語に更新
   - interactive-tty-check.test.ts: TTYエラーメッセージの検証を英語に更新
   - 全テストが通ることを確認
   - _Requirements: 7.3 (テスト整合性)_
+  - _Note: タスク12.2で既に実装済み。29テスト全て成功。_
 
 - [x] 12.4 リポジトリプロンプトへのブランチ指定サポート追加
   - promptRepositoryメッセージにブランチ指定形式を追加
