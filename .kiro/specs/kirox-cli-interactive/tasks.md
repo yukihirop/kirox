@@ -228,12 +228,13 @@
   - _Requirements: 全要件（ユーザビリティ向上）_
   - _Note: ヘルプメッセージに対話モードセクション追加。使用例、TTY環境の注記を含む。_
 
-- [ ] 11.2 package.jsonとREADMEの更新
+- [x] 11.2 package.jsonとREADMEの更新
   - @inquirer/prompts依存関係の追加をpackage.jsonに反映
   - READMEに対話モードの使用方法を追加
   - 対話モードと非対話モードの違いを明記
   - トラブルシューティングセクションに非TTY環境の説明を追加
   - _Requirements: 全要件（ドキュメント整備）_
+  - _Note: package.jsonは既に更新済み。READMEに対話モードセクション、使用方法、TTYトラブルシューティングを追加。_
 
 - [ ] 12. プロンプトメッセージの英語化
 - [x] 12.1 対話プロンプトメッセージの英語化
