@@ -53,29 +53,23 @@ export function validateInput(args: ParsedArguments): ValidationResult {
   const requiresRepositoryAndProject = !args.checkUpdates && !args.update;
 
   if (requiresRepositoryAndProject) {
-    // Validate repository format
-    if (!args.repository || !REPOSITORY_PATTERN.test(args.repository)) {
+    // Validate repository format using individual validation function
+    if (args.repository) {
+      errors.push(...validateRepositoryFormat(args.repository));
+    } else {
       errors.push({
         field: 'repository',
         message: 'Repository must be in format "owner/repo" (e.g., "facebook/react")',
       });
     }
 
-    // Validate project name
-    if (!args.project || args.project.trim() === '') {
+    // Validate project name using individual validation function
+    if (args.project) {
+      errors.push(...validateProjectName(args.project));
+    } else {
       errors.push({
         field: 'project',
         message: 'Project name cannot be empty',
-      });
-    } else if (args.project.includes('..')) {
-      errors.push({
-        field: 'project',
-        message: 'Project name cannot contain ".." (path traversal attempt)',
-      });
-    } else if (args.project.includes('/') || args.project.includes('\\')) {
-      errors.push({
-        field: 'project',
-        message: 'Project name cannot contain path separators ("/" or "\\")',
       });
     }
   }
@@ -100,6 +94,70 @@ export function validateInput(args: ParsedArguments): ValidationResult {
     valid: errors.length === 0,
     errors,
   };
+}
+
+/**
+ * Validate repository format (owner/repo or owner/repo#branch)
+ *
+ * Task 2.1: Individual field validation functions
+ *
+ * @param repository - Repository string to validate
+ * @returns Array of validation errors (empty if valid)
+ */
+export function validateRepositoryFormat(
+  repository: string
+): ValidationError[] {
+  const errors: ValidationError[] = [];
+
+  if (!repository || !REPOSITORY_PATTERN.test(repository)) {
+    errors.push({
+      field: 'repository',
+      message: 'Repository must be in format "owner/repo" (e.g., "facebook/react")',
+    });
+  }
+
+  return errors;
+}
+
+/**
+ * Validate project name for security and filesystem safety
+ *
+ * Task 2.1: Individual field validation functions
+ *
+ * @param project - Project name to validate
+ * @returns Array of validation errors (empty if valid)
+ */
+export function validateProjectName(project: string): ValidationError[] {
+  const errors: ValidationError[] = [];
+
+  // Check for empty or whitespace-only strings
+  if (!project || project.trim() === '') {
+    errors.push({
+      field: 'project',
+      message: 'Project name cannot be empty',
+    });
+    return errors;
+  }
+
+  // Check for path traversal attempts
+  if (project.includes('..')) {
+    errors.push({
+      field: 'project',
+      message: 'Project name cannot contain ".." (path traversal attempt)',
+    });
+    return errors;
+  }
+
+  // Check for path separators
+  if (project.includes('/') || project.includes('\\')) {
+    errors.push({
+      field: 'project',
+      message: 'Project name cannot contain path separators ("/" or "\\")',
+    });
+    return errors;
+  }
+
+  return errors;
 }
 
 /**

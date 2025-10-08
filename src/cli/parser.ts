@@ -33,14 +33,30 @@ export function parseArguments(argv: string[]): ParsedArguments {
     .option('--check-updates', 'Check for updates to tracked files', false)
     .option('--update', 'Apply updates to tracked files', false)
     .addHelpText('after', `
+Interactive Mode:
+  When run without arguments, kirox enters interactive mode and guides you
+  through entering repository, project name, and other options step-by-step.
+
+  $ npx kirox
+  ? Enter GitHub repository (owner/repo or owner/repo#branch): owner/repo
+  ? Enter project name: my-project
+  ? Enter output directory: .
+  ? Enter subdirectory in GitHub repository (optional):
+  ✓ Configuration confirmed
+
 Examples:
+  # Interactive mode (recommended for first-time users)
+  $ npx kirox
+
+  # Non-interactive mode with explicit arguments
   $ npx kirox owner/repo -p my-project
   $ npx kirox owner/repo#feature/new-api -p my-project
   $ npx kirox owner/repo --subdir packages/api -p my-project
   $ npx kirox owner/repo#develop --subdir packages/api -p my-project
 
 Note:
-  ブランチ指定は#の後に指定（例: owner/repo#develop）
+  Branch specification: use # after repo name (e.g., owner/repo#develop)
+  Interactive mode is only available in TTY environments
 `)
     .allowExcessArguments(false);
 
@@ -62,13 +78,11 @@ Note:
 
   // For --check-updates and --update, repository and project are optional
   // For regular fetch, repository and project are required
+  // NOTE: Interactive mode will handle missing arguments, so we allow empty repository/project
+  // The validation will be performed after interactive prompts in entry.ts
   if (!options.checkUpdates && !options.update) {
-    if (!repository) {
-      throw new Error('Repository argument is required');
-    }
-    if (!options.project) {
-      throw new Error('Project option is required');
-    }
+    // Allow empty repository and project for interactive mode
+    // Validation will be performed later in the flow
   }
 
   // If --check-updates or --update is specified, disable --track

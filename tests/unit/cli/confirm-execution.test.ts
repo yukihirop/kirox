@@ -1,0 +1,187 @@
+/**
+ * Execution Confirmation Prompt Test
+ *
+ * Tests for confirmExecution function
+ * Task 4.4: 確認プロンプトの実装
+ */
+
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { confirmExecution } from '@/cli/interactive-prompt.js';
+import type { ParsedArguments } from '@/cli/types.js';
+
+// Mock @inquirer/prompts
+vi.mock('@inquirer/prompts', () => ({
+  confirm: vi.fn(),
+}));
+
+// Mock console.log to capture output
+const mockConsoleLog = vi.spyOn(console, 'log').mockImplementation(() => {});
+
+describe('confirmExecution', () => {
+  let mockConfirm: ReturnType<typeof vi.fn>;
+
+  const createValidArgs = (): ParsedArguments => ({
+    repository: 'owner/repo',
+    project: 'my-project',
+    output: '.',
+    force: false,
+    dryRun: false,
+    verbose: false,
+    track: false,
+    checkUpdates: false,
+    update: false,
+  });
+
+  beforeEach(async () => {
+    const inquirer = await import('@inquirer/prompts');
+    mockConfirm = inquirer.confirm as ReturnType<typeof vi.fn>;
+    mockConfirm.mockClear();
+    mockConsoleLog.mockClear();
+  });
+
+  afterEach(() => {
+    vi.clearAllMocks();
+  });
+
+  describe('confirmプロンプトの動作', () => {
+    it('confirmプロンプトを表示する', async () => {
+      mockConfirm.mockResolvedValue(true);
+
+      await confirmExecution(createValidArgs());
+
+      expect(mockConfirm).toHaveBeenCalledTimes(1);
+    });
+
+    it('デフォルト値がfalseである', async () => {
+      mockConfirm.mockResolvedValue(false);
+
+      await confirmExecution(createValidArgs());
+
+      expect(mockConfirm).toHaveBeenCalledWith(
+        expect.objectContaining({
+          default: false,
+        })
+      );
+    });
+
+    it('適切な確認メッセージを表示する', async () => {
+      mockConfirm.mockResolvedValue(true);
+
+      await confirmExecution(createValidArgs());
+
+      expect(mockConfirm).toHaveBeenCalledWith(
+        expect.objectContaining({
+          message: 'Execute with this configuration?',
+        })
+      );
+    });
+  });
+
+  describe('ユーザーの応答', () => {
+    it('ユーザーが承認した場合はtrueを返す', async () => {
+      mockConfirm.mockResolvedValue(true);
+
+      const result = await confirmExecution(createValidArgs());
+
+      expect(result).toBe(true);
+    });
+
+    it('ユーザーが拒否した場合はfalseを返す', async () => {
+      mockConfirm.mockResolvedValue(false);
+
+      const result = await confirmExecution(createValidArgs());
+
+      expect(result).toBe(false);
+    });
+  });
+
+  describe('サマリー表示', () => {
+    it('リポジトリ情報を表示する', async () => {
+      mockConfirm.mockResolvedValue(true);
+
+      await confirmExecution(createValidArgs());
+
+      expect(mockConsoleLog).toHaveBeenCalledWith(
+        expect.stringContaining('owner/repo')
+      );
+    });
+
+    it('プロジェクト名を表示する', async () => {
+      mockConfirm.mockResolvedValue(true);
+
+      await confirmExecution(createValidArgs());
+
+      expect(mockConsoleLog).toHaveBeenCalledWith(
+        expect.stringContaining('my-project')
+      );
+    });
+
+    it('出力先を表示する', async () => {
+      mockConfirm.mockResolvedValue(true);
+
+      await confirmExecution(createValidArgs());
+
+      expect(mockConsoleLog).toHaveBeenCalledWith(
+        expect.stringContaining('.')
+      );
+    });
+
+    it('サブディレクトリが指定されている場合は表示する', async () => {
+      mockConfirm.mockResolvedValue(true);
+      const args = createValidArgs();
+      args.subdir = 'src/lib';
+
+      await confirmExecution(args);
+
+      expect(mockConsoleLog).toHaveBeenCalledWith(
+        expect.stringContaining('src/lib')
+      );
+    });
+
+    it('サブディレクトリが指定されていない場合は表示しない', async () => {
+      mockConfirm.mockResolvedValue(true);
+
+      await confirmExecution(createValidArgs());
+
+      // サブディレクトリに関する行がないことを確認
+      const calls = mockConsoleLog.mock.calls;
+      const hasSubdirLine = calls.some(
+        (call) =>
+          call.length > 0 &&
+          typeof call[0] === 'string' &&
+          call[0].includes('Subdirectory')
+      );
+      expect(hasSubdirLine).toBe(false);
+    });
+
+    it('サマリーヘッダーを表示する', async () => {
+      mockConfirm.mockResolvedValue(true);
+
+      await confirmExecution(createValidArgs());
+
+      // "Configuration:"のようなヘッダーが表示されることを確認
+      const calls = mockConsoleLog.mock.calls;
+      const hasHeader = calls.some(
+        (call) =>
+          call.length > 0 &&
+          typeof call[0] === 'string' &&
+          call[0].includes('Configuration')
+      );
+      expect(hasHeader).toBe(true);
+    });
+  });
+
+  describe('ブランチ付きリポジトリ', () => {
+    it('ブランチ情報を含むリポジトリを正しく表示する', async () => {
+      mockConfirm.mockResolvedValue(true);
+      const args = createValidArgs();
+      args.repository = 'owner/repo#feature-branch';
+
+      await confirmExecution(args);
+
+      expect(mockConsoleLog).toHaveBeenCalledWith(
+        expect.stringContaining('owner/repo#feature-branch')
+      );
+    });
+  });
+});

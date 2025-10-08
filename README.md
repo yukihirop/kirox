@@ -7,6 +7,7 @@ CLI tool to fetch Kiro specification and steering files from remote GitHub repos
 
 ## Features
 
+- 💬 **Interactive Mode** - Guided prompts for easy usage (no arguments needed)
 - 📦 Fetch Kiro specification and steering files from any GitHub repository
 - 🌿 Branch/tag specification support (`owner/repo#branch`)
 - 📁 Subdirectory support for monorepo structures
@@ -19,23 +20,34 @@ CLI tool to fetch Kiro specification and steering files from remote GitHub repos
 
 
 ```bash
-npx kirox yukihirop/eg-kanban#test -p simple-kanban-board-a -o ./tmp -s lib/a
+npx kirox
 
+✔ Enter GitHub repository (owner/repo or owner/repo#branch) yukihirop/eg-kanban#test
+✔ Enter project name simple-kanban-board-a
+✔ Enter output directory tmp
+✔ Enter subdirectory in GitHub repository (optional) lib/a
+
+Configuration:
+  Repository: yukihirop/eg-kanban#test
+  Project: simple-kanban-board-a
+  Output: tmp
+  Subdirectory: lib/a
+✔ Execute with this configuration? Yes
 Fetching files from yukihirop/eg-kanban#test/lib/a/.kiro
 Project: simple-kanban-board-a
 Source: yukihirop/eg-kanban (branch: test)
-[INFO] 2025-10-07T13:21:12 Fetching directory listings from GitHub {"repository":"yukihirop/eg-kanban#test","project":"simple-kanban-board-a","branch":"test"}
-[INFO] 2025-10-07T13:21:12 Fetching file contents {"count":8}
-[1/8] Fetching .kiro/specs/simple-kanban-board-a/spec.json...
-✓ Saved: .kiro/specs/simple-kanban-board-a/spec.json
+[INFO] 2025-10-08T10:36:05 Fetching directory listings from GitHub {"repository":"yukihirop/eg-kanban#test","project":"simple-kanban-board-a","branch":"test"}
+[INFO] 2025-10-08T10:36:06 Fetching file contents {"count":8}
+[1/8] Fetching .kiro/specs/simple-kanban-board-a/design.md...
+✓ Saved: .kiro/specs/simple-kanban-board-a/design.md
 [2/8] Fetching .kiro/steering/product.md...
 ✓ Saved: .kiro/steering/product.md
-[3/8] Fetching .kiro/specs/simple-kanban-board-a/tasks.md...
-✓ Saved: .kiro/specs/simple-kanban-board-a/tasks.md
+[3/8] Fetching .kiro/specs/simple-kanban-board-a/spec.json...
+✓ Saved: .kiro/specs/simple-kanban-board-a/spec.json
 [4/8] Fetching .kiro/specs/simple-kanban-board-a/requirements.md...
 ✓ Saved: .kiro/specs/simple-kanban-board-a/requirements.md
-[5/8] Fetching .kiro/specs/simple-kanban-board-a/design.md...
-✓ Saved: .kiro/specs/simple-kanban-board-a/design.md
+[5/8] Fetching .kiro/specs/simple-kanban-board-a/tasks.md...
+✓ Saved: .kiro/specs/simple-kanban-board-a/tasks.md
 [6/8] Fetching .kiro/steering/structure.md...
 ✓ Saved: .kiro/steering/structure.md
 [7/8] Fetching .kiro/steering/testing.md...
@@ -49,7 +61,7 @@ Summary:
   Source: (branch: test)
   8 files succeeded
   0 files failed
-[INFO] 2025-10-07T13:21:13 Execution completed {"filesDownloaded":8,"filesFailed":0,"total":8}
+[INFO] 2025-10-08T10:36:07 Execution completed {"filesDownloaded":8,"filesFailed":0,"total":8}
 ```
 
 ## Installation
@@ -70,7 +82,32 @@ npm install -g kirox
 
 ## Usage
 
-### Basic Usage
+### Interactive Mode (Recommended for First-Time Users)
+
+Run without arguments to enter interactive mode:
+
+```bash
+npx kirox
+```
+
+Interactive mode guides you through:
+1. **Repository**: Enter GitHub repository (owner/repo or owner/repo#branch)
+2. **Project**: Enter project name to fetch
+3. **Output**: Choose output directory (default: current directory)
+4. **Subdirectory**: Optional subdirectory path in repository
+5. **Confirmation**: Review and confirm your choices
+
+**Benefits:**
+- ✨ No need to remember command syntax
+- 🎯 Step-by-step guidance with validation
+- 📝 Clear preview before execution
+- 🚫 Prevent mistakes with confirmation prompt
+
+**Note:** Interactive mode requires a TTY environment. If running in a CI/CD pipeline or non-interactive shell, use the non-interactive mode with explicit arguments.
+
+### Non-Interactive Mode
+
+Provide all arguments explicitly:
 
 ```bash
 npx kirox yukihirop/eg-kanban -p simple-kanban-board
@@ -294,6 +331,37 @@ Create a `.kiroxrc.json` file in your project root to set default values:
 Command-line options override configuration file values.
 
 ## Troubleshooting
+
+### Interactive mode not available / "TTY environment required" error
+
+**Symptom:** Error message: "Interactive mode is only available in TTY environment. Please specify arguments explicitly."
+
+**Cause:** Interactive mode requires a TTY (interactive terminal) environment to display prompts and receive user input.
+
+**Solution:** Use non-interactive mode with explicit arguments:
+
+```bash
+# Instead of: npx kirox
+# Use:
+npx kirox owner/repo -p project-name
+```
+
+**Common scenarios where this occurs:**
+- CI/CD pipelines (GitHub Actions, GitLab CI, Jenkins, etc.)
+- Shell scripts with redirected input/output
+- Docker containers without TTY allocation
+- Cron jobs
+- Non-interactive SSH sessions
+
+**To use kirox in these environments:**
+1. Always provide all required arguments explicitly
+2. Use configuration file (`.kiroxrc.json`) to set defaults
+3. Consider using `--force` flag to skip confirmation prompts
+
+```bash
+# Example for CI/CD
+npx kirox owner/repo -p project --force --output ./kiro-files
+```
 
 ### "Rate limit exceeded" error
 
