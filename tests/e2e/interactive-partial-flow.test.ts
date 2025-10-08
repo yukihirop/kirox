@@ -441,10 +441,12 @@ describe('E2E Interactive Partial Arguments Flow', () => {
     it('should prompt for both repository and project when only options provided', async () => {
       mockShouldEnterInteractiveMode.mockReturnValue(true);
 
+      const customOutput = path.join(testOutputDir, 'custom');
+
       mockPromptMissingArguments.mockResolvedValue({
         repository: 'owner/repo',
         project: 'my-project',
-        output: './custom',
+        output: customOutput,
         subdir: undefined,
         force: false,
         dryRun: false,
@@ -467,13 +469,13 @@ describe('E2E Interactive Partial Arguments Flow', () => {
 
       (Octokit as unknown as ReturnType<typeof vi.fn>).mockImplementation(() => mockOctokit);
 
-      const result = await execute(['node', 'kirox', '-o', './custom']);
+      const result = await execute(['node', 'kirox', '-o', customOutput]);
 
       expect(mockShouldEnterInteractiveMode).toHaveBeenCalledWith(
         expect.objectContaining({
           repository: '',
           project: '',
-          output: './custom',
+          output: customOutput,
         })
       );
 
