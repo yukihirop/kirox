@@ -133,7 +133,7 @@ describe('execute - Interactive Mode Integration', () => {
       }
 
       expect(interactive.shouldEnterInteractiveMode).toHaveBeenCalledWith(mockIncompleteArgs);
-      expect(interactive.promptMissingArguments).toHaveBeenCalledWith(mockIncompleteArgs);
+      expect(interactive.promptMissingArguments).toHaveBeenCalledWith(mockIncompleteArgs, expect.any(Object));
     });
 
     it('--check-updatesが指定されている場合、対話モードをスキップ', async () => {
@@ -321,7 +321,7 @@ describe('execute - Interactive Mode Integration', () => {
       }
 
       // Verify that promptMissingArguments was called
-      expect(interactive.promptMissingArguments).toHaveBeenCalledWith(mockIncompleteArgs);
+      expect(interactive.promptMissingArguments).toHaveBeenCalledWith(mockIncompleteArgs, expect.any(Object));
 
       // Verify that the completed args would be used (this would fail due to other mocks,
       // but the important part is that promptMissingArguments was called)

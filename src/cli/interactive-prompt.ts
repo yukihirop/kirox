@@ -213,8 +213,7 @@ export async function promptMissingArguments(
 
   // 3. Prompt for output directory only if not already specified
   // Check if output is the default value or empty
-  const defaultOutput = configFile?.outputDirectory || '.';
-  if (!completedArgs.output || completedArgs.output === defaultOutput) {
+  if (!completedArgs.output || completedArgs.output === '.') {
     completedArgs.output = await promptOutput(configFile);
   }
 

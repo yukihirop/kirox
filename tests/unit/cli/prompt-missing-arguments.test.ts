@@ -129,21 +129,21 @@ describe('promptMissingArguments', () => {
       const callOrder: string[] = [];
 
       mockInput.mockImplementation((options) => {
-        if (options.message.includes('リポジトリ')) {
+        if (options.message.includes('subdirectory')) {
+          callOrder.push('subdir');
+          return Promise.resolve('');
+        }
+        if (options.message.includes('repository')) {
           callOrder.push('repository');
           return Promise.resolve('owner/repo');
         }
-        if (options.message.includes('プロジェクト')) {
+        if (options.message.includes('project')) {
           callOrder.push('project');
           return Promise.resolve('my-project');
         }
-        if (options.message.includes('出力')) {
+        if (options.message.includes('output')) {
           callOrder.push('output');
           return Promise.resolve('.');
-        }
-        if (options.message.includes('サブディレクトリ')) {
-          callOrder.push('subdir');
-          return Promise.resolve('');
         }
         return Promise.resolve('');
       });
@@ -218,7 +218,7 @@ describe('promptMissingArguments', () => {
       const args = createValidArgs();
 
       await expect(promptMissingArguments(args)).rejects.toThrow(
-        '処理を中断しました'
+        'Operation cancelled'
       );
     });
   });
