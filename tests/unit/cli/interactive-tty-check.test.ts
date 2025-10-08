@@ -124,7 +124,7 @@ describe('checkTTYEnvironment', () => {
       checkTTYEnvironment(mockLogger);
 
       expect(mockConsoleError).toHaveBeenCalledWith(
-        expect.stringContaining('対話モードはTTY環境でのみ利用可能です')
+        expect.stringContaining('Interactive mode is only available in TTY environment')
       );
     });
 
@@ -188,7 +188,7 @@ describe('checkTTYEnvironment', () => {
   });
 
   describe('エラーメッセージの内容', () => {
-    it('エラーメッセージに「引数を明示的に指定してください」が含まれる', () => {
+    it('エラーメッセージに「Please specify arguments explicitly」が含まれる', () => {
       Object.defineProperty(process.stdin, 'isTTY', {
         value: false,
         writable: true,
@@ -198,7 +198,21 @@ describe('checkTTYEnvironment', () => {
       checkTTYEnvironment(mockLogger);
 
       expect(mockConsoleError).toHaveBeenCalledWith(
-        expect.stringContaining('引数を明示的に指定してください')
+        expect.stringContaining('Please specify arguments explicitly')
+      );
+    });
+
+    it('使用例に「Usage:」が含まれる', () => {
+      Object.defineProperty(process.stdin, 'isTTY', {
+        value: false,
+        writable: true,
+        configurable: true,
+      });
+
+      checkTTYEnvironment(mockLogger);
+
+      expect(mockConsoleLog).toHaveBeenCalledWith(
+        expect.stringContaining('Usage:')
       );
     });
 

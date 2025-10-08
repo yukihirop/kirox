@@ -217,7 +217,7 @@ export async function promptMissingArguments(
   // 5. Show confirmation prompt
   const confirmed = await confirmExecution(completedArgs);
   if (!confirmed) {
-    throw new Error('処理を中断しました');
+    throw new Error('Operation cancelled');
   }
 
   return completedArgs;
@@ -254,10 +254,10 @@ export function checkTTYEnvironment(logger: Logger): TTYCheckResult {
   // Check if stdin is a TTY (terminal)
   if (!process.stdin.isTTY) {
     // Display error message
-    console.error('対話モードはTTY環境でのみ利用可能です。引数を明示的に指定してください。');
+    console.error('Interactive mode is only available in TTY environment. Please specify arguments explicitly.');
 
     // Display usage example
-    console.log('使用例: npx kirox owner/repo -p project-name');
+    console.log('Usage: npx kirox owner/repo -p project-name');
 
     // Log the error
     logger.error('Interactive mode requires TTY environment', {
@@ -283,7 +283,7 @@ export function checkTTYEnvironment(logger: Logger): TTYCheckResult {
  *
  * This function handles three types of errors:
  * 1. ExitPromptError (Ctrl+C) - exitCode 130
- * 2. Confirmation cancellation ('処理を中断しました') - exitCode 0
+ * 2. Confirmation cancellation ('Operation cancelled') - exitCode 0
  * 3. Other errors - exitCode 1
  *
  * Task 5.1: Ctrl+C中断処理の実装
@@ -299,7 +299,7 @@ export function handleInteractiveError(
   if (error instanceof Error) {
     // Case 1: ExitPromptError (Ctrl+C by user)
     if (error.name === 'ExitPromptError') {
-      console.log('\n処理を中断しました');
+      console.log('\nOperation cancelled');
       logger.info('User cancelled interactive mode', {
         reason: 'Ctrl+C',
         errorName: error.name,
@@ -310,9 +310,9 @@ export function handleInteractiveError(
       };
     }
 
-    // Case 2: Confirmation cancellation ('処理を中断しました')
-    if (error.message === '処理を中断しました') {
-      console.log('処理を中断しました');
+    // Case 2: Confirmation cancellation ('Operation cancelled')
+    if (error.message === 'Operation cancelled') {
+      console.log('Operation cancelled');
       logger.info('User cancelled execution at confirmation', {
         reason: 'Declined confirmation',
       });
@@ -323,7 +323,7 @@ export function handleInteractiveError(
     }
 
     // Case 3: Other errors
-    console.log(`エラーが発生しました: ${error.message}`);
+    console.log(`Error occurred: ${error.message}`);
     logger.error('Interactive mode error', {
       message: error.message,
       stack: error.stack,
@@ -335,7 +335,7 @@ export function handleInteractiveError(
   }
 
   // Unknown error type
-  console.log('エラーが発生しました');
+  console.log('Error occurred');
   logger.error('Interactive mode error', {
     error: String(error),
   });

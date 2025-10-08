@@ -243,7 +243,7 @@
     - 'この設定で実行しますか?' → 'Execute with this configuration?'
   - _Requirements: 7.3 (ユーザビリティ向上)_
 
-- [ ] 12.2 エラーメッセージの英語化
+- [x] 12.2 エラーメッセージの英語化
   - promptMissingArguments: '処理を中断しました' → 'Operation cancelled'
   - handleInteractiveError: '処理を中断しました' → 'Operation cancelled'
   - handleInteractiveError: 'エラーが発生しました' → 'Error occurred'

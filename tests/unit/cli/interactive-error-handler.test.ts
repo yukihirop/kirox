@@ -44,14 +44,14 @@ describe('handleInteractiveError', () => {
       expect(result.exitCode).toBe(130);
     });
 
-    it('ExitPromptErrorの場合、「処理を中断しました」メッセージを表示する', () => {
+    it('ExitPromptErrorの場合、「Operation cancelled」メッセージを表示する', () => {
       const exitError = new Error('User force closed the prompt');
       exitError.name = 'ExitPromptError';
 
       handleInteractiveError(exitError, mockLogger);
 
       expect(mockConsoleLog).toHaveBeenCalledWith(
-        expect.stringContaining('処理を中断しました')
+        expect.stringContaining('Operation cancelled')
       );
     });
 
@@ -77,25 +77,25 @@ describe('handleInteractiveError', () => {
     });
   });
 
-  describe('確認プロンプトキャンセル（Error: 処理を中断しました）の処理', () => {
-    it('「処理を中断しました」エラーの場合、exitCode 0を返す', () => {
-      const cancelError = new Error('処理を中断しました');
+  describe('確認プロンプトキャンセル（Error: Operation cancelled）の処理', () => {
+    it('「Operation cancelled」エラーの場合、exitCode 0を返す', () => {
+      const cancelError = new Error('Operation cancelled');
 
       const result = handleInteractiveError(cancelError, mockLogger);
 
       expect(result.exitCode).toBe(0);
     });
 
-    it('「処理を中断しました」エラーの場合、メッセージを表示する', () => {
-      const cancelError = new Error('処理を中断しました');
+    it('「Operation cancelled」エラーの場合、メッセージを表示する', () => {
+      const cancelError = new Error('Operation cancelled');
 
       handleInteractiveError(cancelError, mockLogger);
 
-      expect(mockConsoleLog).toHaveBeenCalledWith('処理を中断しました');
+      expect(mockConsoleLog).toHaveBeenCalledWith('Operation cancelled');
     });
 
-    it('「処理を中断しました」エラーの場合、ロガーに情報を記録する', () => {
-      const cancelError = new Error('処理を中断しました');
+    it('「Operation cancelled」エラーの場合、ロガーに情報を記録する', () => {
+      const cancelError = new Error('Operation cancelled');
 
       handleInteractiveError(cancelError, mockLogger);
 
@@ -105,8 +105,8 @@ describe('handleInteractiveError', () => {
       );
     });
 
-    it('「処理を中断しました」エラーの場合、shouldExitがtrueである', () => {
-      const cancelError = new Error('処理を中断しました');
+    it('「Operation cancelled」エラーの場合、shouldExitがtrueである', () => {
+      const cancelError = new Error('Operation cancelled');
 
       const result = handleInteractiveError(cancelError, mockLogger);
 
@@ -129,7 +129,7 @@ describe('handleInteractiveError', () => {
       handleInteractiveError(otherError, mockLogger);
 
       expect(mockConsoleLog).toHaveBeenCalledWith(
-        expect.stringContaining('エラーが発生しました')
+        expect.stringContaining('Error occurred')
       );
     });
 
@@ -165,8 +165,8 @@ describe('handleInteractiveError', () => {
       expect(result.exitCode).toBe(130);
     });
 
-    it('エラーメッセージ「処理を中断しました」で確認キャンセルが識別される', () => {
-      const cancelError = new Error('処理を中断しました');
+    it('エラーメッセージ「Operation cancelled」で確認キャンセルが識別される', () => {
+      const cancelError = new Error('Operation cancelled');
 
       const result = handleInteractiveError(cancelError, mockLogger);
 
