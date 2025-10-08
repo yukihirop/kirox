@@ -19,23 +19,34 @@ CLI tool to fetch Kiro specification and steering files from remote GitHub repos
 
 
 ```bash
-npx kirox yukihirop/eg-kanban#test -p simple-kanban-board-a -o ./tmp -s lib/a
+npx kirox
 
+✔ Enter GitHub repository (owner/repo or owner/repo#branch) yukihirop/eg-kanban#test
+✔ Enter project name simple-kanban-board-a
+✔ Enter output directory tmp
+✔ Enter subdirectory in GitHub repository (optional) lib/a
+
+Configuration:
+  Repository: yukihirop/eg-kanban#test
+  Project: simple-kanban-board-a
+  Output: tmp
+  Subdirectory: lib/a
+✔ Execute with this configuration? Yes
 Fetching files from yukihirop/eg-kanban#test/lib/a/.kiro
 Project: simple-kanban-board-a
 Source: yukihirop/eg-kanban (branch: test)
-[INFO] 2025-10-07T13:21:12 Fetching directory listings from GitHub {"repository":"yukihirop/eg-kanban#test","project":"simple-kanban-board-a","branch":"test"}
-[INFO] 2025-10-07T13:21:12 Fetching file contents {"count":8}
-[1/8] Fetching .kiro/specs/simple-kanban-board-a/spec.json...
-✓ Saved: .kiro/specs/simple-kanban-board-a/spec.json
+[INFO] 2025-10-08T10:36:05 Fetching directory listings from GitHub {"repository":"yukihirop/eg-kanban#test","project":"simple-kanban-board-a","branch":"test"}
+[INFO] 2025-10-08T10:36:06 Fetching file contents {"count":8}
+[1/8] Fetching .kiro/specs/simple-kanban-board-a/design.md...
+✓ Saved: .kiro/specs/simple-kanban-board-a/design.md
 [2/8] Fetching .kiro/steering/product.md...
 ✓ Saved: .kiro/steering/product.md
-[3/8] Fetching .kiro/specs/simple-kanban-board-a/tasks.md...
-✓ Saved: .kiro/specs/simple-kanban-board-a/tasks.md
+[3/8] Fetching .kiro/specs/simple-kanban-board-a/spec.json...
+✓ Saved: .kiro/specs/simple-kanban-board-a/spec.json
 [4/8] Fetching .kiro/specs/simple-kanban-board-a/requirements.md...
 ✓ Saved: .kiro/specs/simple-kanban-board-a/requirements.md
-[5/8] Fetching .kiro/specs/simple-kanban-board-a/design.md...
-✓ Saved: .kiro/specs/simple-kanban-board-a/design.md
+[5/8] Fetching .kiro/specs/simple-kanban-board-a/tasks.md...
+✓ Saved: .kiro/specs/simple-kanban-board-a/tasks.md
 [6/8] Fetching .kiro/steering/structure.md...
 ✓ Saved: .kiro/steering/structure.md
 [7/8] Fetching .kiro/steering/testing.md...
@@ -49,7 +60,7 @@ Summary:
   Source: (branch: test)
   8 files succeeded
   0 files failed
-[INFO] 2025-10-07T13:21:13 Execution completed {"filesDownloaded":8,"filesFailed":0,"total":8}
+[INFO] 2025-10-08T10:36:07 Execution completed {"filesDownloaded":8,"filesFailed":0,"total":8}
 ```
 
 ## Installation
