@@ -128,12 +128,13 @@
   - _Requirements: 6.3, 6.4_
   - _Note: 実装完了。entry.tsで設定ファイルを読み込み、promptMissingArgumentsに渡す。promptOutput/promptSubdirで設定ファイルからのデフォルト値を使用。12テスト追加、全て成功。_
 
-- [ ] 7.2 設定ファイル統合の統合テスト
+- [x] 7.2 設定ファイル統合の統合テスト
   - 設定ファイルが存在する場合のデフォルト値適用テスト
   - 対話モードでの入力が設定ファイルより優先されることのテスト
   - 設定ファイルが存在しない場合のデフォルト値テスト
   - --configオプションでカスタム設定ファイルを読み込むテスト
   - _Requirements: 6.3, 6.4_
+  - _Note: 統合テスト9件追加、全て成功。loadConfig→promptMissingArguments→mergeConfigの統合フローを検証。_
 
 - [ ] 8. 単体テストの実装
 - [x] 8.1 バリデーション関数のテスト
