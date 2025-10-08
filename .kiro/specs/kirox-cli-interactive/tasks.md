@@ -135,26 +135,29 @@
   - _Requirements: 6.3, 6.4_
 
 - [ ] 8. 単体テストの実装
-- [ ] 8.1 バリデーション関数のテスト
+- [x] 8.1 バリデーション関数のテスト
   - validateRepositoryFormat関数のテスト（正常系、異常系）
   - validateProjectName関数のテスト（パストラバーサル、パスセパレータ）
   - 既存のvalidateInput関数との互換性テスト
   - エラーメッセージの内容検証
   - _Requirements: 2.4, 3.3, 7.3_
+  - _Note: validator-fields.test.ts で30テスト実装済み。全要件カバー済み。_
 
-- [ ] 8.2 対話モード判定ロジックのテスト
+- [x] 8.2 対話モード判定ロジックのテスト
   - shouldEnterInteractiveMode関数のテスト（全パターン）
   - TTYチェックのモックテスト
   - --check-updates、--updateオプション時の動作テスト
   - 部分的引数指定時の動作テスト
   - _Requirements: 1.1, 1.2, 1.3, 1.4_
+  - _Note: interactive-mode-detection.test.ts で24テスト実装済み。全パターンカバー済み。_
 
-- [ ] 8.3 プロンプト関数のテスト（モック使用）
+- [x] 8.3 プロンプト関数のテスト（モック使用）
   - promptRepository関数のテスト（@inquirer/promptsモック）
   - promptProject関数のテスト（@inquirer/promptsモック）
   - promptOutput、promptSubdir関数のテスト
   - confirmExecution関数のテスト
   - _Requirements: 2.1-2.5, 3.1-3.4, 4.1-4.6, 5.1-5.5_
+  - _Note: 4つのテストファイルで54テスト実装済み (prompt-repository: 13, prompt-project: 14, prompt-optional-params: 15, confirm-execution: 12)。全プロンプト関数カバー済み。_
 
 - [ ] 9. 統合テストの実装
 - [ ] 9.1 対話モードから非対話モードへの遷移テスト
