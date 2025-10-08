@@ -58,6 +58,16 @@ describe('E2E Interactive Flow', () => {
     } catch {
       // Ignore cleanup errors
     }
+
+    // Clean up any files created in project root
+    try {
+      const projectRootKiro = path.join(process.cwd(), '.kiro');
+      await fs.rm(path.join(projectRootKiro, '.kirox-meta.json'), { force: true });
+      await fs.rm(path.join(projectRootKiro, 'specs', 'test-project'), { recursive: true, force: true });
+    } catch {
+      // Ignore cleanup errors
+    }
+
     vi.clearAllMocks();
   });
 
