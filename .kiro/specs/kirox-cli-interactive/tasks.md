@@ -228,6 +228,36 @@
   - トラブルシューティングセクションに非TTY環境の説明を追加
   - _Requirements: 全要件（ドキュメント整備）_
 
+- [ ] 12. プロンプトメッセージの英語化
+- [x] 12.1 対話プロンプトメッセージの英語化
+  - promptRepository: 'GitHubリポジトリを入力してください (owner/repo)' → 'Enter GitHub repository (owner/repo)'
+  - promptProject: 'プロジェクト名を入力してください' → 'Enter project name'
+  - promptOutput: '出力ディレクトリを入力してください' → 'Enter output directory'
+  - promptSubdir: 'サブディレクトリを入力してください (オプション)' → 'Enter subdirectory in GitHub repository (optional)'
+  - confirmExecution: サマリーと確認プロンプトを英語化
+    - '\n設定内容:' → '\nConfiguration:'
+    - 'リポジトリ:' → 'Repository:'
+    - 'プロジェクト:' → 'Project:'
+    - '出力先:' → 'Output:'
+    - 'サブディレクトリ:' → 'Subdirectory:'
+    - 'この設定で実行しますか?' → 'Execute with this configuration?'
+  - _Requirements: 7.3 (ユーザビリティ向上)_
+
+- [ ] 12.2 エラーメッセージの英語化
+  - promptMissingArguments: '処理を中断しました' → 'Operation cancelled'
+  - handleInteractiveError: '処理を中断しました' → 'Operation cancelled'
+  - handleInteractiveError: 'エラーが発生しました' → 'Error occurred'
+  - checkTTYEnvironment: '対話モードはTTY環境でのみ利用可能です。引数を明示的に指定してください。' → 'Interactive mode is only available in TTY environment. Please specify arguments explicitly.'
+  - checkTTYEnvironment: '使用例: npx kirox owner/repo -p project-name' → 'Usage: npx kirox owner/repo -p project-name'
+  - _Requirements: 7.3 (ユーザビリティ向上)_
+
+- [ ] 12.3 テストコードのメッセージ検証更新
+  - 英語化されたメッセージに合わせてテストコードを更新
+  - interactive-error-handler.test.ts: エラーメッセージの検証を英語に更新
+  - interactive-tty-check.test.ts: TTYエラーメッセージの検証を英語に更新
+  - 全テストが通ることを確認
+  - _Requirements: 7.3 (テスト整合性)_
+
 ## 要件カバレッジ確認
 
 すべての要件がタスクでカバーされています：

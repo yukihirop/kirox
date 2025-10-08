@@ -62,7 +62,7 @@ export async function promptRepository(currentValue: string): Promise<string> {
 
   // Display interactive prompt with validation
   return await input({
-    message: 'GitHubリポジトリを入力してください (owner/repo)',
+    message: 'Enter GitHub repository (owner/repo)',
     validate: (value: string) => {
       const errors = validateRepositoryFormat(value);
       if (errors.length > 0) {
@@ -91,7 +91,7 @@ export async function promptProject(currentValue: string): Promise<string> {
 
   // Display interactive prompt with validation
   return await input({
-    message: 'プロジェクト名を入力してください',
+    message: 'Enter project name',
     validate: (value: string) => {
       const errors = validateProjectName(value);
       if (errors.length > 0) {
@@ -113,7 +113,7 @@ export async function promptProject(currentValue: string): Promise<string> {
  */
 export async function promptOutput(): Promise<string> {
   return await input({
-    message: '出力ディレクトリを入力してください',
+    message: 'Enter output directory',
     default: '.',
   });
 }
@@ -128,7 +128,7 @@ export async function promptOutput(): Promise<string> {
  */
 export async function promptSubdir(): Promise<string | undefined> {
   const value = await input({
-    message: 'サブディレクトリを入力してください (オプション)',
+    message: 'Enter subdirectory in GitHub repository (optional)',
     default: '',
   });
 
@@ -151,25 +151,25 @@ export async function promptSubdir(): Promise<string | undefined> {
  */
 export async function confirmExecution(args: ParsedArguments): Promise<boolean> {
   // Display summary header
-  console.log('\n設定内容:');
+  console.log('\nConfiguration:');
 
   // Display repository
-  console.log(`  リポジトリ: ${args.repository}`);
+  console.log(`  Repository: ${args.repository}`);
 
   // Display project name
-  console.log(`  プロジェクト: ${args.project}`);
+  console.log(`  Project: ${args.project}`);
 
   // Display output directory
-  console.log(`  出力先: ${args.output}`);
+  console.log(`  Output: ${args.output}`);
 
   // Display subdirectory if specified
   if (args.subdir) {
-    console.log(`  サブディレクトリ: ${args.subdir}`);
+    console.log(`  Subdirectory: ${args.subdir}`);
   }
 
   // Show confirmation prompt with default: false
   return await confirm({
-    message: 'この設定で実行しますか?',
+    message: 'Execute with this configuration?',
     default: false,
   });
 }

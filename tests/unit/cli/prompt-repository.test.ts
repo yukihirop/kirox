@@ -71,7 +71,7 @@ describe('promptRepository', () => {
 
       expect(mockInput).toHaveBeenCalledWith(
         expect.objectContaining({
-          message: expect.stringContaining('リポジトリ'),
+          message: 'Enter GitHub repository (owner/repo)',
         })
       );
     });

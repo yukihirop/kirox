@@ -82,7 +82,7 @@ describe('promptOutput', () => {
 
       expect(mockInput).toHaveBeenCalledWith(
         expect.objectContaining({
-          message: expect.stringContaining('出力'),
+          message: 'Enter output directory',
         })
       );
     });
@@ -154,7 +154,7 @@ describe('promptSubdir', () => {
 
       expect(mockInput).toHaveBeenCalledWith(
         expect.objectContaining({
-          message: expect.stringContaining('サブディレクトリ'),
+          message: 'Enter subdirectory in GitHub repository (optional)',
         })
       );
     });
@@ -166,7 +166,19 @@ describe('promptSubdir', () => {
 
       expect(mockInput).toHaveBeenCalledWith(
         expect.objectContaining({
-          message: expect.stringMatching(/オプション|optional/i),
+          message: expect.stringMatching(/optional/i),
+        })
+      );
+    });
+
+    it('GitHubリポジトリの形容詞を含む', async () => {
+      mockInput.mockResolvedValue('');
+
+      await promptSubdir();
+
+      expect(mockInput).toHaveBeenCalledWith(
+        expect.objectContaining({
+          message: expect.stringMatching(/GitHub repository/i),
         })
       );
     });

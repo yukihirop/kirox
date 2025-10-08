@@ -71,7 +71,7 @@ describe('confirmExecution', () => {
 
       expect(mockConfirm).toHaveBeenCalledWith(
         expect.objectContaining({
-          message: expect.stringMatching(/実行|execute/i),
+          message: 'Execute with this configuration?',
         })
       );
     });
@@ -149,7 +149,7 @@ describe('confirmExecution', () => {
         (call) =>
           call.length > 0 &&
           typeof call[0] === 'string' &&
-          call[0].includes('サブディレクトリ')
+          call[0].includes('Subdirectory')
       );
       expect(hasSubdirLine).toBe(false);
     });
@@ -159,13 +159,13 @@ describe('confirmExecution', () => {
 
       await confirmExecution(createValidArgs());
 
-      // "設定内容"のようなヘッダーが表示されることを確認
+      // "Configuration:"のようなヘッダーが表示されることを確認
       const calls = mockConsoleLog.mock.calls;
       const hasHeader = calls.some(
         (call) =>
           call.length > 0 &&
           typeof call[0] === 'string' &&
-          (call[0].includes('設定') || call[0].includes('内容'))
+          call[0].includes('Configuration')
       );
       expect(hasHeader).toBe(true);
     });
