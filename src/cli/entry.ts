@@ -73,9 +73,12 @@ export async function execute(argv: string[]): Promise<ExecutionResult> {
         };
       }
 
-      // Prompt for missing arguments
+      // Load config file for interactive mode defaults
+      const fileConfig = await loadConfig(args.config);
+
+      // Prompt for missing arguments with config file defaults
       try {
-        args = await promptMissingArguments(args);
+        args = await promptMissingArguments(args, fileConfig);
       } catch (error) {
         // Handle interactive mode errors
         const errorResult = handleInteractiveError(error, logger);

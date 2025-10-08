@@ -7,12 +7,14 @@
  * Task 4.2: プロジェクト名入力プロンプトの実装
  * Task 4.3: オプションパラメータ入力プロンプトの実装
  * Task 4.4: 確認プロンプトの実装
+ * Task 7.1: 設定ファイルとの統合
  */
 
 import { input, confirm } from '@inquirer/prompts';
 import type { ParsedArguments } from './types.js';
 import { validateRepositoryFormat, validateProjectName } from './validator.js';
 import type { Logger } from '../reporting/logger.js';
+import type { KiroxConfig } from '../config/types.js';
 
 /**
  * Determine if interactive mode should be entered
@@ -106,15 +108,17 @@ export async function promptProject(currentValue: string): Promise<string> {
 /**
  * Prompt for output directory
  *
- * Displays an interactive prompt with default value ".".
+ * Displays an interactive prompt with default value from config file or ".".
  * User can press Enter to accept default or specify a custom path.
  *
- * @returns Output directory path (defaults to ".")
+ * @param configFile - Configuration file values for default
+ * @returns Output directory path (defaults to config file or ".")
  */
-export async function promptOutput(): Promise<string> {
+export async function promptOutput(configFile?: KiroxConfig): Promise<string> {
+  const defaultValue = configFile?.outputDirectory || '.';
   return await input({
     message: 'Enter output directory',
-    default: '.',
+    default: defaultValue,
   });
 }
 
@@ -123,13 +127,16 @@ export async function promptOutput(): Promise<string> {
  *
  * Displays an interactive prompt for optional subdirectory path.
  * If user provides an empty string or whitespace only, returns undefined.
+ * Uses config file default if available.
  *
+ * @param configFile - Configuration file values for default
  * @returns Subdirectory path, or undefined if empty
  */
-export async function promptSubdir(): Promise<string | undefined> {
+export async function promptSubdir(configFile?: KiroxConfig): Promise<string | undefined> {
+  const defaultValue = configFile?.subdir || '';
   const value = await input({
     message: 'Enter subdirectory in GitHub repository (optional)',
-    default: '',
+    default: defaultValue,
   });
 
   // Return undefined if empty or whitespace only
@@ -184,12 +191,16 @@ export async function confirmExecution(args: ParsedArguments): Promise<boolean> 
  * 4. Subdirectory (if not specified, optional)
  * 5. Confirmation (always prompt)
  *
+ * Task 7.1: 設定ファイルからのデフォルト値読み込み
+ *
  * @param args - Partially parsed arguments (may have missing required fields)
+ * @param configFile - Configuration file values for defaults
  * @returns Completed ParsedArguments with all required fields filled
  * @throws Error if user cancels the confirmation prompt
  */
 export async function promptMissingArguments(
-  args: ParsedArguments
+  args: ParsedArguments,
+  configFile?: KiroxConfig
 ): Promise<ParsedArguments> {
   // Create a copy to avoid mutating the input
   const completedArgs = { ...args };
@@ -202,13 +213,14 @@ export async function promptMissingArguments(
 
   // 3. Prompt for output directory only if not already specified
   // Check if output is the default value or empty
-  if (!completedArgs.output || completedArgs.output === '.') {
-    completedArgs.output = await promptOutput();
+  const defaultOutput = configFile?.outputDirectory || '.';
+  if (!completedArgs.output || completedArgs.output === defaultOutput) {
+    completedArgs.output = await promptOutput(configFile);
   }
 
   // 4. Prompt for subdirectory only if not already specified
   if (!completedArgs.subdir) {
-    const subdir = await promptSubdir();
+    const subdir = await promptSubdir(configFile);
     if (subdir) {
       completedArgs.subdir = subdir;
     }
