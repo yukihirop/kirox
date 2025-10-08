@@ -71,7 +71,7 @@ describe('promptRepository', () => {
 
       expect(mockInput).toHaveBeenCalledWith(
         expect.objectContaining({
-          message: 'Enter GitHub repository (owner/repo)',
+          message: 'Enter GitHub repository (owner/repo or owner/repo#branch)',
         })
       );
     });

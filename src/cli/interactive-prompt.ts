@@ -62,7 +62,7 @@ export async function promptRepository(currentValue: string): Promise<string> {
 
   // Display interactive prompt with validation
   return await input({
-    message: 'Enter GitHub repository (owner/repo)',
+    message: 'Enter GitHub repository (owner/repo or owner/repo#branch)',
     validate: (value: string) => {
       const errors = validateRepositoryFormat(value);
       if (errors.length > 0) {

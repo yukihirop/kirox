@@ -258,6 +258,16 @@
   - 全テストが通ることを確認
   - _Requirements: 7.3 (テスト整合性)_
 
+- [x] 12.4 リポジトリプロンプトへのブランチ指定サポート追加
+  - promptRepositoryメッセージにブランチ指定形式を追加
+    - 'Enter GitHub repository (owner/repo)' → 'Enter GitHub repository (owner/repo or owner/repo#branch)'
+  - バリデーションは既に実装済み（owner/repo#branch形式をサポート）
+  - テストの更新
+    - prompt-repository.test.ts: メッセージ検証を新しい形式に更新
+    - ブランチ付き入力のテストケース確認（既存テストで対応済み）
+  - 全テストが通ることを確認
+  - _Requirements: 2.1, 2.2, 2.3 (ブランチ指定サポート、ユーザビリティ向上)_
+
 ## 要件カバレッジ確認
 
 すべての要件がタスクでカバーされています：
