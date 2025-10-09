@@ -11,11 +11,14 @@
  */
 
 import { input, confirm } from '@inquirer/prompts';
+import type { Octokit } from 'octokit';
 import type { ParsedArguments } from './types.js';
 import { validateRepositoryFormat, validateProjectName } from './validator.js';
 import { parseProjects } from './project-name-parser.js';
 import type { Logger } from '../reporting/logger.js';
 import type { KiroxConfig } from '../config/types.js';
+import { suggestProjects } from './project-suggester.js';
+import { parseRepositoryPath } from '../github/fetcher.js';
 
 /**
  * Determine if interactive mode should be entered
@@ -81,21 +84,73 @@ export async function promptRepository(currentValue: string): Promise<string> {
 }
 
 /**
- * Prompt for project name input
+ * Prompt for project name input (extended with suggestion feature)
  *
- * If a valid project name is already provided, returns it immediately.
- * Otherwise, displays an interactive prompt with real-time validation.
- * Supports multiple project names separated by commas.
+ * Enhanced version that attempts to suggest projects from GitHub API.
+ * Falls back to manual input on API failure or when dependencies are missing.
+ *
+ * Task 4.1: promptProject関数にサジェスト機能を統合
  *
  * @param currentValue - Current project name value (may be empty or whitespace)
+ * @param repository - Repository reference (for suggestion feature)
+ * @param subdir - Optional subdirectory path (for suggestion feature)
+ * @param client - GitHub client instance (for suggestion feature)
+ * @param logger - Logger instance (for suggestion feature)
+ * @param verbose - Enable verbose logging (for suggestion feature)
  * @returns Validated project name string (single or comma-separated multiple)
  */
-export async function promptProject(currentValue: string): Promise<string> {
+export async function promptProject(
+  currentValue: string,
+  repository?: string,
+  subdir?: string,
+  client?: Octokit,
+  logger?: Logger,
+  verbose?: boolean
+): Promise<string> {
   // Skip prompt if value is already provided (non-empty after trim)
+  // Requirement 5.1: 既存の動作維持
   if (currentValue && currentValue.trim() !== '') {
     return currentValue;
   }
 
+  // Check preconditions for suggestion feature
+  // Requirement 5.2: 依存注入パラメータのチェック
+  const canSuggest = repository && client && logger;
+
+  if (canSuggest) {
+    try {
+      // Parse repository string to RepositoryRef
+      const repositoryRef = parseRepositoryPath(repository);
+
+      // Attempt to suggest projects from GitHub
+      const suggestionResult = await suggestProjects({
+        repository: repositoryRef,
+        subdir,
+        client,
+        logger,
+        verbose: verbose || false,
+      });
+
+      // Requirement 5.3: サジェスト成功時
+      if (suggestionResult.success && suggestionResult.projects.length > 0) {
+        // Return comma-separated string for multiple projects, or single project name
+        return suggestionResult.projects.join(',');
+      }
+
+      // Requirement 5.4: サジェスト失敗時のフォールバック
+      // Display error message if available
+      if (suggestionResult.errorMessage) {
+        console.log(suggestionResult.errorMessage);
+      }
+
+      // Fall through to manual input mode
+    } catch (error) {
+      // Exception occurred during suggestion, fall through to manual input
+      // Requirement 5.4: 例外時のフォールバック
+    }
+  }
+
+  // Manual input mode (fallback or when preconditions not met)
   // Display interactive prompt with validation
   return await input({
     message: 'Enter project name (comma-separated for multiple projects)',

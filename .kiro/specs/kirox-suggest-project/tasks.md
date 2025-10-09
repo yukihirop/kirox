@@ -53,7 +53,7 @@
   - _Requirements: 3.4_
 
 - [ ] 4. promptProject関数の拡張統合
-- [ ] 4.1 promptProject関数にサジェスト機能を統合
+- [x] 4.1 promptProject関数にサジェスト機能を統合
   - 既存の`currentValue`チェックロジックを維持
   - プロジェクト名が既に指定されている場合はそのまま返却
   - リポジトリ、GitHubクライアント、ロガーの依存注入パラメータ追加
