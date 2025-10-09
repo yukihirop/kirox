@@ -70,6 +70,9 @@ export function validateInput(args: ParsedArguments): ValidationResult {
       for (const project of args.projects) {
         errors.push(...validateProjectName(project));
       }
+
+      // Task 4.1: Check for duplicate project names
+      errors.push(...validateProjectDuplicates(args.projects));
     } else {
       errors.push({
         field: 'project',
@@ -159,6 +162,45 @@ export function validateProjectName(project: string): ValidationError[] {
       message: 'Project name cannot contain path separators ("/" or "\\")',
     });
     return errors;
+  }
+
+  return errors;
+}
+
+/**
+ * Validate project names for duplicates
+ *
+ * Task 4.1: Multi-project validation - duplicate detection
+ *
+ * @param projects - Array of project names to check for duplicates
+ * @returns Array of validation errors (empty if no duplicates found)
+ */
+export function validateProjectDuplicates(
+  projects: string[]
+): ValidationError[] {
+  const errors: ValidationError[] = [];
+
+  // Count occurrences of each project name
+  const projectCounts = new Map<string, number>();
+  for (const project of projects) {
+    const count = projectCounts.get(project) || 0;
+    projectCounts.set(project, count + 1);
+  }
+
+  // Find duplicates
+  const duplicates: string[] = [];
+  for (const [project, count] of projectCounts.entries()) {
+    if (count > 1) {
+      duplicates.push(project);
+    }
+  }
+
+  // Report error if duplicates found
+  if (duplicates.length > 0) {
+    errors.push({
+      field: 'projects',
+      message: `Duplicate project names found: ${duplicates.join(', ')}`,
+    });
   }
 
   return errors;

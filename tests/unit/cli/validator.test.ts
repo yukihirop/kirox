@@ -378,6 +378,106 @@ describe('InputValidator', () => {
     });
   });
 
+  // Task 4.1: Multi-project validation tests
+  describe('validateInput - Multi-project validation', () => {
+    const createValidArgs = (): ParsedArguments => ({
+      repository: 'owner/repo',
+      projects: ['my-project'],
+      output: '.',
+      force: false,
+      dryRun: false,
+      verbose: false,
+      track: false,
+      checkUpdates: false,
+      update: false,
+    });
+
+    it('should validate multiple project names successfully', () => {
+      const args = createValidArgs();
+      args.projects = ['project1', 'project2', 'project3'];
+      const result = validateInput(args);
+
+      expect(result.valid).toBe(true);
+      expect(result.errors).toHaveLength(0);
+    });
+
+    it('should detect invalid characters in multiple projects', () => {
+      const args = createValidArgs();
+      args.projects = ['valid-project', '../invalid', 'another/invalid'];
+      const result = validateInput(args);
+
+      expect(result.valid).toBe(false);
+      expect(result.errors).toHaveLength(2);
+      expect(result.errors[0]?.field).toBe('project');
+      expect(result.errors[1]?.field).toBe('project');
+    });
+
+    it('should detect all invalid projects in array', () => {
+      const args = createValidArgs();
+      args.projects = ['../bad1', 'path/bad2', '..\\bad3'];
+      const result = validateInput(args);
+
+      expect(result.valid).toBe(false);
+      expect(result.errors).toHaveLength(3);
+      expect(result.errors.every((e) => e.field === 'project')).toBe(true);
+    });
+
+    it('should reject empty string in projects array', () => {
+      const args = createValidArgs();
+      args.projects = ['project1', '', 'project3'];
+      const result = validateInput(args);
+
+      expect(result.valid).toBe(false);
+      expect(result.errors).toHaveLength(1);
+      expect(result.errors[0]?.field).toBe('project');
+      expect(result.errors[0]?.message).toContain('empty');
+    });
+
+    it('should detect duplicate project names', () => {
+      const args = createValidArgs();
+      args.projects = ['project1', 'project2', 'project1', 'project3'];
+      const result = validateInput(args);
+
+      expect(result.valid).toBe(false);
+      expect(result.errors).toHaveLength(1);
+      expect(result.errors[0]?.field).toBe('projects');
+      expect(result.errors[0]?.message).toContain('Duplicate');
+      expect(result.errors[0]?.message).toContain('project1');
+    });
+
+    it('should detect multiple duplicate project names', () => {
+      const args = createValidArgs();
+      args.projects = ['proj1', 'proj2', 'proj1', 'proj2', 'proj3'];
+      const result = validateInput(args);
+
+      expect(result.valid).toBe(false);
+      expect(result.errors.length).toBeGreaterThanOrEqual(1);
+      const duplicateError = result.errors.find((e) => e.field === 'projects');
+      expect(duplicateError).toBeDefined();
+      expect(duplicateError?.message).toContain('Duplicate');
+    });
+
+    it('should accept single project (backward compatibility)', () => {
+      const args = createValidArgs();
+      args.projects = ['single-project'];
+      const result = validateInput(args);
+
+      expect(result.valid).toBe(true);
+      expect(result.errors).toHaveLength(0);
+    });
+
+    it('should reject empty projects array', () => {
+      const args = createValidArgs();
+      args.projects = [];
+      const result = validateInput(args);
+
+      expect(result.valid).toBe(false);
+      expect(result.errors).toHaveLength(1);
+      expect(result.errors[0]?.field).toBe('project');
+      expect(result.errors[0]?.message).toContain('empty');
+    });
+  });
+
   // Task 4.3: Branch name validation tests
   describe('validateBranchName', () => {
     it('should accept valid branch name', () => {
