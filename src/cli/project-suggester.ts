@@ -3,9 +3,11 @@
  *
  * Fetches available projects from GitHub and provides selection UI
  * Task 1.1: プロジェクトサジェスターサービスのコア機能を実装
+ * Task 2.1: selectプロンプトによる単一プロジェクト選択機能を実装
  */
 
 import type { Octokit } from 'octokit';
+import { select } from '@inquirer/prompts';
 import { fetchDirectoryContents } from '@/github/fetcher.js';
 import type { RepositoryRef } from '@/github/fetcher.js';
 import type { Logger } from '@/reporting/logger.js';
@@ -36,6 +38,63 @@ export interface ProjectSuggestionOptions {
   logger: Logger;
   /** Enable verbose logging */
   verbose: boolean;
+}
+
+/**
+ * Special value for multiple selection mode
+ */
+export const MULTIPLE_SELECTION_MARKER = '__MULTIPLE__';
+
+/**
+ * Choice item for select/checkbox prompts
+ */
+interface Choice {
+  name: string;
+  value: string;
+}
+
+/**
+ * Build choices for project selection prompt
+ *
+ * Creates an array of choice objects for the select prompt,
+ * including project names and a special multiple selection option.
+ *
+ * @param projects - Array of project names
+ * @returns Array of choice objects
+ */
+function buildProjectChoices(projects: string[]): Choice[] {
+  return [
+    ...projects.map((project) => ({
+      name: project,
+      value: project,
+    })),
+    {
+      name: '[Select multiple projects...]',
+      value: MULTIPLE_SELECTION_MARKER,
+    },
+  ];
+}
+
+/**
+ * Prompt user to select a single project from list
+ *
+ * Displays a radio button UI (select prompt) with project names.
+ * Includes a special option to switch to multiple selection mode.
+ *
+ * @param projects - Array of project names
+ * @returns Selected project name or MULTIPLE_SELECTION_MARKER
+ */
+export async function promptSingleProject(projects: string[]): Promise<string> {
+  const choices = buildProjectChoices(projects);
+
+  const selected = await select({
+    message: 'Select a project',
+    choices,
+    pageSize: 10,
+    loop: true,
+  });
+
+  return selected;
 }
 
 /**

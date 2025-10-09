@@ -3,6 +3,7 @@
  *
  * Tests for ProjectSuggester service
  * Task 1.1: プロジェクトサジェスターサービスのコア機能を実装
+ * Task 2.1: selectプロンプトによる単一プロジェクト選択機能を実装
  */
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
@@ -14,10 +15,18 @@ vi.mock('@/github/fetcher.js', () => ({
   fetchDirectoryContents: vi.fn(),
 }));
 
+// Mock @inquirer/prompts
+vi.mock('@inquirer/prompts', () => ({
+  select: vi.fn(),
+  checkbox: vi.fn(),
+}));
+
 describe('ProjectSuggester', () => {
   let mockClient: Octokit;
   let mockLogger: Logger;
   let mockFetchDirectoryContents: ReturnType<typeof vi.fn>;
+  let mockSelect: ReturnType<typeof vi.fn>;
+  let mockCheckbox: ReturnType<typeof vi.fn>;
 
   beforeEach(async () => {
     // Create mock client and logger
@@ -29,12 +38,18 @@ describe('ProjectSuggester', () => {
       debug: vi.fn(),
     } as unknown as Logger;
 
-    // Import and setup mock
+    // Import and setup mocks
     const fetcher = await import('@/github/fetcher.js');
     mockFetchDirectoryContents = fetcher.fetchDirectoryContents as ReturnType<
       typeof vi.fn
     >;
     mockFetchDirectoryContents.mockClear();
+
+    const inquirer = await import('@inquirer/prompts');
+    mockSelect = inquirer.select as ReturnType<typeof vi.fn>;
+    mockCheckbox = inquirer.checkbox as ReturnType<typeof vi.fn>;
+    mockSelect.mockClear();
+    mockCheckbox.mockClear();
   });
 
   afterEach(() => {
@@ -382,6 +397,114 @@ describe('ProjectSuggester', () => {
       // Assert
       expect(mockLogger.info).not.toHaveBeenCalled();
       expect(mockLogger.error).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('単一プロジェクト選択UI (Task 2.1)', () => {
+    it('selectプロンプトを使用してプロジェクトを選択する', async () => {
+      // Arrange
+      const projects = ['project-a', 'project-b', 'project-c'];
+      mockSelect.mockResolvedValue('project-b');
+
+      // Act
+      const { promptSingleProject } = await import('@/cli/project-suggester.js');
+      const result = await promptSingleProject(projects);
+
+      // Assert
+      expect(mockSelect).toHaveBeenCalledWith(
+        expect.objectContaining({
+          message: 'Select a project',
+          pageSize: 10,
+          loop: true,
+        })
+      );
+      expect(result).toBe('project-b');
+    });
+
+    it('選択肢にプロジェクト名と複数選択モードオプションを含める', async () => {
+      // Arrange
+      const projects = ['project-a', 'project-b'];
+      mockSelect.mockResolvedValue('project-a');
+
+      // Act
+      const { promptSingleProject } = await import('@/cli/project-suggester.js');
+      await promptSingleProject(projects);
+
+      // Assert
+      expect(mockSelect).toHaveBeenCalledWith(
+        expect.objectContaining({
+          choices: expect.arrayContaining([
+            { name: 'project-a', value: 'project-a' },
+            { name: 'project-b', value: 'project-b' },
+            { name: '[Select multiple projects...]', value: '__MULTIPLE__' },
+          ]),
+        })
+      );
+    });
+
+    it('複数選択モード選択肢が最後に配置される', async () => {
+      // Arrange
+      const projects = ['project-a', 'project-b', 'project-c'];
+      mockSelect.mockResolvedValue('project-a');
+
+      // Act
+      const { promptSingleProject } = await import('@/cli/project-suggester.js');
+      await promptSingleProject(projects);
+
+      // Assert
+      const callArgs = mockSelect.mock.calls[0][0];
+      const choices = callArgs.choices;
+      expect(choices[choices.length - 1]).toEqual({
+        name: '[Select multiple projects...]',
+        value: '__MULTIPLE__',
+      });
+    });
+
+    it('ページサイズが10に設定される', async () => {
+      // Arrange
+      const projects = ['p1', 'p2', 'p3', 'p4', 'p5', 'p6', 'p7', 'p8', 'p9', 'p10', 'p11'];
+      mockSelect.mockResolvedValue('p1');
+
+      // Act
+      const { promptSingleProject } = await import('@/cli/project-suggester.js');
+      await promptSingleProject(projects);
+
+      // Assert
+      expect(mockSelect).toHaveBeenCalledWith(
+        expect.objectContaining({
+          pageSize: 10,
+        })
+      );
+    });
+
+    it('ループ設定がtrueに設定される', async () => {
+      // Arrange
+      const projects = ['project-a', 'project-b'];
+      mockSelect.mockResolvedValue('project-a');
+
+      // Act
+      const { promptSingleProject } = await import('@/cli/project-suggester.js');
+      await promptSingleProject(projects);
+
+      // Assert
+      expect(mockSelect).toHaveBeenCalledWith(
+        expect.objectContaining({
+          loop: true,
+        })
+      );
+    });
+
+    it('複数選択モード(__MULTIPLE__)が選択された場合、その値を返す', async () => {
+      // Arrange
+      const projects = ['project-a', 'project-b'];
+      mockSelect.mockResolvedValue('__MULTIPLE__');
+
+      // Act
+      const { promptSingleProject } = await import('@/cli/project-suggester.js');
+      const result = await promptSingleProject(projects);
+
+      // Assert
+      expect(result).toBe('__MULTIPLE__');
     });
   });
 });
