@@ -23,7 +23,7 @@ export function parseArguments(argv: string[]): ParsedArguments {
     .description('CLI tool to fetch Kiro specification and steering files from remote GitHub repositories')
     .version('0.1.0')
     .argument('[repository]', 'GitHub repository in format "owner/repo" or "owner/repo#branch"')
-    .option('-p, --project <name>', 'Project name to fetch')
+    .option('-p, --project <name>', 'Project name to fetch (comma-separated for multiple projects)')
     .option('-o, --output <path>', 'Output directory (default: current directory)', '.')
     .option('-s, --subdir <path>', 'Subdirectory path containing .kiro folder')
     .option('--force', 'Force overwrite without confirmation', false)
@@ -55,8 +55,13 @@ Examples:
   $ npx kirox owner/repo --subdir packages/api -p my-project
   $ npx kirox owner/repo#develop --subdir packages/api -p my-project
 
+  # Multiple projects (カンマ区切りで複数プロジェクトを指定)
+  $ npx kirox owner/repo -p proj1,proj2,proj3
+  $ npx kirox owner/repo --subdir packages -p api-spec,web-spec
+
 Note:
   ブランチ指定は#の後に指定 (例: owner/repo#develop)
+  複数プロジェクトはカンマ区切りで指定 (例: -p proj1,proj2)
   Interactive mode is only available in TTY environments
 `)
     .allowExcessArguments(false);
