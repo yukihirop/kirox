@@ -137,13 +137,15 @@ describe('E2E Interactive Partial Arguments Flow', () => {
         })
       );
 
-      // Verify prompt was called with repository pre-filled
+      // Verify prompt was called with repository pre-filled and additional parameters
       expect(mockPromptMissingArguments).toHaveBeenCalledWith(
         expect.objectContaining({
           repository: 'test-owner/test-repo',
           projects: [],
         }),
-        expect.any(Object)
+        expect.any(Object),
+        expect.any(Object),
+        false
       );
 
       // Verify execution succeeded
@@ -376,7 +378,9 @@ describe('E2E Interactive Partial Arguments Flow', () => {
           force: true,
           verbose: true,
         }),
-        expect.any(Object)
+        expect.any(Object),
+        expect.any(Object),
+        true
       );
 
       expect(result.success).toBe(true);

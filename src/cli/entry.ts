@@ -77,8 +77,9 @@ export async function execute(argv: string[]): Promise<ExecutionResult> {
       const fileConfig = await loadConfig(args.config);
 
       // Prompt for missing arguments with config file defaults
+      // Pass logger and verbose flag for project suggestion feature
       try {
-        args = await promptMissingArguments(args, fileConfig);
+        args = await promptMissingArguments(args, fileConfig, logger, args.verbose);
       } catch (error) {
         // Handle interactive mode errors
         const errorResult = handleInteractiveError(error, logger);

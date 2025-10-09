@@ -11,7 +11,7 @@
  */
 
 import { input, confirm } from '@inquirer/prompts';
-import type { Octokit } from 'octokit';
+import { Octokit } from 'octokit';
 import type { ParsedArguments } from './types.js';
 import { validateRepositoryFormat, validateProjectName } from './validator.js';
 import { parseProjects } from './project-name-parser.js';
@@ -103,7 +103,7 @@ export async function promptProject(
   currentValue: string,
   repository?: string,
   subdir?: string,
-  client?: Octokit,
+  client?: Octokit | undefined,
   logger?: Logger,
   verbose?: boolean
 ): Promise<string> {
@@ -246,21 +246,26 @@ export async function confirmExecution(args: ParsedArguments): Promise<boolean> 
  *
  * This function orchestrates all interactive prompts in sequence:
  * 1. Repository (if missing)
- * 2. Project (if missing)
+ * 2. Project (if missing) - with project suggestion feature
  * 3. Output directory (if not specified or is default value)
  * 4. Subdirectory (if not specified, optional)
  * 5. Confirmation (always prompt)
  *
  * Task 7.1: 設定ファイルからのデフォルト値読み込み
+ * Task 4.2: promptProject関数呼び出し時に追加パラメータを渡す
  *
  * @param args - Partially parsed arguments (may have missing required fields)
  * @param configFile - Configuration file values for defaults
+ * @param logger - Logger instance for suggestion feature (optional)
+ * @param verbose - Enable verbose logging for suggestion feature (optional)
  * @returns Completed ParsedArguments with all required fields filled
  * @throws Error if user cancels the confirmation prompt
  */
 export async function promptMissingArguments(
   args: ParsedArguments,
-  configFile?: KiroxConfig
+  configFile?: KiroxConfig,
+  logger?: Logger,
+  verbose?: boolean
 ): Promise<ParsedArguments> {
   // Create a copy to avoid mutating the input
   const completedArgs = { ...args };
@@ -268,18 +273,45 @@ export async function promptMissingArguments(
   // 1. Prompt for repository if missing
   completedArgs.repository = await promptRepository(completedArgs.repository);
 
-  // 2. Prompt for project if missing
+  // 2. Initialize GitHub client for project suggestion feature (if logger is provided)
+  // This allows promptProject to suggest projects from GitHub API
+  let client: Octokit | undefined;
+  if (logger) {
+    try {
+      client = new Octokit({
+        auth: process.env.GITHUB_TOKEN,
+      });
+    } catch (error) {
+      // If Octokit initialization fails, continue without suggestion feature
+      // promptProject will fall back to manual input
+      if (verbose) {
+        logger.warn('Failed to initialize GitHub client for project suggestion', {
+          error: error instanceof Error ? error.message : String(error),
+        });
+      }
+    }
+  }
+
+  // 3. Prompt for project if missing
+  // Pass additional parameters for project suggestion feature
   // Convert projects array back to string for prompting, then parse result
-  const projectString = await promptProject(completedArgs.projects.join(', '));
+  const projectString = await promptProject(
+    completedArgs.projects.join(', '),
+    completedArgs.repository,
+    completedArgs.subdir,
+    client,
+    logger,
+    verbose
+  );
   completedArgs.projects = parseProjects(projectString);
 
-  // 3. Prompt for output directory only if not already specified
+  // 4. Prompt for output directory only if not already specified
   // Check if output is the default value or empty
   if (!completedArgs.output || completedArgs.output === '.') {
     completedArgs.output = await promptOutput(configFile);
   }
 
-  // 4. Prompt for subdirectory only if not already specified
+  // 5. Prompt for subdirectory only if not already specified
   if (!completedArgs.subdir) {
     const subdir = await promptSubdir(configFile);
     if (subdir) {
@@ -287,7 +319,7 @@ export async function promptMissingArguments(
     }
   }
 
-  // 5. Show confirmation prompt
+  // 6. Show confirmation prompt
   const confirmed = await confirmExecution(completedArgs);
   if (!confirmed) {
     throw new Error('Operation cancelled');
