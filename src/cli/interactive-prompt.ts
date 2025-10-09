@@ -98,7 +98,7 @@ export async function promptProject(currentValue: string): Promise<string> {
 
   // Display interactive prompt with validation
   return await input({
-    message: 'Enter project name (comma-separated for multiple projects)',
+    message: 'プロジェクト名を入力してください (カンマ区切りで複数指定可能)',
     validate: (value: string) => {
       const errors = validateProjectName(value);
       if (errors.length > 0) {

@@ -137,7 +137,7 @@ describe('promptMissingArguments', () => {
           callOrder.push('repository');
           return Promise.resolve('owner/repo');
         }
-        if (options.message.includes('project')) {
+        if (options.message.includes('project') || options.message.includes('プロジェクト')) {
           callOrder.push('project');
           return Promise.resolve('my-project');
         }

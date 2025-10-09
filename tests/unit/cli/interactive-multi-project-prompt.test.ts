@@ -32,13 +32,13 @@ describe('Interactive Mode Multi-Project Support', () => {
   describe('promptProject - multi-project message', () => {
     it('should display message with comma-separated instruction', async () => {
       // RED: Test that prompt message includes multi-project instruction
-      // Expected message: 'Enter project name (comma-separated for multiple projects)'
+      // Expected message: 'プロジェクト名を入力してください (カンマ区切りで複数指定可能)'
       mockInput.mockResolvedValueOnce('project1');
 
       await promptProject('');
 
       expect(mockInput).toHaveBeenCalledWith({
-        message: 'Enter project name (comma-separated for multiple projects)',
+        message: 'プロジェクト名を入力してください (カンマ区切りで複数指定可能)',
         validate: expect.any(Function),
       });
     });
