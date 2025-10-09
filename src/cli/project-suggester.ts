@@ -152,6 +152,32 @@ export async function promptMultipleProjects(projects: string[]): Promise<string
 }
 
 /**
+ * Prompt user to select multiple projects with validation
+ *
+ * Displays a checkbox UI with validation that at least one project must be selected.
+ * If no projects are selected, displays an error message and prompts again.
+ *
+ * @param projects - Array of project names
+ * @returns Array of selected project names (guaranteed to have at least one item)
+ */
+export async function promptMultipleProjectsWithValidation(
+  projects: string[]
+): Promise<string[]> {
+  // eslint-disable-next-line no-constant-condition
+  while (true) {
+    const selected = await promptMultipleProjects(projects);
+
+    // Validate: at least one project must be selected
+    if (selected.length === 0) {
+      console.error('Please select at least one project');
+      continue;
+    }
+
+    return selected;
+  }
+}
+
+/**
  * Get appropriate error message based on error status
  *
  * @param error - Error object from GitHub API

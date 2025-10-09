@@ -666,4 +666,73 @@ describe('ProjectSuggester', () => {
       expect(result).toEqual(['project-b']);
     });
   });
+
+  describe('複数選択時のバリデーション (Task 3.2)', () => {
+    it('0個選択時はエラーメッセージを表示して再度プロンプトを表示する', async () => {
+      // Arrange
+      const projects = ['project-a', 'project-b', 'project-c'];
+      // First attempt: empty selection, Second attempt: valid selection
+      mockCheckbox
+        .mockResolvedValueOnce([])
+        .mockResolvedValueOnce(['project-a']);
+
+      const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+      // Act
+      const { promptMultipleProjectsWithValidation } = await import('@/cli/project-suggester.js');
+      const result = await promptMultipleProjectsWithValidation(projects);
+
+      // Assert
+      expect(mockCheckbox).toHaveBeenCalledTimes(2);
+      expect(consoleErrorSpy).toHaveBeenCalledWith(
+        expect.stringContaining('Please select at least one project')
+      );
+      expect(result).toEqual(['project-a']);
+
+      consoleErrorSpy.mockRestore();
+    });
+
+    it('複数回0個選択してもリトライし続ける', async () => {
+      // Arrange
+      const projects = ['project-a', 'project-b'];
+      // Three attempts with empty selections, then valid selection
+      mockCheckbox
+        .mockResolvedValueOnce([])
+        .mockResolvedValueOnce([])
+        .mockResolvedValueOnce([])
+        .mockResolvedValueOnce(['project-b']);
+
+      const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+      // Act
+      const { promptMultipleProjectsWithValidation } = await import('@/cli/project-suggester.js');
+      const result = await promptMultipleProjectsWithValidation(projects);
+
+      // Assert
+      expect(mockCheckbox).toHaveBeenCalledTimes(4);
+      expect(consoleErrorSpy).toHaveBeenCalledTimes(3);
+      expect(result).toEqual(['project-b']);
+
+      consoleErrorSpy.mockRestore();
+    });
+
+    it('最初から1つ以上選択した場合はバリデーションエラーなしで即座に返す', async () => {
+      // Arrange
+      const projects = ['project-a', 'project-b', 'project-c'];
+      mockCheckbox.mockResolvedValue(['project-a', 'project-c']);
+
+      const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+      // Act
+      const { promptMultipleProjectsWithValidation } = await import('@/cli/project-suggester.js');
+      const result = await promptMultipleProjectsWithValidation(projects);
+
+      // Assert
+      expect(mockCheckbox).toHaveBeenCalledTimes(1);
+      expect(consoleErrorSpy).not.toHaveBeenCalled();
+      expect(result).toEqual(['project-a', 'project-c']);
+
+      consoleErrorSpy.mockRestore();
+    });
+  });
 });
