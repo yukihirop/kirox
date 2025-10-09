@@ -7,6 +7,7 @@
 import type { ParsedArguments } from '@/cli/types.js';
 import type { KiroxConfig, MergedConfig } from './types.js';
 import { parseRepositoryPath } from '@/github/fetcher.js';
+import { parseProjects } from '@/cli/project-name-parser.js';
 
 /**
  * Default configuration values
@@ -102,6 +103,44 @@ export function mergeConfig(
   }
 
   return config;
+}
+
+/**
+ * Merge project names from CLI and config file
+ *
+ * Priority:
+ * 1. CLI projects array (if not empty)
+ * 2. Config file project field (string or array)
+ *
+ * @param cliProjects - Projects from CLI arguments
+ * @param configProject - Project(s) from config file
+ * @returns Merged array of project names
+ */
+export function mergeProjects(
+  cliProjects: string[],
+  configProject: string | string[] | undefined
+): string[] {
+  // CLI projects take precedence (if not empty)
+  if (cliProjects.length > 0) {
+    return cliProjects;
+  }
+
+  // No config project specified
+  if (configProject === undefined) {
+    return [];
+  }
+
+  // Parse config project
+  if (typeof configProject === 'string') {
+    // Parse comma-separated string
+    return parseProjects(configProject);
+  } else if (Array.isArray(configProject)) {
+    // Use array directly
+    return configProject;
+  }
+
+  // Should not reach here due to type system
+  return [];
 }
 
 /**
