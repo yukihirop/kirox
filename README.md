@@ -197,7 +197,7 @@ npx kirox owner/repo#develop -s packages/api -p project -o ./output --verbose --
 
 | Option | Alias | Description | Default |
 |--------|-------|-------------|---------|
-| `--project <name>` | `-p` | Project name to fetch (required) | - |
+| `--project <name>` | `-p` | Project name(s) to fetch - supports comma-separated multiple projects (required) | - |
 | `--output <path>` | `-o` | Output directory | `.` (current directory) |
 | `--subdir <path>` | `-s` | Subdirectory path containing .kiro folder | - |
 | `--force` | - | Force overwrite without confirmation | `false` |
@@ -254,6 +254,33 @@ Kirox fetches the following directory structures:
 ```bash
 npx kirox yukihirop/eg-kanban -p simple-kanban-board
 # Files saved to ./.kiro/
+```
+
+### Fetch Multiple Projects
+
+Fetch multiple projects from the same repository at once:
+
+```bash
+# Fetch two projects with comma-separated names
+npx kirox yukihirop/eg-kanban -p simple-kanban-board-a,simple-kanban-board-b
+
+# Fetch three projects from a specific branch
+npx kirox owner/repo#develop -p project-a,project-b,project-c
+
+# Fetch multiple projects with custom output
+npx kirox owner/repo -p api-service,web-app,mobile-app -o ./projects
+```
+
+Each project's files are saved to separate directories:
+```
+.kiro/
+├── specs/
+│   ├── simple-kanban-board-a/
+│   │   └── ...
+│   └── simple-kanban-board-b/
+│       └── ...
+└── steering/
+    └── ... (shared across projects)
 ```
 
 ### Fetch from Specific Branch
@@ -338,12 +365,35 @@ Create a `.kiroxrc.json` file in your project root to set default values:
 ```json
 {
   "defaultRepository": "owner/repo",
+  "project": "default-project",
   "branch": "develop",
   "subdir": "packages/api",
   "outputDirectory": "./kiro-files",
   "defaultConcurrency": 5,
   "verbose": false,
   "force": false
+}
+```
+
+### Multiple Projects in Configuration
+
+The `project` field supports both single and multiple projects:
+
+```json
+{
+  "defaultRepository": "owner/repo",
+  "project": ["project-a", "project-b", "project-c"],
+  "outputDirectory": "./kiro-files"
+}
+```
+
+Or as a single string with comma-separated values:
+
+```json
+{
+  "defaultRepository": "owner/repo",
+  "project": "project-a,project-b,project-c",
+  "outputDirectory": "./kiro-files"
 }
 ```
 
