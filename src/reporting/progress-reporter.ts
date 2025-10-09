@@ -456,4 +456,38 @@ export class ProgressReporter {
     console.log(this.chalk.cyan(`成功: ${totalDownloaded}ファイル`));
     console.log(this.chalk.cyan(`失敗: ${totalFailed}ファイル`));
   }
+
+  /**
+   * Report project-specific error
+   *
+   * Displays error message with project name prefix for multi-project operations
+   * Used when a project fails to be fetched or processed
+   *
+   * @param projectName - Project name that encountered the error
+   * @param error - Error object or error message
+   *
+   * @example
+   * ```typescript
+   * reporter.reportProjectError('proj1', new Error('GitHub API failed'));
+   * // Output: ✗ [proj1] エラー: GitHub API failed
+   *
+   * reporter.reportProjectError('proj2', 'Custom error message');
+   * // Output: ✗ [proj2] エラー: Custom error message
+   * ```
+   */
+  reportProjectError(projectName: string, error: unknown): void {
+    // Extract error message
+    let errorMessage: string;
+    if (error instanceof Error) {
+      errorMessage = error.message;
+    } else if (typeof error === 'string') {
+      errorMessage = error;
+    } else {
+      errorMessage = 'Unknown error';
+    }
+
+    const formattedMessage = `✗ [${projectName}] エラー: ${errorMessage}`;
+
+    console.error(this.chalk.red(formattedMessage));
+  }
 }

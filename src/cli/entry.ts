@@ -397,11 +397,12 @@ export async function execute(argv: string[]): Promise<ExecutionResult> {
         }
 
       } catch (error) {
-        // Handle project-specific errors
+        // Handle project-specific errors (task 9.1)
         const errorResult = errorHandler.handle(error, {
+          project: projectName,
           details: error instanceof Error ? error.message : String(error),
         });
-        reporter.reportError(`Project ${projectName} failed: ${errorResult.message}`);
+        reporter.reportProjectError(projectName, errorResult.message);
         logger.logError(errorResult);
         totalFilesFailed++;
       }

@@ -980,4 +980,73 @@ describe('ProgressReporter', () => {
       expect(hasOverallSummaryHeader).toBe(false);
     });
   });
+
+  describe('reportProjectError (task 9.1)', () => {
+    it('should display project-specific error with project name prefix', () => {
+      const options: ReporterOptions = { verbose: false, useColor: true };
+      const reporter = new ProgressReporter(options);
+
+      const error = new Error('GitHub API failed');
+      reporter.reportProjectError('proj1', error);
+
+      const allCalls = consoleErrorSpy.mock.calls.map((call) => call[0]);
+      const hasProjectPrefix = allCalls.some((msg) =>
+        String(msg).includes('[proj1]')
+      );
+      const hasErrorMessage = allCalls.some((msg) =>
+        String(msg).includes('GitHub API failed')
+      );
+
+      expect(hasProjectPrefix).toBe(true);
+      expect(hasErrorMessage).toBe(true);
+    });
+
+    it('should use red color for project error when useColor is true', () => {
+      const options: ReporterOptions = { verbose: false, useColor: true };
+      const reporter = new ProgressReporter(options);
+
+      const error = new Error('Test error');
+      reporter.reportProjectError('proj2', error);
+
+      const calls = consoleErrorSpy.mock.calls.flat();
+      const hasRedCode = calls.some((arg) =>
+        String(arg).includes('\x1b[31m')
+      );
+
+      expect(hasRedCode).toBe(true);
+    });
+
+    it('should handle non-Error objects gracefully', () => {
+      const options: ReporterOptions = { verbose: false, useColor: true };
+      const reporter = new ProgressReporter(options);
+
+      reporter.reportProjectError('proj3', 'String error');
+
+      const allCalls = consoleErrorSpy.mock.calls.map((call) => call[0]);
+      const hasProjectPrefix = allCalls.some((msg) =>
+        String(msg).includes('[proj3]')
+      );
+      const hasErrorInfo = allCalls.some((msg) =>
+        String(msg).includes('String error') || String(msg).includes('Unknown error')
+      );
+
+      expect(hasProjectPrefix).toBe(true);
+      expect(hasErrorInfo).toBe(true);
+    });
+
+    it('should display error with X mark', () => {
+      const options: ReporterOptions = { verbose: false, useColor: true };
+      const reporter = new ProgressReporter(options);
+
+      const error = new Error('File write failed');
+      reporter.reportProjectError('proj4', error);
+
+      const allCalls = consoleErrorSpy.mock.calls.map((call) => call[0]);
+      const hasErrorMark = allCalls.some((msg) =>
+        String(msg).includes('✗') || String(msg).includes('Error') || String(msg).includes('失敗')
+      );
+
+      expect(hasErrorMark).toBe(true);
+    });
+  });
 });
