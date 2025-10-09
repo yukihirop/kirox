@@ -1049,4 +1049,90 @@ describe('ProgressReporter', () => {
       expect(hasErrorMark).toBe(true);
     });
   });
+
+  describe('reportPartialFailureSummary (task 9.3)', () => {
+    it('should display failed and successful project lists', () => {
+      const options: ReporterOptions = { verbose: false, useColor: true };
+      const reporter = new ProgressReporter(options);
+
+      const failedProjects = ['proj1', 'proj3'];
+      const successfulProjects = ['proj2', 'proj4'];
+
+      reporter.reportPartialFailureSummary(failedProjects, successfulProjects);
+
+      const allCalls = consoleLogSpy.mock.calls.map((call) => call[0]);
+      const hasFailedHeader = allCalls.some((msg) => String(msg).includes('失敗したプロジェクト'));
+      const hasFailedProj1 = allCalls.some((msg) => String(msg).includes('proj1'));
+      const hasFailedProj3 = allCalls.some((msg) => String(msg).includes('proj3'));
+      const hasSuccessHeader = allCalls.some((msg) => String(msg).includes('成功したプロジェクト'));
+      const hasSuccessProj2 = allCalls.some((msg) => String(msg).includes('proj2'));
+      const hasSuccessProj4 = allCalls.some((msg) => String(msg).includes('proj4'));
+
+      expect(hasFailedHeader).toBe(true);
+      expect(hasFailedProj1).toBe(true);
+      expect(hasFailedProj3).toBe(true);
+      expect(hasSuccessHeader).toBe(true);
+      expect(hasSuccessProj2).toBe(true);
+      expect(hasSuccessProj4).toBe(true);
+    });
+
+    it('should use red color for failed projects and green for successful', () => {
+      const options: ReporterOptions = { verbose: false, useColor: true };
+      const reporter = new ProgressReporter(options);
+
+      const failedProjects = ['proj1'];
+      const successfulProjects = ['proj2'];
+
+      reporter.reportPartialFailureSummary(failedProjects, successfulProjects);
+
+      const calls = consoleLogSpy.mock.calls.flat();
+      const hasRedCode = calls.some((arg) =>
+        String(arg).includes('\x1b[31m')
+      );
+      const hasGreenCode = calls.some((arg) =>
+        String(arg).includes('\x1b[32m')
+      );
+
+      expect(hasRedCode).toBe(true);
+      expect(hasGreenCode).toBe(true);
+    });
+
+    it('should handle empty successful projects list', () => {
+      const options: ReporterOptions = { verbose: false, useColor: true };
+      const reporter = new ProgressReporter(options);
+
+      const failedProjects = ['proj1', 'proj2'];
+      const successfulProjects: string[] = [];
+
+      reporter.reportPartialFailureSummary(failedProjects, successfulProjects);
+
+      const allCalls = consoleLogSpy.mock.calls.map((call) => call[0]);
+      const hasFailedHeader = allCalls.some((msg) => String(msg).includes('失敗したプロジェクト'));
+      const hasNoSuccessProjects = allCalls.some((msg) =>
+        String(msg).includes('成功したプロジェクトはありません') ||
+        String(msg).includes('0個のプロジェクト')
+      );
+
+      expect(hasFailedHeader).toBe(true);
+      expect(allCalls.some((msg) => String(msg).includes('proj1'))).toBe(true);
+      expect(allCalls.some((msg) => String(msg).includes('proj2'))).toBe(true);
+    });
+
+    it('should display project counts', () => {
+      const options: ReporterOptions = { verbose: false, useColor: true };
+      const reporter = new ProgressReporter(options);
+
+      const failedProjects = ['proj1', 'proj2'];
+      const successfulProjects = ['proj3'];
+
+      reporter.reportPartialFailureSummary(failedProjects, successfulProjects);
+
+      const allCalls = consoleLogSpy.mock.calls.map((call) => call[0]);
+      const hasFailedCount = allCalls.some((msg) => /失敗.*2/i.test(String(msg)));
+      const hasSuccessCount = allCalls.some((msg) => /成功.*1/i.test(String(msg)));
+
+      expect(hasFailedCount).toBe(true);
+      expect(hasSuccessCount).toBe(true);
+    });
+  });
 });

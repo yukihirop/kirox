@@ -490,4 +490,43 @@ export class ProgressReporter {
 
     console.error(this.chalk.red(formattedMessage));
   }
+
+  /**
+   * Report partial failure summary
+   *
+   * Displays lists of failed and successful projects for multi-project operations
+   * Used when some projects succeed and others fail
+   *
+   * @param failedProjects - Array of failed project names
+   * @param successfulProjects - Array of successful project names
+   *
+   * @example
+   * ```typescript
+   * reporter.reportPartialFailureSummary(['proj1', 'proj3'], ['proj2', 'proj4']);
+   * // Output:
+   * // 失敗したプロジェクト (2):
+   * //   - proj1
+   * //   - proj3
+   * // 成功したプロジェクト (2):
+   * //   - proj2
+   * //   - proj4
+   * ```
+   */
+  reportPartialFailureSummary(failedProjects: string[], successfulProjects: string[]): void {
+    // Display failed projects
+    if (failedProjects.length > 0) {
+      console.log(this.chalk.red(`\n失敗したプロジェクト (${failedProjects.length}):`));
+      failedProjects.forEach((project) => {
+        console.log(this.chalk.red(`  - ${project}`));
+      });
+    }
+
+    // Display successful projects
+    if (successfulProjects.length > 0) {
+      console.log(this.chalk.green(`\n成功したプロジェクト (${successfulProjects.length}):`));
+      successfulProjects.forEach((project) => {
+        console.log(this.chalk.green(`  - ${project}`));
+      });
+    }
+  }
 }

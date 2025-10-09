@@ -146,6 +146,8 @@ export async function execute(argv: string[]): Promise<ExecutionResult> {
     let totalFilesDownloaded = 0;
     let totalFilesFailed = 0;
     let successfulProjects = 0; // Track successful projects (task 9.2)
+    const failedProjectsList: string[] = []; // Track failed projects (task 9.3)
+    const successfulProjectsList: string[] = []; // Track successful projects (task 9.3)
     const projects = args.projects.length > 0 ? args.projects : [''];
 
     // Report start
@@ -392,6 +394,7 @@ export async function execute(argv: string[]): Promise<ExecutionResult> {
         totalFilesDownloaded += projectFilesDownloaded;
         totalFilesFailed += projectFilesFailed;
         successfulProjects++; // Increment successful project count (task 9.2)
+        successfulProjectsList.push(projectName); // Track successful project (task 9.3)
 
         // Step 5.7: Display project summary for multi-project operations
         if (projects.length > 1) {
@@ -409,6 +412,7 @@ export async function execute(argv: string[]): Promise<ExecutionResult> {
         // Note: Do not increment successfulProjects here (project failed)
         // Track failure for proper success/failure determination
         totalFilesFailed++;
+        failedProjectsList.push(projectName); // Track failed project (task 9.3)
       }
     } // End of project loop
 
@@ -435,6 +439,11 @@ export async function execute(argv: string[]): Promise<ExecutionResult> {
     // Step 6.1: Report overall summary for multi-project operations
     if (projects.length > 1) {
       reporter.reportOverallSummary(projects.length, totalFilesDownloaded, totalFilesFailed);
+
+      // Step 6.2: Report partial failure summary (task 9.3)
+      if (failedProjectsList.length > 0 && successfulProjectsList.length > 0) {
+        reporter.reportPartialFailureSummary(failedProjectsList, successfulProjectsList);
+      }
     }
 
     logger.info('Execution completed', {
