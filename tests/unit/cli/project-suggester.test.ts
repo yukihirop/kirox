@@ -735,4 +735,45 @@ describe('ProjectSuggester', () => {
       consoleErrorSpy.mockRestore();
     });
   });
+
+  describe('複数選択結果の処理とフォーマット変換 (Task 3.3)', () => {
+    it('プロジェクト名配列をカンマ区切り文字列に変換する', async () => {
+      // Arrange
+      const projects = ['project-a', 'project-b', 'project-c'];
+
+      // Act
+      const { formatMultipleProjectsToString } = await import('@/cli/project-suggester.js');
+      const result = formatMultipleProjectsToString(projects);
+
+      // Assert
+      expect(typeof result).toBe('string');
+      expect(result).toBe('project-a,project-b,project-c');
+    });
+
+    it('単一プロジェクト配列もカンマ区切り文字列に変換する', async () => {
+      // Arrange
+      const projects = ['single-project'];
+
+      // Act
+      const { formatMultipleProjectsToString } = await import('@/cli/project-suggester.js');
+      const result = formatMultipleProjectsToString(projects);
+
+      // Assert
+      expect(typeof result).toBe('string');
+      expect(result).toBe('single-project');
+    });
+
+    it('空配列は空文字列に変換する', async () => {
+      // Arrange
+      const projects: string[] = [];
+
+      // Act
+      const { formatMultipleProjectsToString } = await import('@/cli/project-suggester.js');
+      const result = formatMultipleProjectsToString(projects);
+
+      // Assert
+      expect(typeof result).toBe('string');
+      expect(result).toBe('');
+    });
+  });
 });

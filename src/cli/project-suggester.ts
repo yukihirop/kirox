@@ -178,6 +178,19 @@ export async function promptMultipleProjectsWithValidation(
 }
 
 /**
+ * Format multiple project names to comma-separated string
+ *
+ * Converts an array of project names to a comma-separated string format
+ * suitable for ParsedArguments.projects field.
+ *
+ * @param projects - Array of project names
+ * @returns Comma-separated string of project names
+ */
+export function formatMultipleProjectsToString(projects: string[]): string {
+  return projects.join(',');
+}
+
+/**
  * Get appropriate error message based on error status
  *
  * @param error - Error object from GitHub API
