@@ -1,0 +1,41 @@
+{
+  "version": "1.0",
+  "projects": [
+    {
+      "repository": "owner/repo",
+      "projectName": "project1",
+      "fetchedAt": "2025-10-09T12:15:41.057Z",
+      "files": []
+    },
+    {
+      "repository": "owner/repo",
+      "projectName": "project2",
+      "fetchedAt": "2025-10-09T12:15:41.060Z",
+      "files": []
+    },
+    {
+      "repository": "owner/repo",
+      "projectName": "project3",
+      "fetchedAt": "2025-10-09T12:15:41.061Z",
+      "files": []
+    },
+    {
+      "repository": "owner/repo",
+      "projectName": "single-project",
+      "fetchedAt": "2025-10-09T12:15:41.066Z",
+      "files": []
+    },
+    {
+      "repository": "owner/repo",
+      "projectName": "proj1",
+      "fetchedAt": "2025-10-09T12:15:41.085Z",
+      "files": []
+    },
+    {
+      "repository": "owner/repo",
+      "projectName": "proj2",
+      "fetchedAt": "2025-10-09T12:15:41.101Z",
+      "files": []
+    }
+  ]
+}

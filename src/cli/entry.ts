@@ -131,251 +131,283 @@ export async function execute(argv: string[]): Promise<ExecutionResult> {
     // Get branch from merged config (CLI branch takes precedence over config file)
     const effectiveBranch = branch || mergedConfig.branch;
 
-    // Step 3.5: Initialize progress reporter and report start
+    // Step 3.5: Initialize progress reporter
     const reporter = new ProgressReporter({
       verbose: args.verbose,
       useColor: true,
     });
-
-    // For single project (backward compatibility), use first element
-    const projectName = args.projects[0] || '';
-    reporter.reportStart(args.repository, projectName, subdir, effectiveBranch);
 
     // Step 4: Initialize Octokit client
     const octokit = new Octokit({
       auth: process.env.GITHUB_TOKEN,
     });
 
-    // Step 5: Fetch directory listings
-    logger.info('Fetching directory listings from GitHub', {
-      repository: args.repository,
-      project: projectName,
-      ...(effectiveBranch && { branch: effectiveBranch }),
-    });
+    // Step 4.5: Initialize aggregated counters for multi-project support
+    let totalFilesDownloaded = 0;
+    let totalFilesFailed = 0;
+    const projects = args.projects.length > 0 ? args.projects : [''];
 
-    const specPath = buildRemotePath(subdir, projectName, 'specs');
-    const steeringPath = buildRemotePath(subdir, '', 'steering');
+    // Report start (for backward compatibility, use first project if only one)
+    reporter.reportStart(args.repository, projects[0] || '', subdir, effectiveBranch);
 
-    // Fetch spec directory (required)
-    const specContents = await fetchDirectoryContents(octokit, owner, repo, specPath, effectiveBranch);
-
-    // Fetch steering directory (optional - may not exist)
-    let steeringContents: ContentItem[] = [];
-    try {
-      steeringContents = await fetchDirectoryContents(octokit, owner, repo, steeringPath, effectiveBranch);
-    } catch (_error) {
-      if (args.verbose) {
-        logger.warn('Steering directory not found, skipping', {
-          path: steeringPath,
-        });
-      }
-    }
-
-    // Collect all file items
-    const specFiles = specContents.filter((item) => item.type === 'file');
-    const steeringFiles = steeringContents.filter((item) => item.type === 'file');
-    const allFiles: ContentItem[] = [...specFiles, ...steeringFiles];
-
-    if (args.verbose) {
-      logger.info('Directory listings fetched', {
-        specFiles: specFiles.length,
-        steeringFiles: steeringFiles.length,
-        total: allFiles.length,
-        ...(subdir && { subdir }),
-      });
-    }
-
-    // Step 6: Fetch all file contents in parallel
-    logger.info('Fetching file contents', { count: allFiles.length });
-
-    const filePaths = allFiles.map((item) => item.path);
-    const fetchResult = await fetchFilesInParallel(
-      octokit,
-      owner,
-      repo,
-      filePaths,
-      5, // maxConcurrency
-      effectiveBranch
-    );
-
-    if (args.verbose) {
-      logger.info('Files fetched', {
-        success: fetchResult.success.length,
-        failed: fetchResult.failed.length,
-      });
-    }
-
-    // Step 7: Write files to local filesystem
-    let filesDownloaded = 0;
-    let filesFailed = fetchResult.failed.length;
-
-    // Track written files for metadata (when --track is used)
-    const writtenFiles: Array<{ path: string; sha: string; size: number; localPath: string }> = [];
-
-    for (const file of fetchResult.success) {
-      const currentIndex = fetchResult.success.indexOf(file) + 1;
-      const totalFiles = fetchResult.success.length;
-
-      reporter.reportProgress(currentIndex, totalFiles, file.path);
-
-      // Verbose: Show detailed fetch information with branch
-      if (args.verbose && effectiveBranch) {
-        const branchInfo = `${owner}/${repo}#${effectiveBranch}/${file.path}`;
-        reporter.reportVerbose(`取得中: ${branchInfo}`);
-      }
+    // Step 5: Loop through projects
+    for (const [index, projectName] of projects.entries()) {
+      const isFirstProject = index === 0;
+      let projectFilesDownloaded = 0;
+      let projectFilesFailed = 0;
 
       try {
-        // Resolve output path
-        const localPath = resolveOutputPath(args.output, file.path);
-
-        // Write file
-        const writeResult = await writeFile(localPath, file.content, {
-          force: args.force,
-          prompt: !args.force,
-          dryRun: args.dryRun,
-          verbose: args.verbose,
+        // Step 5.1: Fetch directory listings for current project
+        logger.info('Fetching directory listings from GitHub', {
+          repository: args.repository,
+          project: projectName,
+          ...(effectiveBranch && { branch: effectiveBranch }),
         });
 
-        if (writeResult.written) {
-          filesDownloaded++;
-          reporter.reportSuccess(`Saved: ${file.path}`);
+        const specPath = buildRemotePath(subdir, projectName, 'specs');
 
-          // Track written file for metadata
-          if (args.track) {
-            writtenFiles.push({
-              path: file.path,
-              sha: file.sha,
-              size: file.size,
-              localPath,
-            });
+        // Fetch spec directory (required)
+        const specContents = await fetchDirectoryContents(octokit, owner, repo, specPath, effectiveBranch);
+
+        // Fetch steering directory only for first project (to avoid duplication)
+        let steeringContents: ContentItem[] = [];
+        if (isFirstProject) {
+          const steeringPath = buildRemotePath(subdir, '', 'steering');
+          try {
+            steeringContents = await fetchDirectoryContents(octokit, owner, repo, steeringPath, effectiveBranch);
+          } catch (_error) {
+            if (args.verbose) {
+              logger.warn('Steering directory not found, skipping', {
+                path: steeringPath,
+              });
+            }
           }
-        } else if (writeResult.skipped) {
-          reporter.reportVerbose(
-            `Skipped: ${file.path} (${writeResult.reason})`
-          );
         }
-      } catch (error) {
-        filesFailed++;
-        const errorResult = errorHandler.handle(error, {
-          filePath: file.path,
-          details: error instanceof Error ? error.message : String(error),
-        });
-        reporter.reportError(`Failed: ${file.path} - ${errorResult.message}`);
-        logger.logError(errorResult);
-      }
-    }
 
-    // Report fetch failures
-    for (const failedFile of fetchResult.failed) {
-      const errorResult = errorHandler.handle(new Error(failedFile.error), {
-        filePath: failedFile.path,
-        details: failedFile.error,
-      });
-      reporter.reportError(`Failed to fetch: ${failedFile.path} - ${errorResult.message}`);
-      logger.logError(errorResult);
-    }
+        // Collect all file items
+        const specFiles = specContents.filter((item) => item.type === 'file');
+        const steeringFiles = steeringContents.filter((item) => item.type === 'file');
+        const allFiles: ContentItem[] = [...specFiles, ...steeringFiles];
 
-    // Step 8: Save metadata if --track option is used
-    if (args.track && writtenFiles.length > 0) {
-      try {
         if (args.verbose) {
-          logger.info('Saving tracking metadata', {
-            filesCount: writtenFiles.length,
+          logger.info('Directory listings fetched', {
+            specFiles: specFiles.length,
+            steeringFiles: steeringFiles.length,
+            total: allFiles.length,
+            ...(subdir && { subdir }),
           });
         }
 
-        const metadataPath = getMetadataPath(args.output);
+        // Step 5.2: Fetch all file contents in parallel
+        logger.info('Fetching file contents', { count: allFiles.length });
 
-        // Check if metadata exists
-        try {
-          const existingMetadata = await loadMetadata(metadataPath);
-          if (args.verbose) {
-            logger.info('Loaded existing metadata', {
-              projectsCount: existingMetadata.projects.length,
-            });
+        const filePaths = allFiles.map((item) => item.path);
+        const fetchResult = await fetchFilesInParallel(
+          octokit,
+          owner,
+          repo,
+          filePaths,
+          5, // maxConcurrency
+          effectiveBranch
+        );
+
+        if (args.verbose) {
+          logger.info('Files fetched', {
+            success: fetchResult.success.length,
+            failed: fetchResult.failed.length,
+          });
+        }
+
+        // Step 5.3: Write files to local filesystem
+        let filesDownloaded = 0;
+        let filesFailed = fetchResult.failed.length;
+
+        // Track written files for metadata (when --track is used)
+        const writtenFiles: Array<{ path: string; sha: string; size: number; localPath: string }> = [];
+
+        for (const file of fetchResult.success) {
+          const currentIndex = fetchResult.success.indexOf(file) + 1;
+          const totalFiles = fetchResult.success.length;
+
+          reporter.reportProgress(currentIndex, totalFiles, file.path);
+
+          // Verbose: Show detailed fetch information with branch
+          if (args.verbose && effectiveBranch) {
+            const branchInfo = `${owner}/${repo}#${effectiveBranch}/${file.path}`;
+            reporter.reportVerbose(`取得中: ${branchInfo}`);
           }
-        } catch (_error) {
-          // Metadata doesn't exist
-          if (args.verbose) {
-            logger.info('Creating new metadata file');
+
+          try {
+            // Resolve output path
+            const localPath = resolveOutputPath(args.output, file.path);
+
+            // Write file
+            const writeResult = await writeFile(localPath, file.content, {
+              force: args.force,
+              prompt: !args.force,
+              dryRun: args.dryRun,
+              verbose: args.verbose,
+            });
+
+            if (writeResult.written) {
+              filesDownloaded++;
+              reporter.reportSuccess(`Saved: ${file.path}`);
+
+              // Track written file for metadata
+              if (args.track) {
+                writtenFiles.push({
+                  path: file.path,
+                  sha: file.sha,
+                  size: file.size,
+                  localPath,
+                });
+              }
+            } else if (writeResult.skipped) {
+              reporter.reportVerbose(
+                `Skipped: ${file.path} (${writeResult.reason})`
+              );
+            }
+          } catch (error) {
+            filesFailed++;
+            const errorResult = errorHandler.handle(error, {
+              filePath: file.path,
+              details: error instanceof Error ? error.message : String(error),
+            });
+            reporter.reportError(`Failed: ${file.path} - ${errorResult.message}`);
+            logger.logError(errorResult);
           }
         }
 
-        // Upsert project
-        await upsertProject({
-          repository: args.repository,
-          projectName: projectName,
-          fetchedAt: new Date().toISOString(),
-          files: [],
-        }, metadataPath);
+        // Report fetch failures
+        for (const failedFile of fetchResult.failed) {
+          const errorResult = errorHandler.handle(new Error(failedFile.error), {
+            filePath: failedFile.path,
+            details: failedFile.error,
+          });
+          reporter.reportError(`Failed to fetch: ${failedFile.path} - ${errorResult.message}`);
+          logger.logError(errorResult);
+        }
 
-        // Calculate hashes and upsert files
-        for (const file of writtenFiles) {
+        // Step 5.4: Update project counters
+        projectFilesDownloaded = filesDownloaded;
+        projectFilesFailed = filesFailed;
+
+        // Step 5.5: Save metadata if --track option is used
+        if (args.track && writtenFiles.length > 0) {
           try {
-            // Calculate local file hash
-            const localHash = await calculateFileHash(file.localPath);
+            if (args.verbose) {
+              logger.info('Saving tracking metadata', {
+                filesCount: writtenFiles.length,
+              });
+            }
 
-            const fileMetadata: FileMetadata = {
-              path: file.path,
-              sha: file.sha,
-              size: file.size,
-              localHash,
+            const metadataPath = getMetadataPath(args.output);
+
+            // Check if metadata exists
+            try {
+              const existingMetadata = await loadMetadata(metadataPath);
+              if (args.verbose) {
+                logger.info('Loaded existing metadata', {
+                  projectsCount: existingMetadata.projects.length,
+                });
+              }
+            } catch (_error) {
+              // Metadata doesn't exist
+              if (args.verbose) {
+                logger.info('Creating new metadata file');
+              }
+            }
+
+            // Upsert project
+            await upsertProject({
+              repository: args.repository,
+              projectName: projectName,
               fetchedAt: new Date().toISOString(),
-            };
+              files: [],
+            }, metadataPath);
 
-            await upsertFile(args.repository, projectName, fileMetadata, metadataPath);
+            // Calculate hashes and upsert files
+            for (const file of writtenFiles) {
+              try {
+                // Calculate local file hash
+                const localHash = await calculateFileHash(file.localPath);
+
+                const fileMetadata: FileMetadata = {
+                  path: file.path,
+                  sha: file.sha,
+                  size: file.size,
+                  localHash,
+                  fetchedAt: new Date().toISOString(),
+                };
+
+                await upsertFile(args.repository, projectName, fileMetadata, metadataPath);
+
+                if (args.verbose) {
+                  logger.info('File metadata saved', {
+                    path: file.path,
+                    sha: file.sha,
+                    hash: localHash,
+                  });
+                }
+              } catch (error) {
+                // Log hash calculation error but continue
+                logger.warn('Failed to calculate file hash', {
+                  path: file.path,
+                  error: error instanceof Error ? error.message : String(error),
+                });
+              }
+            }
+
+            // Success message for metadata save
+            reporter.reportSuccess(`Saved metadata: ${metadataPath}`);
 
             if (args.verbose) {
-              logger.info('File metadata saved', {
-                path: file.path,
-                sha: file.sha,
-                hash: localHash,
+              logger.info('Metadata saved successfully', {
+                path: metadataPath,
+                filesTracked: writtenFiles.length,
               });
             }
           } catch (error) {
-            // Log hash calculation error but continue
-            logger.warn('Failed to calculate file hash', {
-              path: file.path,
+            // Metadata save failure should not fail the entire operation
+            // Files were already successfully downloaded
+            logger.warn('Failed to save tracking metadata', {
               error: error instanceof Error ? error.message : String(error),
             });
+            reporter.reportVerbose(
+              'Warning: Failed to save tracking metadata, but files were downloaded successfully'
+            );
           }
         }
 
-        // Success message for metadata save
-        reporter.reportSuccess(`Saved metadata: ${metadataPath}`);
+        // Step 5.6: Update total counters
+        totalFilesDownloaded += projectFilesDownloaded;
+        totalFilesFailed += projectFilesFailed;
 
-        if (args.verbose) {
-          logger.info('Metadata saved successfully', {
-            path: metadataPath,
-            filesTracked: writtenFiles.length,
-          });
-        }
       } catch (error) {
-        // Metadata save failure should not fail the entire operation
-        // Files were already successfully downloaded
-        logger.warn('Failed to save tracking metadata', {
-          error: error instanceof Error ? error.message : String(error),
+        // Handle project-specific errors
+        const errorResult = errorHandler.handle(error, {
+          details: error instanceof Error ? error.message : String(error),
         });
-        reporter.reportVerbose(
-          'Warning: Failed to save tracking metadata, but files were downloaded successfully'
-        );
+        reporter.reportError(`Project ${projectName} failed: ${errorResult.message}`);
+        logger.logError(errorResult);
+        totalFilesFailed++;
       }
-    }
+    } // End of project loop
 
-    // Step 9: Report summary
-    reporter.reportSummary(filesDownloaded, filesFailed, subdir, effectiveBranch);
+    // Step 6: Report summary
+    reporter.reportSummary(totalFilesDownloaded, totalFilesFailed, subdir, effectiveBranch);
 
     logger.info('Execution completed', {
-      filesDownloaded,
-      filesFailed,
-      total: filesDownloaded + filesFailed,
+      filesDownloaded: totalFilesDownloaded,
+      filesFailed: totalFilesFailed,
+      total: totalFilesDownloaded + totalFilesFailed,
     });
 
     return {
-      success: filesFailed === 0,
-      filesDownloaded,
-      filesFailed,
-      exitCode: filesFailed > 0 ? 1 : 0,
+      success: totalFilesFailed === 0,
+      filesDownloaded: totalFilesDownloaded,
+      filesFailed: totalFilesFailed,
+      exitCode: totalFilesFailed > 0 ? 1 : 0,
     };
   } catch (error) {
     // Handle unexpected errors
