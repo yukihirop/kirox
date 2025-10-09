@@ -657,6 +657,39 @@ describe('ProgressReporter', () => {
 
       expect(hasGrayCode).toBe(true);
     });
+
+    // Task 8.3: Project-specific verbose display
+    it('should display project name prefix in verbose mode when project provided (task 8.3)', () => {
+      const options: ReporterOptions = { verbose: true, useColor: true };
+      const reporter = new ProgressReporter(options);
+
+      reporter.reportVerbose('取得中: file.md', 'proj1');
+
+      const call = consoleLogSpy.mock.calls[0][0];
+      expect(String(call)).toMatch(/\[proj1\].*取得中.*file\.md/);
+    });
+
+    it('should not display project prefix in verbose mode when project is undefined (task 8.3)', () => {
+      const options: ReporterOptions = { verbose: true, useColor: true };
+      const reporter = new ProgressReporter(options);
+
+      reporter.reportVerbose('取得中: file.md', undefined);
+
+      const call = consoleLogSpy.mock.calls[0][0];
+      expect(String(call)).toMatch(/取得中.*file\.md/);
+      expect(String(call)).not.toContain('[undefined]');
+    });
+
+    it('should handle empty project name in verbose mode (task 8.3)', () => {
+      const options: ReporterOptions = { verbose: true, useColor: true };
+      const reporter = new ProgressReporter(options);
+
+      reporter.reportVerbose('取得中: file.md', '');
+
+      const call = consoleLogSpy.mock.calls[0][0];
+      expect(String(call)).toMatch(/取得中.*file\.md/);
+      expect(String(call)).not.toMatch(/\[\]/);
+    });
   });
 
   describe('reportDryRunFileList', () => {

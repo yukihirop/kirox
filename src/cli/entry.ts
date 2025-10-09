@@ -241,7 +241,7 @@ export async function execute(argv: string[]): Promise<ExecutionResult> {
           // Verbose: Show detailed fetch information with branch
           if (args.verbose && effectiveBranch) {
             const branchInfo = `${owner}/${repo}#${effectiveBranch}/${file.path}`;
-            reporter.reportVerbose(`取得中: ${branchInfo}`);
+            reporter.reportVerbose(`取得中: ${branchInfo}`, displayProjectName);
           }
 
           try {
@@ -271,7 +271,8 @@ export async function execute(argv: string[]): Promise<ExecutionResult> {
               }
             } else if (writeResult.skipped) {
               reporter.reportVerbose(
-                `Skipped: ${file.path} (${writeResult.reason})`
+                `Skipped: ${file.path} (${writeResult.reason})`,
+                displayProjectName
               );
             }
           } catch (error) {

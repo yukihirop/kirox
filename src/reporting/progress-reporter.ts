@@ -330,21 +330,32 @@ export class ProgressReporter {
    *
    * Only displays message if verbose option is enabled
    * Uses gray color to differentiate from regular output
+   * Optionally includes project name prefix for multi-project operations
    *
    * @param message - Verbose/debug message
+   * @param projectName - Optional project name for multi-project display
    *
    * @example
    * ```typescript
    * reporter.reportVerbose('API call took 250ms');
    * // Output: [VERBOSE] API call took 250ms (only if verbose=true, in gray)
+   *
+   * reporter.reportVerbose('取得中: file.md', 'proj1');
+   * // Output: [VERBOSE] [proj1] 取得中: file.md (only if verbose=true, in gray)
    * ```
    */
-  reportVerbose(message: string): void {
+  reportVerbose(message: string, projectName?: string): void {
     if (!this.options.verbose) {
       return;
     }
 
-    const formattedMessage = `[VERBOSE] ${message}`;
+    // Build message with optional project prefix
+    let formattedMessage: string;
+    if (projectName && projectName.trim() !== '') {
+      formattedMessage = `[VERBOSE] [${projectName}] ${message}`;
+    } else {
+      formattedMessage = `[VERBOSE] ${message}`;
+    }
 
     console.log(this.chalk.gray(formattedMessage));
   }
