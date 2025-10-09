@@ -200,4 +200,88 @@ describe('Multi-Project Loop Integration', () => {
       expect(result.success).toBe(false); // Overall failure due to proj1
     });
   });
+
+  describe('spec path construction per project', () => {
+    it('should construct correct spec path for each project', async () => {
+      // RED Task 7.3: Test spec path construction for each project
+      const projects = ['proj1', 'proj2', 'proj3'];
+
+      mockFetchDirectoryContents.mockResolvedValue([
+        { type: 'file', path: '.kiro/specs/test/file.md', name: 'file.md' },
+      ]);
+
+      await execute(['node', 'kirox', 'owner/repo', '-p', projects.join(',')]);
+
+      // Verify fetchDirectoryContents called with correct spec paths
+      const specCalls = mockFetchDirectoryContents.mock.calls.filter(
+        (call) => call[3]?.includes('specs')
+      );
+
+      expect(specCalls.length).toBe(3);
+      expect(specCalls[0][3]).toBe('.kiro/specs/proj1');
+      expect(specCalls[1][3]).toBe('.kiro/specs/proj2');
+      expect(specCalls[2][3]).toBe('.kiro/specs/proj3');
+    });
+
+    it('should construct spec path with subdirectory', async () => {
+      // RED Task 7.3: Test spec path construction with subdir
+      const projects = ['proj1', 'proj2'];
+
+      await execute(['node', 'kirox', 'owner/repo', '--subdir', 'packages/api', '-p', projects.join(',')]);
+
+      const specCalls = mockFetchDirectoryContents.mock.calls.filter(
+        (call) => call[3]?.includes('specs')
+      );
+
+      expect(specCalls[0][3]).toBe('packages/api/.kiro/specs/proj1');
+      expect(specCalls[1][3]).toBe('packages/api/.kiro/specs/proj2');
+    });
+
+    it('should handle project not found error gracefully', async () => {
+      // GREEN Task 7.3: Test GitHub API 404 error for non-existent project
+      mockFetchDirectoryContents
+        .mockResolvedValueOnce([
+          { type: 'file', path: '.kiro/specs/proj1/file.md', name: 'file.md' },
+        ])
+        .mockResolvedValueOnce([]) // steering
+        .mockRejectedValueOnce(
+          Object.assign(new Error('Not Found'), { status: 404 })
+        )
+        .mockResolvedValueOnce([
+          { type: 'file', path: '.kiro/specs/proj3/file.md', name: 'file.md' },
+        ]);
+
+      mockFetchFilesInParallel
+        .mockResolvedValueOnce({
+          success: [{ path: '.kiro/specs/proj1/file.md', content: 'test', sha: 'abc', size: 4 }],
+          failed: [],
+        })
+        .mockResolvedValueOnce({
+          success: [{ path: '.kiro/specs/proj3/file.md', content: 'test', sha: 'def', size: 4 }],
+          failed: [],
+        });
+
+      mockWriteFile.mockResolvedValue({ written: true, skipped: false });
+
+      const result = await execute(['node', 'kirox', 'owner/repo', '-p', 'proj1,proj2,proj3']);
+
+      // Should process proj1 and proj3, but fail on proj2
+      expect(result.success).toBe(false);
+      expect(result.filesDownloaded).toBe(2); // proj1 + proj3
+      expect(result.exitCode).toBe(1); // Partial failure
+    });
+
+    it('should handle all projects not found', async () => {
+      // GREEN Task 7.3: Test all projects fail with 404
+      mockFetchDirectoryContents
+        .mockRejectedValue(Object.assign(new Error('Not Found'), { status: 404 }));
+
+      const result = await execute(['node', 'kirox', 'owner/repo', '-p', 'proj1,proj2,proj3']);
+
+      // All projects failed
+      expect(result.success).toBe(false);
+      expect(result.filesDownloaded).toBe(0);
+      expect(result.exitCode).toBe(1);
+    });
+  });
 });
