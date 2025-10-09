@@ -154,7 +154,7 @@ describe('StatusClassifier', () => {
       };
 
       const message = getStatusMessage(statusInfo);
-      expect(message).toContain('最新');
+      expect(message).toContain('Up to date');
     });
 
     it('REMOTE_UPDATEDの場合に適切なメッセージを返す', () => {
@@ -166,7 +166,7 @@ describe('StatusClassifier', () => {
       };
 
       const message = getStatusMessage(statusInfo);
-      expect(message).toContain('更新可能');
+      expect(message).toContain('Update available');
     });
 
     it('LOCAL_EDITEDの場合に適切なメッセージを返す', () => {
@@ -178,7 +178,7 @@ describe('StatusClassifier', () => {
       };
 
       const message = getStatusMessage(statusInfo);
-      expect(message).toContain('ローカル編集あり');
+      expect(message).toContain('Local edits');
     });
 
     it('CONFLICTの場合に適切なメッセージを返す', () => {
@@ -190,7 +190,7 @@ describe('StatusClassifier', () => {
       };
 
       const message = getStatusMessage(statusInfo);
-      expect(message).toContain('競合');
+      expect(message).toContain('Conflict');
     });
 
     it('LOCAL_DELETEDの場合に適切なメッセージを返す', () => {
@@ -202,7 +202,7 @@ describe('StatusClassifier', () => {
       };
 
       const message = getStatusMessage(statusInfo);
-      expect(message).toContain('ローカルで削除');
+      expect(message).toContain('Deleted locally');
     });
 
     it('REMOTE_DELETEDの場合に適切なメッセージを返す', () => {
@@ -214,7 +214,7 @@ describe('StatusClassifier', () => {
       };
 
       const message = getStatusMessage(statusInfo);
-      expect(message).toContain('リモートで削除');
+      expect(message).toContain('Deleted remotely');
     });
 
     it('ERRORの場合に適切なメッセージを返す', () => {
@@ -227,7 +227,7 @@ describe('StatusClassifier', () => {
       };
 
       const message = getStatusMessage(statusInfo);
-      expect(message).toContain('エラー');
+      expect(message).toContain('Error');
       expect(message).toContain('Network error');
     });
   });

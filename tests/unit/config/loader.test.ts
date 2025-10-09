@@ -84,7 +84,7 @@ describe('Configuration Loader - Multi-Project Support', () => {
       mockReadFile.mockResolvedValue(configContent);
 
       await expect(loadConfig('./.kiroxrc.json')).rejects.toThrow(
-        '設定ファイルのproject配列が空です'
+        'Empty project array in config file'
       );
     });
 
@@ -98,7 +98,7 @@ describe('Configuration Loader - Multi-Project Support', () => {
       mockReadFile.mockResolvedValue(configContent);
 
       await expect(loadConfig('./.kiroxrc.json')).rejects.toThrow(
-        '設定ファイルのproject配列に文字列以外の値が含まれています'
+        'Non-string value found in project array in config file'
       );
     });
 
@@ -112,7 +112,7 @@ describe('Configuration Loader - Multi-Project Support', () => {
       mockReadFile.mockResolvedValue(configContent);
 
       await expect(loadConfig('./.kiroxrc.json')).rejects.toThrow(
-        '設定ファイルのproject値が無効です'
+        'Invalid project value in config file'
       );
     });
 
@@ -126,7 +126,7 @@ describe('Configuration Loader - Multi-Project Support', () => {
       mockReadFile.mockResolvedValue(configContent);
 
       await expect(loadConfig('./.kiroxrc.json')).rejects.toThrow(
-        '設定ファイルのproject値が無効です'
+        'Invalid project value in config file'
       );
     });
 

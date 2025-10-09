@@ -100,7 +100,7 @@ describe('ErrorHandler', () => {
       const message = handler.formatMessage('REPOSITORY_NOT_FOUND', context);
 
       expect(message).toContain('owner/repo');
-      expect(message).toContain('見つかりません');
+      expect(message).toContain('not found');
     });
 
     it('should format PROJECT_NOT_FOUND message with project name', () => {
@@ -112,7 +112,7 @@ describe('ErrorHandler', () => {
       const message = handler.formatMessage('PROJECT_NOT_FOUND', context);
 
       expect(message).toContain('my-project');
-      expect(message).toContain('見つかりません');
+      expect(message).toContain('not found');
     });
 
     it('should format NETWORK_ERROR message', () => {
@@ -120,8 +120,8 @@ describe('ErrorHandler', () => {
 
       const message = handler.formatMessage('NETWORK_ERROR', context);
 
-      expect(message).toContain('接続');
-      expect(message).toContain('エラー');
+      expect(message).toContain('Network');
+      expect(message).toContain('connection');
     });
 
     it('should format RATE_LIMIT message', () => {
@@ -129,8 +129,8 @@ describe('ErrorHandler', () => {
 
       const message = handler.formatMessage('RATE_LIMIT', context);
 
-      expect(message).toContain('API制限');
-      expect(message).toContain('待って');
+      expect(message).toContain('rate limit');
+      expect(message).toContain('wait');
     });
 
     it('should format ACCESS_DENIED message', () => {
@@ -138,8 +138,8 @@ describe('ErrorHandler', () => {
 
       const message = handler.formatMessage('ACCESS_DENIED', context);
 
-      expect(message).toContain('アクセス権限');
-      expect(message).toContain('ありません');
+      expect(message).toContain('Access');
+      expect(message).toContain('denied');
     });
 
     it('should format FILE_TOO_LARGE message with file path', () => {
@@ -148,7 +148,7 @@ describe('ErrorHandler', () => {
       const message = handler.formatMessage('FILE_TOO_LARGE', context);
 
       expect(message).toContain('large-file.md');
-      expect(message).toContain('大きすぎます');
+      expect(message).toContain('too large');
     });
 
     it('should format TOO_MANY_FILES message with count', () => {
@@ -157,7 +157,7 @@ describe('ErrorHandler', () => {
       const message = handler.formatMessage('TOO_MANY_FILES', context);
 
       expect(message).toContain('150');
-      expect(message).toContain('多すぎます');
+      expect(message).toContain('Too many');
     });
 
     it('should format FILESYSTEM_ERROR message', () => {
@@ -165,8 +165,8 @@ describe('ErrorHandler', () => {
 
       const message = handler.formatMessage('FILESYSTEM_ERROR', context);
 
-      expect(message).toContain('ファイルシステム');
-      expect(message).toContain('エラー');
+      expect(message).toContain('Filesystem');
+      expect(message).toContain('error');
     });
 
     it('should format VALIDATION_ERROR message', () => {
@@ -174,8 +174,8 @@ describe('ErrorHandler', () => {
 
       const message = handler.formatMessage('VALIDATION_ERROR', context);
 
-      expect(message).toContain('入力');
-      expect(message).toContain('不正');
+      expect(message).toContain('Invalid');
+      expect(message).toContain('input');
     });
   });
 
@@ -208,7 +208,7 @@ describe('ErrorHandler', () => {
       const result = handler.handle(error, { repository: 'owner/repo' });
 
       expect(result.message).toContain('owner/repo');
-      expect(result.message).toContain('見つかりません');
+      expect(result.message).toContain('not found');
     });
 
     it('should mark RATE_LIMIT as recoverable', () => {

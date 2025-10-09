@@ -37,7 +37,7 @@ describe('LocalEditDetector - detectLocalEdit', () => {
       expect(result.status).toBe(EditStatus.NO_EDIT);
       expect(result.currentHash).toBe(recordedHash);
       expect(result.recordedHash).toBe(recordedHash);
-      expect(result.message).toContain('編集なし');
+      expect(result.message).toContain('not edited');
     });
 
     it('空ファイルのハッシュが一致する場合に「編集なし」を返す', async () => {
@@ -91,7 +91,7 @@ describe('LocalEditDetector - detectLocalEdit', () => {
       expect(result.status).toBe(EditStatus.EDITED);
       expect(result.currentHash).not.toBe(recordedHash);
       expect(result.recordedHash).toBe(recordedHash);
-      expect(result.message).toContain('ローカル編集あり');
+      expect(result.message).toContain('Local edits');
     });
 
     it('わずかな違いでも「編集あり」を返す', async () => {
@@ -140,7 +140,7 @@ describe('LocalEditDetector - detectLocalEdit', () => {
       expect(result.status).toBe(EditStatus.DELETED);
       expect(result.currentHash).toBeUndefined();
       expect(result.recordedHash).toBe(recordedHash);
-      expect(result.message).toContain('削除済み');
+      expect(result.message).toContain('deleted');
     });
 
     it('ディレクトリに変更された場合に「削除済み」を返す', async () => {
@@ -155,7 +155,7 @@ describe('LocalEditDetector - detectLocalEdit', () => {
       // Assert
       expect(result.status).toBe(EditStatus.DELETED);
       expect(result.currentHash).toBeUndefined();
-      expect(result.message).toContain('削除済み');
+      expect(result.message).toContain('deleted');
     });
   });
 
@@ -174,7 +174,7 @@ describe('LocalEditDetector - detectLocalEdit', () => {
       expect(result.status).toBe(EditStatus.UNKNOWN);
       expect(result.currentHash).toBeUndefined();
       expect(result.recordedHash).toBe(recordedHash);
-      expect(result.message).toContain('状態不明');
+      expect(result.message).toContain('unknown');
       expect(result.error).toBeDefined();
 
       // Cleanup

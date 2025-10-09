@@ -67,31 +67,31 @@ describe('buildRemotePath', () => {
   describe('Invalid project name detection', () => {
     it('should throw error for project name with path traversal', () => {
       expect(() => buildRemotePath('packages/api', '../etc', 'specs')).toThrow(
-        '無効なプロジェクト名です: "../etc"'
+        'Invalid project name: "../etc"'
       );
     });
 
     it('should throw error for project name with forward slash', () => {
       expect(() => buildRemotePath('packages/api', 'my/project', 'specs')).toThrow(
-        '無効なプロジェクト名です: "my/project"'
+        'Invalid project name: "my/project"'
       );
     });
 
     it('should throw error for project name with backslash', () => {
       expect(() => buildRemotePath('packages/api', 'my\\project', 'specs')).toThrow(
-        '無効なプロジェクト名です: "my\\project"'
+        'Invalid project name: "my\\project"'
       );
     });
 
     it('should throw error for empty project name', () => {
       expect(() => buildRemotePath('packages/api', '', 'specs')).toThrow(
-        '無効なプロジェクト名です: ""'
+        'Invalid project name: ""'
       );
     });
 
     it('should throw error for whitespace-only project name', () => {
       expect(() => buildRemotePath('packages/api', '   ', 'specs')).toThrow(
-        '無効なプロジェクト名です: "   "'
+        'Invalid project name: "   "'
       );
     });
   });

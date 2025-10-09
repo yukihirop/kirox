@@ -53,14 +53,14 @@ export async function detectLocalEdit(
         status: EditStatus.NO_EDIT,
         currentHash,
         recordedHash,
-        message: 'ファイルは編集なし',
+        message: 'File not edited',
       };
     } else {
       return {
         status: EditStatus.EDITED,
         currentHash,
         recordedHash,
-        message: 'ローカル編集あり',
+        message: 'Local edits detected',
       };
     }
   } catch (error) {
@@ -72,7 +72,7 @@ export async function detectLocalEdit(
           return {
             status: EditStatus.DELETED,
             recordedHash,
-            message: 'ファイルは削除済み',
+            message: 'File deleted',
           };
         }
 
@@ -80,7 +80,7 @@ export async function detectLocalEdit(
         return {
           status: EditStatus.UNKNOWN,
           recordedHash,
-          message: 'ファイルの状態不明（ハッシュ計算失敗）',
+          message: 'File status unknown (hash calculation failed)',
           error: error.details || error.message,
         };
       }
@@ -90,7 +90,7 @@ export async function detectLocalEdit(
     return {
       status: EditStatus.UNKNOWN,
       recordedHash,
-      message: 'ファイルの状態不明（ハッシュ計算失敗）',
+      message: 'File status unknown (hash calculation failed)',
       error: error instanceof Error ? error.message : String(error),
     };
   }

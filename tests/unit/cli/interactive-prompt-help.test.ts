@@ -17,20 +17,20 @@ const promptSource = readFileSync(
 
 describe('Interactive Prompt Help Text (task 13.2)', () => {
   describe('Project prompt message', () => {
-    it('should have Japanese message mentioning comma-separated multiple projects', () => {
-      // Verify: Prompt message is in Japanese and mentions comma-separated
-      const hasJapaneseMultiProjectHelp =
-        promptSource.includes('カンマ区切り') &&
-        promptSource.includes('複数');
+    it('should have English message mentioning comma-separated multiple projects', () => {
+      // Verify: Prompt message is in English and mentions comma-separated
+      const hasEnglishMultiProjectHelp =
+        promptSource.includes('comma-separated') &&
+        promptSource.includes('multiple projects');
 
-      expect(hasJapaneseMultiProjectHelp).toBe(true);
+      expect(hasEnglishMultiProjectHelp).toBe(true);
     });
 
     it('should have project prompt message with multiple project guidance', () => {
       // Verify: Message contains guidance about multiple projects
       const hasMultiProjectGuidance =
-        promptSource.includes('プロジェクト名') &&
-        (promptSource.includes('カンマ区切り') || promptSource.includes('複数指定'));
+        promptSource.includes('project name') &&
+        (promptSource.includes('comma-separated') || promptSource.includes('multiple'));
 
       expect(hasMultiProjectGuidance).toBe(true);
     });

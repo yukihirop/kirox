@@ -92,28 +92,28 @@ export function isLocalEditedOnly(statusInfo: FileStatusInfo): boolean {
 export function getStatusMessage(statusInfo: FileStatusInfo): string {
   switch (statusInfo.status) {
     case UpdateStatus.UP_TO_DATE:
-      return '最新（変更なし）';
+      return 'Up to date (no changes)';
 
     case UpdateStatus.REMOTE_UPDATED:
-      return '更新可能（リモート更新あり）';
+      return 'Update available (remote updated)';
 
     case UpdateStatus.LOCAL_EDITED:
-      return 'ローカル編集あり（リモート更新なし）';
+      return 'Local edits exist (no remote update)';
 
     case UpdateStatus.CONFLICT:
-      return '競合（リモート更新 & ローカル編集）';
+      return 'Conflict (remote update & local edits)';
 
     case UpdateStatus.LOCAL_DELETED:
-      return 'ローカルで削除済み';
+      return 'Deleted locally';
 
     case UpdateStatus.REMOTE_DELETED:
-      return 'リモートで削除済み';
+      return 'Deleted remotely';
 
     case UpdateStatus.ERROR:
-      return `エラー: ${statusInfo.error || '不明なエラー'}`;
+      return `Error: ${statusInfo.error || 'Unknown error'}`;
 
     default:
-      return '不明なステータス';
+      return 'Unknown status';
   }
 }
 

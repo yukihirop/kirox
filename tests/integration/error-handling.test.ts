@@ -183,7 +183,7 @@ describe('Multi-Project Error Handling Integration', () => {
       // Verify project-specific error was reported
       const errorCalls = consoleErrorSpy.mock.calls.flat();
       const hasProjectError = errorCalls.some(
-        (arg) => String(arg).includes('[proj1]') && String(arg).includes('エラー')
+        (arg) => String(arg).includes('[proj1]') && String(arg).includes('Error')
       );
 
       expect(hasProjectError).toBe(true);
@@ -349,13 +349,13 @@ describe('Multi-Project Error Handling Integration', () => {
       // Verify each project error is reported
       const errorCalls = consoleErrorSpy.mock.calls.flat();
       const hasProj1Error = errorCalls.some(
-        (arg) => String(arg).includes('[proj1]') && String(arg).includes('エラー')
+        (arg) => String(arg).includes('[proj1]') && String(arg).includes('Error')
       );
       const hasProj2Error = errorCalls.some(
-        (arg) => String(arg).includes('[proj2]') && String(arg).includes('エラー')
+        (arg) => String(arg).includes('[proj2]') && String(arg).includes('Error')
       );
       const hasProj3Error = errorCalls.some(
-        (arg) => String(arg).includes('[proj3]') && String(arg).includes('エラー')
+        (arg) => String(arg).includes('[proj3]') && String(arg).includes('Error')
       );
 
       expect(hasProj1Error).toBe(true);

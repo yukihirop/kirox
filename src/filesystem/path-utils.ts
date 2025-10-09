@@ -134,7 +134,7 @@ export function buildRemotePath(
 
   if (type === 'specs') {
     if (!isValidProjectName(projectName)) {
-      throw new Error(`無効なプロジェクト名です: "${projectName}"`);
+      throw new Error(`Invalid project name: "${projectName}"`);
     }
     return `${kiroBase}/specs/${projectName}`;
   } else {

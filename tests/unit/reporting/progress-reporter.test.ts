@@ -191,7 +191,7 @@ describe('ProgressReporter', () => {
 
       const allCalls = consoleLogSpy.mock.calls.map((call) => call[0]);
       const hasMultiProjectInfo = allCalls.some((msg) =>
-        String(msg).includes('3個のプロジェクト') ||
+        /Fetching 3 projects|3 projects/i.test(String(msg)) ||
         (String(msg).includes('proj1') && String(msg).includes('proj2') && String(msg).includes('proj3'))
       );
 
@@ -209,7 +209,7 @@ describe('ProgressReporter', () => {
         String(msg).includes('packages/api/.kiro')
       );
       const hasMultiProject = allCalls.some((msg) =>
-        String(msg).includes('2個のプロジェクト')
+        /Fetching 2 projects|2 projects/i.test(String(msg))
       );
 
       expect(hasSubdir).toBe(true);
@@ -227,7 +227,7 @@ describe('ProgressReporter', () => {
         String(msg).includes('branch: main')
       );
       const hasMultiProject = allCalls.some((msg) =>
-        String(msg).includes('2個のプロジェクト')
+        /Fetching 2 projects|2 projects/i.test(String(msg))
       );
 
       expect(hasBranch).toBe(true);
@@ -245,7 +245,7 @@ describe('ProgressReporter', () => {
         String(msg).includes('Project: single-project')
       );
       const hasMultiProjectDisplay = allCalls.some((msg) =>
-        String(msg).includes('個のプロジェクト')
+        /Fetching.*projects/i.test(String(msg))
       );
 
       expect(hasSingleProjectDisplay).toBe(true);
@@ -842,11 +842,11 @@ describe('ProgressReporter', () => {
 
       // Check all console.log calls
       const allCalls = consoleLogSpy.mock.calls.map((call) => call[0]);
-      const hasHeader = allCalls.some((msg) => String(msg).includes('全体サマリー'));
-      const hasProjectCount = allCalls.some((msg) => /プロジェクト数.*3/i.test(String(msg)));
-      const hasTotalFiles = allCalls.some((msg) => /合計ファイル数.*27/i.test(String(msg)));
-      const hasSuccess = allCalls.some((msg) => /成功.*24.*ファイル/i.test(String(msg)));
-      const hasFailed = allCalls.some((msg) => /失敗.*3.*ファイル/i.test(String(msg)));
+      const hasHeader = allCalls.some((msg) => String(msg).includes('Overall Summary'));
+      const hasProjectCount = allCalls.some((msg) => /Projects.*3/i.test(String(msg)));
+      const hasTotalFiles = allCalls.some((msg) => /Total files.*27/i.test(String(msg)));
+      const hasSuccess = allCalls.some((msg) => /Succeeded.*24.*files/i.test(String(msg)));
+      const hasFailed = allCalls.some((msg) => /Failed.*3.*files/i.test(String(msg)));
 
       expect(hasHeader).toBe(true);
       expect(hasProjectCount).toBe(true);
@@ -863,10 +863,10 @@ describe('ProgressReporter', () => {
 
       // Check all console.log calls
       const allCalls = consoleLogSpy.mock.calls.map((call) => call[0]);
-      const hasProjectCount = allCalls.some((msg) => /プロジェクト数.*2/i.test(String(msg)));
-      const hasTotalFiles = allCalls.some((msg) => /合計ファイル数.*20/i.test(String(msg)));
-      const hasSuccess = allCalls.some((msg) => /成功.*20.*ファイル/i.test(String(msg)));
-      const hasFailed = allCalls.some((msg) => /失敗.*0.*ファイル/i.test(String(msg)));
+      const hasProjectCount = allCalls.some((msg) => /Projects.*2/i.test(String(msg)));
+      const hasTotalFiles = allCalls.some((msg) => /Total files.*20/i.test(String(msg)));
+      const hasSuccess = allCalls.some((msg) => /Succeeded.*20.*files/i.test(String(msg)));
+      const hasFailed = allCalls.some((msg) => /Failed.*0.*files/i.test(String(msg)));
 
       expect(hasProjectCount).toBe(true);
       expect(hasTotalFiles).toBe(true);
@@ -902,7 +902,7 @@ describe('ProgressReporter', () => {
         String(msg).includes('Project: single-project')
       );
       const hasMultiProjectDisplay = allCalls.some((msg) =>
-        /取得対象.*プロジェクト/i.test(String(msg))
+        /Fetching.*projects/i.test(String(msg))
       );
 
       expect(hasSingleProjectDisplay).toBe(true);
@@ -973,7 +973,7 @@ describe('ProgressReporter', () => {
 
       const allCalls = consoleLogSpy.mock.calls.map((call) => call[0]);
       const hasOverallSummaryHeader = allCalls.some((msg) =>
-        String(msg).includes('全体サマリー')
+        String(msg).includes('Overall Summary')
       );
 
       // reportSummary alone should NOT show overall summary header
@@ -1043,7 +1043,7 @@ describe('ProgressReporter', () => {
 
       const allCalls = consoleErrorSpy.mock.calls.map((call) => call[0]);
       const hasErrorMark = allCalls.some((msg) =>
-        String(msg).includes('✗') || String(msg).includes('Error') || String(msg).includes('失敗')
+        String(msg).includes('✗') || String(msg).includes('Error')
       );
 
       expect(hasErrorMark).toBe(true);

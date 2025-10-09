@@ -288,7 +288,7 @@ describe('FileUpdater', () => {
 
       expect(result.success).toBe(false);
       expect(result.error).toBeDefined();
-      expect(result.error).toContain('ディレクトリ');
+      expect(result.error).toContain('directory');
     });
 
     it('エラー発生時に元のメタデータを保持する', async () => {

@@ -64,12 +64,12 @@ export class ProgressReporter {
    * ```typescript
    * reporter.reportStart('owner/repo', ['proj1', 'proj2', 'proj3']);
    * // Output: Fetching files from owner/repo/.kiro
-   * //         取得対象: 3個のプロジェクト (proj1, proj2, proj3)
+   * //         Fetching 3 projects: proj1, proj2, proj3
    * //         Source: owner/repo (default branch)
    *
    * reporter.reportStart('owner/repo', ['proj1', 'proj2'], 'packages/api', 'main');
    * // Output: Fetching files from owner/repo/packages/api/.kiro
-   * //         取得対象: 2個のプロジェクト (proj1, proj2)
+   * //         Fetching 2 projects: proj1, proj2
    * //         Source: owner/repo (branch: main)
    * ```
    */
@@ -118,7 +118,7 @@ export class ProgressReporter {
         // Multiple projects
         const projectCount = projectOrProjects.length;
         const projectList = projectOrProjects.join(', ');
-        return `取得対象: ${projectCount}個のプロジェクト (${projectList})`;
+        return `Fetching ${projectCount} projects: ${projectList}`;
       }
     } else {
       // Single project display
@@ -373,10 +373,10 @@ export class ProgressReporter {
    * @example
    * ```typescript
    * reporter.reportProjectSummary('proj1', 8, 2);
-   * // Output: [proj1] 完了: 8ファイル成功, 2ファイル失敗
+   * // Output: [proj1] Completed: 8 files succeeded, 2 files failed
    *
    * reporter.reportProjectSummary('proj2', 10, 0);
-   * // Output: [proj2] 完了: 10ファイル成功, 0ファイル失敗
+   * // Output: [proj2] Completed: 10 files succeeded, 0 files failed
    * ```
    */
   reportProjectSummary(
@@ -384,9 +384,9 @@ export class ProgressReporter {
     filesDownloaded: number,
     filesFailed: number
   ): void {
-    const successText = `${filesDownloaded}ファイル成功`;
-    const failedText = `${filesFailed}ファイル失敗`;
-    const summaryMessage = `[${projectName}] 完了: ${successText}, ${failedText}`;
+    const successText = `${filesDownloaded} files succeeded`;
+    const failedText = `${filesFailed} files failed`;
+    const summaryMessage = `[${projectName}] Completed: ${successText}, ${failedText}`;
 
     console.log(this.chalk.cyan(summaryMessage));
   }
@@ -436,11 +436,11 @@ export class ProgressReporter {
    * ```typescript
    * reporter.reportOverallSummary(3, 24, 3);
    * // Output:
-   * // === 全体サマリー ===
-   * // プロジェクト数: 3
-   * // 合計ファイル数: 27
-   * // 成功: 24ファイル
-   * // 失敗: 3ファイル
+   * // === Overall Summary ===
+   * // Projects: 3
+   * // Total files: 27
+   * // Succeeded: 24 files
+   * // Failed: 3 files
    * ```
    */
   reportOverallSummary(
@@ -450,11 +450,11 @@ export class ProgressReporter {
   ): void {
     const totalFiles = totalDownloaded + totalFailed;
 
-    console.log(this.chalk.cyan('\n=== 全体サマリー ==='));
-    console.log(this.chalk.cyan(`プロジェクト数: ${totalProjects}`));
-    console.log(this.chalk.cyan(`合計ファイル数: ${totalFiles}`));
-    console.log(this.chalk.cyan(`成功: ${totalDownloaded}ファイル`));
-    console.log(this.chalk.cyan(`失敗: ${totalFailed}ファイル`));
+    console.log(this.chalk.cyan('\n=== Overall Summary ==='));
+    console.log(this.chalk.cyan(`Projects: ${totalProjects}`));
+    console.log(this.chalk.cyan(`Total files: ${totalFiles}`));
+    console.log(this.chalk.cyan(`Succeeded: ${totalDownloaded} files`));
+    console.log(this.chalk.cyan(`Failed: ${totalFailed} files`));
   }
 
   /**
@@ -486,7 +486,7 @@ export class ProgressReporter {
       errorMessage = 'Unknown error';
     }
 
-    const formattedMessage = `✗ [${projectName}] エラー: ${errorMessage}`;
+    const formattedMessage = `✗ [${projectName}] Error: ${errorMessage}`;
 
     console.error(this.chalk.red(formattedMessage));
   }

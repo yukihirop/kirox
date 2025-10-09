@@ -70,7 +70,7 @@ export async function updateFile(
       return {
         success: false,
         oldSha,
-        error: `ファイルではなくディレクトリまたは不明な型です: ${response.data.type}`,
+        error: `Not a file, but directory or unknown type: ${response.data.type}`,
       };
     }
 

@@ -71,7 +71,7 @@ describe('promptProject', () => {
 
       expect(mockInput).toHaveBeenCalledWith(
         expect.objectContaining({
-          message: 'プロジェクト名を入力してください (カンマ区切りで複数指定可能)',
+          message: 'Enter project name (comma-separated for multiple projects)',
         })
       );
     });
