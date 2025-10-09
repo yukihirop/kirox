@@ -333,6 +333,7 @@ export async function execute(argv: string[]): Promise<ExecutionResult> {
             await upsertProject({
               repository: args.repository,
               projectName: projectName,
+              subdir: args.subdir,
               fetchedAt: new Date().toISOString(),
               files: [],
             }, metadataPath);

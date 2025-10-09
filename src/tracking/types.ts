@@ -26,6 +26,8 @@ export interface ProjectMetadata {
   repository: string;
   /** Project name */
   projectName: string;
+  /** Optional subdirectory path */
+  subdir?: string;
   /** Timestamp when project was last fetched */
   fetchedAt: string;
   /** List of tracked files */
