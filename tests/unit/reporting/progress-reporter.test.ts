@@ -888,4 +888,96 @@ describe('ProgressReporter', () => {
       expect(hasCyanCode).toBe(true);
     });
   });
+
+  describe('Backward compatibility for single-project operations (task 8.6)', () => {
+    it('should maintain single-project reportStart behavior with string argument', () => {
+      const options: ReporterOptions = { verbose: false, useColor: true };
+      const reporter = new ProgressReporter(options);
+
+      reporter.reportStart('owner/repo', 'single-project');
+
+      // Check for single-project display format (not multi-project format)
+      const allCalls = consoleLogSpy.mock.calls.map((call) => call[0]);
+      const hasSingleProjectDisplay = allCalls.some((msg) =>
+        String(msg).includes('Project: single-project')
+      );
+      const hasMultiProjectDisplay = allCalls.some((msg) =>
+        /取得対象.*プロジェクト/i.test(String(msg))
+      );
+
+      expect(hasSingleProjectDisplay).toBe(true);
+      expect(hasMultiProjectDisplay).toBe(false);
+    });
+
+    it('should not display project prefix in reportProgress for single-project mode', () => {
+      const options: ReporterOptions = { verbose: false, useColor: true };
+      const reporter = new ProgressReporter(options);
+
+      // Single-project mode: projectName is undefined or empty
+      reporter.reportProgress(1, 10, 'test.md', undefined);
+
+      const allCalls = consoleLogSpy.mock.calls.map((call) => call[0]);
+      const hasProjectPrefix = allCalls.some((msg) =>
+        /\[.*\]\s*\[1\/10\]/.test(String(msg))
+      );
+      const hasCorrectFormat = allCalls.some((msg) =>
+        /\[1\/10\]\s*Fetching/.test(String(msg))
+      );
+
+      expect(hasProjectPrefix).toBe(false);
+      expect(hasCorrectFormat).toBe(true);
+    });
+
+    it('should not display project prefix in reportVerbose for single-project mode', () => {
+      const options: ReporterOptions = { verbose: true, useColor: true };
+      const reporter = new ProgressReporter(options);
+
+      // Single-project mode: projectName is undefined
+      reporter.reportVerbose('Processing file', undefined);
+
+      const allCalls = consoleLogSpy.mock.calls.map((call) => call[0]);
+      const hasProjectPrefix = allCalls.some((msg) =>
+        /\[VERBOSE\]\s*\[.*\]\s*Processing/.test(String(msg))
+      );
+      const hasCorrectFormat = allCalls.some((msg) =>
+        /\[VERBOSE\]\s*Processing/.test(String(msg))
+      );
+
+      expect(hasProjectPrefix).toBe(false);
+      expect(hasCorrectFormat).toBe(true);
+    });
+
+    it('should maintain existing reportSummary behavior for single-project', () => {
+      const options: ReporterOptions = { verbose: false, useColor: true };
+      const reporter = new ProgressReporter(options);
+
+      reporter.reportSummary(8, 2);
+
+      // Check that reportSummary works as before (no project-specific info)
+      const allCalls = consoleLogSpy.mock.calls.map((call) => call[0]);
+      const hasSuccessMessage = allCalls.some((msg) => /8.*succeeded/i.test(String(msg)));
+      const hasFailedMessage = allCalls.some((msg) => /2.*failed/i.test(String(msg)));
+
+      expect(hasSuccessMessage).toBe(true);
+      expect(hasFailedMessage).toBe(true);
+    });
+
+    it('should not display overall summary for single-project operations', () => {
+      const options: ReporterOptions = { verbose: false, useColor: true };
+      const reporter = new ProgressReporter(options);
+
+      // In single-project mode, reportOverallSummary should NOT be called
+      // This test verifies that the method exists but is only used for multi-project
+      // We verify this indirectly by checking that reportSummary works standalone
+      reporter.reportSummary(10, 0);
+
+      const allCalls = consoleLogSpy.mock.calls.map((call) => call[0]);
+      const hasOverallSummaryHeader = allCalls.some((msg) =>
+        String(msg).includes('全体サマリー')
+      );
+
+      // reportSummary alone should NOT show overall summary header
+      expect(hasOverallSummaryHeader).toBe(false);
+    });
+  });
 });
