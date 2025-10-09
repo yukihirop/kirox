@@ -832,4 +832,60 @@ describe('ProgressReporter', () => {
       expect(hasNoFilesMessage).toBe(true);
     });
   });
+
+  describe('reportOverallSummary', () => {
+    it('should display overall summary with project count and file counts', () => {
+      const options: ReporterOptions = { verbose: false, useColor: true };
+      const reporter = new ProgressReporter(options);
+
+      reporter.reportOverallSummary(3, 24, 3);
+
+      // Check all console.log calls
+      const allCalls = consoleLogSpy.mock.calls.map((call) => call[0]);
+      const hasHeader = allCalls.some((msg) => String(msg).includes('全体サマリー'));
+      const hasProjectCount = allCalls.some((msg) => /プロジェクト数.*3/i.test(String(msg)));
+      const hasTotalFiles = allCalls.some((msg) => /合計ファイル数.*27/i.test(String(msg)));
+      const hasSuccess = allCalls.some((msg) => /成功.*24.*ファイル/i.test(String(msg)));
+      const hasFailed = allCalls.some((msg) => /失敗.*3.*ファイル/i.test(String(msg)));
+
+      expect(hasHeader).toBe(true);
+      expect(hasProjectCount).toBe(true);
+      expect(hasTotalFiles).toBe(true);
+      expect(hasSuccess).toBe(true);
+      expect(hasFailed).toBe(true);
+    });
+
+    it('should display overall summary when all files succeeded', () => {
+      const options: ReporterOptions = { verbose: false, useColor: true };
+      const reporter = new ProgressReporter(options);
+
+      reporter.reportOverallSummary(2, 20, 0);
+
+      // Check all console.log calls
+      const allCalls = consoleLogSpy.mock.calls.map((call) => call[0]);
+      const hasProjectCount = allCalls.some((msg) => /プロジェクト数.*2/i.test(String(msg)));
+      const hasTotalFiles = allCalls.some((msg) => /合計ファイル数.*20/i.test(String(msg)));
+      const hasSuccess = allCalls.some((msg) => /成功.*20.*ファイル/i.test(String(msg)));
+      const hasFailed = allCalls.some((msg) => /失敗.*0.*ファイル/i.test(String(msg)));
+
+      expect(hasProjectCount).toBe(true);
+      expect(hasTotalFiles).toBe(true);
+      expect(hasSuccess).toBe(true);
+      expect(hasFailed).toBe(true);
+    });
+
+    it('should use cyan color for overall summary when useColor is true', () => {
+      const options: ReporterOptions = { verbose: false, useColor: true };
+      const reporter = new ProgressReporter(options);
+
+      reporter.reportOverallSummary(3, 24, 3);
+
+      const calls = consoleLogSpy.mock.calls.flat();
+      const hasCyanCode = calls.some((arg) =>
+        String(arg).includes('\x1b[36m')
+      );
+
+      expect(hasCyanCode).toBe(true);
+    });
+  });
 });

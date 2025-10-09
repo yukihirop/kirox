@@ -410,6 +410,11 @@ export async function execute(argv: string[]): Promise<ExecutionResult> {
     // Step 6: Report summary
     reporter.reportSummary(totalFilesDownloaded, totalFilesFailed, subdir, effectiveBranch);
 
+    // Step 6.1: Report overall summary for multi-project operations
+    if (projects.length > 1) {
+      reporter.reportOverallSummary(projects.length, totalFilesDownloaded, totalFilesFailed);
+    }
+
     logger.info('Execution completed', {
       filesDownloaded: totalFilesDownloaded,
       filesFailed: totalFilesFailed,

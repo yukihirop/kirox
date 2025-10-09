@@ -421,4 +421,39 @@ export class ProgressReporter {
       console.log(this.chalk.cyan(`  - ${file}`));
     });
   }
+
+  /**
+   * Report overall summary for all projects
+   *
+   * Displays total project count, total file count, success count, and failure count
+   * Used in multi-project operations to show aggregated results
+   *
+   * @param totalProjects - Total number of projects processed
+   * @param totalDownloaded - Total successful downloads across all projects
+   * @param totalFailed - Total failures across all projects
+   *
+   * @example
+   * ```typescript
+   * reporter.reportOverallSummary(3, 24, 3);
+   * // Output:
+   * // === 全体サマリー ===
+   * // プロジェクト数: 3
+   * // 合計ファイル数: 27
+   * // 成功: 24ファイル
+   * // 失敗: 3ファイル
+   * ```
+   */
+  reportOverallSummary(
+    totalProjects: number,
+    totalDownloaded: number,
+    totalFailed: number
+  ): void {
+    const totalFiles = totalDownloaded + totalFailed;
+
+    console.log(this.chalk.cyan('\n=== 全体サマリー ==='));
+    console.log(this.chalk.cyan(`プロジェクト数: ${totalProjects}`));
+    console.log(this.chalk.cyan(`合計ファイル数: ${totalFiles}`));
+    console.log(this.chalk.cyan(`成功: ${totalDownloaded}ファイル`));
+    console.log(this.chalk.cyan(`失敗: ${totalFailed}ファイル`));
+  }
 }
