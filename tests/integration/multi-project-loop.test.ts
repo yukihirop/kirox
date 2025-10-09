@@ -201,6 +201,97 @@ describe('Multi-Project Loop Integration', () => {
     });
   });
 
+  describe('file write per project', () => {
+    it('should write files for each project separately', async () => {
+      // RED Task 7.4: Test file writing per project
+      mockFetchDirectoryContents
+        .mockResolvedValueOnce([
+          { type: 'file', path: '.kiro/specs/proj1/file1.md', name: 'file1.md' },
+        ])
+        .mockResolvedValueOnce([]) // steering
+        .mockResolvedValueOnce([
+          { type: 'file', path: '.kiro/specs/proj2/file2.md', name: 'file2.md' },
+        ]);
+
+      mockFetchFilesInParallel
+        .mockResolvedValueOnce({
+          success: [{ path: '.kiro/specs/proj1/file1.md', content: 'content1', sha: 'abc', size: 8 }],
+          failed: [],
+        })
+        .mockResolvedValueOnce({
+          success: [{ path: '.kiro/specs/proj2/file2.md', content: 'content2', sha: 'def', size: 8 }],
+          failed: [],
+        });
+
+      mockWriteFile.mockResolvedValue({ written: true, skipped: false });
+
+      const result = await execute(['node', 'kirox', 'owner/repo', '-p', 'proj1,proj2']);
+
+      // Verify writeFile called for each project's files
+      expect(mockWriteFile).toHaveBeenCalledTimes(2);
+      expect(result.filesDownloaded).toBe(2);
+      expect(result.filesFailed).toBe(0);
+    });
+
+    it('should handle write errors per project', async () => {
+      // RED Task 7.4: Test write error handling
+      mockFetchDirectoryContents.mockResolvedValue([
+        { type: 'file', path: '.kiro/specs/test/file.md', name: 'file.md' },
+      ]);
+
+      mockFetchFilesInParallel
+        .mockResolvedValueOnce({
+          success: [{ path: '.kiro/specs/proj1/file1.md', content: 'test', sha: 'abc', size: 4 }],
+          failed: [],
+        })
+        .mockResolvedValueOnce({
+          success: [{ path: '.kiro/specs/proj2/file2.md', content: 'test', sha: 'def', size: 4 }],
+          failed: [],
+        });
+
+      // First project succeeds, second project fails at write
+      mockWriteFile
+        .mockResolvedValueOnce({ written: true, skipped: false })
+        .mockRejectedValueOnce(new Error('Write permission denied'));
+
+      const result = await execute(['node', 'kirox', 'owner/repo', '-p', 'proj1,proj2']);
+
+      // First project should succeed, second should fail
+      expect(result.filesDownloaded).toBe(1);
+      expect(result.filesFailed).toBe(1);
+      expect(result.success).toBe(false);
+    });
+
+    it('should track written files per project for metadata', async () => {
+      // RED Task 7.4: Test metadata tracking per project
+      mockFetchDirectoryContents
+        .mockResolvedValueOnce([
+          { type: 'file', path: '.kiro/specs/proj1/file1.md', name: 'file1.md' },
+        ])
+        .mockResolvedValueOnce([]) // steering
+        .mockResolvedValueOnce([
+          { type: 'file', path: '.kiro/specs/proj2/file2.md', name: 'file2.md' },
+        ]);
+
+      mockFetchFilesInParallel
+        .mockResolvedValueOnce({
+          success: [{ path: '.kiro/specs/proj1/file1.md', content: 'test1', sha: 'sha1', size: 5 }],
+          failed: [],
+        })
+        .mockResolvedValueOnce({
+          success: [{ path: '.kiro/specs/proj2/file2.md', content: 'test2', sha: 'sha2', size: 5 }],
+          failed: [],
+        });
+
+      mockWriteFile.mockResolvedValue({ written: true, skipped: false });
+
+      await execute(['node', 'kirox', 'owner/repo', '-p', 'proj1,proj2', '--track']);
+
+      // Verify writeFile was called for both projects
+      expect(mockWriteFile).toHaveBeenCalledTimes(2);
+    });
+  });
+
   describe('spec path construction per project', () => {
     it('should construct correct spec path for each project', async () => {
       // RED Task 7.3: Test spec path construction for each project
