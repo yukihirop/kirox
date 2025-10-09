@@ -391,6 +391,11 @@ export async function execute(argv: string[]): Promise<ExecutionResult> {
         totalFilesDownloaded += projectFilesDownloaded;
         totalFilesFailed += projectFilesFailed;
 
+        // Step 5.7: Display project summary for multi-project operations
+        if (projects.length > 1) {
+          reporter.reportProjectSummary(projectName, projectFilesDownloaded, projectFilesFailed);
+        }
+
       } catch (error) {
         // Handle project-specific errors
         const errorResult = errorHandler.handle(error, {

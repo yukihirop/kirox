@@ -361,6 +361,37 @@ export class ProgressReporter {
   }
 
   /**
+   * Report summary for completed project
+   *
+   * Displays success and failure counts for a specific project
+   * Used in multi-project operations to show per-project results
+   *
+   * @param projectName - Project name
+   * @param filesDownloaded - Number of successful downloads
+   * @param filesFailed - Number of failures
+   *
+   * @example
+   * ```typescript
+   * reporter.reportProjectSummary('proj1', 8, 2);
+   * // Output: [proj1] 完了: 8ファイル成功, 2ファイル失敗
+   *
+   * reporter.reportProjectSummary('proj2', 10, 0);
+   * // Output: [proj2] 完了: 10ファイル成功, 0ファイル失敗
+   * ```
+   */
+  reportProjectSummary(
+    projectName: string,
+    filesDownloaded: number,
+    filesFailed: number
+  ): void {
+    const successText = `${filesDownloaded}ファイル成功`;
+    const failedText = `${filesFailed}ファイル失敗`;
+    const summaryMessage = `[${projectName}] 完了: ${successText}, ${failedText}`;
+
+    console.log(this.chalk.cyan(summaryMessage));
+  }
+
+  /**
    * Report dry-run file list
    *
    * Displays list of files that would be fetched in dry-run mode

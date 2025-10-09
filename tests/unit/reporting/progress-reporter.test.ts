@@ -692,6 +692,54 @@ describe('ProgressReporter', () => {
     });
   });
 
+  describe('reportProjectSummary', () => {
+    // Task 8.4: Project-specific summary display
+    it('should display project summary with success and failure counts (task 8.4)', () => {
+      const options: ReporterOptions = { verbose: false, useColor: true };
+      const reporter = new ProgressReporter(options);
+
+      reporter.reportProjectSummary('proj1', 8, 2);
+
+      const allCalls = consoleLogSpy.mock.calls.map((call) => call[0]);
+      const hasSummary = allCalls.some((msg) =>
+        String(msg).includes('[proj1]') &&
+        String(msg).includes('8') &&
+        String(msg).includes('2')
+      );
+
+      expect(hasSummary).toBe(true);
+    });
+
+    it('should display project summary with all success (task 8.4)', () => {
+      const options: ReporterOptions = { verbose: false, useColor: true };
+      const reporter = new ProgressReporter(options);
+
+      reporter.reportProjectSummary('proj2', 10, 0);
+
+      const allCalls = consoleLogSpy.mock.calls.map((call) => call[0]);
+      const hasSummary = allCalls.some((msg) =>
+        String(msg).includes('[proj2]') &&
+        String(msg).includes('10')
+      );
+
+      expect(hasSummary).toBe(true);
+    });
+
+    it('should use colored output for project summary (task 8.4)', () => {
+      const options: ReporterOptions = { verbose: false, useColor: true };
+      const reporter = new ProgressReporter(options);
+
+      reporter.reportProjectSummary('proj1', 5, 3);
+
+      const calls = consoleLogSpy.mock.calls.flat();
+      const hasColorCodes = calls.some((arg) =>
+        String(arg).includes('\x1b[')
+      );
+
+      expect(hasColorCodes).toBe(true);
+    });
+  });
+
   describe('reportDryRunFileList', () => {
     it('should display list of files to be fetched in dry-run mode', () => {
       const options: ReporterOptions = { verbose: false, useColor: true };
