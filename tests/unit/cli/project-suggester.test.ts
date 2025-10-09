@@ -160,7 +160,7 @@ describe('ProjectSuggester', () => {
   });
 
   describe('エラーハンドリング', () => {
-    it('404エラー時はフォールバックフラグを設定する', async () => {
+    it('404エラー時はフォールバックフラグと適切なエラーメッセージを設定する', async () => {
       // Arrange
       const error404 = new Error('Repository not found');
       Object.assign(error404, { status: 404 });
@@ -178,9 +178,10 @@ describe('ProjectSuggester', () => {
       // Assert
       expect(result.success).toBe(false);
       expect(result.projects).toEqual([]);
+      expect(result.errorMessage).toBe('.kiro/specs/ directory not found in repository');
     });
 
-    it('401エラー時はフォールバックフラグを設定する', async () => {
+    it('401エラー時はフォールバックフラグと認証エラーメッセージを設定する', async () => {
       // Arrange
       const error401 = new Error('Unauthorized');
       Object.assign(error401, { status: 401 });
@@ -198,9 +199,10 @@ describe('ProjectSuggester', () => {
       // Assert
       expect(result.success).toBe(false);
       expect(result.projects).toEqual([]);
+      expect(result.errorMessage).toBe('Authentication error: Please set GITHUB_TOKEN environment variable');
     });
 
-    it('403エラー時はフォールバックフラグを設定する', async () => {
+    it('403エラー時はフォールバックフラグと認証エラーメッセージを設定する', async () => {
       // Arrange
       const error403 = new Error('Forbidden');
       Object.assign(error403, { status: 403 });
@@ -218,9 +220,10 @@ describe('ProjectSuggester', () => {
       // Assert
       expect(result.success).toBe(false);
       expect(result.projects).toEqual([]);
+      expect(result.errorMessage).toBe('Authentication error: Please set GITHUB_TOKEN environment variable');
     });
 
-    it('その他のエラー時はフォールバックフラグを設定する', async () => {
+    it('その他のエラー時はフォールバックフラグと汎用エラーメッセージを設定する', async () => {
       // Arrange
       const networkError = new Error('Network error');
       mockFetchDirectoryContents.mockRejectedValue(networkError);
@@ -237,9 +240,10 @@ describe('ProjectSuggester', () => {
       // Assert
       expect(result.success).toBe(false);
       expect(result.projects).toEqual([]);
+      expect(result.errorMessage).toBe('Failed to fetch project list from GitHub');
     });
 
-    it('空ディレクトリの場合はフォールバックフラグを設定する', async () => {
+    it('空ディレクトリの場合はフォールバックフラグと適切なメッセージを設定する', async () => {
       // Arrange
       mockFetchDirectoryContents.mockResolvedValue([]);
 
@@ -255,9 +259,10 @@ describe('ProjectSuggester', () => {
       // Assert
       expect(result.success).toBe(false);
       expect(result.projects).toEqual([]);
+      expect(result.errorMessage).toBe('No projects found in .kiro/specs/');
     });
 
-    it('ファイルのみでディレクトリがない場合はフォールバックフラグを設定する', async () => {
+    it('ファイルのみでディレクトリがない場合はフォールバックフラグと適切なメッセージを設定する', async () => {
       // Arrange
       const mockContents = [
         { name: 'README.md', path: '.kiro/specs/README.md', type: 'file' as const, sha: 'abc123' },
@@ -277,6 +282,7 @@ describe('ProjectSuggester', () => {
       // Assert
       expect(result.success).toBe(false);
       expect(result.projects).toEqual([]);
+      expect(result.errorMessage).toBe('No projects found in .kiro/specs/');
     });
   });
 

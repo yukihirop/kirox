@@ -18,6 +18,8 @@ export interface ProjectSuggestionResult {
   projects: string[];
   /** Whether suggestion was successful (true) or fallback to manual (false) */
   success: boolean;
+  /** Error message when success is false (optional) */
+  errorMessage?: string;
 }
 
 /**
@@ -34,6 +36,31 @@ export interface ProjectSuggestionOptions {
   logger: Logger;
   /** Enable verbose logging */
   verbose: boolean;
+}
+
+/**
+ * Get appropriate error message based on error status
+ *
+ * @param error - Error object from GitHub API
+ * @returns User-friendly error message
+ */
+function getErrorMessage(error: unknown): string {
+  // Default error message for generic failures
+  const defaultMessage = 'Failed to fetch project list from GitHub';
+
+  // Check if error has status property (GitHub API error)
+  if (error && typeof error === 'object' && 'status' in error) {
+    const status = (error as { status: number }).status;
+
+    if (status === 404) {
+      return '.kiro/specs/ directory not found in repository';
+    }
+    if (status === 401 || status === 403) {
+      return 'Authentication error: Please set GITHUB_TOKEN environment variable';
+    }
+  }
+
+  return defaultMessage;
 }
 
 /**
@@ -79,12 +106,13 @@ export async function suggestProjects(
 
     // Check if any projects found
     if (projects.length === 0) {
+      const errorMessage = 'No projects found in .kiro/specs/';
       if (verbose) {
-        logger.error('No projects found in .kiro/specs/', {
+        logger.error(errorMessage, {
           repository: `${repository.owner}/${repository.repo}`,
         });
       }
-      return { projects: [], success: false };
+      return { projects: [], success: false, errorMessage };
     }
 
     // Verbose logging: Success
@@ -97,6 +125,9 @@ export async function suggestProjects(
 
     return { projects, success: true };
   } catch (error) {
+    // Determine error message based on error type
+    const errorMessage = getErrorMessage(error);
+
     // Verbose logging: Error details
     if (verbose) {
       logger.error('Failed to fetch projects from GitHub', {
@@ -105,7 +136,7 @@ export async function suggestProjects(
       });
     }
 
-    // Fallback: Return empty projects with success: false
-    return { projects: [], success: false };
+    // Fallback: Return empty projects with success: false and error message
+    return { projects: [], success: false, errorMessage };
   }
 }
