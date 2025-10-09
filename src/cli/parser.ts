@@ -56,7 +56,7 @@ Examples:
   $ npx kirox owner/repo#develop --subdir packages/api -p my-project
 
 Note:
-  Branch specification: use # after repo name (e.g., owner/repo#develop)
+  ブランチ指定は#の後に指定 (例: owner/repo#develop)
   Interactive mode is only available in TTY environments
 `)
     .allowExcessArguments(false);
