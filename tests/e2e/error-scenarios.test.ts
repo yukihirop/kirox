@@ -377,9 +377,10 @@ describe('E2E Error Scenarios', () => {
 
       const result = await execute(argv);
 
-      // Should succeed because proj2 succeeded (partial success)
+      // Should continue processing but mark as failed due to proj1 failure (partial failure)
       expect(result.filesDownloaded).toBeGreaterThan(0);
-      expect(result.success).toBe(true); // No failures in file downloads
+      expect(result.success).toBe(false); // Overall failure due to proj1 error
+      expect(result.exitCode).toBe(1); // Partial failure
     });
   });
 });
