@@ -85,9 +85,10 @@ export async function promptRepository(currentValue: string): Promise<string> {
  *
  * If a valid project name is already provided, returns it immediately.
  * Otherwise, displays an interactive prompt with real-time validation.
+ * Supports multiple project names separated by commas.
  *
  * @param currentValue - Current project name value (may be empty or whitespace)
- * @returns Validated project name string
+ * @returns Validated project name string (single or comma-separated multiple)
  */
 export async function promptProject(currentValue: string): Promise<string> {
   // Skip prompt if value is already provided (non-empty after trim)
@@ -97,7 +98,7 @@ export async function promptProject(currentValue: string): Promise<string> {
 
   // Display interactive prompt with validation
   return await input({
-    message: 'Enter project name',
+    message: 'Enter project name (comma-separated for multiple projects)',
     validate: (value: string) => {
       const errors = validateProjectName(value);
       if (errors.length > 0) {
