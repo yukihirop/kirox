@@ -92,6 +92,7 @@ describe('Interactive Mode Config File Integration', () => {
         config: undefined,
         checkUpdates: false,
         update: false,
+        track: true,
       });
 
       try {
@@ -134,6 +135,7 @@ describe('Interactive Mode Config File Integration', () => {
         config: undefined,
         checkUpdates: false,
         update: false,
+        track: true,
       });
 
       try {
@@ -172,6 +174,7 @@ describe('Interactive Mode Config File Integration', () => {
         config: undefined,
         checkUpdates: false,
         update: false,
+        track: true,
       });
 
       try {
@@ -207,6 +210,7 @@ describe('Interactive Mode Config File Integration', () => {
         config: undefined,
         checkUpdates: false,
         update: false,
+        track: true,
       });
 
       try {
@@ -240,6 +244,7 @@ describe('Interactive Mode Config File Integration', () => {
         config: undefined,
         checkUpdates: false,
         update: false,
+        track: true,
       });
 
       try {
@@ -278,6 +283,7 @@ describe('Interactive Mode Config File Integration', () => {
         config: undefined,
         checkUpdates: false,
         update: false,
+        track: true,
       });
 
       try {
@@ -313,6 +319,7 @@ describe('Interactive Mode Config File Integration', () => {
         config: customConfigPath,
         checkUpdates: false,
         update: false,
+        track: true,
       });
 
       try {
@@ -353,6 +360,7 @@ describe('Interactive Mode Config File Integration', () => {
         config: '/path/to/custom.json',
         checkUpdates: false,
         update: false,
+        track: true,
       });
 
       try {
@@ -388,6 +396,7 @@ describe('Interactive Mode Config File Integration', () => {
         config: undefined,
         checkUpdates: false,
         update: false,
+        track: true,
       });
 
       try {
