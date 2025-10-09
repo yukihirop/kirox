@@ -98,6 +98,22 @@ export async function promptSingleProject(projects: string[]): Promise<string> {
 }
 
 /**
+ * Format single project name to array
+ *
+ * Converts a single project name string to an array format
+ * suitable for ParsedArguments.projects field.
+ *
+ * @param projectName - Single project name
+ * @returns Array containing the project name, or empty array if empty string
+ */
+export function formatSingleProjectToArray(projectName: string): string[] {
+  if (projectName === '') {
+    return [];
+  }
+  return [projectName];
+}
+
+/**
  * Get appropriate error message based on error status
  *
  * @param error - Error object from GitHub API

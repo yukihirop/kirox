@@ -421,6 +421,20 @@ describe('ProjectSuggester', () => {
       expect(result).toBe('project-b');
     });
 
+    it('選択されたプロジェクト名を文字列として返す', async () => {
+      // Arrange
+      const projects = ['project-x', 'project-y'];
+      mockSelect.mockResolvedValue('project-x');
+
+      // Act
+      const { promptSingleProject } = await import('@/cli/project-suggester.js');
+      const result = await promptSingleProject(projects);
+
+      // Assert
+      expect(typeof result).toBe('string');
+      expect(result).toBe('project-x');
+    });
+
     it('選択肢にプロジェクト名と複数選択モードオプションを含める', async () => {
       // Arrange
       const projects = ['project-a', 'project-b'];
@@ -505,6 +519,46 @@ describe('ProjectSuggester', () => {
 
       // Assert
       expect(result).toBe('__MULTIPLE__');
+    });
+  });
+
+  describe('選択結果の処理とフォーマット変換 (Task 2.2)', () => {
+    it('単一プロジェクト名を配列に変換する', async () => {
+      // Arrange
+      const projectName = 'my-project';
+
+      // Act
+      const { formatSingleProjectToArray } = await import('@/cli/project-suggester.js');
+      const result = formatSingleProjectToArray(projectName);
+
+      // Assert
+      expect(Array.isArray(result)).toBe(true);
+      expect(result).toEqual(['my-project']);
+    });
+
+    it('空文字列の場合は空配列を返す', async () => {
+      // Arrange
+      const projectName = '';
+
+      // Act
+      const { formatSingleProjectToArray } = await import('@/cli/project-suggester.js');
+      const result = formatSingleProjectToArray(projectName);
+
+      // Assert
+      expect(Array.isArray(result)).toBe(true);
+      expect(result).toEqual([]);
+    });
+
+    it('MULTIPLE_SELECTION_MARKERの場合はそのまま配列に格納する', async () => {
+      // Arrange
+      const { MULTIPLE_SELECTION_MARKER, formatSingleProjectToArray } = await import('@/cli/project-suggester.js');
+
+      // Act
+      const result = formatSingleProjectToArray(MULTIPLE_SELECTION_MARKER);
+
+      // Assert
+      expect(Array.isArray(result)).toBe(true);
+      expect(result).toEqual([MULTIPLE_SELECTION_MARKER]);
     });
   });
 });
