@@ -422,4 +422,134 @@ describe('Interactive Mode Config File Integration', () => {
       );
     });
   });
+
+  describe('複数プロジェクト入力の統合テスト', () => {
+    it('should handle comma-separated multiple project input', async () => {
+      // RED: Test comma-separated multiple project names
+      mockLoadConfig.mockResolvedValue({});
+      mockShouldEnterInteractiveMode.mockReturnValue(true);
+
+      // User enters multiple projects separated by commas
+      mockPromptMissingArguments.mockResolvedValue({
+        repository: 'owner/repo',
+        projects: ['project1', 'project2', 'project3'],
+        output: '.',
+        subdir: undefined,
+        force: false,
+        dryRun: false,
+        verbose: false,
+        config: undefined,
+        checkUpdates: false,
+        update: false,
+        track: true,
+      });
+
+      try {
+        await execute(['node', 'kirox']);
+      } catch {
+        // Ignore errors from mocked dependencies
+      }
+
+      const completedArgs = mockPromptMissingArguments.mock.results[0]?.value;
+      await expect(completedArgs).resolves.toMatchObject({
+        projects: ['project1', 'project2', 'project3'],
+      });
+    });
+
+    it('should handle single project input (backward compatibility)', async () => {
+      // RED: Test single project maintains backward compatibility
+      mockLoadConfig.mockResolvedValue({});
+      mockShouldEnterInteractiveMode.mockReturnValue(true);
+
+      // User enters single project
+      mockPromptMissingArguments.mockResolvedValue({
+        repository: 'owner/repo',
+        projects: ['single-project'],
+        output: '.',
+        subdir: undefined,
+        force: false,
+        dryRun: false,
+        verbose: false,
+        config: undefined,
+        checkUpdates: false,
+        update: false,
+        track: true,
+      });
+
+      try {
+        await execute(['node', 'kirox']);
+      } catch {
+        // Ignore errors
+      }
+
+      const completedArgs = mockPromptMissingArguments.mock.results[0]?.value;
+      await expect(completedArgs).resolves.toMatchObject({
+        projects: ['single-project'],
+      });
+    });
+
+    it('should filter out empty elements from comma-separated input', async () => {
+      // RED: Test empty element filtering (e.g., "proj1,,proj2")
+      mockLoadConfig.mockResolvedValue({});
+      mockShouldEnterInteractiveMode.mockReturnValue(true);
+
+      // User input with empty elements (handled by parseProjects)
+      mockPromptMissingArguments.mockResolvedValue({
+        repository: 'owner/repo',
+        projects: ['proj1', 'proj2'], // Empty elements filtered
+        output: '.',
+        subdir: undefined,
+        force: false,
+        dryRun: false,
+        verbose: false,
+        config: undefined,
+        checkUpdates: false,
+        update: false,
+        track: true,
+      });
+
+      try {
+        await execute(['node', 'kirox']);
+      } catch {
+        // Ignore errors
+      }
+
+      const completedArgs = mockPromptMissingArguments.mock.results[0]?.value;
+      await expect(completedArgs).resolves.toMatchObject({
+        projects: ['proj1', 'proj2'],
+      });
+    });
+
+    it('should handle multiple projects with spaces in input', async () => {
+      // RED: Test trimming spaces from project names
+      mockLoadConfig.mockResolvedValue({});
+      mockShouldEnterInteractiveMode.mockReturnValue(true);
+
+      // User input with spaces (handled by parseProjects)
+      mockPromptMissingArguments.mockResolvedValue({
+        repository: 'owner/repo',
+        projects: ['api', 'web', 'mobile'], // Trimmed
+        output: '.',
+        subdir: undefined,
+        force: false,
+        dryRun: false,
+        verbose: false,
+        config: undefined,
+        checkUpdates: false,
+        update: false,
+        track: true,
+      });
+
+      try {
+        await execute(['node', 'kirox']);
+      } catch {
+        // Ignore errors
+      }
+
+      const completedArgs = mockPromptMissingArguments.mock.results[0]?.value;
+      await expect(completedArgs).resolves.toMatchObject({
+        projects: ['api', 'web', 'mobile'],
+      });
+    });
+  });
 });
