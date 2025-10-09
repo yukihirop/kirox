@@ -12,7 +12,7 @@ import type { ParsedArguments } from '@/cli/types.js';
 describe('shouldEnterInteractiveMode', () => {
   const createValidArgs = (): ParsedArguments => ({
     repository: 'owner/repo',
-    project: 'my-project',
+    projects: ['my-project'],
     output: '.',
     force: false,
     dryRun: false,
@@ -70,7 +70,7 @@ describe('shouldEnterInteractiveMode', () => {
 
     it('プロジェクト名が欠落している場合はtrueを返す', () => {
       const args = createValidArgs();
-      args.project = '';
+      args.projects = [];
       const result = shouldEnterInteractiveMode(args);
       expect(result).toBe(true);
     });
@@ -78,7 +78,7 @@ describe('shouldEnterInteractiveMode', () => {
     it('リポジトリとプロジェクト名が両方欠落している場合はtrueを返す', () => {
       const args = createValidArgs();
       args.repository = '';
-      args.project = '';
+      args.projects = [];
       const result = shouldEnterInteractiveMode(args);
       expect(result).toBe(true);
     });
@@ -92,7 +92,7 @@ describe('shouldEnterInteractiveMode', () => {
 
     it('プロジェクト名がundefinedの場合はtrueを返す', () => {
       const args = createValidArgs();
-      args.project = undefined as unknown as string;
+      args.projects = undefined as unknown as string[];
       const result = shouldEnterInteractiveMode(args);
       expect(result).toBe(true);
     });
@@ -102,7 +102,7 @@ describe('shouldEnterInteractiveMode', () => {
     it('--check-updatesが指定されている場合はfalseを返す（引数不足でも）', () => {
       const args = createValidArgs();
       args.repository = '';
-      args.project = '';
+      args.projects = [];
       args.checkUpdates = true;
       const result = shouldEnterInteractiveMode(args);
       expect(result).toBe(false);
@@ -111,7 +111,7 @@ describe('shouldEnterInteractiveMode', () => {
     it('--updateが指定されている場合はfalseを返す（引数不足でも）', () => {
       const args = createValidArgs();
       args.repository = '';
-      args.project = '';
+      args.projects = [];
       args.update = true;
       const result = shouldEnterInteractiveMode(args);
       expect(result).toBe(false);
@@ -155,7 +155,7 @@ describe('shouldEnterInteractiveMode', () => {
       });
 
       const args = createValidArgs();
-      args.project = '';
+      args.projects = [];
       const result = shouldEnterInteractiveMode(args);
       expect(result).toBe(false);
     });
@@ -185,7 +185,7 @@ describe('shouldEnterInteractiveMode', () => {
 
     it('空白のみのプロジェクト名は欠落として扱う', () => {
       const args = createValidArgs();
-      args.project = '   ';
+      args.projects = ['   '];
       const result = shouldEnterInteractiveMode(args);
       expect(result).toBe(true);
     });
@@ -216,7 +216,7 @@ describe('shouldEnterInteractiveMode', () => {
 
     it('--dry-runオプションが指定されていて引数不足時は対話モードに入る', () => {
       const args = createValidArgs();
-      args.project = '';
+      args.projects = [];
       args.dryRun = true;
       const result = shouldEnterInteractiveMode(args);
       expect(result).toBe(true);
@@ -232,7 +232,7 @@ describe('shouldEnterInteractiveMode', () => {
     it('--verboseオプションが指定されていて引数不足時は対話モードに入る', () => {
       const args = createValidArgs();
       args.repository = '';
-      args.project = '';
+      args.projects = [];
       args.verbose = true;
       const result = shouldEnterInteractiveMode(args);
       expect(result).toBe(true);

@@ -6,7 +6,7 @@ describe('CLI Types', () => {
     it('should allow subdir field as optional string', () => {
       const args: ParsedArguments = {
         repository: 'owner/repo',
-        project: 'my-project',
+        projects: ['my-project'],
         output: '.',
         force: false,
         dryRun: false,
@@ -23,7 +23,7 @@ describe('CLI Types', () => {
     it('should allow subdir field to be undefined', () => {
       const args: ParsedArguments = {
         repository: 'owner/repo',
-        project: 'my-project',
+        projects: ['my-project'],
         output: '.',
         force: false,
         dryRun: false,
@@ -39,7 +39,7 @@ describe('CLI Types', () => {
     it('should maintain backward compatibility with existing fields', () => {
       const args: ParsedArguments = {
         repository: 'owner/repo',
-        project: 'my-project',
+        projects: ['my-project'],
         output: '.',
         force: true,
         dryRun: false,
@@ -52,7 +52,7 @@ describe('CLI Types', () => {
       };
 
       expect(args.repository).toBe('owner/repo');
-      expect(args.project).toBe('my-project');
+      expect(args.projects).toEqual(['my-project']);
       expect(args.force).toBe(true);
       expect(args.verbose).toBe(true);
       expect(args.config).toBe('/path/to/config');

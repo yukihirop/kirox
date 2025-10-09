@@ -8,7 +8,7 @@ describe('ArgumentParser', () => {
       const result = parseArguments(argv);
 
       expect(result.repository).toBe('owner/repo');
-      expect(result.project).toBe('my-project');
+      expect(result.projects).toEqual(['my-project']);
     });
 
     it('should parse --force flag', () => {
@@ -54,7 +54,7 @@ describe('ArgumentParser', () => {
       // Should not throw - interactive mode will handle missing arguments
       const result = parseArguments(argv);
       expect(result.repository).toBe('');
-      expect(result.project).toBe('project');
+      expect(result.projects).toEqual(['project']);
     });
 
     it('should allow empty project for interactive mode', () => {
@@ -63,7 +63,7 @@ describe('ArgumentParser', () => {
       // Should not throw - interactive mode will handle missing arguments
       const result = parseArguments(argv);
       expect(result.repository).toBe('owner/repo');
-      expect(result.project).toBe('');
+      expect(result.projects).toEqual([]);
     });
 
     it('should set default values for optional flags', () => {
@@ -81,7 +81,7 @@ describe('ArgumentParser', () => {
       const argv = ['node', 'kirox', 'owner/repo', '-p', 'project'];
       const result = parseArguments(argv);
 
-      expect(result.project).toBe('project');
+      expect(result.projects).toEqual(['project']);
     });
 
     it('should parse --output option with current directory', () => {

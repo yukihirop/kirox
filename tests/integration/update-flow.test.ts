@@ -82,7 +82,7 @@ describe('--update Command Flow Integration', () => {
 
       const args: ParsedArguments = {
         repository: '',
-        project: '',
+        projects: [],
         output: '.',
         force: false,
         dryRun: false,
@@ -187,7 +187,7 @@ describe('--update Command Flow Integration', () => {
 
       const args: ParsedArguments = {
         repository: '',
-        project: '',
+        projects: [],
         output: '.',
         force: false,
         dryRun: false,
@@ -212,7 +212,7 @@ describe('--update Command Flow Integration', () => {
 
       const args: ParsedArguments = {
         repository: '',
-        project: '',
+        projects: [],
         output: '.',
         force: false,
         dryRun: false,
@@ -278,7 +278,7 @@ describe('--update Command Flow Integration', () => {
 
       const args: ParsedArguments = {
         repository: '',
-        project: '',
+        projects: [],
         output: '.',
         force: false,
         dryRun: false,

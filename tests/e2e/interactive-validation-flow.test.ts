@@ -84,7 +84,7 @@ describe('E2E Interactive Validation Error Flow', () => {
       // User provides invalid repository format
       mockPromptMissingArguments.mockResolvedValue({
         repository: 'invalid-repo-format',
-        project: 'test-project',
+        projects: ['test-project'],
         output: testOutputDir,
         subdir: undefined,
         force: false,
@@ -115,7 +115,7 @@ describe('E2E Interactive Validation Error Flow', () => {
 
       mockPromptMissingArguments.mockResolvedValue({
         repository: 'invalidrepo',
-        project: 'test-project',
+        projects: ['test-project'],
         output: testOutputDir,
         subdir: undefined,
         force: false,
@@ -141,7 +141,7 @@ describe('E2E Interactive Validation Error Flow', () => {
 
       mockPromptMissingArguments.mockResolvedValue({
         repository: 'owner/repo/extra',
-        project: 'test-project',
+        projects: ['test-project'],
         output: testOutputDir,
         subdir: undefined,
         force: false,
@@ -166,7 +166,7 @@ describe('E2E Interactive Validation Error Flow', () => {
 
       mockPromptMissingArguments.mockResolvedValue({
         repository: 'owner/repo',
-        project: 'test-project',
+        projects: ['test-project'],
         output: testOutputDir,
         subdir: undefined,
         force: false,
@@ -227,7 +227,7 @@ describe('E2E Interactive Validation Error Flow', () => {
 
       mockPromptMissingArguments.mockResolvedValue({
         repository: 'owner/repo',
-        project: '',
+        projects: [],
         output: testOutputDir,
         subdir: undefined,
         force: false,
@@ -253,7 +253,7 @@ describe('E2E Interactive Validation Error Flow', () => {
 
       mockPromptMissingArguments.mockResolvedValue({
         repository: 'owner/repo',
-        project: '../malicious',
+        projects: ['../malicious'],
         output: testOutputDir,
         subdir: undefined,
         force: false,
@@ -278,7 +278,7 @@ describe('E2E Interactive Validation Error Flow', () => {
 
       mockPromptMissingArguments.mockResolvedValue({
         repository: 'owner/repo',
-        project: 'project@#$%',
+        projects: ['project@#$%'],
         output: testOutputDir,
         subdir: undefined,
         force: false,
@@ -306,7 +306,7 @@ describe('E2E Interactive Validation Error Flow', () => {
       // First attempt: invalid repository
       mockPromptMissingArguments.mockResolvedValueOnce({
         repository: 'invalid',
-        project: 'test-project',
+        projects: ['test-project'],
         output: testOutputDir,
         subdir: undefined,
         force: false,
@@ -328,7 +328,7 @@ describe('E2E Interactive Validation Error Flow', () => {
       // Second attempt: invalid project
       mockPromptMissingArguments.mockResolvedValueOnce({
         repository: 'owner/repo',
-        project: '../bad',
+        projects: ['../bad'],
         output: testOutputDir,
         subdir: undefined,
         force: false,
@@ -350,7 +350,7 @@ describe('E2E Interactive Validation Error Flow', () => {
       // Third attempt: success
       mockPromptMissingArguments.mockResolvedValueOnce({
         repository: 'owner/repo',
-        project: 'test-project',
+        projects: ['test-project'],
         output: testOutputDir,
         subdir: undefined,
         force: false,
@@ -386,7 +386,7 @@ describe('E2E Interactive Validation Error Flow', () => {
       // Both invalid
       mockPromptMissingArguments.mockResolvedValue({
         repository: 'invalid',
-        project: '',
+        projects: [],
         output: testOutputDir,
         subdir: undefined,
         force: false,
@@ -413,7 +413,7 @@ describe('E2E Interactive Validation Error Flow', () => {
 
       mockPromptMissingArguments.mockResolvedValue({
         repository: 'badformat',
-        project: 'test-project',
+        projects: ['test-project'],
         output: testOutputDir,
         subdir: undefined,
         force: false,
@@ -439,7 +439,7 @@ describe('E2E Interactive Validation Error Flow', () => {
 
       mockPromptMissingArguments.mockResolvedValue({
         repository: 'owner/repo',
-        project: '../invalid',
+        projects: ['../invalid'],
         output: testOutputDir,
         subdir: undefined,
         force: false,
@@ -465,7 +465,7 @@ describe('E2E Interactive Validation Error Flow', () => {
       // User provides invalid project via prompt
       mockPromptMissingArguments.mockResolvedValue({
         repository: 'owner/repo',
-        project: '',
+        projects: [],
         output: testOutputDir,
         subdir: undefined,
         force: false,
@@ -493,9 +493,9 @@ describe('E2E Interactive Validation Error Flow', () => {
 
       // Test various invalid formats
       const invalidCases = [
-        { repository: 'no-slash', project: 'valid' },
-        { repository: 'owner/repo', project: '../bad' },
-        { repository: 'owner/repo/extra', project: 'valid' },
+        { repository: 'no-slash', projects: ['valid'] },
+        { repository: 'owner/repo', projects: ['../bad'] },
+        { repository: 'owner/repo/extra', projects: ['valid'] },
       ];
 
       for (const invalidCase of invalidCases) {

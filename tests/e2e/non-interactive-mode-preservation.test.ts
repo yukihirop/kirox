@@ -125,7 +125,7 @@ describe('E2E Non-Interactive Mode Preservation', () => {
       expect(mockShouldEnterInteractiveMode).toHaveBeenCalledWith(
         expect.objectContaining({
           repository: 'owner/repo',
-          project: 'test-project',
+          projects: ['test-project'],
           output: testOutputDir,
         })
       );

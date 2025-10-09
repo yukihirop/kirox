@@ -137,7 +137,9 @@ export async function execute(argv: string[]): Promise<ExecutionResult> {
       useColor: true,
     });
 
-    reporter.reportStart(args.repository, args.project, subdir, effectiveBranch);
+    // For single project (backward compatibility), use first element
+    const projectName = args.projects[0] || '';
+    reporter.reportStart(args.repository, projectName, subdir, effectiveBranch);
 
     // Step 4: Initialize Octokit client
     const octokit = new Octokit({
@@ -147,11 +149,11 @@ export async function execute(argv: string[]): Promise<ExecutionResult> {
     // Step 5: Fetch directory listings
     logger.info('Fetching directory listings from GitHub', {
       repository: args.repository,
-      project: args.project,
+      project: projectName,
       ...(effectiveBranch && { branch: effectiveBranch }),
     });
 
-    const specPath = buildRemotePath(subdir, args.project, 'specs');
+    const specPath = buildRemotePath(subdir, projectName, 'specs');
     const steeringPath = buildRemotePath(subdir, '', 'steering');
 
     // Fetch spec directory (required)
@@ -302,7 +304,7 @@ export async function execute(argv: string[]): Promise<ExecutionResult> {
         // Upsert project
         await upsertProject({
           repository: args.repository,
-          projectName: args.project,
+          projectName: projectName,
           fetchedAt: new Date().toISOString(),
           files: [],
         }, metadataPath);
@@ -321,7 +323,7 @@ export async function execute(argv: string[]): Promise<ExecutionResult> {
               fetchedAt: new Date().toISOString(),
             };
 
-            await upsertFile(args.repository, args.project, fileMetadata, metadataPath);
+            await upsertFile(args.repository, projectName, fileMetadata, metadataPath);
 
             if (args.verbose) {
               logger.info('File metadata saved', {

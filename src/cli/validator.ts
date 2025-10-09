@@ -63,9 +63,13 @@ export function validateInput(args: ParsedArguments): ValidationResult {
       });
     }
 
-    // Validate project name using individual validation function
-    if (args.project) {
-      errors.push(...validateProjectName(args.project));
+    // Validate project name(s) using individual validation function
+    // For backward compatibility, check if projects array is empty
+    if (args.projects.length > 0) {
+      // Validate each project name in the array
+      for (const project of args.projects) {
+        errors.push(...validateProjectName(project));
+      }
     } else {
       errors.push({
         field: 'project',

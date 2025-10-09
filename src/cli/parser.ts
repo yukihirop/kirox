@@ -6,6 +6,7 @@
 
 import { Command } from 'commander';
 import type { ParsedArguments } from './types.js';
+import { parseProjects } from './project-name-parser.js';
 
 /**
  * Parse command-line arguments
@@ -88,9 +89,14 @@ Note:
   // If --check-updates or --update is specified, disable --track
   const track = (options.checkUpdates || options.update) ? false : options.track;
 
+  // Parse project name(s) into array
+  // Empty string becomes empty array, single project becomes 1-element array,
+  // comma-separated projects become multi-element array
+  const projects = parseProjects(options.project || '');
+
   return {
     repository,
-    project: options.project || '',
+    projects,
     output: options.output,
     force: options.force,
     dryRun: options.dryRun,

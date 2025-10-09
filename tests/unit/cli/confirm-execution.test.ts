@@ -22,7 +22,7 @@ describe('confirmExecution', () => {
 
   const createValidArgs = (): ParsedArguments => ({
     repository: 'owner/repo',
-    project: 'my-project',
+    projects: ['my-project'],
     output: '.',
     force: false,
     dryRun: false,

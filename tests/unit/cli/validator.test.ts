@@ -6,7 +6,7 @@ describe('InputValidator', () => {
   describe('validateInput', () => {
     const createValidArgs = (): ParsedArguments => ({
       repository: 'owner/repo',
-      project: 'my-project',
+      projects: ['my-project'],
       output: '.',
       force: false,
       dryRun: false,
@@ -63,7 +63,7 @@ describe('InputValidator', () => {
 
     it('should reject project name with path traversal (..)', () => {
       const args = createValidArgs();
-      args.project = '../malicious';
+      args.projects = ['../malicious'];
       const result = validateInput(args);
 
       expect(result.valid).toBe(false);
@@ -72,7 +72,7 @@ describe('InputValidator', () => {
 
     it('should reject project name with forward slash', () => {
       const args = createValidArgs();
-      args.project = 'path/to/project';
+      args.projects = ['path/to/project'];
       const result = validateInput(args);
 
       expect(result.valid).toBe(false);
@@ -81,7 +81,7 @@ describe('InputValidator', () => {
 
     it('should reject project name with backslash', () => {
       const args = createValidArgs();
-      args.project = 'path\\to\\project';
+      args.projects = ['path\\to\\project'];
       const result = validateInput(args);
 
       expect(result.valid).toBe(false);
@@ -90,7 +90,7 @@ describe('InputValidator', () => {
 
     it('should reject empty project name', () => {
       const args = createValidArgs();
-      args.project = '';
+      args.projects = [''];
       const result = validateInput(args);
 
       expect(result.valid).toBe(false);
@@ -99,7 +99,7 @@ describe('InputValidator', () => {
 
     it('should accept project name with hyphens and underscores', () => {
       const args = createValidArgs();
-      args.project = 'my-project_name';
+      args.projects = ['my-project_name'];
       const result = validateInput(args);
 
       expect(result.valid).toBe(true);
@@ -108,7 +108,7 @@ describe('InputValidator', () => {
     it('should return multiple errors for multiple invalid fields', () => {
       const args = createValidArgs();
       args.repository = 'invalid';
-      args.project = '../malicious';
+      args.projects = ['../malicious'];
       const result = validateInput(args);
 
       expect(result.valid).toBe(false);
@@ -128,7 +128,7 @@ describe('InputValidator', () => {
   describe('validateInput - Command option mutual exclusivity', () => {
     const createValidArgs = (): ParsedArguments => ({
       repository: 'owner/repo',
-      project: 'my-project',
+      projects: ['my-project'],
       output: '.',
       force: false,
       dryRun: false,
@@ -151,7 +151,7 @@ describe('InputValidator', () => {
       const args = createValidArgs();
       args.checkUpdates = true;
       args.repository = '';
-      args.project = '';
+      args.projects = [];
       const result = validateInput(args);
 
       expect(result.valid).toBe(true);
@@ -162,7 +162,7 @@ describe('InputValidator', () => {
       const args = createValidArgs();
       args.update = true;
       args.repository = '';
-      args.project = '';
+      args.projects = [];
       const result = validateInput(args);
 
       expect(result.valid).toBe(true);
@@ -224,7 +224,7 @@ describe('InputValidator', () => {
       const args = createValidArgs();
       args.checkUpdates = true;
       args.repository = '';
-      args.project = '';
+      args.projects = [];
       const result = validateInput(args);
 
       expect(result.valid).toBe(true);
@@ -234,7 +234,7 @@ describe('InputValidator', () => {
       const args = createValidArgs();
       args.update = true;
       args.repository = '';
-      args.project = '';
+      args.projects = [];
       const result = validateInput(args);
 
       expect(result.valid).toBe(true);
@@ -243,7 +243,7 @@ describe('InputValidator', () => {
     it('should require repository/project for regular fetch', () => {
       const args = createValidArgs();
       args.repository = '';
-      args.project = '';
+      args.projects = [];
       const result = validateInput(args);
 
       expect(result.valid).toBe(false);
@@ -254,7 +254,7 @@ describe('InputValidator', () => {
       const args = createValidArgs();
       args.track = true;
       args.repository = '';
-      args.project = '';
+      args.projects = [];
       const result = validateInput(args);
 
       expect(result.valid).toBe(false);
@@ -265,7 +265,7 @@ describe('InputValidator', () => {
   describe('validateInput - Subdirectory path validation', () => {
     const createValidArgs = (): ParsedArguments => ({
       repository: 'owner/repo',
-      project: 'my-project',
+      projects: ['my-project'],
       output: '.',
       force: false,
       dryRun: false,

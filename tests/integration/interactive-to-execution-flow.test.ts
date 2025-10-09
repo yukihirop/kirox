@@ -78,7 +78,7 @@ describe('Interactive to Execution Flow Integration', () => {
       // Mock completed arguments from interactive mode
       const completedArgs = {
         repository: 'owner/repo',
-        project: 'test-project',
+        projects: ['test-project'],
         output: './output',
         subdir: undefined,
         force: false,
@@ -118,7 +118,7 @@ describe('Interactive to Execution Flow Integration', () => {
 
       const completedArgs = {
         repository: 'owner/repo#feature-branch',
-        project: 'test-project',
+        projects: ['test-project'],
         output: '.',
         subdir: undefined,
         force: false,
@@ -149,7 +149,7 @@ describe('Interactive to Execution Flow Integration', () => {
 
       const completedArgs = {
         repository: 'owner/repo',
-        project: 'test-project',
+        projects: ['test-project'],
         output: '.',
         subdir: 'packages/api',
         force: false,
@@ -182,7 +182,7 @@ describe('Interactive to Execution Flow Integration', () => {
 
       const completedArgs = {
         repository: 'test/repo',
-        project: 'my-project',
+        projects: ['my-project'],
         output: './custom-dir',
         subdir: 'src',
         force: false,
@@ -213,7 +213,7 @@ describe('Interactive to Execution Flow Integration', () => {
 
       const completedArgs = {
         repository: 'owner/repo',
-        project: 'project',
+        projects: ['project'],
         output: '.',
         subdir: undefined,
         force: false,
@@ -247,7 +247,7 @@ describe('Interactive to Execution Flow Integration', () => {
       // Interactive mode should validate, but let's test the flow
       const completedArgs = {
         repository: 'invalid-format',
-        project: 'project',
+        projects: ['project'],
         output: '.',
         subdir: undefined,
         force: false,
@@ -283,7 +283,7 @@ describe('Interactive to Execution Flow Integration', () => {
 
         mockPromptMissingArguments.mockResolvedValue({
           repository,
-          project: 'test',
+          projects: ['test'],
           output: '.',
           subdir: undefined,
           force: false,
@@ -308,7 +308,7 @@ describe('Interactive to Execution Flow Integration', () => {
 
       const completedArgs = {
         repository: 'owner/repo#test',
-        project: 'full-flow-test',
+        projects: ['full-flow-test'],
         output: './test-output',
         subdir: 'lib',
         force: false,
@@ -340,7 +340,7 @@ describe('Interactive to Execution Flow Integration', () => {
 
       mockPromptMissingArguments.mockResolvedValue({
         repository: 'owner/repo',
-        project: 'test',
+        projects: ['test'],
         output: '.',
         subdir: undefined,
         force: false,

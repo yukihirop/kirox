@@ -83,7 +83,7 @@ describe('Interactive Mode Config File Integration', () => {
       // Mock promptMissingArguments to return completed args
       mockPromptMissingArguments.mockResolvedValue({
         repository: 'owner/repo',
-        project: 'my-project',
+        projects: ['my-project'],
         output: './config-output',
         subdir: 'config/subdir',
         force: false,
@@ -107,7 +107,7 @@ describe('Interactive Mode Config File Integration', () => {
       expect(mockPromptMissingArguments).toHaveBeenCalledWith(
         expect.objectContaining({
           repository: '',
-          project: '',
+          projects: [],
         }),
         configFile
       );
@@ -125,7 +125,7 @@ describe('Interactive Mode Config File Integration', () => {
       // User accepts config defaults
       mockPromptMissingArguments.mockResolvedValue({
         repository: 'owner/repo',
-        project: 'my-project',
+        projects: ['my-project'],
         output: './from-config',
         subdir: 'lib/components',
         force: false,
@@ -163,7 +163,7 @@ describe('Interactive Mode Config File Integration', () => {
       // User overrides config defaults
       mockPromptMissingArguments.mockResolvedValue({
         repository: 'owner/repo',
-        project: 'my-project',
+        projects: ['my-project'],
         output: './user-override',
         subdir: 'user/subdir',
         force: false,
@@ -198,7 +198,7 @@ describe('Interactive Mode Config File Integration', () => {
       // User provides different value
       mockPromptMissingArguments.mockResolvedValue({
         repository: 'owner/repo',
-        project: 'my-project',
+        projects: ['my-project'],
         output: './different-dir',
         subdir: undefined,
         force: false,
@@ -231,7 +231,7 @@ describe('Interactive Mode Config File Integration', () => {
 
       mockPromptMissingArguments.mockResolvedValue({
         repository: 'owner/repo',
-        project: 'my-project',
+        projects: ['my-project'],
         output: '.',
         subdir: undefined,
         force: false,
@@ -269,7 +269,7 @@ describe('Interactive Mode Config File Integration', () => {
 
       mockPromptMissingArguments.mockResolvedValue({
         repository: 'owner/repo',
-        project: 'my-project',
+        projects: ['my-project'],
         output: '.',
         subdir: undefined,
         force: false,
@@ -304,7 +304,7 @@ describe('Interactive Mode Config File Integration', () => {
 
       mockPromptMissingArguments.mockResolvedValue({
         repository: 'owner/repo',
-        project: 'my-project',
+        projects: ['my-project'],
         output: './custom-output',
         subdir: 'custom/subdir',
         force: false,
@@ -344,7 +344,7 @@ describe('Interactive Mode Config File Integration', () => {
 
       mockPromptMissingArguments.mockResolvedValue({
         repository: 'owner/repo',
-        project: 'my-project',
+        projects: ['my-project'],
         output: '/var/data/output',
         subdir: 'packages/core',
         force: false,
@@ -379,7 +379,7 @@ describe('Interactive Mode Config File Integration', () => {
       mockShouldEnterInteractiveMode.mockReturnValue(true);
       mockPromptMissingArguments.mockResolvedValue({
         repository: 'test/repo',
-        project: 'test-project',
+        projects: ['test-project'],
         output: './test-output',
         subdir: undefined,
         force: false,

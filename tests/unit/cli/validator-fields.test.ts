@@ -179,7 +179,7 @@ describe('validateProjectName', () => {
 describe('validateInput関数との互換性', () => {
   const createValidArgs = (): ParsedArguments => ({
     repository: 'owner/repo',
-    project: 'my-project',
+    projects: ['my-project'],
     output: '.',
     force: false,
     dryRun: false,
@@ -235,7 +235,7 @@ describe('validateInput関数との互換性', () => {
 
       testCases.forEach(({ project, shouldBeValid }) => {
         const args = createValidArgs();
-        args.project = project;
+        args.projects = [project];
         const validateInputResult = validateInput(args);
         const validateNameErrors = validateProjectName(project);
 
@@ -271,7 +271,7 @@ describe('validateInput関数との互換性', () => {
 
     it('プロジェクト名エラーメッセージが一貫している', () => {
       const args = createValidArgs();
-      args.project = '';
+      args.projects = [''];
       const validateInputResult = validateInput(args);
       const validateNameErrors = validateProjectName('');
 
