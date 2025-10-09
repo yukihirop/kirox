@@ -7,7 +7,7 @@
  */
 
 import type { Octokit } from 'octokit';
-import { select } from '@inquirer/prompts';
+import { select, checkbox } from '@inquirer/prompts';
 import { fetchDirectoryContents } from '@/github/fetcher.js';
 import type { RepositoryRef } from '@/github/fetcher.js';
 import type { Logger } from '@/reporting/logger.js';
@@ -111,6 +111,44 @@ export function formatSingleProjectToArray(projectName: string): string[] {
     return [];
   }
   return [projectName];
+}
+
+/**
+ * Build choices for multiple project selection (checkbox prompt)
+ *
+ * Creates an array of choice objects for the checkbox prompt.
+ * Unlike single selection, this does not include the special multiple selection option.
+ *
+ * @param projects - Array of project names
+ * @returns Array of choice objects
+ */
+function buildMultipleProjectChoices(projects: string[]): Choice[] {
+  return projects.map((project) => ({
+    name: project,
+    value: project,
+  }));
+}
+
+/**
+ * Prompt user to select multiple projects from list
+ *
+ * Displays a checkbox UI (checkbox prompt) with project names.
+ * Users can select multiple projects using Space key and confirm with Enter.
+ *
+ * @param projects - Array of project names
+ * @returns Array of selected project names
+ */
+export async function promptMultipleProjects(projects: string[]): Promise<string[]> {
+  const choices = buildMultipleProjectChoices(projects);
+
+  const selected = await checkbox({
+    message: 'Select projects (Space to select, Enter to confirm)',
+    choices,
+    pageSize: 10,
+    loop: true,
+  });
+
+  return selected;
 }
 
 /**

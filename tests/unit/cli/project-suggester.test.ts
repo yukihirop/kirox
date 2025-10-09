@@ -561,4 +561,109 @@ describe('ProjectSuggester', () => {
       expect(result).toEqual([MULTIPLE_SELECTION_MARKER]);
     });
   });
+
+  describe('複数プロジェクト選択UI (Task 3.1)', () => {
+    it('checkboxプロンプトを使用してプロジェクトを選択する', async () => {
+      // Arrange
+      const projects = ['project-a', 'project-b', 'project-c'];
+      mockCheckbox.mockResolvedValue(['project-a', 'project-c']);
+
+      // Act
+      const { promptMultipleProjects } = await import('@/cli/project-suggester.js');
+      const result = await promptMultipleProjects(projects);
+
+      // Assert
+      expect(mockCheckbox).toHaveBeenCalledWith(
+        expect.objectContaining({
+          message: 'Select projects (Space to select, Enter to confirm)',
+          pageSize: 10,
+          loop: true,
+        })
+      );
+      expect(result).toEqual(['project-a', 'project-c']);
+    });
+
+    it('選択肢にプロジェクト名を全て含める', async () => {
+      // Arrange
+      const projects = ['project-a', 'project-b', 'project-c'];
+      mockCheckbox.mockResolvedValue(['project-b']);
+
+      // Act
+      const { promptMultipleProjects } = await import('@/cli/project-suggester.js');
+      await promptMultipleProjects(projects);
+
+      // Assert
+      expect(mockCheckbox).toHaveBeenCalledWith(
+        expect.objectContaining({
+          choices: expect.arrayContaining([
+            { name: 'project-a', value: 'project-a' },
+            { name: 'project-b', value: 'project-b' },
+            { name: 'project-c', value: 'project-c' },
+          ]),
+        })
+      );
+    });
+
+    it('ページサイズが10に設定される', async () => {
+      // Arrange
+      const projects = ['p1', 'p2', 'p3', 'p4', 'p5', 'p6', 'p7', 'p8', 'p9', 'p10', 'p11'];
+      mockCheckbox.mockResolvedValue(['p1']);
+
+      // Act
+      const { promptMultipleProjects } = await import('@/cli/project-suggester.js');
+      await promptMultipleProjects(projects);
+
+      // Assert
+      expect(mockCheckbox).toHaveBeenCalledWith(
+        expect.objectContaining({
+          pageSize: 10,
+        })
+      );
+    });
+
+    it('ループ設定がtrueに設定される', async () => {
+      // Arrange
+      const projects = ['project-a', 'project-b'];
+      mockCheckbox.mockResolvedValue(['project-a']);
+
+      // Act
+      const { promptMultipleProjects } = await import('@/cli/project-suggester.js');
+      await promptMultipleProjects(projects);
+
+      // Assert
+      expect(mockCheckbox).toHaveBeenCalledWith(
+        expect.objectContaining({
+          loop: true,
+        })
+      );
+    });
+
+    it('複数のプロジェクトを選択して配列として返す', async () => {
+      // Arrange
+      const projects = ['project-a', 'project-b', 'project-c', 'project-d'];
+      mockCheckbox.mockResolvedValue(['project-a', 'project-b', 'project-d']);
+
+      // Act
+      const { promptMultipleProjects } = await import('@/cli/project-suggester.js');
+      const result = await promptMultipleProjects(projects);
+
+      // Assert
+      expect(Array.isArray(result)).toBe(true);
+      expect(result).toEqual(['project-a', 'project-b', 'project-d']);
+    });
+
+    it('1つのプロジェクトのみを選択した場合も配列として返す', async () => {
+      // Arrange
+      const projects = ['project-a', 'project-b'];
+      mockCheckbox.mockResolvedValue(['project-b']);
+
+      // Act
+      const { promptMultipleProjects } = await import('@/cli/project-suggester.js');
+      const result = await promptMultipleProjects(projects);
+
+      // Assert
+      expect(Array.isArray(result)).toBe(true);
+      expect(result).toEqual(['project-b']);
+    });
+  });
 });
