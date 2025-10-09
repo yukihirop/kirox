@@ -74,6 +74,29 @@ async function loadConfigFile(filePath: string, required: boolean): Promise<Kiro
       }
     }
 
+    // Task 2.2: Validate project field type in config file
+    if (config.project !== undefined) {
+      // Check if it's not a string or array
+      if (typeof config.project !== 'string' && !Array.isArray(config.project)) {
+        throw new Error('設定ファイルのproject値が無効です');
+      }
+
+      // If it's an array, validate each element
+      if (Array.isArray(config.project)) {
+        // Check for empty array
+        if (config.project.length === 0) {
+          throw new Error('設定ファイルのproject配列が空です');
+        }
+
+        // Check if all elements are strings
+        for (const item of config.project) {
+          if (typeof item !== 'string') {
+            throw new Error('設定ファイルのproject配列に文字列以外の値が含まれています');
+          }
+        }
+      }
+    }
+
     return config;
   } catch (error) {
     if (error instanceof Error) {

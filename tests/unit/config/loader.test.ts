@@ -233,5 +233,82 @@ describe('ConfigLoader', () => {
 
       await expect(loadConfig()).rejects.toThrow('設定ファイルのブランチ名が無効です');
     });
+
+    // Task 2.2: Project field type checking in config file
+    it('should accept project as single string in config file', async () => {
+      const validConfig = {
+        githubToken: 'ghp_test',
+        project: 'my-project',
+      };
+      await fs.writeFile('.kiroxrc.json', JSON.stringify(validConfig));
+
+      const config = await loadConfig();
+      expect(config.project).toBe('my-project');
+    });
+
+    it('should accept project as array of strings in config file', async () => {
+      const validConfig = {
+        project: ['project-a', 'project-b', 'project-c'],
+      };
+      await fs.writeFile('.kiroxrc.json', JSON.stringify(validConfig));
+
+      const config = await loadConfig();
+      expect(config.project).toEqual(['project-a', 'project-b', 'project-c']);
+    });
+
+    it('should accept project as single-element array in config file', async () => {
+      const validConfig = {
+        project: ['single-project'],
+      };
+      await fs.writeFile('.kiroxrc.json', JSON.stringify(validConfig));
+
+      const config = await loadConfig();
+      expect(config.project).toEqual(['single-project']);
+    });
+
+    it('should throw error for project as number in config file', async () => {
+      const invalidConfig = {
+        project: 123,
+      };
+      await fs.writeFile('.kiroxrc.json', JSON.stringify(invalidConfig));
+
+      await expect(loadConfig()).rejects.toThrow('設定ファイルのproject値が無効です');
+    });
+
+    it('should throw error for project as boolean in config file', async () => {
+      const invalidConfig = {
+        project: true,
+      };
+      await fs.writeFile('.kiroxrc.json', JSON.stringify(invalidConfig));
+
+      await expect(loadConfig()).rejects.toThrow('設定ファイルのproject値が無効です');
+    });
+
+    it('should throw error for project as object in config file', async () => {
+      const invalidConfig = {
+        project: { name: 'invalid' },
+      };
+      await fs.writeFile('.kiroxrc.json', JSON.stringify(invalidConfig));
+
+      await expect(loadConfig()).rejects.toThrow('設定ファイルのproject値が無効です');
+    });
+
+    it('should throw error for project array containing non-strings', async () => {
+      const invalidConfig = {
+        project: ['valid-project', 123, 'another-valid'],
+      };
+      await fs.writeFile('.kiroxrc.json', JSON.stringify(invalidConfig));
+
+      await expect(loadConfig()).rejects.toThrow('設定ファイルのproject配列に文字列以外の値が含まれています');
+    });
+
+    it('should throw error for empty project array', async () => {
+      const invalidConfig = {
+        project: [],
+      };
+      await fs.writeFile('.kiroxrc.json', JSON.stringify(invalidConfig));
+
+      await expect(loadConfig()).rejects.toThrow('設定ファイルのproject配列が空です');
+    });
   });
 });

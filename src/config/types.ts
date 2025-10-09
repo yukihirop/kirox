@@ -20,6 +20,8 @@ export interface KiroxConfig {
   subdir?: string;
   /** Default branch/tag/commit SHA to fetch from */
   branch?: string;
+  /** Project name(s) to fetch - single string or array of project names */
+  project?: string | string[];
 }
 
 /**

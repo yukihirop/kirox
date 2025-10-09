@@ -98,6 +98,53 @@ describe('Config Types', () => {
       expect(config.branch).toBe('release/v2.0');
       expect(config.subdir).toBe('packages/core');
     });
+
+    // Task 2.2: Project field support tests (string | string[])
+    it('should allow project field as a single string', () => {
+      const config: KiroxConfig = {
+        project: 'my-project',
+      };
+
+      expect(config.project).toBe('my-project');
+    });
+
+    it('should allow project field as an array of strings', () => {
+      const config: KiroxConfig = {
+        project: ['project-a', 'project-b'],
+      };
+
+      expect(config.project).toEqual(['project-a', 'project-b']);
+    });
+
+    it('should allow project field as an array with one element', () => {
+      const config: KiroxConfig = {
+        project: ['single-project'],
+      };
+
+      expect(config.project).toEqual(['single-project']);
+    });
+
+    it('should allow project field to be undefined', () => {
+      const config: KiroxConfig = {
+        githubToken: 'ghp_test_token',
+      };
+
+      expect(config.project).toBeUndefined();
+    });
+
+    it('should allow project field alongside other fields', () => {
+      const config: KiroxConfig = {
+        githubToken: 'ghp_test_token',
+        defaultConcurrency: 5,
+        project: ['proj1', 'proj2'],
+        branch: 'main',
+        subdir: 'packages',
+      };
+
+      expect(config.project).toEqual(['proj1', 'proj2']);
+      expect(config.branch).toBe('main');
+      expect(config.subdir).toBe('packages');
+    });
   });
 
   describe('MergedConfig', () => {
