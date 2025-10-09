@@ -16,17 +16,25 @@ import type { KiroxConfig } from '../../src/config/types.js';
 // Mock modules
 vi.mock('../../src/config/loader.js');
 vi.mock('../../src/cli/interactive-prompt.js');
-vi.mock('../../src/github/fetcher.js', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('../../src/github/fetcher.js')>();
-  return {
-    ...actual,
-    fetchKiroFiles: vi.fn().mockResolvedValue({
-      success: true,
-      filesDownloaded: 0,
-      filesFailed: 0,
-    }),
-  };
-});
+vi.mock('../../src/github/fetcher.js', () => ({
+  parseRepositoryPath: vi.fn().mockReturnValue({
+    owner: 'test-owner',
+    repo: 'test-repo',
+    branch: undefined,
+  }),
+  fetchDirectoryContents: vi.fn().mockResolvedValue([]),
+  fetchKiroFiles: vi.fn().mockResolvedValue({
+    success: true,
+    filesDownloaded: 0,
+    filesFailed: 0,
+  }),
+}));
+vi.mock('../../src/github/parallel-fetcher.js', () => ({
+  fetchFilesInParallel: vi.fn().mockResolvedValue({
+    success: [],
+    failed: [],
+  }),
+}));
 vi.mock('../../src/filesystem/writer.js');
 vi.mock('../../src/config/merger.js', async (importOriginal) => {
   const actual = await importOriginal<typeof import('../../src/config/merger.js')>();
