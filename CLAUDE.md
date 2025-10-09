@@ -70,6 +70,7 @@ Managed by `/kiro:steering` command. Updates here reflect command changes.
   Mode: Always|Conditional|Manual
   Pattern: File patterns for Conditional mode
 -->
+- `language.md`: Conditional - `"src/cli/**/*"`, `"src/reporting/**/*"`, `"src/**/*prompt*.ts"` - Language policy for user-facing messages (English-only requirement)
 
 ### Inclusion Modes
 - **Always**: Loaded in every interaction (default)
