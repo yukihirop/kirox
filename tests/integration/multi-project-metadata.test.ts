@@ -514,4 +514,295 @@ describe('Multi-Project Metadata Tracking Integration', () => {
       expect(metadata.projects[0].projectName).toBe('proj1');
     });
   });
+
+  describe('--check-updates with multiple projects (task 10.5)', () => {
+    it('should check updates for all tracked projects', async () => {
+      // First, create metadata with two projects
+      const mockOctokit = {
+        rest: {
+          repos: {
+            getContent: vi.fn()
+              // Initial fetch: steering directory
+              .mockResolvedValueOnce({ data: [] })
+              // proj1 spec directory
+              .mockResolvedValueOnce({
+                data: [
+                  {
+                    name: 'file1.md',
+                    path: '.kiro/specs/proj1/file1.md',
+                    type: 'file',
+                    sha: 'sha1',
+                    size: 100,
+                  },
+                ],
+              })
+              // proj1/file1.md content
+              .mockResolvedValueOnce({
+                data: {
+                  type: 'file',
+                  encoding: 'base64',
+                  content: Buffer.from('Content 1').toString('base64'),
+                  size: 100,
+                  path: '.kiro/specs/proj1/file1.md',
+                  sha: 'sha1',
+                },
+              })
+              // proj2 spec directory
+              .mockResolvedValueOnce({
+                data: [
+                  {
+                    name: 'file2.md',
+                    path: '.kiro/specs/proj2/file2.md',
+                    type: 'file',
+                    sha: 'sha2',
+                    size: 200,
+                  },
+                ],
+              })
+              // proj2/file2.md content
+              .mockResolvedValueOnce({
+                data: {
+                  type: 'file',
+                  encoding: 'base64',
+                  content: Buffer.from('Content 2').toString('base64'),
+                  size: 200,
+                  path: '.kiro/specs/proj2/file2.md',
+                  sha: 'sha2',
+                },
+              })
+              // --check-updates: proj1/file1.md check (up-to-date)
+              .mockResolvedValueOnce({
+                data: {
+                  type: 'file',
+                  encoding: 'base64',
+                  content: Buffer.from('Content 1').toString('base64'),
+                  size: 100,
+                  path: '.kiro/specs/proj1/file1.md',
+                  sha: 'sha1',
+                },
+              })
+              // --check-updates: proj2/file2.md check (updated)
+              .mockResolvedValueOnce({
+                data: {
+                  type: 'file',
+                  encoding: 'base64',
+                  content: Buffer.from('Content 2 Updated').toString('base64'),
+                  size: 250,
+                  path: '.kiro/specs/proj2/file2.md',
+                  sha: 'sha2-new',
+                },
+              }),
+          },
+        },
+      };
+
+      vi.mocked(Octokit).mockImplementation(() => mockOctokit as any);
+
+      // Initial fetch with --track
+      const fetchArgv = [
+        'node',
+        'kirox',
+        'owner/repo',
+        '-p',
+        'proj1,proj2',
+        '-o',
+        testOutputDir,
+        '--track',
+      ];
+
+      const fetchResult = await execute(fetchArgv);
+      expect(fetchResult.success).toBe(true);
+
+      // Check updates
+      const checkArgv = ['node', 'kirox', '--check-updates', '-o', testOutputDir];
+
+      const checkResult = await execute(checkArgv);
+      expect(checkResult.success).toBe(true);
+    });
+  });
+
+  describe('--update with multiple projects (task 10.5)', () => {
+    it('should update files for all tracked projects with remote changes', async () => {
+      const mockOctokit = {
+        rest: {
+          repos: {
+            getContent: vi.fn()
+              // Initial fetch: steering directory
+              .mockResolvedValueOnce({ data: [] })
+              // proj1 spec directory
+              .mockResolvedValueOnce({
+                data: [
+                  {
+                    name: 'file1.md',
+                    path: '.kiro/specs/proj1/file1.md',
+                    type: 'file',
+                    sha: 'sha1',
+                    size: 100,
+                  },
+                ],
+              })
+              // proj1/file1.md content
+              .mockResolvedValueOnce({
+                data: {
+                  type: 'file',
+                  encoding: 'base64',
+                  content: Buffer.from('Content 1').toString('base64'),
+                  size: 100,
+                  path: '.kiro/specs/proj1/file1.md',
+                  sha: 'sha1',
+                },
+              })
+              // --update: check proj1/file1.md (up-to-date)
+              .mockResolvedValueOnce({
+                data: {
+                  type: 'file',
+                  encoding: 'base64',
+                  content: Buffer.from('Content 1').toString('base64'),
+                  size: 100,
+                  path: '.kiro/specs/proj1/file1.md',
+                  sha: 'sha1',
+                },
+              }),
+          },
+        },
+      };
+
+      vi.mocked(Octokit).mockImplementation(() => mockOctokit as any);
+
+      // Initial fetch with --track
+      const fetchArgv = [
+        'node',
+        'kirox',
+        'owner/repo',
+        '-p',
+        'proj1',
+        '-o',
+        testOutputDir,
+        '--track',
+      ];
+
+      const fetchResult = await execute(fetchArgv);
+      expect(fetchResult.success).toBe(true);
+
+      // Apply updates
+      const updateArgv = ['node', 'kirox', '--update', '-o', testOutputDir];
+
+      const updateResult = await execute(updateArgv);
+      expect(updateResult.success).toBe(true);
+    });
+  });
+
+  describe('Metadata structure validation (task 10.5)', () => {
+    it('should maintain correct metadata structure with multiple projects', async () => {
+      const mockOctokit = {
+        rest: {
+          repos: {
+            getContent: vi.fn()
+              // steering directory
+              .mockResolvedValueOnce({ data: [] })
+              // proj1 spec directory
+              .mockResolvedValueOnce({
+                data: [
+                  {
+                    name: 'file1.md',
+                    path: '.kiro/specs/proj1/file1.md',
+                    type: 'file',
+                    sha: 'sha1',
+                    size: 100,
+                  },
+                ],
+              })
+              // proj1/file1.md content
+              .mockResolvedValueOnce({
+                data: {
+                  type: 'file',
+                  encoding: 'base64',
+                  content: Buffer.from('Content 1').toString('base64'),
+                  size: 100,
+                  path: '.kiro/specs/proj1/file1.md',
+                  sha: 'sha1',
+                },
+              })
+              // proj2 spec directory
+              .mockResolvedValueOnce({
+                data: [
+                  {
+                    name: 'file2.md',
+                    path: '.kiro/specs/proj2/file2.md',
+                    type: 'file',
+                    sha: 'sha2',
+                    size: 200,
+                  },
+                ],
+              })
+              // proj2/file2.md content
+              .mockResolvedValueOnce({
+                data: {
+                  type: 'file',
+                  encoding: 'base64',
+                  content: Buffer.from('Content 2').toString('base64'),
+                  size: 200,
+                  path: '.kiro/specs/proj2/file2.md',
+                  sha: 'sha2',
+                },
+              }),
+          },
+        },
+      };
+
+      vi.mocked(Octokit).mockImplementation(() => mockOctokit as any);
+
+      const argv = [
+        'node',
+        'kirox',
+        'owner/repo',
+        '-p',
+        'proj1,proj2',
+        '-o',
+        testOutputDir,
+        '--track',
+      ];
+
+      const result = await execute(argv);
+      expect(result.success).toBe(true);
+
+      // Load and validate metadata structure
+      const metadata: Metadata = await loadMetadata(metadataPath);
+
+      // Validate root structure
+      expect(metadata).toHaveProperty('version');
+      expect(metadata).toHaveProperty('projects');
+      expect(metadata.version).toBe('1.0');
+      expect(Array.isArray(metadata.projects)).toBe(true);
+      expect(metadata.projects).toHaveLength(2);
+
+      // Validate each project structure
+      for (const project of metadata.projects) {
+        expect(project).toHaveProperty('repository');
+        expect(project).toHaveProperty('projectName');
+        expect(project).toHaveProperty('fetchedAt');
+        expect(project).toHaveProperty('files');
+
+        expect(typeof project.repository).toBe('string');
+        expect(typeof project.projectName).toBe('string');
+        expect(typeof project.fetchedAt).toBe('string');
+        expect(Array.isArray(project.files)).toBe(true);
+
+        // Validate each file structure
+        for (const file of project.files) {
+          expect(file).toHaveProperty('path');
+          expect(file).toHaveProperty('sha');
+          expect(file).toHaveProperty('localHash');
+          expect(file).toHaveProperty('size');
+          expect(file).toHaveProperty('fetchedAt');
+
+          expect(typeof file.path).toBe('string');
+          expect(typeof file.sha).toBe('string');
+          expect(typeof file.localHash).toBe('string');
+          expect(typeof file.size).toBe('number');
+          expect(typeof file.fetchedAt).toBe('string');
+        }
+      }
+    });
+  });
 });
