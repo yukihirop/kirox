@@ -146,10 +146,12 @@ export class ProgressReporter {
    *
    * Displays progress in [current/total] filename format
    * Strips subdirectory prefix from file paths to match local save paths
+   * Optionally includes project name prefix for multi-project operations
    *
    * @param current - Current file number (1-indexed)
    * @param total - Total number of files
    * @param fileName - Name of file being fetched (may include subdirectory prefix)
+   * @param projectName - Optional project name for multi-project display
    *
    * @example
    * ```typescript
@@ -158,13 +160,23 @@ export class ProgressReporter {
    *
    * reporter.reportProgress(1, 8, 'lib/a/.kiro/specs/project/requirements.md');
    * // Output: [1/8] Fetching .kiro/specs/project/requirements.md...
+   *
+   * reporter.reportProgress(3, 10, 'example.md', 'proj1');
+   * // Output: [proj1] [3/10] Fetching example.md...
    * ```
    */
-  reportProgress(current: number, total: number, fileName: string): void {
+  reportProgress(current: number, total: number, fileName: string, projectName?: string): void {
     // Strip subdirectory prefix from file path to match local save paths
     // Example: lib/a/.kiro/specs/project/file.md -> .kiro/specs/project/file.md
     const displayPath = this.stripSubdirPrefix(fileName);
-    const message = `[${current}/${total}] Fetching ${displayPath}...`;
+
+    // Build message with optional project prefix
+    let message: string;
+    if (projectName && projectName.trim() !== '') {
+      message = `[${projectName}] [${current}/${total}] Fetching ${displayPath}...`;
+    } else {
+      message = `[${current}/${total}] Fetching ${displayPath}...`;
+    }
 
     console.log(this.chalk.cyan(message));
   }

@@ -234,7 +234,9 @@ export async function execute(argv: string[]): Promise<ExecutionResult> {
           const currentIndex = fetchResult.success.indexOf(file) + 1;
           const totalFiles = fetchResult.success.length;
 
-          reporter.reportProgress(currentIndex, totalFiles, file.path);
+          // Show project name prefix for multi-project operations
+          const displayProjectName = projects.length > 1 ? projectName : undefined;
+          reporter.reportProgress(currentIndex, totalFiles, file.path, displayProjectName);
 
           // Verbose: Show detailed fetch information with branch
           if (args.verbose && effectiveBranch) {

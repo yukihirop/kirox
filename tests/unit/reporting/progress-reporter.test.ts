@@ -265,6 +265,39 @@ describe('ProgressReporter', () => {
       );
     });
 
+    // Task 8.2: Project-specific progress display
+    it('should display project name prefix when project provided (task 8.2)', () => {
+      const options: ReporterOptions = { verbose: false, useColor: true };
+      const reporter = new ProgressReporter(options);
+
+      reporter.reportProgress(3, 10, 'example.md', 'proj1');
+
+      const call = consoleLogSpy.mock.calls[0][0];
+      expect(String(call)).toMatch(/\[proj1\].*\[3\/10\].*example\.md/);
+    });
+
+    it('should not display project prefix when project is undefined (task 8.2)', () => {
+      const options: ReporterOptions = { verbose: false, useColor: true };
+      const reporter = new ProgressReporter(options);
+
+      reporter.reportProgress(3, 10, 'example.md', undefined);
+
+      const call = consoleLogSpy.mock.calls[0][0];
+      expect(String(call)).toMatch(/\[3\/10\].*example\.md/);
+      expect(String(call)).not.toContain('[undefined]');
+    });
+
+    it('should handle empty project name (task 8.2)', () => {
+      const options: ReporterOptions = { verbose: false, useColor: true };
+      const reporter = new ProgressReporter(options);
+
+      reporter.reportProgress(3, 10, 'example.md', '');
+
+      const call = consoleLogSpy.mock.calls[0][0];
+      expect(String(call)).toMatch(/\[3\/10\].*example\.md/);
+      expect(String(call)).not.toMatch(/\[\]/);
+    });
+
     it('should strip subdirectory prefix from file paths (bug fix task 5.4)', () => {
       const options: ReporterOptions = { verbose: false, useColor: true };
       const reporter = new ProgressReporter(options);
