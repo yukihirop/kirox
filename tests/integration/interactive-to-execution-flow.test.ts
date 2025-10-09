@@ -360,7 +360,9 @@ describe('Interactive to Execution Flow Integration', () => {
       const result = await execute(['node', 'kirox']);
 
       expect(result.success).toBe(false);
-      expect(result.exitCode).toBe(2);
+      // With multi-project loop, project-level errors are treated as partial failures
+      // and return exitCode: 1 instead of 2
+      expect(result.exitCode).toBe(1);
     });
   });
 });

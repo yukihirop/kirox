@@ -71,7 +71,7 @@ describe('promptProject', () => {
 
       expect(mockInput).toHaveBeenCalledWith(
         expect.objectContaining({
-          message: 'Enter project name',
+          message: 'Enter project name (comma-separated for multiple projects)',
         })
       );
     });
