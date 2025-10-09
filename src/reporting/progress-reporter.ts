@@ -26,7 +26,7 @@ export class ProgressReporter {
   }
 
   /**
-   * Report start of operation
+   * Report start of operation (single project)
    *
    * Displays repository and project information at the beginning of execution
    *
@@ -48,25 +48,97 @@ export class ProgressReporter {
    * //         Source: owner/repo (branch: feature-branch)
    * ```
    */
-  reportStart(repository: string, project: string, subdir?: string, branch?: string): void {
+  reportStart(repository: string, project: string, subdir?: string, branch?: string): void;
+
+  /**
+   * Report start of operation (multi-project)
+   *
+   * Displays repository and multiple projects information at the beginning of execution
+   *
+   * @param repository - GitHub repository (owner/repo)
+   * @param projects - Array of project names
+   * @param subdir - Optional subdirectory path containing .kiro folder
+   * @param branch - Optional branch name
+   *
+   * @example
+   * ```typescript
+   * reporter.reportStart('owner/repo', ['proj1', 'proj2', 'proj3']);
+   * // Output: Fetching files from owner/repo/.kiro
+   * //         Fetching 3 projects: proj1, proj2, proj3
+   * //         Source: owner/repo (default branch)
+   *
+   * reporter.reportStart('owner/repo', ['proj1', 'proj2'], 'packages/api', 'main');
+   * // Output: Fetching files from owner/repo/packages/api/.kiro
+   * //         Fetching 2 projects: proj1, proj2
+   * //         Source: owner/repo (branch: main)
+   * ```
+   */
+  reportStart(repository: string, projects: string[], subdir?: string, branch?: string): void;
+
+  /**
+   * Implementation of reportStart (handles both single and multi-project)
+   */
+  reportStart(
+    repository: string,
+    projectOrProjects: string | string[],
+    subdir?: string,
+    branch?: string
+  ): void {
     const kiroPath = subdir ? `${subdir}/.kiro` : '.kiro';
     const repoText = `Fetching files from ${repository}/${kiroPath}`;
-    const projectText = `Project: ${project}`;
 
     // Extract owner/repo from repository (remove branch if present)
-    const repoOnly = repository.split('#')[0];
+    const repoOnly = repository.split('#')[0] || repository;
 
     // Build branch information text
-    let branchInfo: string;
-    if (branch) {
-      branchInfo = `Source: ${repoOnly} (branch: ${branch})`;
-    } else {
-      branchInfo = `Source: ${repoOnly} (default branch)`;
-    }
+    const branchInfo = this.buildBranchInfo(repoOnly, branch);
 
     console.log(this.chalk.cyan(repoText));
+
+    // Display project information (single or multi-project)
+    const projectText = this.buildProjectText(projectOrProjects);
     console.log(this.chalk.cyan(projectText));
+
     console.log(this.chalk.cyan(branchInfo));
+  }
+
+  /**
+   * Build project information text
+   *
+   * @param projectOrProjects - Single project name or array of project names
+   * @returns Formatted project text
+   */
+  private buildProjectText(projectOrProjects: string | string[]): string {
+    if (Array.isArray(projectOrProjects)) {
+      // Multi-project display
+      if (projectOrProjects.length === 1) {
+        // Single project in array - use single project display
+        return `Project: ${projectOrProjects[0]}`;
+      } else {
+        // Multiple projects
+        const projectCount = projectOrProjects.length;
+        const projectList = projectOrProjects.join(', ');
+        return `Fetching ${projectCount} projects: ${projectList}`;
+      }
+    } else {
+      // Single project display
+      return `Project: ${projectOrProjects}`;
+    }
+  }
+
+  /**
+   * Build branch information text
+   *
+   * @param repository - Repository name (owner/repo)
+   * @param branch - Optional branch name
+   * @returns Formatted branch information
+   */
+  private buildBranchInfo(repository: string, branch?: string): string {
+    if (branch) {
+      return `Source: ${repository} (branch: ${branch})`;
+    } else {
+      return `Source: ${repository} (default branch)`;
+    }
   }
 
   /**
@@ -74,10 +146,12 @@ export class ProgressReporter {
    *
    * Displays progress in [current/total] filename format
    * Strips subdirectory prefix from file paths to match local save paths
+   * Optionally includes project name prefix for multi-project operations
    *
    * @param current - Current file number (1-indexed)
    * @param total - Total number of files
    * @param fileName - Name of file being fetched (may include subdirectory prefix)
+   * @param projectName - Optional project name for multi-project display
    *
    * @example
    * ```typescript
@@ -86,13 +160,23 @@ export class ProgressReporter {
    *
    * reporter.reportProgress(1, 8, 'lib/a/.kiro/specs/project/requirements.md');
    * // Output: [1/8] Fetching .kiro/specs/project/requirements.md...
+   *
+   * reporter.reportProgress(3, 10, 'example.md', 'proj1');
+   * // Output: [proj1] [3/10] Fetching example.md...
    * ```
    */
-  reportProgress(current: number, total: number, fileName: string): void {
+  reportProgress(current: number, total: number, fileName: string, projectName?: string): void {
     // Strip subdirectory prefix from file path to match local save paths
     // Example: lib/a/.kiro/specs/project/file.md -> .kiro/specs/project/file.md
     const displayPath = this.stripSubdirPrefix(fileName);
-    const message = `[${current}/${total}] Fetching ${displayPath}...`;
+
+    // Build message with optional project prefix
+    let message: string;
+    if (projectName && projectName.trim() !== '') {
+      message = `[${projectName}] [${current}/${total}] Fetching ${displayPath}...`;
+    } else {
+      message = `[${current}/${total}] Fetching ${displayPath}...`;
+    }
 
     console.log(this.chalk.cyan(message));
   }
@@ -246,23 +330,65 @@ export class ProgressReporter {
    *
    * Only displays message if verbose option is enabled
    * Uses gray color to differentiate from regular output
+   * Optionally includes project name prefix for multi-project operations
    *
    * @param message - Verbose/debug message
+   * @param projectName - Optional project name for multi-project display
    *
    * @example
    * ```typescript
    * reporter.reportVerbose('API call took 250ms');
    * // Output: [VERBOSE] API call took 250ms (only if verbose=true, in gray)
+   *
+   * reporter.reportVerbose('取得中: file.md', 'proj1');
+   * // Output: [VERBOSE] [proj1] 取得中: file.md (only if verbose=true, in gray)
    * ```
    */
-  reportVerbose(message: string): void {
+  reportVerbose(message: string, projectName?: string): void {
     if (!this.options.verbose) {
       return;
     }
 
-    const formattedMessage = `[VERBOSE] ${message}`;
+    // Build message with optional project prefix
+    let formattedMessage: string;
+    if (projectName && projectName.trim() !== '') {
+      formattedMessage = `[VERBOSE] [${projectName}] ${message}`;
+    } else {
+      formattedMessage = `[VERBOSE] ${message}`;
+    }
 
     console.log(this.chalk.gray(formattedMessage));
+  }
+
+  /**
+   * Report summary for completed project
+   *
+   * Displays success and failure counts for a specific project
+   * Used in multi-project operations to show per-project results
+   *
+   * @param projectName - Project name
+   * @param filesDownloaded - Number of successful downloads
+   * @param filesFailed - Number of failures
+   *
+   * @example
+   * ```typescript
+   * reporter.reportProjectSummary('proj1', 8, 2);
+   * // Output: [proj1] Completed: 8 files succeeded, 2 files failed
+   *
+   * reporter.reportProjectSummary('proj2', 10, 0);
+   * // Output: [proj2] Completed: 10 files succeeded, 0 files failed
+   * ```
+   */
+  reportProjectSummary(
+    projectName: string,
+    filesDownloaded: number,
+    filesFailed: number
+  ): void {
+    const successText = `${filesDownloaded} files succeeded`;
+    const failedText = `${filesFailed} files failed`;
+    const summaryMessage = `[${projectName}] Completed: ${successText}, ${failedText}`;
+
+    console.log(this.chalk.cyan(summaryMessage));
   }
 
   /**
@@ -294,5 +420,113 @@ export class ProgressReporter {
     files.forEach((file) => {
       console.log(this.chalk.cyan(`  - ${file}`));
     });
+  }
+
+  /**
+   * Report overall summary for all projects
+   *
+   * Displays total project count, total file count, success count, and failure count
+   * Used in multi-project operations to show aggregated results
+   *
+   * @param totalProjects - Total number of projects processed
+   * @param totalDownloaded - Total successful downloads across all projects
+   * @param totalFailed - Total failures across all projects
+   *
+   * @example
+   * ```typescript
+   * reporter.reportOverallSummary(3, 24, 3);
+   * // Output:
+   * // === Overall Summary ===
+   * // Projects: 3
+   * // Total files: 27
+   * // Succeeded: 24 files
+   * // Failed: 3 files
+   * ```
+   */
+  reportOverallSummary(
+    totalProjects: number,
+    totalDownloaded: number,
+    totalFailed: number
+  ): void {
+    const totalFiles = totalDownloaded + totalFailed;
+
+    console.log(this.chalk.cyan('\n=== Overall Summary ==='));
+    console.log(this.chalk.cyan(`Projects: ${totalProjects}`));
+    console.log(this.chalk.cyan(`Total files: ${totalFiles}`));
+    console.log(this.chalk.cyan(`Succeeded: ${totalDownloaded} files`));
+    console.log(this.chalk.cyan(`Failed: ${totalFailed} files`));
+  }
+
+  /**
+   * Report project-specific error
+   *
+   * Displays error message with project name prefix for multi-project operations
+   * Used when a project fails to be fetched or processed
+   *
+   * @param projectName - Project name that encountered the error
+   * @param error - Error object or error message
+   *
+   * @example
+   * ```typescript
+   * reporter.reportProjectError('proj1', new Error('GitHub API failed'));
+   * // Output: ✗ [proj1] エラー: GitHub API failed
+   *
+   * reporter.reportProjectError('proj2', 'Custom error message');
+   * // Output: ✗ [proj2] エラー: Custom error message
+   * ```
+   */
+  reportProjectError(projectName: string, error: unknown): void {
+    // Extract error message
+    let errorMessage: string;
+    if (error instanceof Error) {
+      errorMessage = error.message;
+    } else if (typeof error === 'string') {
+      errorMessage = error;
+    } else {
+      errorMessage = 'Unknown error';
+    }
+
+    const formattedMessage = `✗ [${projectName}] Error: ${errorMessage}`;
+
+    console.error(this.chalk.red(formattedMessage));
+  }
+
+  /**
+   * Report partial failure summary
+   *
+   * Displays lists of failed and successful projects for multi-project operations
+   * Used when some projects succeed and others fail
+   *
+   * @param failedProjects - Array of failed project names
+   * @param successfulProjects - Array of successful project names
+   *
+   * @example
+   * ```typescript
+   * reporter.reportPartialFailureSummary(['proj1', 'proj3'], ['proj2', 'proj4']);
+   * // Output:
+   * // Failed projects (2):
+   * //   - proj1
+   * //   - proj3
+   * // Successful projects (2):
+   * //   - proj2
+   * //   - proj4
+   * ```
+   */
+  reportPartialFailureSummary(failedProjects: string[], successfulProjects: string[]): void {
+    // Display failed projects
+    if (failedProjects.length > 0) {
+      console.log(this.chalk.red(`\nFailed projects (${failedProjects.length}):`));
+      failedProjects.forEach((project) => {
+        console.log(this.chalk.red(`  - ${project}`));
+      });
+    }
+
+    // Display successful projects
+    if (successfulProjects.length > 0) {
+      console.log(this.chalk.green(`\nSuccessful projects (${successfulProjects.length}):`));
+      successfulProjects.forEach((project) => {
+        console.log(this.chalk.green(`  - ${project}`));
+      });
+    }
   }
 }

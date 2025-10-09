@@ -81,7 +81,7 @@ describe('E2E Interactive Partial Arguments Flow', () => {
       // User provides missing project name
       mockPromptMissingArguments.mockResolvedValue({
         repository: 'test-owner/test-repo',
-        project: 'my-project',
+        projects: ['my-project'],
         output: testOutputDir,
         subdir: undefined,
         force: false,
@@ -133,7 +133,7 @@ describe('E2E Interactive Partial Arguments Flow', () => {
       expect(mockShouldEnterInteractiveMode).toHaveBeenCalledWith(
         expect.objectContaining({
           repository: 'test-owner/test-repo',
-          project: '',
+          projects: [],
         })
       );
 
@@ -141,7 +141,7 @@ describe('E2E Interactive Partial Arguments Flow', () => {
       expect(mockPromptMissingArguments).toHaveBeenCalledWith(
         expect.objectContaining({
           repository: 'test-owner/test-repo',
-          project: '',
+          projects: [],
         }),
         expect.any(Object)
       );
@@ -160,7 +160,7 @@ describe('E2E Interactive Partial Arguments Flow', () => {
 
       mockPromptMissingArguments.mockResolvedValue({
         repository: 'owner/repo#feature',
-        project: 'my-project',
+        projects: ['my-project'],
         output: testOutputDir,
         subdir: undefined,
         force: false,
@@ -223,7 +223,7 @@ describe('E2E Interactive Partial Arguments Flow', () => {
 
       mockPromptMissingArguments.mockResolvedValue({
         repository: 'owner/repo',
-        project: 'my-project',
+        projects: ['my-project'],
         output: testOutputDir,
         subdir: 'packages/api',
         force: false,
@@ -286,7 +286,7 @@ describe('E2E Interactive Partial Arguments Flow', () => {
 
       mockPromptMissingArguments.mockResolvedValue({
         repository: 'owner/repo',
-        project: 'my-project',
+        projects: ['my-project'],
         output: customOutput,
         subdir: undefined,
         force: false,
@@ -344,7 +344,7 @@ describe('E2E Interactive Partial Arguments Flow', () => {
 
       mockPromptMissingArguments.mockResolvedValue({
         repository: 'owner/repo',
-        project: 'my-project',
+        projects: ['my-project'],
         output: testOutputDir,
         subdir: undefined,
         force: true,
@@ -390,7 +390,7 @@ describe('E2E Interactive Partial Arguments Flow', () => {
       // User provides missing repository
       mockPromptMissingArguments.mockResolvedValue({
         repository: 'owner/repo',
-        project: 'my-project',
+        projects: ['my-project'],
         output: testOutputDir,
         subdir: undefined,
         force: false,
@@ -439,7 +439,7 @@ describe('E2E Interactive Partial Arguments Flow', () => {
       expect(mockShouldEnterInteractiveMode).toHaveBeenCalledWith(
         expect.objectContaining({
           repository: '',
-          project: 'my-project',
+          projects: ['my-project'],
         })
       );
 
@@ -455,7 +455,7 @@ describe('E2E Interactive Partial Arguments Flow', () => {
 
       mockPromptMissingArguments.mockResolvedValue({
         repository: 'owner/repo',
-        project: 'my-project',
+        projects: ['my-project'],
         output: customOutput,
         subdir: undefined,
         force: false,
@@ -484,7 +484,7 @@ describe('E2E Interactive Partial Arguments Flow', () => {
       expect(mockShouldEnterInteractiveMode).toHaveBeenCalledWith(
         expect.objectContaining({
           repository: '',
-          project: '',
+          projects: [],
           output: customOutput,
         })
       );
@@ -542,7 +542,7 @@ describe('E2E Interactive Partial Arguments Flow', () => {
 
       mockPromptMissingArguments.mockResolvedValue({
         repository: 'owner/repo',
-        project: 'my-project',
+        projects: ['my-project'],
         output: testOutputDir,
         subdir: undefined,
         force: false,

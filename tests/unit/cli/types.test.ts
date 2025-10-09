@@ -6,7 +6,7 @@ describe('CLI Types', () => {
     it('should allow subdir field as optional string', () => {
       const args: ParsedArguments = {
         repository: 'owner/repo',
-        project: 'my-project',
+        projects: ['my-project'],
         output: '.',
         force: false,
         dryRun: false,
@@ -23,7 +23,7 @@ describe('CLI Types', () => {
     it('should allow subdir field to be undefined', () => {
       const args: ParsedArguments = {
         repository: 'owner/repo',
-        project: 'my-project',
+        projects: ['my-project'],
         output: '.',
         force: false,
         dryRun: false,
@@ -39,7 +39,7 @@ describe('CLI Types', () => {
     it('should maintain backward compatibility with existing fields', () => {
       const args: ParsedArguments = {
         repository: 'owner/repo',
-        project: 'my-project',
+        projects: ['my-project'],
         output: '.',
         force: true,
         dryRun: false,
@@ -52,10 +52,83 @@ describe('CLI Types', () => {
       };
 
       expect(args.repository).toBe('owner/repo');
-      expect(args.project).toBe('my-project');
+      expect(args.projects).toEqual(['my-project']);
       expect(args.force).toBe(true);
       expect(args.verbose).toBe(true);
       expect(args.config).toBe('/path/to/config');
+    });
+
+    // Task 2.3: Multi-project support tests
+    it('should support multiple projects in projects array', () => {
+      const args: ParsedArguments = {
+        repository: 'owner/repo',
+        projects: ['project-a', 'project-b', 'project-c'],
+        output: '.',
+        force: false,
+        dryRun: false,
+        verbose: false,
+        track: true,
+        checkUpdates: false,
+        update: false,
+      };
+
+      expect(args.projects).toHaveLength(3);
+      expect(args.projects).toEqual(['project-a', 'project-b', 'project-c']);
+    });
+
+    it('should support single project for backward compatibility', () => {
+      const args: ParsedArguments = {
+        repository: 'owner/repo',
+        projects: ['single-project'],
+        output: '.',
+        force: false,
+        dryRun: false,
+        verbose: false,
+        track: true,
+        checkUpdates: false,
+        update: false,
+      };
+
+      expect(args.projects).toHaveLength(1);
+      expect(args.projects[0]).toBe('single-project');
+    });
+
+    it('should allow empty projects array for interactive mode', () => {
+      const args: ParsedArguments = {
+        repository: '',
+        projects: [],
+        output: '.',
+        force: false,
+        dryRun: false,
+        verbose: false,
+        track: true,
+        checkUpdates: false,
+        update: false,
+      };
+
+      expect(args.projects).toEqual([]);
+      expect(args.projects).toHaveLength(0);
+    });
+
+    it('should support multiple projects with all optional fields', () => {
+      const args: ParsedArguments = {
+        repository: 'owner/repo#branch',
+        projects: ['proj1', 'proj2'],
+        output: './output',
+        subdir: 'packages',
+        force: true,
+        dryRun: true,
+        verbose: true,
+        config: '.kiroxrc.json',
+        track: true,
+        checkUpdates: false,
+        update: false,
+      };
+
+      expect(args.projects).toEqual(['proj1', 'proj2']);
+      expect(args.repository).toBe('owner/repo#branch');
+      expect(args.subdir).toBe('packages');
+      expect(args.output).toBe('./output');
     });
   });
 

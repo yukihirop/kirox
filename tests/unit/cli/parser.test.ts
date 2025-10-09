@@ -8,7 +8,7 @@ describe('ArgumentParser', () => {
       const result = parseArguments(argv);
 
       expect(result.repository).toBe('owner/repo');
-      expect(result.project).toBe('my-project');
+      expect(result.projects).toEqual(['my-project']);
     });
 
     it('should parse --force flag', () => {
@@ -54,7 +54,7 @@ describe('ArgumentParser', () => {
       // Should not throw - interactive mode will handle missing arguments
       const result = parseArguments(argv);
       expect(result.repository).toBe('');
-      expect(result.project).toBe('project');
+      expect(result.projects).toEqual(['project']);
     });
 
     it('should allow empty project for interactive mode', () => {
@@ -63,7 +63,7 @@ describe('ArgumentParser', () => {
       // Should not throw - interactive mode will handle missing arguments
       const result = parseArguments(argv);
       expect(result.repository).toBe('owner/repo');
-      expect(result.project).toBe('');
+      expect(result.projects).toEqual([]);
     });
 
     it('should set default values for optional flags', () => {
@@ -81,7 +81,7 @@ describe('ArgumentParser', () => {
       const argv = ['node', 'kirox', 'owner/repo', '-p', 'project'];
       const result = parseArguments(argv);
 
-      expect(result.project).toBe('project');
+      expect(result.projects).toEqual(['project']);
     });
 
     it('should parse --output option with current directory', () => {
@@ -205,6 +205,76 @@ describe('ArgumentParser', () => {
       // This test verifies that the argument description mentions both formats
       // The actual verification will be in the implementation
       expect(true).toBe(true); // Placeholder - real test will verify help output
+    });
+  });
+
+  // Task 3.1: Multi-project argument parsing tests
+  describe('Multi-project argument parsing', () => {
+    it('should parse comma-separated multiple projects', () => {
+      const argv = ['node', 'kirox', 'owner/repo', '-p', 'project1,project2,project3'];
+      const result = parseArguments(argv);
+
+      expect(result.projects).toEqual(['project1', 'project2', 'project3']);
+    });
+
+    it('should parse quoted comma-separated multiple projects', () => {
+      const argv = ['node', 'kirox', 'owner/repo', '--project', 'project1,project2'];
+      const result = parseArguments(argv);
+
+      expect(result.projects).toEqual(['project1', 'project2']);
+    });
+
+    it('should trim whitespace from project names', () => {
+      const argv = ['node', 'kirox', 'owner/repo', '-p', 'proj1, proj2 , proj3'];
+      const result = parseArguments(argv);
+
+      expect(result.projects).toEqual(['proj1', 'proj2', 'proj3']);
+    });
+
+    it('should filter empty elements from comma-separated input', () => {
+      const argv = ['node', 'kirox', 'owner/repo', '-p', 'proj1,,proj3'];
+      const result = parseArguments(argv);
+
+      expect(result.projects).toEqual(['proj1', 'proj3']);
+    });
+
+    it('should parse single project as 1-element array (backward compatibility)', () => {
+      const argv = ['node', 'kirox', 'owner/repo', '-p', 'single-project'];
+      const result = parseArguments(argv);
+
+      expect(result.projects).toEqual(['single-project']);
+      expect(result.projects).toHaveLength(1);
+    });
+
+    it('should return empty array when -p option is not specified', () => {
+      const argv = ['node', 'kirox', 'owner/repo'];
+      const result = parseArguments(argv);
+
+      expect(result.projects).toEqual([]);
+    });
+
+    it('should return empty array when -p option is empty string', () => {
+      const argv = ['node', 'kirox', 'owner/repo', '-p', ''];
+      const result = parseArguments(argv);
+
+      expect(result.projects).toEqual([]);
+    });
+
+    it('should parse multiple projects with all options', () => {
+      const argv = [
+        'node', 'kirox', 'owner/repo#branch',
+        '-p', 'proj1,proj2',
+        '--subdir', 'packages',
+        '--force',
+        '--verbose'
+      ];
+      const result = parseArguments(argv);
+
+      expect(result.repository).toBe('owner/repo#branch');
+      expect(result.projects).toEqual(['proj1', 'proj2']);
+      expect(result.subdir).toBe('packages');
+      expect(result.force).toBe(true);
+      expect(result.verbose).toBe(true);
     });
   });
 });

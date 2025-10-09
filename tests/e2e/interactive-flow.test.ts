@@ -81,7 +81,7 @@ describe('E2E Interactive Flow', () => {
       // Simulate user providing all required information
       mockPromptMissingArguments.mockResolvedValue({
         repository: 'test-owner/test-repo',
-        project: 'test-project',
+        projects: ['test-project'],
         output: testOutputDir,
         subdir: undefined,
         force: false,
@@ -202,7 +202,7 @@ describe('E2E Interactive Flow', () => {
 
       mockPromptMissingArguments.mockResolvedValue({
         repository: 'owner/repo#develop',
-        project: 'my-project',
+        projects: ['my-project'],
         output: testOutputDir,
         subdir: undefined,
         force: false,
@@ -267,7 +267,7 @@ describe('E2E Interactive Flow', () => {
 
       mockPromptMissingArguments.mockResolvedValue({
         repository: 'owner/repo',
-        project: 'my-project',
+        projects: ['my-project'],
         output: testOutputDir,
         subdir: 'packages/api',
         force: false,
@@ -330,7 +330,7 @@ describe('E2E Interactive Flow', () => {
 
       mockPromptMissingArguments.mockResolvedValue({
         repository: 'owner/repo',
-        project: 'project',
+        projects: ['project'],
         output: testOutputDir,
         subdir: undefined,
         force: false,
@@ -405,7 +405,7 @@ describe('E2E Interactive Flow', () => {
       // User provides invalid repository format
       mockPromptMissingArguments.mockResolvedValue({
         repository: 'invalid-repo-format',
-        project: 'project',
+        projects: ['project'],
         output: testOutputDir,
         subdir: undefined,
         force: false,
@@ -438,7 +438,7 @@ describe('E2E Interactive Flow', () => {
 
         mockPromptMissingArguments.mockResolvedValue({
           repository,
-          project: 'project',
+          projects: ['project'],
           output: testOutputDir,
           subdir: undefined,
           force: false,
@@ -476,7 +476,7 @@ describe('E2E Interactive Flow', () => {
 
       mockPromptMissingArguments.mockResolvedValue({
         repository: 'owner/repo',
-        project: 'test-project',
+        projects: ['test-project'],
         output: customOutput,
         subdir: undefined,
         force: false,

@@ -21,7 +21,7 @@ describe('Interactive Error Handling', () => {
 
   const createValidArgs = (): ParsedArguments => ({
     repository: '',
-    project: '',
+    projects: [],
     output: '.',
     force: false,
     dryRun: false,

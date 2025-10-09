@@ -186,7 +186,7 @@ describe('E2E Interactive Cancellation Flow', () => {
       expect(mockShouldEnterInteractiveMode).toHaveBeenCalledWith(
         expect.objectContaining({
           repository: 'owner/repo',
-          project: '',
+          projects: [],
           output: testOutputDir,
         })
       );

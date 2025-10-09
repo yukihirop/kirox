@@ -141,9 +141,14 @@ describe('Retry Logic', () => {
 
       const promise = withRetry(mockFn, { maxRetries: 3 });
 
-      await vi.runAllTimersAsync();
+      // Run timers and wait for promise rejection
+      const [, error] = await Promise.all([
+        vi.runAllTimersAsync(),
+        promise.catch((e) => e),
+      ]);
 
-      await expect(promise).rejects.toThrow('ECONNRESET');
+      expect(error).toBeInstanceOf(Error);
+      expect(error.message).toBe('ECONNRESET');
       expect(mockFn).toHaveBeenCalledTimes(4); // Initial + 3 retries
     });
 

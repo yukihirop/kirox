@@ -13,6 +13,7 @@
 import { input, confirm } from '@inquirer/prompts';
 import type { ParsedArguments } from './types.js';
 import { validateRepositoryFormat, validateProjectName } from './validator.js';
+import { parseProjects } from './project-name-parser.js';
 import type { Logger } from '../reporting/logger.js';
 import type { KiroxConfig } from '../config/types.js';
 
@@ -41,7 +42,10 @@ export function shouldEnterInteractiveMode(args: ParsedArguments): boolean {
 
   // Check if repository or project is missing
   const hasRepository = args.repository && args.repository.trim() !== '';
-  const hasProject = args.project && args.project.trim() !== '';
+  const hasProject =
+    args.projects &&
+    args.projects.length > 0 &&
+    args.projects.some(p => p && p.trim() !== '');
 
   // Enter interactive mode if either is missing
   return !hasRepository || !hasProject;
@@ -81,9 +85,10 @@ export async function promptRepository(currentValue: string): Promise<string> {
  *
  * If a valid project name is already provided, returns it immediately.
  * Otherwise, displays an interactive prompt with real-time validation.
+ * Supports multiple project names separated by commas.
  *
  * @param currentValue - Current project name value (may be empty or whitespace)
- * @returns Validated project name string
+ * @returns Validated project name string (single or comma-separated multiple)
  */
 export async function promptProject(currentValue: string): Promise<string> {
   // Skip prompt if value is already provided (non-empty after trim)
@@ -93,7 +98,7 @@ export async function promptProject(currentValue: string): Promise<string> {
 
   // Display interactive prompt with validation
   return await input({
-    message: 'Enter project name',
+    message: 'Enter project name (comma-separated for multiple projects)',
     validate: (value: string) => {
       const errors = validateProjectName(value);
       if (errors.length > 0) {
@@ -163,8 +168,8 @@ export async function confirmExecution(args: ParsedArguments): Promise<boolean> 
   // Display repository
   console.log(`  Repository: ${args.repository}`);
 
-  // Display project name
-  console.log(`  Project: ${args.project}`);
+  // Display project name(s)
+  console.log(`  Project: ${args.projects.join(', ')}`);
 
   // Display output directory
   console.log(`  Output: ${args.output}`);
@@ -209,7 +214,9 @@ export async function promptMissingArguments(
   completedArgs.repository = await promptRepository(completedArgs.repository);
 
   // 2. Prompt for project if missing
-  completedArgs.project = await promptProject(completedArgs.project);
+  // Convert projects array back to string for prompting, then parse result
+  const projectString = await promptProject(completedArgs.projects.join(', '));
+  completedArgs.projects = parseProjects(projectString);
 
   // 3. Prompt for output directory only if not already specified
   // Check if output is the default value or empty

@@ -70,7 +70,30 @@ async function loadConfigFile(filePath: string, required: boolean): Promise<Kiro
     if (config.branch !== undefined) {
       const branchErrors = validateBranchName(config.branch);
       if (branchErrors.length > 0) {
-        throw new Error(`設定ファイルのブランチ名が無効です: ${config.branch}`);
+        throw new Error(`Invalid branch name in config file: ${config.branch}`);
+      }
+    }
+
+    // Task 2.2: Validate project field type in config file
+    if (config.project !== undefined) {
+      // Check if it's not a string or array
+      if (typeof config.project !== 'string' && !Array.isArray(config.project)) {
+        throw new Error('Invalid project value in config file');
+      }
+
+      // If it's an array, validate each element
+      if (Array.isArray(config.project)) {
+        // Check for empty array
+        if (config.project.length === 0) {
+          throw new Error('Empty project array in config file');
+        }
+
+        // Check if all elements are strings
+        for (const item of config.project) {
+          if (typeof item !== 'string') {
+            throw new Error('Non-string value found in project array in config file');
+          }
+        }
       }
     }
 

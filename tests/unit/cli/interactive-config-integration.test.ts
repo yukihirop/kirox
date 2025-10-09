@@ -182,12 +182,13 @@ describe('Interactive Mode Config File Integration', () => {
 
       const args: ParsedArguments = {
         repository: 'owner/repo',
-        project: 'my-project',
+        projects: ['my-project'],
         output: '.',
         force: false,
         dryRun: false,
         verbose: false,
         config: undefined,
+        track: false,
         checkUpdates: false,
         update: false,
         subdir: undefined,
@@ -222,12 +223,13 @@ describe('Interactive Mode Config File Integration', () => {
 
       const args: ParsedArguments = {
         repository: 'owner/repo',
-        project: 'my-project',
+        projects: ['my-project'],
         output: '.',
         force: false,
         dryRun: false,
         verbose: false,
         config: undefined,
+        track: false,
         checkUpdates: false,
         update: false,
         subdir: undefined,
@@ -247,12 +249,13 @@ describe('Interactive Mode Config File Integration', () => {
     it('should work when config file does not exist', async () => {
       const args: ParsedArguments = {
         repository: 'owner/repo',
-        project: 'my-project',
+        projects: ['my-project'],
         output: '.',
         force: false,
         dryRun: false,
         verbose: false,
         config: undefined,
+        track: false,
         checkUpdates: false,
         update: false,
         subdir: undefined,

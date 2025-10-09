@@ -30,6 +30,15 @@ describe('E2E Success Scenarios', () => {
     } catch {
       // Ignore cleanup errors
     }
+
+    // Clean up any files created in project root
+    try {
+      const projectRootKiro = path.join(process.cwd(), '.kiro');
+      await fs.rm(path.join(projectRootKiro, '.kirox-meta.json'), { force: true });
+    } catch {
+      // Ignore cleanup errors
+    }
+
     vi.clearAllMocks();
   });
 

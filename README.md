@@ -23,45 +23,64 @@ CLI tool to fetch Kiro specification and steering files from remote GitHub repos
 npx kirox
 
 ✔ Enter GitHub repository (owner/repo or owner/repo#branch) yukihirop/eg-kanban#test
-✔ Enter project name simple-kanban-board-a
+✔ Enter project name (comma-separated for multiple projects) simple-kanban-board-a,simple-kanban-board-b
 ✔ Enter output directory tmp
 ✔ Enter subdirectory in GitHub repository (optional) lib/a
 
 Configuration:
   Repository: yukihirop/eg-kanban#test
-  Project: simple-kanban-board-a
+  Project: simple-kanban-board-a, simple-kanban-board-b
   Output: tmp
   Subdirectory: lib/a
 ✔ Execute with this configuration? Yes
 Fetching files from yukihirop/eg-kanban#test/lib/a/.kiro
-Project: simple-kanban-board-a
+Fetching 2 projects: simple-kanban-board-a, simple-kanban-board-b
 Source: yukihirop/eg-kanban (branch: test)
-[INFO] 2025-10-08T10:36:05 Fetching directory listings from GitHub {"repository":"yukihirop/eg-kanban#test","project":"simple-kanban-board-a","branch":"test"}
-[INFO] 2025-10-08T10:36:06 Fetching file contents {"count":8}
-[1/8] Fetching .kiro/specs/simple-kanban-board-a/design.md...
+[INFO] 2025-10-09T14:13:11 Fetching directory listings from GitHub {"repository":"yukihirop/eg-kanban#test","project":"simple-kanban-board-a","branch":"test"}
+[INFO] 2025-10-09T14:13:12 Fetching file contents {"count":8}
+[simple-kanban-board-a] [1/8] Fetching .kiro/specs/simple-kanban-board-a/design.md...
 ✓ Saved: .kiro/specs/simple-kanban-board-a/design.md
-[2/8] Fetching .kiro/steering/product.md...
+[simple-kanban-board-a] [2/8] Fetching .kiro/steering/product.md...
 ✓ Saved: .kiro/steering/product.md
-[3/8] Fetching .kiro/specs/simple-kanban-board-a/spec.json...
-✓ Saved: .kiro/specs/simple-kanban-board-a/spec.json
-[4/8] Fetching .kiro/specs/simple-kanban-board-a/requirements.md...
-✓ Saved: .kiro/specs/simple-kanban-board-a/requirements.md
-[5/8] Fetching .kiro/specs/simple-kanban-board-a/tasks.md...
+[simple-kanban-board-a] [3/8] Fetching .kiro/specs/simple-kanban-board-a/tasks.md...
 ✓ Saved: .kiro/specs/simple-kanban-board-a/tasks.md
-[6/8] Fetching .kiro/steering/structure.md...
-✓ Saved: .kiro/steering/structure.md
-[7/8] Fetching .kiro/steering/testing.md...
-✓ Saved: .kiro/steering/testing.md
-[8/8] Fetching .kiro/steering/tech.md...
+[simple-kanban-board-a] [4/8] Fetching .kiro/specs/simple-kanban-board-a/spec.json...
+✓ Saved: .kiro/specs/simple-kanban-board-a/spec.json
+[simple-kanban-board-a] [5/8] Fetching .kiro/specs/simple-kanban-board-a/requirements.md...
+✓ Saved: .kiro/specs/simple-kanban-board-a/requirements.md
+[simple-kanban-board-a] [6/8] Fetching .kiro/steering/tech.md...
 ✓ Saved: .kiro/steering/tech.md
+[simple-kanban-board-a] [7/8] Fetching .kiro/steering/testing.md...
+✓ Saved: .kiro/steering/testing.md
+[simple-kanban-board-a] [8/8] Fetching .kiro/steering/structure.md...
+✓ Saved: .kiro/steering/structure.md
 ✓ Saved metadata: .kiro/.kirox-meta.json
+[simple-kanban-board-a] Completed: 8 files succeeded, 0 files failed
+[INFO] 2025-10-09T14:13:13 Fetching directory listings from GitHub {"repository":"yukihirop/eg-kanban#test","project":"simple-kanban-board-b","branch":"test"}
+[INFO] 2025-10-09T14:13:13 Fetching file contents {"count":4}
+[simple-kanban-board-b] [1/4] Fetching .kiro/specs/simple-kanban-board-b/spec.json...
+✓ Saved: .kiro/specs/simple-kanban-board-b/spec.json
+[simple-kanban-board-b] [2/4] Fetching .kiro/specs/simple-kanban-board-b/requirements.md...
+✓ Saved: .kiro/specs/simple-kanban-board-b/requirements.md
+[simple-kanban-board-b] [3/4] Fetching .kiro/specs/simple-kanban-board-b/design.md...
+✓ Saved: .kiro/specs/simple-kanban-board-b/design.md
+[simple-kanban-board-b] [4/4] Fetching .kiro/specs/simple-kanban-board-b/tasks.md...
+✓ Saved: .kiro/specs/simple-kanban-board-b/tasks.md
+✓ Saved metadata: .kiro/.kirox-meta.json
+[simple-kanban-board-b] Completed: 4 files succeeded, 0 files failed
 
 Summary:
   Fetched from: lib/a
   Source: (branch: test)
-  8 files succeeded
+  12 files succeeded
   0 files failed
-[INFO] 2025-10-08T10:36:07 Execution completed {"filesDownloaded":8,"filesFailed":0,"total":8}
+
+=== Overall Summary ===
+Projects: 2
+Total files: 12
+Succeeded: 12 files
+Failed: 0 files
+[INFO] 2025-10-09T14:13:13 Execution completed {"filesDownloaded":12,"filesFailed":0,"total":12}
 ```
 
 ## Installation
@@ -178,7 +197,7 @@ npx kirox owner/repo#develop -s packages/api -p project -o ./output --verbose --
 
 | Option | Alias | Description | Default |
 |--------|-------|-------------|---------|
-| `--project <name>` | `-p` | Project name to fetch (required) | - |
+| `--project <name>` | `-p` | Project name(s) to fetch - supports comma-separated multiple projects (required) | - |
 | `--output <path>` | `-o` | Output directory | `.` (current directory) |
 | `--subdir <path>` | `-s` | Subdirectory path containing .kiro folder | - |
 | `--force` | - | Force overwrite without confirmation | `false` |
@@ -235,6 +254,33 @@ Kirox fetches the following directory structures:
 ```bash
 npx kirox yukihirop/eg-kanban -p simple-kanban-board
 # Files saved to ./.kiro/
+```
+
+### Fetch Multiple Projects
+
+Fetch multiple projects from the same repository at once:
+
+```bash
+# Fetch two projects with comma-separated names
+npx kirox yukihirop/eg-kanban -p simple-kanban-board-a,simple-kanban-board-b
+
+# Fetch three projects from a specific branch
+npx kirox owner/repo#develop -p project-a,project-b,project-c
+
+# Fetch multiple projects with custom output
+npx kirox owner/repo -p api-service,web-app,mobile-app -o ./projects
+```
+
+Each project's files are saved to separate directories:
+```
+.kiro/
+├── specs/
+│   ├── simple-kanban-board-a/
+│   │   └── ...
+│   └── simple-kanban-board-b/
+│       └── ...
+└── steering/
+    └── ... (shared across projects)
 ```
 
 ### Fetch from Specific Branch
@@ -319,12 +365,35 @@ Create a `.kiroxrc.json` file in your project root to set default values:
 ```json
 {
   "defaultRepository": "owner/repo",
+  "project": "default-project",
   "branch": "develop",
   "subdir": "packages/api",
   "outputDirectory": "./kiro-files",
   "defaultConcurrency": 5,
   "verbose": false,
   "force": false
+}
+```
+
+### Multiple Projects in Configuration
+
+The `project` field supports both single and multiple projects:
+
+```json
+{
+  "defaultRepository": "owner/repo",
+  "project": ["project-a", "project-b", "project-c"],
+  "outputDirectory": "./kiro-files"
+}
+```
+
+Or as a single string with comma-separated values:
+
+```json
+{
+  "defaultRepository": "owner/repo",
+  "project": "project-a,project-b,project-c",
+  "outputDirectory": "./kiro-files"
 }
 ```
 

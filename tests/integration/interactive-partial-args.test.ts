@@ -74,7 +74,7 @@ describe('Interactive Mode Partial Arguments Integration', () => {
       // Initial args with only repository
       const initialArgs = {
         repository: 'owner/repo',
-        project: '',
+        projects: [],
         output: '.',
         subdir: undefined,
         force: false,
@@ -89,7 +89,7 @@ describe('Interactive Mode Partial Arguments Integration', () => {
       // User provides missing project
       const completedArgs = {
         ...initialArgs,
-        project: 'my-project',
+        projects: ['my-project'],
       };
 
       mockPromptMissingArguments.mockResolvedValue(completedArgs);
@@ -100,7 +100,7 @@ describe('Interactive Mode Partial Arguments Integration', () => {
       expect(mockShouldEnterInteractiveMode).toHaveBeenCalledWith(
         expect.objectContaining({
           repository: 'owner/repo',
-          project: '',
+          projects: [],
         })
       );
 
@@ -108,7 +108,7 @@ describe('Interactive Mode Partial Arguments Integration', () => {
       expect(mockPromptMissingArguments).toHaveBeenCalledWith(
         expect.objectContaining({
           repository: 'owner/repo',
-          project: '',
+          projects: [],
         }),
         expect.any(Object) // config file
       );
@@ -119,7 +119,7 @@ describe('Interactive Mode Partial Arguments Integration', () => {
 
       const completedArgs = {
         repository: 'owner/repo#feature-branch',
-        project: 'my-project',
+        projects: ['my-project'],
         output: '.',
         subdir: undefined,
         force: false,
@@ -138,7 +138,7 @@ describe('Interactive Mode Partial Arguments Integration', () => {
       expect(mockPromptMissingArguments).toHaveBeenCalledWith(
         expect.objectContaining({
           repository: 'owner/repo#feature-branch',
-          project: '',
+          projects: [],
         }),
         expect.any(Object)
       );
@@ -149,7 +149,7 @@ describe('Interactive Mode Partial Arguments Integration', () => {
 
       const completedArgs = {
         repository: 'owner/repo',
-        project: 'my-project',
+        projects: ['my-project'],
         output: '.',
         subdir: 'packages/api',
         force: false,
@@ -168,7 +168,7 @@ describe('Interactive Mode Partial Arguments Integration', () => {
       expect(mockPromptMissingArguments).toHaveBeenCalledWith(
         expect.objectContaining({
           repository: 'owner/repo',
-          project: '',
+          projects: [],
           subdir: 'packages/api',
         }),
         expect.any(Object)
@@ -183,7 +183,7 @@ describe('Interactive Mode Partial Arguments Integration', () => {
 
       const completedArgs = {
         repository: 'owner/repo',
-        project: 'my-project',
+        projects: ['my-project'],
         output: '.',
         subdir: undefined,
         force: false,
@@ -202,14 +202,14 @@ describe('Interactive Mode Partial Arguments Integration', () => {
       expect(mockShouldEnterInteractiveMode).toHaveBeenCalledWith(
         expect.objectContaining({
           repository: '',
-          project: 'my-project',
+          projects: ['my-project'],
         })
       );
 
       expect(mockPromptMissingArguments).toHaveBeenCalledWith(
         expect.objectContaining({
           repository: '',
-          project: 'my-project',
+          projects: ['my-project'],
         }),
         expect.any(Object)
       );
@@ -222,7 +222,7 @@ describe('Interactive Mode Partial Arguments Integration', () => {
 
       const completedArgs = {
         repository: 'owner/repo',
-        project: 'my-project',
+        projects: ['my-project'],
         output: './custom-output',
         subdir: undefined,
         force: false,
@@ -241,7 +241,7 @@ describe('Interactive Mode Partial Arguments Integration', () => {
       expect(mockPromptMissingArguments).toHaveBeenCalledWith(
         expect.objectContaining({
           repository: '',
-          project: '',
+          projects: [],
           output: './custom-output',
         }),
         expect.any(Object)
@@ -253,7 +253,7 @@ describe('Interactive Mode Partial Arguments Integration', () => {
 
       const completedArgs = {
         repository: 'owner/repo',
-        project: 'my-project',
+        projects: ['my-project'],
         output: '.',
         subdir: undefined,
         force: true,
@@ -272,7 +272,7 @@ describe('Interactive Mode Partial Arguments Integration', () => {
       expect(mockPromptMissingArguments).toHaveBeenCalledWith(
         expect.objectContaining({
           repository: '',
-          project: '',
+          projects: [],
           force: true,
           verbose: true,
         }),
@@ -287,7 +287,7 @@ describe('Interactive Mode Partial Arguments Integration', () => {
 
       const completedArgs = {
         repository: 'owner/repo',
-        project: 'my-project',
+        projects: ['my-project'],
         output: './output',
         subdir: 'src',
         force: false,
@@ -306,7 +306,7 @@ describe('Interactive Mode Partial Arguments Integration', () => {
       expect(mockPromptMissingArguments).toHaveBeenCalledWith(
         expect.objectContaining({
           repository: 'owner/repo',
-          project: '',
+          projects: [],
           output: './output',
           subdir: 'src',
           dryRun: true,
@@ -320,7 +320,7 @@ describe('Interactive Mode Partial Arguments Integration', () => {
 
       const completedArgs = {
         repository: 'owner/repo',
-        project: 'my-project',
+        projects: ['my-project'],
         output: '.',
         subdir: undefined,
         force: true,
@@ -339,7 +339,7 @@ describe('Interactive Mode Partial Arguments Integration', () => {
       expect(mockPromptMissingArguments).toHaveBeenCalledWith(
         expect.objectContaining({
           repository: '',
-          project: 'my-project',
+          projects: ['my-project'],
           force: true,
           verbose: true,
         }),
@@ -352,7 +352,7 @@ describe('Interactive Mode Partial Arguments Integration', () => {
 
       const completedArgs = {
         repository: 'owner/repo#develop',
-        project: 'my-project',
+        projects: ['my-project'],
         output: './dist',
         subdir: 'packages/core',
         force: false,
@@ -383,7 +383,7 @@ describe('Interactive Mode Partial Arguments Integration', () => {
       expect(mockPromptMissingArguments).toHaveBeenCalledWith(
         expect.objectContaining({
           repository: 'owner/repo#develop',
-          project: '',
+          projects: [],
           output: './dist',
           subdir: 'packages/core',
           dryRun: true,

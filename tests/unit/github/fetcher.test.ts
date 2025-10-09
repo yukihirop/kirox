@@ -622,7 +622,7 @@ describe('GitHubFetcher', () => {
 
       await expect(
         fetchDirectoryContents(mockClient, 'octocat', 'Hello-World', '', 'nonexistent-branch')
-      ).rejects.toThrow('ブランチが見つかりません: nonexistent-branch');
+      ).rejects.toThrow('Branch not found: nonexistent-branch');
     });
 
     it('should throw "ブランチへのアクセスに失敗" error for 401 (Unauthorized)', async () => {
@@ -638,7 +638,7 @@ describe('GitHubFetcher', () => {
       await expect(
         fetchDirectoryContents(mockClient, 'octocat', 'Hello-World', '', 'private-branch')
       ).rejects.toThrow(
-        'ブランチへのアクセスに失敗しました: private-branch（権限不足の可能性があります）'
+        'Failed to access branch: private-branch (possible insufficient permissions)'
       );
     });
 
@@ -655,7 +655,7 @@ describe('GitHubFetcher', () => {
       await expect(
         fetchDirectoryContents(mockClient, 'octocat', 'Hello-World', '', 'restricted-branch')
       ).rejects.toThrow(
-        'ブランチへのアクセスに失敗しました: restricted-branch（権限不足の可能性があります）'
+        'Failed to access branch: restricted-branch (possible insufficient permissions)'
       );
     });
 
@@ -677,7 +677,7 @@ describe('GitHubFetcher', () => {
           '.kiro/specs',
           'feature-branch'
         )
-      ).rejects.toThrow('ブランチ feature-branch に.kiroフォルダが見つかりません');
+      ).rejects.toThrow('.kiro folder not found on branch feature-branch');
     });
 
     it('should throw specific error when .kiro folder with subdirectory not found on branch', async () => {
@@ -699,7 +699,7 @@ describe('GitHubFetcher', () => {
           'feature-branch'
         )
       ).rejects.toThrow(
-        'ブランチ feature-branch のサブディレクトリ packages/api に.kiroフォルダが見つかりません'
+        '.kiro folder not found in subdirectory packages/api on branch feature-branch'
       );
     });
   });

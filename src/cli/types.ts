@@ -8,8 +8,8 @@
 export interface ParsedArguments {
   /** Repository in format "owner/repo" */
   repository: string;
-  /** Project name to fetch */
-  project: string;
+  /** Project name(s) to fetch (array for multi-project support) */
+  projects: string[];
   /** Output directory (default: current directory) */
   output: string;
   /** Force overwrite without confirmation */

@@ -155,14 +155,14 @@ export async function fetchDirectoryContents(
                 // Extract subdirectory path (everything before .kiro/)
                 const subdir = path.substring(0, kiroIndex).replace(/\/$/, '');
                 throw new Error(
-                  `ブランチ ${ref} のサブディレクトリ ${subdir} に.kiroフォルダが見つかりません`
+                  `.kiro folder not found in subdirectory ${subdir} on branch ${ref}`
                 );
               }
               // .kiro path at root level
-              throw new Error(`ブランチ ${ref} に.kiroフォルダが見つかりません`);
+              throw new Error(`.kiro folder not found on branch ${ref}`);
             }
             // No .kiro in path - branch itself not found
-            throw new Error(`ブランチが見つかりません: ${ref}`);
+            throw new Error(`Branch not found: ${ref}`);
           }
 
           // No branch specified - check subdirectory error
@@ -184,7 +184,7 @@ export async function fetchDirectoryContents(
         if (status === 401 || status === 403) {
           if (ref !== undefined) {
             throw new Error(
-              `ブランチへのアクセスに失敗しました: ${ref}（権限不足の可能性があります）`
+              `Failed to access branch: ${ref} (possible insufficient permissions)`
             );
           }
         }

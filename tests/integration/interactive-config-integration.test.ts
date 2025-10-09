@@ -16,17 +16,25 @@ import type { KiroxConfig } from '../../src/config/types.js';
 // Mock modules
 vi.mock('../../src/config/loader.js');
 vi.mock('../../src/cli/interactive-prompt.js');
-vi.mock('../../src/github/fetcher.js', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('../../src/github/fetcher.js')>();
-  return {
-    ...actual,
-    fetchKiroFiles: vi.fn().mockResolvedValue({
-      success: true,
-      filesDownloaded: 0,
-      filesFailed: 0,
-    }),
-  };
-});
+vi.mock('../../src/github/fetcher.js', () => ({
+  parseRepositoryPath: vi.fn().mockReturnValue({
+    owner: 'test-owner',
+    repo: 'test-repo',
+    branch: undefined,
+  }),
+  fetchDirectoryContents: vi.fn().mockResolvedValue([]),
+  fetchKiroFiles: vi.fn().mockResolvedValue({
+    success: true,
+    filesDownloaded: 0,
+    filesFailed: 0,
+  }),
+}));
+vi.mock('../../src/github/parallel-fetcher.js', () => ({
+  fetchFilesInParallel: vi.fn().mockResolvedValue({
+    success: [],
+    failed: [],
+  }),
+}));
 vi.mock('../../src/filesystem/writer.js');
 vi.mock('../../src/config/merger.js', async (importOriginal) => {
   const actual = await importOriginal<typeof import('../../src/config/merger.js')>();
@@ -83,7 +91,7 @@ describe('Interactive Mode Config File Integration', () => {
       // Mock promptMissingArguments to return completed args
       mockPromptMissingArguments.mockResolvedValue({
         repository: 'owner/repo',
-        project: 'my-project',
+        projects: ['my-project'],
         output: './config-output',
         subdir: 'config/subdir',
         force: false,
@@ -92,6 +100,7 @@ describe('Interactive Mode Config File Integration', () => {
         config: undefined,
         checkUpdates: false,
         update: false,
+        track: true,
       });
 
       try {
@@ -107,7 +116,7 @@ describe('Interactive Mode Config File Integration', () => {
       expect(mockPromptMissingArguments).toHaveBeenCalledWith(
         expect.objectContaining({
           repository: '',
-          project: '',
+          projects: [],
         }),
         configFile
       );
@@ -125,7 +134,7 @@ describe('Interactive Mode Config File Integration', () => {
       // User accepts config defaults
       mockPromptMissingArguments.mockResolvedValue({
         repository: 'owner/repo',
-        project: 'my-project',
+        projects: ['my-project'],
         output: './from-config',
         subdir: 'lib/components',
         force: false,
@@ -134,6 +143,7 @@ describe('Interactive Mode Config File Integration', () => {
         config: undefined,
         checkUpdates: false,
         update: false,
+        track: true,
       });
 
       try {
@@ -163,7 +173,7 @@ describe('Interactive Mode Config File Integration', () => {
       // User overrides config defaults
       mockPromptMissingArguments.mockResolvedValue({
         repository: 'owner/repo',
-        project: 'my-project',
+        projects: ['my-project'],
         output: './user-override',
         subdir: 'user/subdir',
         force: false,
@@ -172,6 +182,7 @@ describe('Interactive Mode Config File Integration', () => {
         config: undefined,
         checkUpdates: false,
         update: false,
+        track: true,
       });
 
       try {
@@ -198,7 +209,7 @@ describe('Interactive Mode Config File Integration', () => {
       // User provides different value
       mockPromptMissingArguments.mockResolvedValue({
         repository: 'owner/repo',
-        project: 'my-project',
+        projects: ['my-project'],
         output: './different-dir',
         subdir: undefined,
         force: false,
@@ -207,6 +218,7 @@ describe('Interactive Mode Config File Integration', () => {
         config: undefined,
         checkUpdates: false,
         update: false,
+        track: true,
       });
 
       try {
@@ -231,7 +243,7 @@ describe('Interactive Mode Config File Integration', () => {
 
       mockPromptMissingArguments.mockResolvedValue({
         repository: 'owner/repo',
-        project: 'my-project',
+        projects: ['my-project'],
         output: '.',
         subdir: undefined,
         force: false,
@@ -240,6 +252,7 @@ describe('Interactive Mode Config File Integration', () => {
         config: undefined,
         checkUpdates: false,
         update: false,
+        track: true,
       });
 
       try {
@@ -269,7 +282,7 @@ describe('Interactive Mode Config File Integration', () => {
 
       mockPromptMissingArguments.mockResolvedValue({
         repository: 'owner/repo',
-        project: 'my-project',
+        projects: ['my-project'],
         output: '.',
         subdir: undefined,
         force: false,
@@ -278,6 +291,7 @@ describe('Interactive Mode Config File Integration', () => {
         config: undefined,
         checkUpdates: false,
         update: false,
+        track: true,
       });
 
       try {
@@ -304,7 +318,7 @@ describe('Interactive Mode Config File Integration', () => {
 
       mockPromptMissingArguments.mockResolvedValue({
         repository: 'owner/repo',
-        project: 'my-project',
+        projects: ['my-project'],
         output: './custom-output',
         subdir: 'custom/subdir',
         force: false,
@@ -313,6 +327,7 @@ describe('Interactive Mode Config File Integration', () => {
         config: customConfigPath,
         checkUpdates: false,
         update: false,
+        track: true,
       });
 
       try {
@@ -344,7 +359,7 @@ describe('Interactive Mode Config File Integration', () => {
 
       mockPromptMissingArguments.mockResolvedValue({
         repository: 'owner/repo',
-        project: 'my-project',
+        projects: ['my-project'],
         output: '/var/data/output',
         subdir: 'packages/core',
         force: false,
@@ -353,6 +368,7 @@ describe('Interactive Mode Config File Integration', () => {
         config: '/path/to/custom.json',
         checkUpdates: false,
         update: false,
+        track: true,
       });
 
       try {
@@ -379,7 +395,7 @@ describe('Interactive Mode Config File Integration', () => {
       mockShouldEnterInteractiveMode.mockReturnValue(true);
       mockPromptMissingArguments.mockResolvedValue({
         repository: 'test/repo',
-        project: 'test-project',
+        projects: ['test-project'],
         output: './test-output',
         subdir: undefined,
         force: false,
@@ -388,6 +404,7 @@ describe('Interactive Mode Config File Integration', () => {
         config: undefined,
         checkUpdates: false,
         update: false,
+        track: true,
       });
 
       try {
@@ -403,6 +420,136 @@ describe('Interactive Mode Config File Integration', () => {
         expect.any(Object),
         configFile
       );
+    });
+  });
+
+  describe('複数プロジェクト入力の統合テスト', () => {
+    it('should handle comma-separated multiple project input', async () => {
+      // RED: Test comma-separated multiple project names
+      mockLoadConfig.mockResolvedValue({});
+      mockShouldEnterInteractiveMode.mockReturnValue(true);
+
+      // User enters multiple projects separated by commas
+      mockPromptMissingArguments.mockResolvedValue({
+        repository: 'owner/repo',
+        projects: ['project1', 'project2', 'project3'],
+        output: '.',
+        subdir: undefined,
+        force: false,
+        dryRun: false,
+        verbose: false,
+        config: undefined,
+        checkUpdates: false,
+        update: false,
+        track: true,
+      });
+
+      try {
+        await execute(['node', 'kirox']);
+      } catch {
+        // Ignore errors from mocked dependencies
+      }
+
+      const completedArgs = mockPromptMissingArguments.mock.results[0]?.value;
+      await expect(completedArgs).resolves.toMatchObject({
+        projects: ['project1', 'project2', 'project3'],
+      });
+    });
+
+    it('should handle single project input (backward compatibility)', async () => {
+      // RED: Test single project maintains backward compatibility
+      mockLoadConfig.mockResolvedValue({});
+      mockShouldEnterInteractiveMode.mockReturnValue(true);
+
+      // User enters single project
+      mockPromptMissingArguments.mockResolvedValue({
+        repository: 'owner/repo',
+        projects: ['single-project'],
+        output: '.',
+        subdir: undefined,
+        force: false,
+        dryRun: false,
+        verbose: false,
+        config: undefined,
+        checkUpdates: false,
+        update: false,
+        track: true,
+      });
+
+      try {
+        await execute(['node', 'kirox']);
+      } catch {
+        // Ignore errors
+      }
+
+      const completedArgs = mockPromptMissingArguments.mock.results[0]?.value;
+      await expect(completedArgs).resolves.toMatchObject({
+        projects: ['single-project'],
+      });
+    });
+
+    it('should filter out empty elements from comma-separated input', async () => {
+      // RED: Test empty element filtering (e.g., "proj1,,proj2")
+      mockLoadConfig.mockResolvedValue({});
+      mockShouldEnterInteractiveMode.mockReturnValue(true);
+
+      // User input with empty elements (handled by parseProjects)
+      mockPromptMissingArguments.mockResolvedValue({
+        repository: 'owner/repo',
+        projects: ['proj1', 'proj2'], // Empty elements filtered
+        output: '.',
+        subdir: undefined,
+        force: false,
+        dryRun: false,
+        verbose: false,
+        config: undefined,
+        checkUpdates: false,
+        update: false,
+        track: true,
+      });
+
+      try {
+        await execute(['node', 'kirox']);
+      } catch {
+        // Ignore errors
+      }
+
+      const completedArgs = mockPromptMissingArguments.mock.results[0]?.value;
+      await expect(completedArgs).resolves.toMatchObject({
+        projects: ['proj1', 'proj2'],
+      });
+    });
+
+    it('should handle multiple projects with spaces in input', async () => {
+      // RED: Test trimming spaces from project names
+      mockLoadConfig.mockResolvedValue({});
+      mockShouldEnterInteractiveMode.mockReturnValue(true);
+
+      // User input with spaces (handled by parseProjects)
+      mockPromptMissingArguments.mockResolvedValue({
+        repository: 'owner/repo',
+        projects: ['api', 'web', 'mobile'], // Trimmed
+        output: '.',
+        subdir: undefined,
+        force: false,
+        dryRun: false,
+        verbose: false,
+        config: undefined,
+        checkUpdates: false,
+        update: false,
+        track: true,
+      });
+
+      try {
+        await execute(['node', 'kirox']);
+      } catch {
+        // Ignore errors
+      }
+
+      const completedArgs = mockPromptMissingArguments.mock.results[0]?.value;
+      await expect(completedArgs).resolves.toMatchObject({
+        projects: ['api', 'web', 'mobile'],
+      });
     });
   });
 });

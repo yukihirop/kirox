@@ -26,7 +26,7 @@ describe('promptMissingArguments', () => {
     overrides?: Partial<ParsedArguments>
   ): ParsedArguments => ({
     repository: '',
-    project: '',
+    projects: [],
     output: '.',
     force: false,
     dryRun: false,
@@ -65,7 +65,7 @@ describe('promptMissingArguments', () => {
 
       expect(mockInput).toHaveBeenCalledTimes(4);
       expect(result.repository).toBe('owner/repo');
-      expect(result.project).toBe('my-project');
+      expect(result.projects).toEqual(['my-project']);
     });
 
     it('リポジトリのみが指定されている場合、プロジェクトのみをプロンプトする', async () => {
@@ -82,7 +82,7 @@ describe('promptMissingArguments', () => {
       // repository prompt should be skipped
       expect(mockInput).toHaveBeenCalledTimes(3);
       expect(result.repository).toBe('owner/repo');
-      expect(result.project).toBe('my-project');
+      expect(result.projects).toEqual(['my-project']);
     });
 
     it('プロジェクトのみが指定されている場合、リポジトリのみをプロンプトする', async () => {
@@ -93,13 +93,13 @@ describe('promptMissingArguments', () => {
 
       mockConfirm.mockResolvedValue(true);
 
-      const args = createValidArgs({ project: 'my-project' });
+      const args = createValidArgs({ projects: ['my-project'] });
       const result = await promptMissingArguments(args);
 
       // project prompt should be skipped
       expect(mockInput).toHaveBeenCalledTimes(3);
       expect(result.repository).toBe('owner/repo');
-      expect(result.project).toBe('my-project');
+      expect(result.projects).toEqual(['my-project']);
     });
 
     it('リポジトリとプロジェクトが両方指定されている場合、オプションパラメータのみをプロンプトする', async () => {
@@ -111,14 +111,14 @@ describe('promptMissingArguments', () => {
 
       const args = createValidArgs({
         repository: 'owner/repo',
-        project: 'my-project',
+        projects: ['my-project'],
       });
       const result = await promptMissingArguments(args);
 
       // Only output and subdir prompts
       expect(mockInput).toHaveBeenCalledTimes(2);
       expect(result.repository).toBe('owner/repo');
-      expect(result.project).toBe('my-project');
+      expect(result.projects).toEqual(['my-project']);
       expect(result.output).toBe('./custom-output');
       expect(result.subdir).toBe('lib/src');
     });
@@ -137,7 +137,7 @@ describe('promptMissingArguments', () => {
           callOrder.push('repository');
           return Promise.resolve('owner/repo');
         }
-        if (options.message.includes('project')) {
+        if (options.message.includes('project') || options.message.includes('プロジェクト')) {
           callOrder.push('project');
           return Promise.resolve('my-project');
         }
@@ -201,7 +201,7 @@ describe('promptMissingArguments', () => {
       const result = await promptMissingArguments(args);
 
       expect(result.repository).toBe('owner/repo');
-      expect(result.project).toBe('my-project');
+      expect(result.projects).toEqual(['my-project']);
       expect(result.output).toBe('.');
       expect(result.subdir).toBeUndefined();
     });

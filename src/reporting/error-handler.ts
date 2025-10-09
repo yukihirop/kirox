@@ -81,37 +81,37 @@ export class ErrorHandler {
   formatMessage(type: ErrorType, context: ErrorContext): string {
     switch (type) {
       case 'REPOSITORY_NOT_FOUND':
-        return `リポジトリ '${context.repository}' が見つかりません`;
+        return `Repository '${context.repository}' not found`;
 
       case 'PROJECT_NOT_FOUND':
-        return `プロジェクト '${context.project}' が見つかりません`;
+        return `Project '${context.project}' not found`;
 
       case 'NETWORK_ERROR':
-        return 'ネットワーク接続エラーが発生しました';
+        return 'Network connection error';
 
       case 'RATE_LIMIT':
-        return 'GitHub API制限に達しました。しばらく待ってから再試行してください';
+        return 'GitHub API rate limit reached. Please wait and try again later';
 
       case 'ACCESS_DENIED':
-        return 'アクセス権限がありません。リポジトリへのアクセス権を確認してください';
+        return 'Access denied. Please check your repository access permissions';
 
       case 'FILE_TOO_LARGE':
-        return `ファイル '${context.filePath}' が大きすぎます（制限: 1MB）`;
+        return `File '${context.filePath}' is too large (limit: 1MB)`;
 
       case 'TOO_MANY_FILES':
-        return `ファイル数が多すぎます（${context.count}個、制限: 100個）`;
+        return `Too many files (${context.count}, limit: 100)`;
 
       case 'FILESYSTEM_ERROR':
-        return `ファイルシステムエラーが発生しました: ${context.details || '不明なエラー'}`;
+        return `Filesystem error: ${context.details || 'Unknown error'}`;
 
       case 'VALIDATION_ERROR':
-        return `入力が不正です: ${context.details || '入力内容を確認してください'}`;
+        return `Invalid input: ${context.details || 'Please check your input'}`;
 
       case 'UNKNOWN':
-        return `不明なエラーが発生しました: ${context.details || 'エラーの詳細はありません'}`;
+        return `Unknown error: ${context.details || 'No error details available'}`;
 
       default:
-        return 'エラーが発生しました';
+        return 'Error occurred';
     }
   }
 

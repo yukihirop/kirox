@@ -22,7 +22,7 @@ describe('confirmExecution', () => {
 
   const createValidArgs = (): ParsedArguments => ({
     repository: 'owner/repo',
-    project: 'my-project',
+    projects: ['my-project'],
     output: '.',
     force: false,
     dryRun: false,
@@ -181,6 +181,56 @@ describe('confirmExecution', () => {
 
       expect(mockConsoleLog).toHaveBeenCalledWith(
         expect.stringContaining('owner/repo#feature-branch')
+      );
+    });
+  });
+
+  describe('複数プロジェクト表示', () => {
+    it('複数プロジェクト名をカンマ区切りで表示する', async () => {
+      mockConfirm.mockResolvedValue(true);
+      const args = createValidArgs();
+      args.projects = ['project1', 'project2', 'project3'];
+
+      await confirmExecution(args);
+
+      expect(mockConsoleLog).toHaveBeenCalledWith(
+        expect.stringContaining('project1, project2, project3')
+      );
+    });
+
+    it('単一プロジェクト名は従来通り表示する', async () => {
+      mockConfirm.mockResolvedValue(true);
+      const args = createValidArgs();
+      args.projects = ['single-project'];
+
+      await confirmExecution(args);
+
+      expect(mockConsoleLog).toHaveBeenCalledWith(
+        expect.stringContaining('single-project')
+      );
+    });
+
+    it('2つのプロジェクト名をカンマ区切りで表示する', async () => {
+      mockConfirm.mockResolvedValue(true);
+      const args = createValidArgs();
+      args.projects = ['api-project', 'web-project'];
+
+      await confirmExecution(args);
+
+      expect(mockConsoleLog).toHaveBeenCalledWith(
+        expect.stringContaining('api-project, web-project')
+      );
+    });
+
+    it('プロジェクト名にスペースが含まれる場合も正しく表示する', async () => {
+      mockConfirm.mockResolvedValue(true);
+      const args = createValidArgs();
+      args.projects = ['my-api', 'my-web', 'my-mobile'];
+
+      await confirmExecution(args);
+
+      expect(mockConsoleLog).toHaveBeenCalledWith(
+        expect.stringContaining('my-api, my-web, my-mobile')
       );
     });
   });
