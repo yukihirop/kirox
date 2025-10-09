@@ -145,6 +145,7 @@ export async function execute(argv: string[]): Promise<ExecutionResult> {
     // Step 4.5: Initialize aggregated counters for multi-project support
     let totalFilesDownloaded = 0;
     let totalFilesFailed = 0;
+    let successfulProjects = 0; // Track successful projects (task 9.2)
     const projects = args.projects.length > 0 ? args.projects : [''];
 
     // Report start
@@ -390,6 +391,7 @@ export async function execute(argv: string[]): Promise<ExecutionResult> {
         // Step 5.6: Update total counters
         totalFilesDownloaded += projectFilesDownloaded;
         totalFilesFailed += projectFilesFailed;
+        successfulProjects++; // Increment successful project count (task 9.2)
 
         // Step 5.7: Display project summary for multi-project operations
         if (projects.length > 1) {
@@ -404,9 +406,28 @@ export async function execute(argv: string[]): Promise<ExecutionResult> {
         });
         reporter.reportProjectError(projectName, errorResult.message);
         logger.logError(errorResult);
+        // Note: Do not increment successfulProjects here (project failed)
+        // Track failure for proper success/failure determination
         totalFilesFailed++;
       }
     } // End of project loop
+
+    // Step 5.8: Check if all projects failed (task 9.2)
+    if (projects.length > 1 && successfulProjects === 0) {
+      const errorMessage = '指定されたプロジェクトがいずれも見つかりません';
+      reporter.reportError(errorMessage);
+      logger.error(errorMessage, {
+        projectsAttempted: projects.length,
+        successfulProjects: 0,
+      });
+
+      return {
+        success: false,
+        filesDownloaded: 0,
+        filesFailed: 0,
+        exitCode: 1,
+      };
+    }
 
     // Step 6: Report summary
     reporter.reportSummary(totalFilesDownloaded, totalFilesFailed, subdir, effectiveBranch);

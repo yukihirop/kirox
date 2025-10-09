@@ -260,4 +260,126 @@ describe('E2E Error Scenarios', () => {
       expect(result.exitCode).toBeGreaterThan(0);
     });
   });
+
+  describe('All projects not found (task 9.2)', () => {
+    it('should fail with clear error when all specified projects do not exist', async () => {
+      const mockOctokit = {
+        rest: {
+          repos: {
+            getContent: vi.fn().mockRejectedValue(
+              Object.assign(new Error('Not Found'), { status: 404 })
+            ),
+          },
+        },
+      };
+
+      vi.mocked(Octokit).mockImplementation(() => mockOctokit as any);
+
+      const argv = [
+        'node',
+        'kirox',
+        'owner/repo',
+        '-p',
+        'non-existent-proj1,non-existent-proj2,non-existent-proj3',
+        '-o',
+        testOutputDir,
+      ];
+
+      const result = await execute(argv);
+
+      expect(result.success).toBe(false);
+      expect(result.exitCode).toBe(1);
+      expect(result.filesDownloaded).toBe(0);
+    });
+
+    it('should display error message when all projects not found', async () => {
+      const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+      const mockOctokit = {
+        rest: {
+          repos: {
+            getContent: vi.fn().mockRejectedValue(
+              Object.assign(new Error('Not Found'), { status: 404 })
+            ),
+          },
+        },
+      };
+
+      vi.mocked(Octokit).mockImplementation(() => mockOctokit as any);
+
+      const argv = [
+        'node',
+        'kirox',
+        'owner/repo',
+        '-p',
+        'proj1,proj2',
+        '-o',
+        testOutputDir,
+      ];
+
+      await execute(argv);
+
+      const errorCalls = consoleErrorSpy.mock.calls.flat();
+      const hasAllProjectsNotFoundMessage = errorCalls.some((arg) =>
+        String(arg).includes('指定されたプロジェクトがいずれも見つかりません')
+      );
+
+      expect(hasAllProjectsNotFoundMessage).toBe(true);
+
+      consoleErrorSpy.mockRestore();
+    });
+
+    it('should continue when only some projects fail (partial success)', async () => {
+      const mockOctokit = {
+        rest: {
+          repos: {
+            getContent: vi.fn()
+              // First call: proj1 spec directory - fails (404)
+              .mockRejectedValueOnce(Object.assign(new Error('Not Found'), { status: 404 }))
+              // Second call: proj2 spec directory - succeeds
+              .mockResolvedValueOnce({
+                data: [
+                  {
+                    name: 'spec.json',
+                    path: '.kiro/specs/proj2/spec.json',
+                    type: 'file',
+                    sha: 'abc123',
+                    size: 100,
+                  },
+                ],
+              })
+              // Third call: proj2/spec.json file content
+              .mockResolvedValueOnce({
+                data: {
+                  type: 'file',
+                  encoding: 'base64',
+                  content: Buffer.from(JSON.stringify({ name: 'proj2' })).toString('base64'),
+                  size: 100,
+                  path: '.kiro/specs/proj2/spec.json',
+                  sha: 'abc123',
+                },
+              }),
+          },
+        },
+      };
+
+      vi.mocked(Octokit).mockImplementation(() => mockOctokit as any);
+
+      const argv = [
+        'node',
+        'kirox',
+        'owner/repo',
+        '-p',
+        'proj1,proj2',
+        '-o',
+        testOutputDir,
+      ];
+
+      const result = await execute(argv);
+
+      // Should succeed because proj2 succeeded (partial success)
+      expect(result.filesDownloaded).toBeGreaterThan(0);
+      expect(result.success).toBe(true); // No failures in file downloads
+    });
+  });
 });
