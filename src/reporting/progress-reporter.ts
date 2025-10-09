@@ -26,7 +26,7 @@ export class ProgressReporter {
   }
 
   /**
-   * Report start of operation
+   * Report start of operation (single project)
    *
    * Displays repository and project information at the beginning of execution
    *
@@ -48,25 +48,97 @@ export class ProgressReporter {
    * //         Source: owner/repo (branch: feature-branch)
    * ```
    */
-  reportStart(repository: string, project: string, subdir?: string, branch?: string): void {
+  reportStart(repository: string, project: string, subdir?: string, branch?: string): void;
+
+  /**
+   * Report start of operation (multi-project)
+   *
+   * Displays repository and multiple projects information at the beginning of execution
+   *
+   * @param repository - GitHub repository (owner/repo)
+   * @param projects - Array of project names
+   * @param subdir - Optional subdirectory path containing .kiro folder
+   * @param branch - Optional branch name
+   *
+   * @example
+   * ```typescript
+   * reporter.reportStart('owner/repo', ['proj1', 'proj2', 'proj3']);
+   * // Output: Fetching files from owner/repo/.kiro
+   * //         取得対象: 3個のプロジェクト (proj1, proj2, proj3)
+   * //         Source: owner/repo (default branch)
+   *
+   * reporter.reportStart('owner/repo', ['proj1', 'proj2'], 'packages/api', 'main');
+   * // Output: Fetching files from owner/repo/packages/api/.kiro
+   * //         取得対象: 2個のプロジェクト (proj1, proj2)
+   * //         Source: owner/repo (branch: main)
+   * ```
+   */
+  reportStart(repository: string, projects: string[], subdir?: string, branch?: string): void;
+
+  /**
+   * Implementation of reportStart (handles both single and multi-project)
+   */
+  reportStart(
+    repository: string,
+    projectOrProjects: string | string[],
+    subdir?: string,
+    branch?: string
+  ): void {
     const kiroPath = subdir ? `${subdir}/.kiro` : '.kiro';
     const repoText = `Fetching files from ${repository}/${kiroPath}`;
-    const projectText = `Project: ${project}`;
 
     // Extract owner/repo from repository (remove branch if present)
-    const repoOnly = repository.split('#')[0];
+    const repoOnly = repository.split('#')[0] || repository;
 
     // Build branch information text
-    let branchInfo: string;
-    if (branch) {
-      branchInfo = `Source: ${repoOnly} (branch: ${branch})`;
-    } else {
-      branchInfo = `Source: ${repoOnly} (default branch)`;
-    }
+    const branchInfo = this.buildBranchInfo(repoOnly, branch);
 
     console.log(this.chalk.cyan(repoText));
+
+    // Display project information (single or multi-project)
+    const projectText = this.buildProjectText(projectOrProjects);
     console.log(this.chalk.cyan(projectText));
+
     console.log(this.chalk.cyan(branchInfo));
+  }
+
+  /**
+   * Build project information text
+   *
+   * @param projectOrProjects - Single project name or array of project names
+   * @returns Formatted project text
+   */
+  private buildProjectText(projectOrProjects: string | string[]): string {
+    if (Array.isArray(projectOrProjects)) {
+      // Multi-project display
+      if (projectOrProjects.length === 1) {
+        // Single project in array - use single project display
+        return `Project: ${projectOrProjects[0]}`;
+      } else {
+        // Multiple projects
+        const projectCount = projectOrProjects.length;
+        const projectList = projectOrProjects.join(', ');
+        return `取得対象: ${projectCount}個のプロジェクト (${projectList})`;
+      }
+    } else {
+      // Single project display
+      return `Project: ${projectOrProjects}`;
+    }
+  }
+
+  /**
+   * Build branch information text
+   *
+   * @param repository - Repository name (owner/repo)
+   * @param branch - Optional branch name
+   * @returns Formatted branch information
+   */
+  private buildBranchInfo(repository: string, branch?: string): string {
+    if (branch) {
+      return `Source: ${repository} (branch: ${branch})`;
+    } else {
+      return `Source: ${repository} (default branch)`;
+    }
   }
 
   /**

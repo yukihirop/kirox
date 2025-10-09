@@ -181,6 +181,76 @@ describe('ProgressReporter', () => {
 
       expect(hasDefaultBranchInfo).toBe(true);
     });
+
+    // Task 8.1: Multi-project start display
+    it('should display multi-project information when projects array is provided (task 8.1)', () => {
+      const options: ReporterOptions = { verbose: false, useColor: true };
+      const reporter = new ProgressReporter(options);
+
+      reporter.reportStart('owner/repo', ['proj1', 'proj2', 'proj3']);
+
+      const allCalls = consoleLogSpy.mock.calls.map((call) => call[0]);
+      const hasMultiProjectInfo = allCalls.some((msg) =>
+        String(msg).includes('3個のプロジェクト') ||
+        (String(msg).includes('proj1') && String(msg).includes('proj2') && String(msg).includes('proj3'))
+      );
+
+      expect(hasMultiProjectInfo).toBe(true);
+    });
+
+    it('should display multi-project info with subdirectory (task 8.1)', () => {
+      const options: ReporterOptions = { verbose: false, useColor: true };
+      const reporter = new ProgressReporter(options);
+
+      reporter.reportStart('owner/repo', ['proj1', 'proj2'], 'packages/api');
+
+      const allCalls = consoleLogSpy.mock.calls.map((call) => call[0]);
+      const hasSubdir = allCalls.some((msg) =>
+        String(msg).includes('packages/api/.kiro')
+      );
+      const hasMultiProject = allCalls.some((msg) =>
+        String(msg).includes('2個のプロジェクト')
+      );
+
+      expect(hasSubdir).toBe(true);
+      expect(hasMultiProject).toBe(true);
+    });
+
+    it('should display multi-project info with branch (task 8.1)', () => {
+      const options: ReporterOptions = { verbose: false, useColor: true };
+      const reporter = new ProgressReporter(options);
+
+      reporter.reportStart('owner/repo', ['proj1', 'proj2'], undefined, 'main');
+
+      const allCalls = consoleLogSpy.mock.calls.map((call) => call[0]);
+      const hasBranch = allCalls.some((msg) =>
+        String(msg).includes('branch: main')
+      );
+      const hasMultiProject = allCalls.some((msg) =>
+        String(msg).includes('2個のプロジェクト')
+      );
+
+      expect(hasBranch).toBe(true);
+      expect(hasMultiProject).toBe(true);
+    });
+
+    it('should use single-project display when projects array has one element (task 8.1)', () => {
+      const options: ReporterOptions = { verbose: false, useColor: true };
+      const reporter = new ProgressReporter(options);
+
+      reporter.reportStart('owner/repo', ['single-project']);
+
+      const allCalls = consoleLogSpy.mock.calls.map((call) => call[0]);
+      const hasSingleProjectDisplay = allCalls.some((msg) =>
+        String(msg).includes('Project: single-project')
+      );
+      const hasMultiProjectDisplay = allCalls.some((msg) =>
+        String(msg).includes('個のプロジェクト')
+      );
+
+      expect(hasSingleProjectDisplay).toBe(true);
+      expect(hasMultiProjectDisplay).toBe(false);
+    });
   });
 
   describe('reportProgress', () => {

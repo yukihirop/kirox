@@ -147,8 +147,13 @@ export async function execute(argv: string[]): Promise<ExecutionResult> {
     let totalFilesFailed = 0;
     const projects = args.projects.length > 0 ? args.projects : [''];
 
-    // Report start (for backward compatibility, use first project if only one)
-    reporter.reportStart(args.repository, projects[0] || '', subdir, effectiveBranch);
+    // Report start
+    // Use multi-project display if multiple projects, otherwise use single-project display
+    if (projects.length === 1) {
+      reporter.reportStart(args.repository, projects[0] || '', subdir, effectiveBranch);
+    } else {
+      reporter.reportStart(args.repository, projects, subdir, effectiveBranch);
+    }
 
     // Step 5: Loop through projects
     for (const [index, projectName] of projects.entries()) {
