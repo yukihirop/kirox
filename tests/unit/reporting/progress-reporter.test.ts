@@ -1061,10 +1061,10 @@ describe('ProgressReporter', () => {
       reporter.reportPartialFailureSummary(failedProjects, successfulProjects);
 
       const allCalls = consoleLogSpy.mock.calls.map((call) => call[0]);
-      const hasFailedHeader = allCalls.some((msg) => String(msg).includes('失敗したプロジェクト'));
+      const hasFailedHeader = allCalls.some((msg) => String(msg).includes('Failed projects'));
       const hasFailedProj1 = allCalls.some((msg) => String(msg).includes('proj1'));
       const hasFailedProj3 = allCalls.some((msg) => String(msg).includes('proj3'));
-      const hasSuccessHeader = allCalls.some((msg) => String(msg).includes('成功したプロジェクト'));
+      const hasSuccessHeader = allCalls.some((msg) => String(msg).includes('Successful projects'));
       const hasSuccessProj2 = allCalls.some((msg) => String(msg).includes('proj2'));
       const hasSuccessProj4 = allCalls.some((msg) => String(msg).includes('proj4'));
 
@@ -1107,10 +1107,10 @@ describe('ProgressReporter', () => {
       reporter.reportPartialFailureSummary(failedProjects, successfulProjects);
 
       const allCalls = consoleLogSpy.mock.calls.map((call) => call[0]);
-      const hasFailedHeader = allCalls.some((msg) => String(msg).includes('失敗したプロジェクト'));
+      const hasFailedHeader = allCalls.some((msg) => String(msg).includes('Failed projects'));
       const hasNoSuccessProjects = allCalls.some((msg) =>
-        String(msg).includes('成功したプロジェクトはありません') ||
-        String(msg).includes('0個のプロジェクト')
+        String(msg).includes('No successful projects') ||
+        String(msg).includes('0 projects')
       );
 
       expect(hasFailedHeader).toBe(true);
@@ -1128,8 +1128,8 @@ describe('ProgressReporter', () => {
       reporter.reportPartialFailureSummary(failedProjects, successfulProjects);
 
       const allCalls = consoleLogSpy.mock.calls.map((call) => call[0]);
-      const hasFailedCount = allCalls.some((msg) => /失敗.*2/i.test(String(msg)));
-      const hasSuccessCount = allCalls.some((msg) => /成功.*1/i.test(String(msg)));
+      const hasFailedCount = allCalls.some((msg) => /Failed.*2/i.test(String(msg)));
+      const hasSuccessCount = allCalls.some((msg) => /Successful.*1/i.test(String(msg)));
 
       expect(hasFailedCount).toBe(true);
       expect(hasSuccessCount).toBe(true);

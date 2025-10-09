@@ -419,7 +419,7 @@ export async function execute(argv: string[]): Promise<ExecutionResult> {
 
     // Step 5.8: Check if all projects failed (task 9.2)
     if (projects.length > 1 && successfulProjects === 0) {
-      const errorMessage = '指定されたプロジェクトがいずれも見つかりません';
+      const errorMessage = 'None of the specified projects were found';
       reporter.reportError(errorMessage);
       logger.error(errorMessage, {
         projectsAttempted: projects.length,

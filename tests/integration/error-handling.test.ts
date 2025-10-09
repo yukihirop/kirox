@@ -245,12 +245,12 @@ describe('Multi-Project Error Handling Integration', () => {
 
       const logCalls = consoleLogSpy.mock.calls.flat();
 
-      // Verify partial failure summary is displayed
+      // Verify partial failure summary is displayed (English per language policy)
       const hasFailedProjectsHeader = logCalls.some((arg) =>
-        String(arg).includes('失敗したプロジェクト')
+        String(arg).includes('Failed projects')
       );
       const hasSuccessfulProjectsHeader = logCalls.some((arg) =>
-        String(arg).includes('成功したプロジェクト')
+        String(arg).includes('Successful projects')
       );
       const hasProj1Failed = logCalls.some((arg) => String(arg).includes('proj1'));
       const hasProj2Success = logCalls.some((arg) => String(arg).includes('proj2'));
@@ -298,10 +298,10 @@ describe('Multi-Project Error Handling Integration', () => {
       expect(result.exitCode).toBe(1);
       expect(result.filesDownloaded).toBe(0);
 
-      // Verify all-projects-not-found error message
+      // Verify all-projects-not-found error message (English per language policy)
       const errorCalls = consoleErrorSpy.mock.calls.flat();
       const hasAllProjectsNotFoundMessage = errorCalls.some((arg) =>
-        String(arg).includes('指定されたプロジェクトがいずれも見つかりません')
+        String(arg).includes('None of the specified projects were found')
       );
 
       expect(hasAllProjectsNotFoundMessage).toBe(true);

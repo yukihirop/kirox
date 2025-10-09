@@ -321,7 +321,7 @@ describe('E2E Error Scenarios', () => {
 
       const errorCalls = consoleErrorSpy.mock.calls.flat();
       const hasAllProjectsNotFoundMessage = errorCalls.some((arg) =>
-        String(arg).includes('指定されたプロジェクトがいずれも見つかりません')
+        String(arg).includes('None of the specified projects were found')
       );
 
       expect(hasAllProjectsNotFoundMessage).toBe(true);

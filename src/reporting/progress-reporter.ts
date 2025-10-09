@@ -504,10 +504,10 @@ export class ProgressReporter {
    * ```typescript
    * reporter.reportPartialFailureSummary(['proj1', 'proj3'], ['proj2', 'proj4']);
    * // Output:
-   * // 失敗したプロジェクト (2):
+   * // Failed projects (2):
    * //   - proj1
    * //   - proj3
-   * // 成功したプロジェクト (2):
+   * // Successful projects (2):
    * //   - proj2
    * //   - proj4
    * ```
@@ -515,7 +515,7 @@ export class ProgressReporter {
   reportPartialFailureSummary(failedProjects: string[], successfulProjects: string[]): void {
     // Display failed projects
     if (failedProjects.length > 0) {
-      console.log(this.chalk.red(`\n失敗したプロジェクト (${failedProjects.length}):`));
+      console.log(this.chalk.red(`\nFailed projects (${failedProjects.length}):`));
       failedProjects.forEach((project) => {
         console.log(this.chalk.red(`  - ${project}`));
       });
@@ -523,7 +523,7 @@ export class ProgressReporter {
 
     // Display successful projects
     if (successfulProjects.length > 0) {
-      console.log(this.chalk.green(`\n成功したプロジェクト (${successfulProjects.length}):`));
+      console.log(this.chalk.green(`\nSuccessful projects (${successfulProjects.length}):`));
       successfulProjects.forEach((project) => {
         console.log(this.chalk.green(`  - ${project}`));
       });
