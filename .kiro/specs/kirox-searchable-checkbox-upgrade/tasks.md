@@ -15,12 +15,14 @@
 ---
 
 - [ ] 1. `@inquirer/prompts`カスタムプロンプトAPIの調査と設計
-- [ ] 1.1 `@inquirer/prompts`の`createPrompt` APIと既存実装の調査
-  - `@inquirer/prompts`の`createPrompt` APIドキュメントとTypeScript型定義を調査
-  - `@inquirer/checkbox`プロンプトのソースコード（npm package内）を確認
-  - `@inquirer/core`の基本フックAPI（`useState`, `useKeypress`, `useRef`等）を調査
-  - 既存の`@inquirer/checkbox`の状態管理、レンダリングロジックを分析
+- [x] 1.1 `@inquirer/prompts`の`createPrompt` APIと既存実装の調査
+  - ✅ `@inquirer/prompts`の`createPrompt` APIドキュメントとTypeScript型定義を調査
+  - ✅ `@inquirer/checkbox`プロンプトのソースコード（npm package内）を確認
+  - ✅ `@inquirer/core`の基本フックAPI（`useState`, `useKeypress`, `useRef`等）を調査
+  - ✅ 既存の`@inquirer/checkbox`の状態管理、レンダリングロジックを分析
+  - ✅ 調査結果をドキュメント化（investigation-1.1.md）
   - _Requirements: 1.1-1.3, 2.1-2.7_
+  - _Result: カスタムプロンプト自作は十分に実現可能。実装難易度は中程度（⭐⭐⭐☆☆）_
 
 - [ ] 1.2 検索可能チェックボックスプロンプトの設計
   - `inquirer-checkbox-plus-prompt`の実装パターンを`@inquirer/prompts`アーキテクチャにマッピング
