@@ -97,7 +97,7 @@
   - _Requirements: 4.7_
 
 - [ ] 4. promptMissingArguments関数の拡張
-- [ ] 4.1 Tree API検索の統合とフォールバック分岐の実装
+- [x] 4.1 Tree API検索の統合とフォールバック分岐の実装
   - Repository入力完了後、Tree API検索を最初に試行
   - Loggerが提供されている場合のみTree API検索を実行
   - Tree API成功時、サブディレクトリ入力プロンプトをスキップ

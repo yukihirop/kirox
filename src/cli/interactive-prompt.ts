@@ -23,6 +23,8 @@ import {
   formatMultipleProjectsToString,
 } from './project-suggester.js';
 import { parseRepositoryPath } from '../github/fetcher.js';
+import { scanProjectsAcrossSubdirs } from '../github/tree-based-project-scanner.js';
+import { promptProjectSelection } from './searchable-project-prompt.js';
 
 /**
  * Determine if interactive mode should be entered
@@ -272,14 +274,16 @@ export async function confirmExecution(args: ParsedArguments): Promise<boolean> 
  *
  * This function orchestrates all interactive prompts in sequence:
  * 1. Repository (if missing)
- * 2. Subdirectory (if not specified, optional) - Task 5.3: Moved before project
- * 3. Project (if missing) - with project suggestion feature (uses subdir from step 2)
- * 4. Output directory (if not specified or is default value)
- * 5. Confirmation (always prompt)
+ * 2. Tree API search (Task 4.1) - if Logger provided and projects missing
+ * 3. Subdirectory (if Tree API failed/skipped, optional) - Task 5.3: Moved before project
+ * 4. Project (if missing) - with project suggestion feature (uses subdir from step 2/3)
+ * 5. Output directory (if not specified or is default value)
+ * 6. Confirmation (always prompt)
  *
  * Task 7.1: 設定ファイルからのデフォルト値読み込み
  * Task 4.2: promptProject関数呼び出し時に追加パラメータを渡す
  * Task 5.3: プロンプト実行順序の修正（subdirをprojectの前に移動）
+ * Task 4.1: Tree API検索の統合とフォールバック分岐の実装
  *
  * @param args - Partially parsed arguments (may have missing required fields)
  * @param configFile - Configuration file values for defaults
@@ -300,17 +304,8 @@ export async function promptMissingArguments(
   // 1. Prompt for repository if missing
   completedArgs.repository = await promptRepository(completedArgs.repository);
 
-  // 2. Prompt for subdirectory BEFORE project (Task 5.3: Bug fix)
-  // This ensures project suggestion has the correct subdir path
-  if (!completedArgs.subdir) {
-    const subdir = await promptSubdir(configFile);
-    if (subdir) {
-      completedArgs.subdir = subdir;
-    }
-  }
-
-  // 3. Initialize GitHub client for project suggestion feature (if logger is provided)
-  // This allows promptProject to suggest projects from GitHub API
+  // 2. Initialize GitHub client for project suggestion feature (if logger is provided)
+  // This allows both Tree API search and promptProject to use GitHub API
   let client: Octokit | undefined;
   if (logger) {
     try {
@@ -319,7 +314,7 @@ export async function promptMissingArguments(
       });
     } catch (error) {
       // If Octokit initialization fails, continue without suggestion feature
-      // promptProject will fall back to manual input
+      // Both Tree API and promptProject will fall back to manual input
       if (verbose) {
         logger.warn('Failed to initialize GitHub client for project suggestion', {
           error: error instanceof Error ? error.message : String(error),
@@ -328,26 +323,97 @@ export async function promptMissingArguments(
     }
   }
 
-  // 4. Prompt for project if missing (now subdir is already set)
+  // 3. Task 4.1: Attempt Tree API search if logger and client are available
+  // Skip Tree API if:
+  // - Logger is not provided (Requirement 3.1)
+  // - Client initialization failed
+  // - Projects are already specified
+  let treeApiSuccess = false;
+  const shouldAttemptTreeAPI =
+    logger && client && (!completedArgs.projects || completedArgs.projects.length === 0);
+
+  if (shouldAttemptTreeAPI && client) {
+    try {
+      // Display loading message (Requirement 7.1)
+      console.log('\nScanning repository for projects...');
+
+      // Parse repository reference
+      const repositoryRef = parseRepositoryPath(completedArgs.repository);
+
+      // Call Tree API to scan projects across subdirectories
+      const scanResult = await scanProjectsAcrossSubdirs({
+        repository: repositoryRef,
+        client, // Type guard: client is guaranteed to be defined here
+        logger,
+        verbose: verbose || false,
+      });
+
+      // Check if Tree API succeeded and found projects
+      if (scanResult.success && scanResult.projects.length > 0) {
+        // Display summary message (Requirement 7.3)
+        const subdirCount = new Set(scanResult.projects.map(p => p.subdir)).size;
+        console.log(`Found ${scanResult.projects.length} projects across ${subdirCount} subdirectories\n`);
+
+        // Display truncated warning if applicable (Requirement 5.3)
+        if (scanResult.truncated) {
+          console.log('⚠️  Large repository: Some projects may not be displayed');
+          console.log('   (GitHub API response was truncated)\n');
+        }
+
+        // Prompt user to select project(s) using searchable UI
+        const selectionResult = await promptProjectSelection(scanResult.projects);
+
+        // Auto-extract project names and subdirectory (Requirement 3.3, 3.4)
+        completedArgs.projects = selectionResult.projects;
+        completedArgs.subdir = selectionResult.subdir;
+
+        // Mark Tree API as successful to skip subdirectory prompt
+        treeApiSuccess = true;
+      }
+    } catch (error) {
+      // Tree API failed, fall through to existing workflow
+      // Log error if verbose mode is enabled
+      if (verbose && logger) {
+        logger.verbose('Tree API search failed, falling back to existing workflow', {
+          error: error instanceof Error ? error.message : String(error),
+        });
+      }
+    }
+  }
+
+  // 4. Prompt for subdirectory if Tree API did not succeed (Requirement 3.2: Fallback)
+  // Skip if:
+  // - Tree API succeeded (subdirectory already auto-extracted)
+  // - Subdirectory is already specified
+  if (!treeApiSuccess && !completedArgs.subdir) {
+    const subdir = await promptSubdir(configFile);
+    if (subdir) {
+      completedArgs.subdir = subdir;
+    }
+  }
+
+  // 5. Prompt for project if missing (and Tree API did not provide it)
   // Pass additional parameters for project suggestion feature
   // Convert projects array back to string for prompting, then parse result
-  const projectString = await promptProject(
-    completedArgs.projects.join(', '),
-    completedArgs.repository,
-    completedArgs.subdir, // Now this has the correct value from step 2
-    client,
-    logger,
-    verbose
-  );
-  completedArgs.projects = parseProjects(projectString);
+  if (!treeApiSuccess && (!completedArgs.projects || completedArgs.projects.length === 0)) {
+    const projectString = await promptProject(
+      completedArgs.projects.join(', '),
+      completedArgs.repository,
+      completedArgs.subdir, // Now this has the correct value from step 3 or 4
+      client,
+      logger,
+      verbose
+    );
+    completedArgs.projects = parseProjects(projectString);
+  }
 
-  // 5. Prompt for output directory only if not already specified
+  // 6. Prompt for output directory only if not already specified
   // Check if output is the default value or empty
   if (!completedArgs.output || completedArgs.output === '.') {
     completedArgs.output = await promptOutput(configFile);
   }
 
-  // 6. Show confirmation prompt
+  // 7. Show confirmation prompt
   const confirmed = await confirmExecution(completedArgs);
   if (!confirmed) {
     throw new Error('Operation cancelled');
