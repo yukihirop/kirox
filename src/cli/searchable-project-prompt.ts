@@ -110,7 +110,7 @@ export async function promptProjectSelection(
       message: 'Select projects (use space to select, enter to confirm):',
       // Task 3.4: Dynamic choices function (Requirements 4.2-4.4, 4.8)
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      choices: (async (checked: readonly string[]) => {
+      choices: ((checked: readonly string[]) => {
         // If no projects selected yet, show all projects
         if (checked.length === 0) {
           return projectLocations.map((project) => ({
