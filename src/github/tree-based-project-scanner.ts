@@ -99,6 +99,18 @@ export async function scanProjectsAcrossSubdirs(
     // Step 4: Build ProjectLocation objects with display names
     const projects = buildProjectLocations(parsedItems);
 
+    // Step 4.5: Sort projects alphabetically (Task 2.2)
+    // Sort by subdirectory path first, then by project name
+    // Root projects (subdir === '') should come first
+    projects.sort((a, b) => {
+      // Root directory projects come first
+      if (a.subdir === '' && b.subdir !== '') return -1;
+      if (a.subdir !== '' && b.subdir === '') return 1;
+
+      // Both root or both subdirectory: compare displayName alphabetically
+      return a.displayName.localeCompare(b.displayName);
+    });
+
     // Step 5: Detect and propagate truncated flag
     const truncated = treeResponse.data.truncated || false;
 

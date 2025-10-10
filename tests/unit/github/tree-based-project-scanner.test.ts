@@ -440,5 +440,146 @@ describe('Tree-Based Project Scanner', () => {
         expect(mockLogger.verbose).toHaveBeenCalled();
       });
     });
+
+    describe('alphabetical sorting (task 2.2)', () => {
+      it('should sort projects alphabetically by subdirectory path and project name', async () => {
+        // Arrange: Create unsorted project list
+        vi.mocked(mockClient.rest.repos.getBranch).mockResolvedValue({
+          data: {
+            commit: {
+              sha: 'commit-sha',
+            },
+          },
+        } as any);
+
+        vi.mocked(mockClient.rest.git.getTree).mockResolvedValue({
+          data: {
+            sha: 'commit-sha',
+            tree: [
+              // Intentionally unsorted order
+              {
+                path: 'packages/z/.kiro/specs/zebra',
+                type: 'tree',
+                mode: '040000',
+                sha: 'sha-zebra',
+                url: 'https://api.github.com/repos/test-owner/test-repo/git/trees/sha-zebra',
+              },
+              {
+                path: '.kiro/specs/root-project',
+                type: 'tree',
+                mode: '040000',
+                sha: 'sha-root',
+                url: 'https://api.github.com/repos/test-owner/test-repo/git/trees/sha-root',
+              },
+              {
+                path: 'lib/b/.kiro/specs/beta',
+                type: 'tree',
+                mode: '040000',
+                sha: 'sha-beta',
+                url: 'https://api.github.com/repos/test-owner/test-repo/git/trees/sha-beta',
+              },
+              {
+                path: 'lib/a/.kiro/specs/gamma',
+                type: 'tree',
+                mode: '040000',
+                sha: 'sha-gamma',
+                url: 'https://api.github.com/repos/test-owner/test-repo/git/trees/sha-gamma',
+              },
+              {
+                path: 'lib/a/.kiro/specs/alpha',
+                type: 'tree',
+                mode: '040000',
+                sha: 'sha-alpha',
+                url: 'https://api.github.com/repos/test-owner/test-repo/git/trees/sha-alpha',
+              },
+            ],
+            truncated: false,
+          },
+        } as any);
+
+        // Act
+        const { scanProjectsAcrossSubdirs } = await import('../../../src/github/tree-based-project-scanner.js');
+        const result = await scanProjectsAcrossSubdirs({
+          repository,
+          client: mockClient,
+          logger: mockLogger,
+          verbose: false,
+        });
+
+        // Assert: Projects should be sorted alphabetically
+        // Order should be:
+        // 1. root-project (root directory comes first)
+        // 2. lib/a/alpha (subdir "lib/a", project "alpha")
+        // 3. lib/a/gamma (subdir "lib/a", project "gamma")
+        // 4. lib/b/beta (subdir "lib/b")
+        // 5. packages/z/zebra (subdir "packages/z")
+        expect(result.success).toBe(true);
+        expect(result.projects).toHaveLength(5);
+
+        expect(result.projects[0].displayName).toBe('root-project');
+        expect(result.projects[1].displayName).toBe('lib/a/alpha');
+        expect(result.projects[2].displayName).toBe('lib/a/gamma');
+        expect(result.projects[3].displayName).toBe('lib/b/beta');
+        expect(result.projects[4].displayName).toBe('packages/z/zebra');
+      });
+
+      it('should sort projects within the same subdirectory alphabetically', async () => {
+        // Arrange: Multiple projects in the same subdirectory
+        vi.mocked(mockClient.rest.repos.getBranch).mockResolvedValue({
+          data: {
+            commit: {
+              sha: 'commit-sha',
+            },
+          },
+        } as any);
+
+        vi.mocked(mockClient.rest.git.getTree).mockResolvedValue({
+          data: {
+            sha: 'commit-sha',
+            tree: [
+              {
+                path: 'packages/core/.kiro/specs/zulu',
+                type: 'tree',
+                mode: '040000',
+                sha: 'sha-zulu',
+                url: 'https://api.github.com/repos/test-owner/test-repo/git/trees/sha-zulu',
+              },
+              {
+                path: 'packages/core/.kiro/specs/alpha',
+                type: 'tree',
+                mode: '040000',
+                sha: 'sha-alpha',
+                url: 'https://api.github.com/repos/test-owner/test-repo/git/trees/sha-alpha',
+              },
+              {
+                path: 'packages/core/.kiro/specs/mike',
+                type: 'tree',
+                mode: '040000',
+                sha: 'sha-mike',
+                url: 'https://api.github.com/repos/test-owner/test-repo/git/trees/sha-mike',
+              },
+            ],
+            truncated: false,
+          },
+        } as any);
+
+        // Act
+        const { scanProjectsAcrossSubdirs } = await import('../../../src/github/tree-based-project-scanner.js');
+        const result = await scanProjectsAcrossSubdirs({
+          repository,
+          client: mockClient,
+          logger: mockLogger,
+          verbose: false,
+        });
+
+        // Assert: Projects within same subdir should be alphabetically sorted
+        expect(result.success).toBe(true);
+        expect(result.projects).toHaveLength(3);
+
+        expect(result.projects[0].name).toBe('alpha');
+        expect(result.projects[1].name).toBe('mike');
+        expect(result.projects[2].name).toBe('zulu');
+      });
+    });
   });
 });
