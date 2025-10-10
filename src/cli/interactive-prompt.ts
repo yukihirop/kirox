@@ -246,13 +246,14 @@ export async function confirmExecution(args: ParsedArguments): Promise<boolean> 
  *
  * This function orchestrates all interactive prompts in sequence:
  * 1. Repository (if missing)
- * 2. Project (if missing) - with project suggestion feature
- * 3. Output directory (if not specified or is default value)
- * 4. Subdirectory (if not specified, optional)
+ * 2. Subdirectory (if not specified, optional) - Task 5.3: Moved before project
+ * 3. Project (if missing) - with project suggestion feature (uses subdir from step 2)
+ * 4. Output directory (if not specified or is default value)
  * 5. Confirmation (always prompt)
  *
  * Task 7.1: 設定ファイルからのデフォルト値読み込み
  * Task 4.2: promptProject関数呼び出し時に追加パラメータを渡す
+ * Task 5.3: プロンプト実行順序の修正（subdirをprojectの前に移動）
  *
  * @param args - Partially parsed arguments (may have missing required fields)
  * @param configFile - Configuration file values for defaults
@@ -273,7 +274,16 @@ export async function promptMissingArguments(
   // 1. Prompt for repository if missing
   completedArgs.repository = await promptRepository(completedArgs.repository);
 
-  // 2. Initialize GitHub client for project suggestion feature (if logger is provided)
+  // 2. Prompt for subdirectory BEFORE project (Task 5.3: Bug fix)
+  // This ensures project suggestion has the correct subdir path
+  if (!completedArgs.subdir) {
+    const subdir = await promptSubdir(configFile);
+    if (subdir) {
+      completedArgs.subdir = subdir;
+    }
+  }
+
+  // 3. Initialize GitHub client for project suggestion feature (if logger is provided)
   // This allows promptProject to suggest projects from GitHub API
   let client: Octokit | undefined;
   if (logger) {
@@ -292,31 +302,23 @@ export async function promptMissingArguments(
     }
   }
 
-  // 3. Prompt for project if missing
+  // 4. Prompt for project if missing (now subdir is already set)
   // Pass additional parameters for project suggestion feature
   // Convert projects array back to string for prompting, then parse result
   const projectString = await promptProject(
     completedArgs.projects.join(', '),
     completedArgs.repository,
-    completedArgs.subdir,
+    completedArgs.subdir, // Now this has the correct value from step 2
     client,
     logger,
     verbose
   );
   completedArgs.projects = parseProjects(projectString);
 
-  // 4. Prompt for output directory only if not already specified
+  // 5. Prompt for output directory only if not already specified
   // Check if output is the default value or empty
   if (!completedArgs.output || completedArgs.output === '.') {
     completedArgs.output = await promptOutput(configFile);
-  }
-
-  // 5. Prompt for subdirectory only if not already specified
-  if (!completedArgs.subdir) {
-    const subdir = await promptSubdir(configFile);
-    if (subdir) {
-      completedArgs.subdir = subdir;
-    }
   }
 
   // 6. Show confirmation prompt
