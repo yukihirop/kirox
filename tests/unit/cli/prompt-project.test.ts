@@ -19,6 +19,10 @@ vi.mock('@inquirer/prompts', () => ({
 // Mock project-suggester module
 vi.mock('@/cli/project-suggester.js', () => ({
   suggestProjects: vi.fn(),
+  promptSingleProject: vi.fn(),
+  promptMultipleProjectsWithValidation: vi.fn(),
+  formatMultipleProjectsToString: vi.fn(),
+  MULTIPLE_SELECTION_MARKER: '__MULTIPLE__',
 }));
 
 describe('promptProject', () => {
@@ -268,10 +272,14 @@ describe('promptProject', () => {
       });
 
       it('全ての依存が揃っている場合、サジェスト機能を呼び出す', async () => {
+        const suggester = await import('@/cli/project-suggester.js');
+        const mockPromptSingleProject = suggester.promptSingleProject as ReturnType<typeof vi.fn>;
+
         mockSuggestProjects.mockResolvedValue({
           projects: ['suggested-project'],
           success: true,
         });
+        mockPromptSingleProject.mockResolvedValue('suggested-project');
 
         const repository = 'owner/repo';
 
@@ -288,12 +296,42 @@ describe('promptProject', () => {
       });
     });
 
-    describe('サジェスト成功時 (Requirement 5.3)', () => {
-      it('単一プロジェクト選択時、プロジェクト名を返す', async () => {
+    describe('サジェスト成功時にプロンプトUIを表示 (Task 4.3)', () => {
+      let mockPromptSingleProject: ReturnType<typeof vi.fn>;
+      let mockPromptMultipleProjectsWithValidation: ReturnType<typeof vi.fn>;
+      let mockFormatMultipleProjectsToString: ReturnType<typeof vi.fn>;
+
+      beforeEach(async () => {
+        // Mock promptSingleProject and promptMultipleProjectsWithValidation
+        const suggester = await import('@/cli/project-suggester.js');
+        mockPromptSingleProject = suggester.promptSingleProject as ReturnType<typeof vi.fn>;
+        mockPromptMultipleProjectsWithValidation = suggester.promptMultipleProjectsWithValidation as ReturnType<typeof vi.fn>;
+        mockFormatMultipleProjectsToString = suggester.formatMultipleProjectsToString as ReturnType<typeof vi.fn>;
+        mockPromptSingleProject.mockClear();
+        mockPromptMultipleProjectsWithValidation.mockClear();
+        mockFormatMultipleProjectsToString.mockClear();
+      });
+
+      it('サジェスト成功時、promptSingleProjectを呼び出してユーザーに選択させる', async () => {
+        mockSuggestProjects.mockResolvedValue({
+          projects: ['project-a', 'project-b'],
+          success: true,
+        });
+        mockPromptSingleProject.mockResolvedValue('project-a');
+
+        const result = await promptProject('', 'owner/repo', undefined, mockClient, mockLogger, false);
+
+        expect(mockPromptSingleProject).toHaveBeenCalledWith(['project-a', 'project-b']);
+        expect(result).toBe('project-a');
+        expect(mockInput).not.toHaveBeenCalled();
+      });
+
+      it('単一プロジェクト選択時、プロジェクト名文字列を返す', async () => {
         mockSuggestProjects.mockResolvedValue({
           projects: ['selected-project'],
           success: true,
         });
+        mockPromptSingleProject.mockResolvedValue('selected-project');
 
         const result = await promptProject('', 'owner/repo', undefined, mockClient, mockLogger, false);
 
@@ -301,16 +339,21 @@ describe('promptProject', () => {
         expect(mockInput).not.toHaveBeenCalled();
       });
 
-      it('複数プロジェクト選択時、カンマ区切り文字列を返す', async () => {
+      it('複数選択モード(__MULTIPLE__)選択時、promptMultipleProjectsWithValidationを呼び出す', async () => {
         mockSuggestProjects.mockResolvedValue({
           projects: ['project-a', 'project-b', 'project-c'],
           success: true,
         });
+        mockPromptSingleProject.mockResolvedValue('__MULTIPLE__');
+        mockPromptMultipleProjectsWithValidation.mockResolvedValue(['project-a', 'project-c']);
+        mockFormatMultipleProjectsToString.mockReturnValue('project-a,project-c');
 
         const result = await promptProject('', 'owner/repo', undefined, mockClient, mockLogger, false);
 
-        expect(result).toBe('project-a,project-b,project-c');
-        expect(mockInput).not.toHaveBeenCalled();
+        expect(mockPromptSingleProject).toHaveBeenCalledWith(['project-a', 'project-b', 'project-c']);
+        expect(mockPromptMultipleProjectsWithValidation).toHaveBeenCalledWith(['project-a', 'project-b', 'project-c']);
+        expect(mockFormatMultipleProjectsToString).toHaveBeenCalledWith(['project-a', 'project-c']);
+        expect(result).toBe('project-a,project-c');
       });
 
       it('ブランチ指定がある場合、repositoryオブジェクトにbranchを含める', async () => {

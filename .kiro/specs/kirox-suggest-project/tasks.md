@@ -67,6 +67,17 @@
   - フロー順序はタスク5.3で修正（リポジトリ→subdir→プロジェクト→出力→確認）
   - _Requirements: 5.3_
 
+- [x] 4.3 promptProject関数でサジェスト成功時にプロンプトUIを表示する機能の実装（バグ修正）
+  - サジェストが成功した時にすべてのプロジェクトを自動返却する現在の実装を修正
+  - promptSingleProjectを呼び出してユーザーにラジオボタンUIで単一プロジェクトを選択させる
+  - ユーザーが複数選択モード（__MULTIPLE__マーカー）を選択した場合の処理を実装
+  - promptMultipleProjectsWithValidationを呼び出してチェックボックスUIで複数プロジェクトを選択させる
+  - 単一選択結果はプロジェクト名文字列として返却
+  - 複数選択結果はformatMultipleProjectsToStringでカンマ区切り文字列に変換して返却
+  - _Requirements: 2.1, 2.2, 2.3, 2.4, 3.1, 3.2, 3.3, 3.4, 3.5_
+  - _Issue: 現在の実装ではサジェスト成功時にすべてのプロジェクトが自動選択されてしまう_
+  - _Location: src/cli/interactive-prompt.ts:140-155_
+
 - [x] 5. パフォーマンスとユーザーフィードバックの実装（タスク5.1〜5.3完了）
 - [x] 5.1 ローディングメッセージ表示機能を実装
   - GitHub API呼び出し前に「Fetching available projects...」メッセージを表示

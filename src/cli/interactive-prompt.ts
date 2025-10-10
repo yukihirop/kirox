@@ -17,7 +17,13 @@ import { validateRepositoryFormat, validateProjectName } from './validator.js';
 import { parseProjects } from './project-name-parser.js';
 import type { Logger } from '../reporting/logger.js';
 import type { KiroxConfig } from '../config/types.js';
-import { suggestProjects } from './project-suggester.js';
+import {
+  suggestProjects,
+  promptSingleProject,
+  promptMultipleProjectsWithValidation,
+  formatMultipleProjectsToString,
+  MULTIPLE_SELECTION_MARKER,
+} from './project-suggester.js';
 import { parseRepositoryPath } from '../github/fetcher.js';
 
 /**
@@ -131,10 +137,21 @@ export async function promptProject(
         verbose: verbose || false,
       });
 
-      // Requirement 5.3: サジェスト成功時
+      // Requirement 5.3 & Task 4.3: サジェスト成功時にプロンプトUIを表示
       if (suggestionResult.success && suggestionResult.projects.length > 0) {
-        // Return comma-separated string for multiple projects, or single project name
-        return suggestionResult.projects.join(',');
+        // Display radio button UI for single project selection
+        const selectedProject = await promptSingleProject(suggestionResult.projects);
+
+        // Check if user selected multiple selection mode
+        if (selectedProject === MULTIPLE_SELECTION_MARKER) {
+          // Display checkbox UI for multiple project selection
+          const selectedProjects = await promptMultipleProjectsWithValidation(suggestionResult.projects);
+          // Format multiple projects to comma-separated string
+          return formatMultipleProjectsToString(selectedProjects);
+        }
+
+        // Return single project name
+        return selectedProject;
       }
 
       // Requirement 5.4: サジェスト失敗時のフォールバック
