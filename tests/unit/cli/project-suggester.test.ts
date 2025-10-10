@@ -81,7 +81,7 @@ describe('ProjectSuggester', () => {
         mockClient,
         'test-owner',
         'test-repo',
-        '.kiro/specs/',
+        '.kiro/specs',
         undefined
       );
       expect(result.projects).toEqual(['project-a', 'project-b']);
@@ -112,7 +112,7 @@ describe('ProjectSuggester', () => {
         mockClient,
         'test-owner',
         'test-repo',
-        'lib/a/.kiro/specs/',
+        'lib/a/.kiro/specs',
         undefined
       );
       expect(result.projects).toEqual(['project-x', 'project-y']);
@@ -141,7 +141,7 @@ describe('ProjectSuggester', () => {
         mockClient,
         'test-owner',
         'test-repo',
-        '.kiro/specs/',
+        '.kiro/specs',
         'develop'
       );
       expect(result.projects).toEqual(['project-a']);
@@ -323,7 +323,7 @@ describe('ProjectSuggester', () => {
         expect.objectContaining({
           repository: 'test-owner/test-repo',
           branch: 'main',
-          path: '.kiro/specs/',
+          path: '.kiro/specs',
         })
       );
     });

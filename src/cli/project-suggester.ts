@@ -260,8 +260,8 @@ export async function suggestProjects(
 ): Promise<ProjectSuggestionResult> {
   const { repository, subdir, client, logger, verbose } = options;
 
-  // Build path: {subdir}/.kiro/specs/ or .kiro/specs/
-  const path = subdir ? `${subdir}/.kiro/specs/` : '.kiro/specs/';
+  // Build path: {subdir}/.kiro/specs or .kiro/specs (no trailing slash)
+  const path = subdir ? `${subdir}/.kiro/specs` : '.kiro/specs';
 
   // Show loading message (Task 5.1)
   showLoadingMessage('Fetching available projects...');
