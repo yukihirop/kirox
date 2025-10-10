@@ -345,11 +345,19 @@ export async function suggestProjects(
     const repoPath = `${repository.owner}/${repository.repo}${repository.branch ? `#${repository.branch}` : ''}`;
     const actualError = error instanceof Error ? error.message : String(error);
 
-    // Verbose logging: Error details
+    // Verbose logging: Error details with full error object
     if (verbose) {
       logger.error('Failed to fetch projects from GitHub', {
         error: actualError,
         repository: repoPath,
+        path,
+        // Include full error object for debugging
+        fullError: error instanceof Error ? {
+          name: error.name,
+          message: error.message,
+          stack: error.stack,
+          ...(error as Record<string, unknown>),
+        } : error,
       });
     }
 
