@@ -1,9 +1,11 @@
 {
   "feature_name": "kirox-searchable-checkbox-upgrade",
   "created_at": "2025-10-10T10:09:00Z",
-  "updated_at": "2025-10-10T10:45:00Z",
+  "updated_at": "2025-10-10T12:00:00Z",
   "language": "ja",
-  "phase": "tasks-generated",
+  "phase": "tasks-updated",
+  "technical_approach": "custom-prompt-implementation",
+  "reference_implementation": "https://github.com/faressoft/inquirer-checkbox-plus-prompt/blob/master/index.js",
   "approvals": {
     "requirements": {
       "generated": true,
@@ -15,7 +17,9 @@
     },
     "tasks": {
       "generated": true,
-      "approved": false
+      "approved": false,
+      "updated": true,
+      "update_reason": "Technical approach decided: implement custom searchable checkbox prompt using @inquirer/prompts createPrompt API, based on inquirer-checkbox-plus-prompt implementation"
     }
   },
   "ready_for_implementation": false
