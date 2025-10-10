@@ -239,5 +239,140 @@ describe('SearchableProjectPrompt (Task 3.1)', () => {
         });
       });
     });
+
+    describe('empty search results (Task 3.2)', () => {
+      describe('no matching projects message (requirement 2.7)', () => {
+        it('should include "No matching projects found" message when filter returns empty', async () => {
+          // Arrange: Create test project locations
+          const projectLocations: ProjectLocation[] = [
+            {
+              name: 'project-alpha',
+              subdir: '',
+              displayName: 'project-alpha',
+              projectName: 'project-alpha',
+              path: '.kiro/specs/project-alpha',
+              type: 'tree',
+              mode: '040000',
+              sha: 'sha-alpha',
+              url: 'https://api.github.com/repos/owner/repo/git/trees/sha-alpha',
+            },
+            {
+              name: 'project-beta',
+              subdir: 'lib/a',
+              displayName: 'lib/a/project-beta',
+              projectName: 'project-beta',
+              path: 'lib/a/.kiro/specs/project-beta',
+              type: 'tree',
+              mode: '040000',
+              sha: 'sha-beta',
+              url: 'https://api.github.com/repos/owner/repo/git/trees/sha-beta',
+            },
+          ];
+
+          // Mock: Capture source function from search call
+          let sourceFunction: ((input: string | undefined) => Promise<Array<{ value: string; name: string }>>) | undefined;
+          mockSearch.mockImplementationOnce(async (config) => {
+            sourceFunction = config.source;
+            return 'project-alpha';
+          });
+
+          // Act: Call promptProjectSelection
+          await promptProjectSelection(projectLocations);
+
+          // Assert: Verify source function returns message when no matches
+          expect(sourceFunction).toBeDefined();
+
+          // Test: Search for non-existent project "xyz" (should return 1 entry: the message)
+          const noMatchResults = await sourceFunction!('xyz', { signal: new AbortController().signal });
+          expect(noMatchResults).toHaveLength(1);
+          expect(noMatchResults[0].name).toContain('No matching projects found');
+          expect(noMatchResults[0].value).toBe('__no_match__');
+        });
+
+        it('should redisplay all projects when search text is cleared after empty result', async () => {
+          // Arrange: Create test project locations
+          const projectLocations: ProjectLocation[] = [
+            {
+              name: 'project-alpha',
+              subdir: '',
+              displayName: 'project-alpha',
+              projectName: 'project-alpha',
+              path: '.kiro/specs/project-alpha',
+              type: 'tree',
+              mode: '040000',
+              sha: 'sha-alpha',
+              url: 'https://api.github.com/repos/owner/repo/git/trees/sha-alpha',
+            },
+            {
+              name: 'project-beta',
+              subdir: 'lib/a',
+              displayName: 'lib/a/project-beta',
+              projectName: 'project-beta',
+              path: 'lib/a/.kiro/specs/project-beta',
+              type: 'tree',
+              mode: '040000',
+              sha: 'sha-beta',
+              url: 'https://api.github.com/repos/owner/repo/git/trees/sha-beta',
+            },
+          ];
+
+          // Mock: Capture source function
+          let sourceFunction: ((input: string | undefined) => Promise<Array<{ value: string; name: string }>>) | undefined;
+          mockSearch.mockImplementationOnce(async (config) => {
+            sourceFunction = config.source;
+            return 'project-alpha';
+          });
+
+          // Act
+          await promptProjectSelection(projectLocations);
+
+          // Assert: Verify re-display behavior (Requirement 2.8)
+          expect(sourceFunction).toBeDefined();
+
+          // Step 1: Search for non-existent "xyz" → Empty message
+          const noMatchResults = await sourceFunction!('xyz', { signal: new AbortController().signal });
+          expect(noMatchResults).toHaveLength(1);
+          expect(noMatchResults[0].value).toBe('__no_match__');
+
+          // Step 2: Clear search text (empty string) → All projects re-displayed
+          const allResults = await sourceFunction!('', { signal: new AbortController().signal });
+          expect(allResults).toHaveLength(2);
+          expect(allResults.map(r => r.value)).toEqual(['project-alpha', 'lib/a/project-beta']);
+        });
+
+        it('should redisplay all projects when search text is cleared (undefined)', async () => {
+          // Arrange: Create test project locations
+          const projectLocations: ProjectLocation[] = [
+            {
+              name: 'project-gamma',
+              subdir: 'packages',
+              displayName: 'packages/project-gamma',
+              projectName: 'project-gamma',
+              path: 'packages/.kiro/specs/project-gamma',
+              type: 'tree',
+              mode: '040000',
+              sha: 'sha-gamma',
+              url: 'https://api.github.com/repos/owner/repo/git/trees/sha-gamma',
+            },
+          ];
+
+          // Mock: Capture source function
+          let sourceFunction: ((input: string | undefined) => Promise<Array<{ value: string; name: string }>>) | undefined;
+          mockSearch.mockImplementationOnce(async (config) => {
+            sourceFunction = config.source;
+            return 'packages/project-gamma';
+          });
+
+          // Act
+          await promptProjectSelection(projectLocations);
+
+          // Assert: undefined input should display all projects (Requirement 2.8)
+          expect(sourceFunction).toBeDefined();
+          const allResults = await sourceFunction!(undefined, { signal: new AbortController().signal });
+          expect(allResults).toHaveLength(1);
+          expect(allResults[0].value).toBe('packages/project-gamma');
+        });
+      });
+    });
   });
 });

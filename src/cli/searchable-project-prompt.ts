@@ -59,6 +59,17 @@ export async function promptProjectSelection(
       project.displayName.toLowerCase().includes(normalizedInput)
     );
 
+    // Task 3.2: Handle empty search results (Requirement 2.7)
+    if (filteredProjects.length === 0) {
+      // Return "No matching projects found" message
+      return [
+        {
+          value: '__no_match__',
+          name: 'No matching projects found',
+        },
+      ];
+    }
+
     // Convert to search choices
     return filteredProjects.map((project) => ({
       value: project.displayName,
