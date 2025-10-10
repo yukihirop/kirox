@@ -12,10 +12,12 @@ import * as inquirer from '@inquirer/prompts';
 // Mock @inquirer/prompts
 vi.mock('@inquirer/prompts', () => ({
   search: vi.fn(),
+  checkbox: vi.fn(),
 }));
 
 describe('SearchableProjectPrompt (Task 3.1)', () => {
   const mockSearch = vi.mocked(inquirer.search);
+  const mockCheckbox = vi.mocked(inquirer.checkbox);
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -138,9 +140,10 @@ describe('SearchableProjectPrompt (Task 3.1)', () => {
         expect(libAResults).toHaveLength(1);
         expect(libAResults[0].value).toBe('lib/a/project-beta');
 
-        // Test case 4: Empty input (should return all projects)
+        // Test case 4: Empty input (should return all projects + multiple selection option)
         const allResults = await sourceFunction!('');
-        expect(allResults).toHaveLength(3);
+        expect(allResults).toHaveLength(4); // 1 multiple option + 3 projects
+        expect(allResults[0].value).toBe('__select_multiple__'); // First item is multiple selection option
       });
     });
 
@@ -334,10 +337,11 @@ describe('SearchableProjectPrompt (Task 3.1)', () => {
           expect(noMatchResults).toHaveLength(1);
           expect(noMatchResults[0].value).toBe('__no_match__');
 
-          // Step 2: Clear search text (empty string) → All projects re-displayed
+          // Step 2: Clear search text (empty string) → All projects re-displayed with multiple selection option
           const allResults = await sourceFunction!('', { signal: new AbortController().signal });
-          expect(allResults).toHaveLength(2);
-          expect(allResults.map(r => r.value)).toEqual(['project-alpha', 'lib/a/project-beta']);
+          expect(allResults).toHaveLength(3); // 1 multiple option + 2 projects
+          expect(allResults[0].value).toBe('__select_multiple__');
+          expect(allResults.slice(1).map(r => r.value)).toEqual(['project-alpha', 'lib/a/project-beta']);
         });
 
         it('should redisplay all projects when search text is cleared (undefined)', async () => {
@@ -371,6 +375,171 @@ describe('SearchableProjectPrompt (Task 3.1)', () => {
           const allResults = await sourceFunction!(undefined, { signal: new AbortController().signal });
           expect(allResults).toHaveLength(1);
           expect(allResults[0].value).toBe('packages/project-gamma');
+        });
+      });
+    });
+
+    describe('multiple selection mode (Tasks 3.3-3.6)', () => {
+      const createTestProjects = (): ProjectLocation[] => [
+        {
+          name: 'project-a',
+          subdir: 'lib/a',
+          displayName: 'lib/a/project-a',
+          projectName: 'project-a',
+          path: 'lib/a/.kiro/specs/project-a',
+          type: 'tree',
+          mode: '040000',
+          sha: 'sha-a',
+          url: 'https://api.github.com/repos/owner/repo/git/trees/sha-a',
+        },
+        {
+          name: 'project-b',
+          subdir: 'lib/a',
+          displayName: 'lib/a/project-b',
+          projectName: 'project-b',
+          path: 'lib/a/.kiro/specs/project-b',
+          type: 'tree',
+          mode: '040000',
+          sha: 'sha-b',
+          url: 'https://api.github.com/repos/owner/repo/git/trees/sha-b',
+        },
+        {
+          name: 'project-c',
+          subdir: 'lib/b',
+          displayName: 'lib/b/project-c',
+          projectName: 'project-c',
+          path: 'lib/b/.kiro/specs/project-c',
+          type: 'tree',
+          mode: '040000',
+          sha: 'sha-c',
+          url: 'https://api.github.com/repos/owner/repo/git/trees/sha-c',
+        },
+      ];
+
+      describe('multiple selection mode trigger (task 3.3, requirement 4.1)', () => {
+        it('should include "[Select multiple projects...]" option in search choices', async () => {
+          const projectLocations = createTestProjects();
+
+          let sourceFunction: ((input: string | undefined) => Promise<Array<{ value: string; name: string }>>) | undefined;
+          mockSearch.mockImplementationOnce(async (config) => {
+            sourceFunction = config.source;
+            return 'lib/a/project-a';
+          });
+
+          await promptProjectSelection(projectLocations);
+
+          expect(sourceFunction).toBeDefined();
+          const results = await sourceFunction!('', { signal: new AbortController().signal });
+
+          // Should include special option at the beginning
+          expect(results[0].value).toBe('__select_multiple__');
+          expect(results[0].name).toContain('[Select multiple projects');
+        });
+
+        it('should switch to checkbox prompt when user selects multiple mode', async () => {
+          const projectLocations = createTestProjects();
+
+          // User selects "[Select multiple projects...]" option
+          mockSearch.mockResolvedValueOnce('__select_multiple__');
+          // Then selects 2 projects in checkbox
+          mockCheckbox.mockResolvedValueOnce(['lib/a/project-a', 'lib/a/project-b']);
+
+          const result = await promptProjectSelection(projectLocations);
+
+          // Assert: checkbox was called
+          expect(mockCheckbox).toHaveBeenCalledTimes(1);
+          expect(mockCheckbox).toHaveBeenCalledWith(
+            expect.objectContaining({
+              message: expect.any(String),
+              choices: expect.any(Function),
+            })
+          );
+
+          // Assert: result contains multiple projects
+          expect(result).toEqual({
+            projects: ['project-a', 'project-b'],
+            subdir: 'lib/a',
+          });
+        });
+      });
+
+      describe('selection validation (task 3.6, requirement 4.7)', () => {
+        it('should validate that at least one project is selected', async () => {
+          const projectLocations = createTestProjects();
+
+          mockSearch.mockResolvedValueOnce('__select_multiple__');
+
+          // Mock checkbox to return valid selection
+          mockCheckbox.mockResolvedValueOnce(['lib/a/project-a']);
+
+          const result = await promptProjectSelection(projectLocations);
+
+          // Assert: checkbox was called once
+          expect(mockCheckbox).toHaveBeenCalledTimes(1);
+
+          // Assert: validate function was provided
+          const firstCall = mockCheckbox.mock.calls[0][0];
+          expect(firstCall.validate).toBeDefined();
+
+          // Assert: validate function rejects empty selection
+          const validateFn = firstCall.validate as (value: string[]) => boolean | string;
+          expect(validateFn([])).toContain('at least one project');
+          expect(validateFn(['lib/a/project-a'])).toBe(true);
+
+          expect(result).toEqual({
+            projects: ['project-a'],
+            subdir: 'lib/a',
+          });
+        });
+      });
+
+      describe('dynamic subdirectory constraint (task 3.4, requirements 4.2-4.4, 4.8)', () => {
+        it('should filter projects to same subdirectory after first selection', async () => {
+          const projectLocations = createTestProjects();
+
+          mockSearch.mockResolvedValueOnce('__select_multiple__');
+          mockCheckbox.mockResolvedValueOnce(['lib/a/project-a', 'lib/a/project-b']);
+
+          await promptProjectSelection(projectLocations);
+
+          // Get choices function from mock call
+          expect(mockCheckbox).toHaveBeenCalledTimes(1);
+          const checkboxConfig = mockCheckbox.mock.calls[0][0];
+          expect(checkboxConfig.choices).toBeDefined();
+
+          const choicesFunction = checkboxConfig.choices as (checked: string[]) => Promise<Array<{ value: string; name?: string; checked?: boolean }>>;
+
+          // When no projects selected: all projects shown
+          const allChoices = await choicesFunction([]);
+          expect(allChoices).toHaveLength(3);
+
+          // When lib/a/project-a selected: only lib/a projects shown
+          const filteredChoices = await choicesFunction(['lib/a/project-a']);
+          expect(filteredChoices).toHaveLength(2);
+          expect(filteredChoices.map(c => c.value)).toEqual(['lib/a/project-a', 'lib/a/project-b']);
+        });
+
+        it('should show all projects again when all selections cleared', async () => {
+          const projectLocations = createTestProjects();
+
+          mockSearch.mockResolvedValueOnce('__select_multiple__');
+          mockCheckbox.mockResolvedValueOnce(['lib/a/project-a']);
+
+          await promptProjectSelection(projectLocations);
+
+          // Get choices function from mock call
+          expect(mockCheckbox).toHaveBeenCalledTimes(1);
+          const checkboxConfig = mockCheckbox.mock.calls[0][0];
+          expect(checkboxConfig.choices).toBeDefined();
+
+          const choicesFunction = checkboxConfig.choices as (checked: string[]) => Promise<Array<{ value: string; name?: string; checked?: boolean }>>;
+
+          // Select one, then deselect all
+          const afterSelection = await choicesFunction(['lib/a/project-a']);
+          expect(afterSelection).toHaveLength(2); // Only lib/a projects
+
+          const afterDeselect = await choicesFunction([]);
+          expect(afterDeselect).toHaveLength(3); // All projects again
         });
       });
     });
