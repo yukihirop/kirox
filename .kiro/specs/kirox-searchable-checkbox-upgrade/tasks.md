@@ -214,10 +214,21 @@
   - _Requirements: 7.1_
   - _Result: `interactive-prompt.ts`との統合確認完了。既存コードは変更不要で、Tree API成功後のフローが正しく動作することを確認_
 
-- [ ] 5.2 Tree APIフォールバックの維持
-  - Tree API失敗時に既存のフォールバックワークフロー（サブディレクトリプロンプト → プロジェクトプロンプト）が動作することを確認
-  - フォールバック時のエラーメッセージが適切に表示されることを確認
+- [x] 5.2 Tree APIフォールバックの維持
+  - ✅ Tree API失敗時に既存のフォールバックワークフロー（サブディレクトリプロンプト → プロジェクトプロンプト）が動作することを確認（src/cli/interactive-prompt.ts:379-413）
+    - Tree API失敗時のtry-catchによるエラーハンドリング（:379-388）
+    - `treeApiSuccess`フラグによる条件分岐（:394, :404）
+    - サブディレクトリプロンプトの実行（:394-399）
+    - プロジェクトプロンプトの実行（:404-413）
+  - ✅ フォールバック時のエラーメッセージが適切に表示されることを確認
+    - verbose時にlogger.verboseでエラーメッセージを出力（:382-386）
+    - エラーメッセージ: "Tree API search failed, falling back to existing workflow"
+  - ✅ 統合テスト検証（tests/integration/tree-api-project-scan.test.ts:207-327）
+    - Tree API失敗時のフォールバックテスト（:208-255）
+    - Tree API成功だがプロジェクト0件時のフォールバックテスト（:291-327）
+    - Logger未提供時のスキップテスト（:257-289）
   - _Requirements: 7.3_
+  - _Result: Tree APIフォールバック機能の維持完了。既存実装が既にRequirement 7.3を満たしていることを確認_
 
 - [ ] 5.3 非インタラクティブモードとの互換性確認
   - 非インタラクティブモード（CLI引数指定）でプロジェクト選択UIが起動しないことを確認
