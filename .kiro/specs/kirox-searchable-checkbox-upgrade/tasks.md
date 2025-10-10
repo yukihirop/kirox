@@ -361,15 +361,29 @@
   - _Requirements: 9.4_
   - _Result: バリデーション機能のテスト実装完了。既存実装がタスク3.1で全要件を満たしていることを確認し、6つの詳細なテストで検証完了_
 
-- [ ] 6.5 `promptProjectSelection`関数のテスト更新
-  - `tests/unit/cli/searchable-project-prompt.test.ts`を更新
-  - 既存のモックを新しいカスタムプロンプトに対応させる
-  - `searchableCheckbox`プロンプトのモックを実装
-  - 選択結果が`ProjectSelectionResult`に正しく変換されることをテスト
-  - ルートディレクトリプロジェクトの`subdir`が空文字列になることをテスト
-  - ネストされたプロジェクトの`subdir`が正しく抽出されることをテスト
-  - `ExitPromptError`ハンドリングのテストを維持
+- [x] 6.5 `promptProjectSelection`関数のテスト更新
+  - ✅ 既存テスト実装の検証（タスク3.1、4.1、6.4で段階的に実装済み）
+    - モック実装: tests/unit/cli/searchable-project-prompt.test.ts:12-17
+    - `vi.mock`による`searchableCheckbox`のモック設定
+    - `mockSearchableCheckbox.mockResolvedValueOnce()`で選択結果をモック
+  - ✅ 選択結果の`ProjectSelectionResult`変換テスト（:28-139、3テスト）
+    - 単一プロジェクト選択時の変換テスト（:28-81）
+    - 複数プロジェクト選択時の変換テスト（:179-192）
+    - `searchableCheckbox`が正しい設定で呼び出されることの検証
+  - ✅ ルートディレクトリプロジェクトの`subdir`が空文字列になるテスト（:83-110）
+    - ルートプロジェクト選択時: `{ projects: ['root-project'], subdir: '' }`
+  - ✅ ネストされたプロジェクトの`subdir`抽出テスト（:112-139）
+    - サブディレクトリプロジェクト選択時: `{ projects: ['nested-project'], subdir: 'packages/sub' }`
+  - ✅ `ExitPromptError`と`CancelPromptError`ハンドリングテスト維持（:461-537、2テスト）
+    - Escapeキー中断: `CancelPromptError`伝播テスト（:487-511）
+    - Ctrl+C中断: `ExitPromptError`伝播テスト（:513-537）
+  - ✅ エラーハンドリングテスト（:461-563、4テスト）
+    - 見つからないプロジェクトエラー、空の選択配列エラー
+  - ✅ 型チェック完了（TypeScriptエラーなし）
+  - ✅ リント完了（ESLintエラーなし）
+  - ✅ 全テスト通過（19テスト、searchable-project-promptファイル）
   - _Requirements: 9.1-9.2_
+  - _Result: `promptProjectSelection`関数のテスト更新完了。タスク3.1、4.1、6.4で段階的に実装されたテストが全ての要件を満たしていることを検証_
 
 - [ ] 7. 統合テストとE2Eテストの実行
 - [ ] 7.1 統合テストの実行と確認
