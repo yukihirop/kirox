@@ -140,10 +140,33 @@ export async function fetchDirectoryContents(
     }));
   } catch (error) {
     if (error instanceof Error) {
-      // Check for HTTP error with status code
-      if ('status' in error) {
-        const status = (error as { status: number }).status;
+      // Check for response data to detect HTML responses
+      const errorWithResponse = error as {
+        status?: number;
+        response?: {
+          status?: number;
+          data?: unknown;
+          headers?: Record<string, string>;
+        };
+      };
 
+      // Log detailed error for debugging
+      if (errorWithResponse.response) {
+        const contentType = errorWithResponse.response.headers?.['content-type'] || '';
+        const isHtml = contentType.includes('text/html');
+
+        if (isHtml) {
+          throw new Error(
+            `GitHub returned an HTML error page instead of API response. ` +
+            `This may indicate: (1) Invalid API endpoint, (2) GitHub service issue, or (3) Rate limit exceeded. ` +
+            `Repository: ${owner}/${repo}, Path: ${path}${ref ? `, Branch: ${ref}` : ''}`
+          );
+        }
+      }
+
+      // Check for HTTP error with status code
+      const status = errorWithResponse.status || errorWithResponse.response?.status;
+      if (status) {
         // Task 3.3: Enhanced branch-related error handling
         if (status === 404) {
           // Branch specified but not found
