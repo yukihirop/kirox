@@ -103,48 +103,44 @@ export async function promptProjectSelection(
 
   // Task 3.3: Check if user selected multiple selection mode (Requirement 4.1)
   if (selectedDisplayName === '__select_multiple__') {
-    // Task 3.4-3.6: Switch to checkbox prompt with dynamic subdirectory constraint
-    // Note: Using 'as any' for choices and validate due to @inquirer/prompts type limitations
-    // The runtime behavior supports dynamic choices function and value validation
+    // Task 3.4-3.6: Switch to checkbox prompt with subdirectory constraint validation
+    // Note: @inquirer/prompts checkbox does NOT support dynamic choices functions
+    // Instead, we use static choices array and validate subdirectory constraint in validate function
     const selectedDisplayNames = await checkbox<string>({
       message: 'Select projects (use space to select, enter to confirm):',
-      // Task 3.4: Dynamic choices function (Requirements 4.2-4.4, 4.8)
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      choices: ((checked: readonly string[]) => {
-        // If no projects selected yet, show all projects
-        if (checked.length === 0) {
-          return projectLocations.map((project) => ({
-            value: project.displayName,
-            name: project.displayName,
-          }));
-        }
-
-        // Task 3.4: Find subdirectory of first selected project
-        const firstSelectedProject = projectLocations.find(
-          (p) => p.displayName === checked[0]
-        );
-
-        if (!firstSelectedProject) {
-          return [];
-        }
-
-        const targetSubdir = firstSelectedProject.subdir;
-
-        // Task 3.4: Filter to projects in same subdirectory (Requirement 4.2-4.4)
-        return projectLocations
-          .filter((project) => project.subdir === targetSubdir)
-          .map((project) => ({
-            value: project.displayName,
-            name: project.displayName,
-            checked: checked.includes(project.displayName),
-          }));
-      }) as any,
+      // Static choices: show all projects (Requirement 4.4)
+      choices: projectLocations.map((project) => ({
+        value: project.displayName,
+        name: project.displayName,
+      })),
       // Task 3.6: Validation function (Requirement 4.7)
+      // Task 3.4: Enforce same subdirectory constraint (Requirements 4.2-4.4, 4.8)
+      // Note: The validate function receives the array of selected VALUES (strings), not Choice objects
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      validate: ((value: readonly string[]) => {
-        if (value.length === 0) {
+      validate: ((selectedValues: readonly string[]) => {
+        // Must select at least one project
+        if (selectedValues.length === 0) {
           return 'Please select at least one project';
         }
+
+        // Find subdirectories of all selected projects
+        const selectedProjects = selectedValues
+          .map((displayName) =>
+            projectLocations.find((p) => p.displayName === displayName)
+          )
+          .filter((p): p is ProjectLocation => p !== undefined);
+
+        // Extract unique subdirectories
+        const uniqueSubdirs = new Set(selectedProjects.map((p) => p.subdir));
+
+        // All selected projects must be in the same subdirectory
+        if (uniqueSubdirs.size > 1) {
+          const subdirList = Array.from(uniqueSubdirs)
+            .map((s) => (s === '' ? 'root' : s))
+            .join(', ');
+          return `All projects must be in the same subdirectory. Selected subdirectories: ${subdirList}`;
+        }
+
         return true;
       }) as any,
     });

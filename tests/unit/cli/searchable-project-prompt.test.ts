@@ -451,7 +451,8 @@ describe('SearchableProjectPrompt (Task 3.1)', () => {
           expect(mockCheckbox).toHaveBeenCalledWith(
             expect.objectContaining({
               message: expect.any(String),
-              choices: expect.any(Function),
+              choices: expect.any(Array), // Static array, not a function
+              validate: expect.any(Function), // Validation for subdirectory constraint
             })
           );
 
@@ -493,8 +494,8 @@ describe('SearchableProjectPrompt (Task 3.1)', () => {
         });
       });
 
-      describe('dynamic subdirectory constraint (task 3.4, requirements 4.2-4.4, 4.8)', () => {
-        it('should filter projects to same subdirectory after first selection', async () => {
+      describe('subdirectory constraint validation (task 3.4, requirements 4.2-4.4, 4.8)', () => {
+        it('should display all projects as static choices array', async () => {
           const projectLocations = createTestProjects();
 
           mockSearch.mockResolvedValueOnce('__select_multiple__');
@@ -502,44 +503,82 @@ describe('SearchableProjectPrompt (Task 3.1)', () => {
 
           await promptProjectSelection(projectLocations);
 
-          // Get choices function from mock call
+          // Get choices from mock call
           expect(mockCheckbox).toHaveBeenCalledTimes(1);
           const checkboxConfig = mockCheckbox.mock.calls[0][0];
           expect(checkboxConfig.choices).toBeDefined();
 
-          const choicesFunction = checkboxConfig.choices as (checked: string[]) => Promise<Array<{ value: string; name?: string; checked?: boolean }>>;
+          // Choices should be static array (not a function)
+          expect(Array.isArray(checkboxConfig.choices)).toBe(true);
+          const choices = checkboxConfig.choices as Array<{ value: string; name: string }>;
 
-          // When no projects selected: all projects shown
-          const allChoices = await choicesFunction([]);
-          expect(allChoices).toHaveLength(3);
-
-          // When lib/a/project-a selected: only lib/a projects shown
-          const filteredChoices = await choicesFunction(['lib/a/project-a']);
-          expect(filteredChoices).toHaveLength(2);
-          expect(filteredChoices.map(c => c.value)).toEqual(['lib/a/project-a', 'lib/a/project-b']);
+          // All projects should be displayed
+          expect(choices).toHaveLength(3);
+          expect(choices.map(c => c.value)).toEqual([
+            'lib/a/project-a',
+            'lib/a/project-b',
+            'lib/b/project-c',
+          ]);
         });
 
-        it('should show all projects again when all selections cleared', async () => {
+        it('should validate same subdirectory constraint via validate function', async () => {
           const projectLocations = createTestProjects();
 
           mockSearch.mockResolvedValueOnce('__select_multiple__');
-          mockCheckbox.mockResolvedValueOnce(['lib/a/project-a']);
+          mockCheckbox.mockResolvedValueOnce(['lib/a/project-a', 'lib/a/project-b']);
 
           await promptProjectSelection(projectLocations);
 
-          // Get choices function from mock call
+          // Get validate function from mock call
           expect(mockCheckbox).toHaveBeenCalledTimes(1);
           const checkboxConfig = mockCheckbox.mock.calls[0][0];
-          expect(checkboxConfig.choices).toBeDefined();
+          expect(checkboxConfig.validate).toBeDefined();
 
-          const choicesFunction = checkboxConfig.choices as (checked: string[]) => Promise<Array<{ value: string; name?: string; checked?: boolean }>>;
+          const validateFn = checkboxConfig.validate as (value: string[]) => boolean | string;
 
-          // Select one, then deselect all
-          const afterSelection = await choicesFunction(['lib/a/project-a']);
-          expect(afterSelection).toHaveLength(2); // Only lib/a projects
+          // Same subdirectory: should pass validation
+          expect(validateFn(['lib/a/project-a', 'lib/a/project-b'])).toBe(true);
 
-          const afterDeselect = await choicesFunction([]);
-          expect(afterDeselect).toHaveLength(3); // All projects again
+          // Different subdirectories: should fail validation
+          const result = validateFn(['lib/a/project-a', 'lib/b/project-c']);
+          expect(typeof result).toBe('string');
+          expect(result).toContain('same subdirectory');
+          expect(result).toContain('lib/a');
+          expect(result).toContain('lib/b');
+        });
+
+        it('should allow root-level projects only when selected together', async () => {
+          const projectLocations: ProjectLocation[] = [
+            {
+              name: 'root-project',
+              subdir: '',
+              displayName: 'root-project',
+              projectName: 'root-project',
+              path: '.kiro/specs/root-project',
+              type: 'tree',
+              mode: '040000',
+              sha: 'sha-root',
+              url: 'https://api.github.com/repos/owner/repo/git/trees/sha-root',
+            },
+            ...createTestProjects(),
+          ];
+
+          mockSearch.mockResolvedValueOnce('__select_multiple__');
+          mockCheckbox.mockResolvedValueOnce(['root-project']);
+
+          await promptProjectSelection(projectLocations);
+
+          const checkboxConfig = mockCheckbox.mock.calls[0][0];
+          const validateFn = checkboxConfig.validate as (value: string[]) => boolean | string;
+
+          // Root only: should pass
+          expect(validateFn(['root-project'])).toBe(true);
+
+          // Root + subdirectory project: should fail
+          const result = validateFn(['root-project', 'lib/a/project-a']);
+          expect(typeof result).toBe('string');
+          expect(result).toContain('same subdirectory');
+          expect(result).toContain('root');
         });
       });
     });
