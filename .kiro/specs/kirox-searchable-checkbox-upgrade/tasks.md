@@ -196,12 +196,23 @@
   - _Result: カスタムプロンプト内のエラーハンドリング完了。既存実装が既に堅牢なガード条件を持っていることを確認し、エッジケースをテストで検証完了_
 
 - [ ] 5. 既存機能との統合と互換性確認
-- [ ] 5.1 `interactive-prompt.ts`との統合確認
-  - `promptMissingArguments`関数からの呼び出しが正しく動作することを確認
-  - `ProjectSelectionResult`の返り値が期待通りに処理されることを確認
-  - Tree API成功後のフローが正しく動作することを確認
-  - 既存の呼び出し元コードが変更不要であることを確認
+- [x] 5.1 `interactive-prompt.ts`との統合確認
+  - ✅ `promptMissingArguments`関数からの呼び出しが正しく動作することを確認（src/cli/interactive-prompt.ts:370）
+  - ✅ `ProjectSelectionResult`の返り値が期待通りに処理されることを確認（:373-374）
+    - `completedArgs.projects = selectionResult.projects`（選択されたプロジェクト名配列）
+    - `completedArgs.subdir = selectionResult.subdir`（サブディレクトリパス）
+  - ✅ Tree API成功後のフローが正しく動作することを確認（:358-378）
+    - Tree API成功時に`promptProjectSelection`が呼び出される
+    - プロジェクトとサブディレクトリが自動抽出される
+    - サブディレクトリプロンプトがスキップされる（:394-399）
+  - ✅ 既存の呼び出し元コードが変更不要であることを確認（コード変更なし）
+  - ✅ 統合テスト実行（tests/integration/tree-api-project-scan.test.ts）
+    - Tree API成功時のテスト通過（"should skip subdirectory prompt when Tree API succeeds"）
+    - `promptProjectSelection`呼び出し検証
+    - `ProjectSelectionResult`処理検証
+    - サブディレクトリ自動抽出検証
   - _Requirements: 7.1_
+  - _Result: `interactive-prompt.ts`との統合確認完了。既存コードは変更不要で、Tree API成功後のフローが正しく動作することを確認_
 
 - [ ] 5.2 Tree APIフォールバックの維持
   - Tree API失敗時に既存のフォールバックワークフロー（サブディレクトリプロンプト → プロジェクトプロンプト）が動作することを確認
