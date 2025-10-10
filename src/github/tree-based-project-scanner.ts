@@ -21,6 +21,8 @@ export interface TreeScanResult {
   success: boolean;
   /** Whether the tree response was truncated (>100,000 entries) */
   truncated: boolean;
+  /** Total number of entries in tree response (Task 2.5: Requirement 8.4) */
+  entryCount: number;
   /** Error message if scan failed */
   errorMessage?: string;
 }
@@ -86,8 +88,10 @@ export async function scanProjectsAcrossSubdirs(
     });
 
     // Step 3: Parse tree response to extract .kiro/specs/ directories
+    const entryCount = treeResponse.data.tree.length; // Task 2.5: Store entry count
+
     if (verbose) {
-      logger.verbose(`Parsing tree response (${treeResponse.data.tree.length} entries)`);
+      logger.verbose(`Parsing tree response (${entryCount} entries)`);
     }
 
     const parsedItems = parseTreeResponse(treeResponse.data.tree as TreeItem[]);
@@ -122,6 +126,7 @@ export async function scanProjectsAcrossSubdirs(
       projects,
       success: true,
       truncated,
+      entryCount, // Task 2.5: Return entry count (Requirement 8.4)
     };
   } catch (error) {
     // Enhanced error handling (Task 2.3)
@@ -157,6 +162,7 @@ export async function scanProjectsAcrossSubdirs(
       projects: [],
       success: false,
       truncated: false,
+      entryCount: 0, // Task 2.5: Return 0 on error
       errorMessage,
     };
   }

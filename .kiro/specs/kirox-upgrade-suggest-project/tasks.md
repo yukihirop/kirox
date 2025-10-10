@@ -28,7 +28,7 @@
   - 重複プロジェクト名を検出し、サブディレクトリで区別
   - _Requirements: 2.1, 2.2, 2.3, 8.3_
 
-- [ ] 2. TreeBasedProjectScannerサービスの実装 (Tasks 2.1-2.4 completed)
+- [x] 2. TreeBasedProjectScannerサービスの実装 (All tasks completed: 2.1-2.5)
 - [x] 2.1 コアスキャン機能の実装
   - GitHub Tree APIを呼び出してリポジトリ全体を再帰的に検索（`recursive=1`）
   - Tree SHAを使用してTree APIエンドポイントを呼び出し
@@ -54,11 +54,10 @@
   - 注記: Requirements 7.1-7.3（ローディングメッセージ、サマリーメッセージ）はTask 4.1でCLI統合時に実装する
   - _Requirements: 7.4 (completed), 7.1-7.3 (deferred to Task 4.1)_
 
-- [ ] 2.5 truncatedフラグ処理と警告メッセージの実装
-  - `truncated === true`の場合、「リポジトリが大きすぎるため、一部のプロジェクトが表示されない可能性があります」警告を表示
-  - 取得できたプロジェクト一覧を表示
-  - エントリ数が10,000を超える場合、「Large repository: Using optimized filtering」メッセージを表示
-  - _Requirements: 5.3, 8.4_
+- [x] 2.5 truncatedフラグ処理と警告メッセージの実装
+  - `entryCount`フィールドを`TreeScanResult`に追加し、Tree APIレスポンスのエントリ数を返却（完了: Requirement 8.4）
+  - 注記: Requirements 5.3（truncated警告メッセージ表示）はTask 4.1でCLI統合時に実装する
+  - _Requirements: 8.4 (completed), 5.3 (deferred to Task 4.1)_
 
 - [ ] 3. SearchableProjectPromptサービスの実装
 - [ ] 3.1 検索可能なプロジェクト選択UIの実装

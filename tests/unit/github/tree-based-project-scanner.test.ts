@@ -24,6 +24,7 @@ interface TreeScanResult {
   }>;
   success: boolean;
   truncated: boolean;
+  entryCount: number; // Task 2.5: Total number of tree entries
   errorMessage?: string;
 }
 
@@ -748,6 +749,137 @@ describe('Tree-Based Project Scanner', () => {
         expect(result.success).toBe(false);
         expect(result.projects).toEqual([]);
         expect(result.errorMessage).toContain('Failed to call Tree API');
+      });
+    });
+
+    describe('entry count tracking (task 2.5)', () => {
+      it('should return entry count from tree response (requirement 8.4)', async () => {
+        // Arrange: Mock tree response with specific entry count
+        vi.mocked(mockClient.rest.repos.getBranch).mockResolvedValue({
+          data: {
+            commit: {
+              sha: 'commit-sha',
+            },
+          },
+        } as any);
+
+        vi.mocked(mockClient.rest.git.getTree).mockResolvedValue({
+          data: {
+            sha: 'commit-sha',
+            tree: [
+              {
+                path: '.kiro/specs/project-a',
+                type: 'tree',
+                mode: '040000',
+                sha: 'sha-a',
+                url: 'https://api.github.com/repos/test-owner/test-repo/git/trees/sha-a',
+              },
+              {
+                path: 'src/index.ts',
+                type: 'blob',
+                mode: '100644',
+                sha: 'sha-file1',
+                url: 'https://api.github.com/repos/test-owner/test-repo/git/blobs/sha-file1',
+              },
+              {
+                path: 'src/utils.ts',
+                type: 'blob',
+                mode: '100644',
+                sha: 'sha-file2',
+                url: 'https://api.github.com/repos/test-owner/test-repo/git/blobs/sha-file2',
+              },
+            ],
+            truncated: false,
+          },
+        } as any);
+
+        // Act
+        const { scanProjectsAcrossSubdirs } = await import('../../../src/github/tree-based-project-scanner.js');
+        const result = await scanProjectsAcrossSubdirs({
+          repository,
+          client: mockClient,
+          logger: mockLogger,
+          verbose: false,
+        });
+
+        // Assert: Should return entry count (Requirement 8.4)
+        expect(result.success).toBe(true);
+        expect(result.entryCount).toBe(3); // Total tree entries
+        expect(result.projects).toHaveLength(1); // Only .kiro/specs/ projects
+      });
+
+      it('should handle large repository with >10,000 entries', async () => {
+        // Arrange: Simulate large repository with 15,000 entries
+        vi.mocked(mockClient.rest.repos.getBranch).mockResolvedValue({
+          data: {
+            commit: {
+              sha: 'commit-sha-large',
+            },
+          },
+        } as any);
+
+        // Generate large tree array (15,000 entries)
+        const largeTree = [];
+        for (let i = 0; i < 15000; i++) {
+          largeTree.push({
+            path: `src/file-${i}.ts`,
+            type: 'blob' as const,
+            mode: '100644',
+            sha: `sha-${i}`,
+            url: `https://api.github.com/repos/test-owner/test-repo/git/blobs/sha-${i}`,
+          });
+        }
+        // Add some .kiro/specs/ projects
+        largeTree.push({
+          path: '.kiro/specs/project-x',
+          type: 'tree' as const,
+          mode: '040000',
+          sha: 'sha-project-x',
+          url: 'https://api.github.com/repos/test-owner/test-repo/git/trees/sha-project-x',
+        });
+
+        vi.mocked(mockClient.rest.git.getTree).mockResolvedValue({
+          data: {
+            sha: 'commit-sha-large',
+            tree: largeTree,
+            truncated: false,
+          },
+        } as any);
+
+        // Act
+        const { scanProjectsAcrossSubdirs } = await import('../../../src/github/tree-based-project-scanner.js');
+        const result = await scanProjectsAcrossSubdirs({
+          repository,
+          client: mockClient,
+          logger: mockLogger,
+          verbose: false,
+        });
+
+        // Assert: Should return large entry count (Requirement 8.4)
+        expect(result.success).toBe(true);
+        expect(result.entryCount).toBe(15001); // 15,000 files + 1 project
+        expect(result.projects).toHaveLength(1);
+      });
+
+      it('should return 0 entry count on error', async () => {
+        // Arrange: Mock error
+        vi.mocked(mockClient.rest.repos.getBranch).mockRejectedValue(
+          new Error('Branch not found')
+        );
+
+        // Act
+        const { scanProjectsAcrossSubdirs } = await import('../../../src/github/tree-based-project-scanner.js');
+        const result = await scanProjectsAcrossSubdirs({
+          repository,
+          client: mockClient,
+          logger: mockLogger,
+          verbose: false,
+        });
+
+        // Assert: Error should return entryCount: 0
+        expect(result.success).toBe(false);
+        expect(result.entryCount).toBe(0);
+        expect(result.projects).toEqual([]);
       });
     });
 
