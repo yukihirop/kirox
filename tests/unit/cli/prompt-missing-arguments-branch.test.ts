@@ -415,6 +415,38 @@ describe('promptMissingArguments - Branch Selection Integration (Task 3.1)', () 
 
       expect(result.repository).toBe('owner/repo#main');
     });
+
+    it('TTY環境でない場合、ブランチ選択プロンプトを表示しない (Requirement 8.3)', async () => {
+      // Set TTY to false (non-interactive environment)
+      Object.defineProperty(process.stdin, 'isTTY', {
+        value: false,
+        configurable: true,
+      });
+
+      mockInput
+        .mockResolvedValueOnce('owner/repo')
+        .mockResolvedValueOnce('') // subdir
+        .mockResolvedValueOnce('my-project')
+        .mockResolvedValueOnce('.');
+
+      mockConfirm.mockResolvedValue(true);
+
+      const args = createValidArgs();
+      const result = await promptMissingArguments(args, undefined, mockLogger, false);
+
+      // Branch selection should be skipped in non-TTY environment
+      expect(mockFetchDefaultBranch).not.toHaveBeenCalled();
+      expect(mockFetchBranches).not.toHaveBeenCalled();
+      expect(mockPromptBranch).not.toHaveBeenCalled();
+
+      expect(result.repository).toBe('owner/repo');
+
+      // Restore TTY for other tests
+      Object.defineProperty(process.stdin, 'isTTY', {
+        value: true,
+        configurable: true,
+      });
+    });
   });
 
   describe('ローディングメッセージ表示 (Requirement 9.5)', () => {
