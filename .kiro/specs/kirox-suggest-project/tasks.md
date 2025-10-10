@@ -52,7 +52,7 @@
   - プロジェクト名配列をカンマ区切り文字列に変換
   - _Requirements: 3.4_
 
-- [ ] 4. promptProject関数の拡張統合
+- [x] 4. promptProject関数の拡張統合
 - [x] 4.1 promptProject関数にサジェスト機能を統合
   - 既存の`currentValue`チェックロジックを維持
   - プロジェクト名が既に指定されている場合はそのまま返却
@@ -61,7 +61,7 @@
   - 前提条件が満たされない場合は既存の手動入力にフォールバック
   - _Requirements: 5.2, 5.3_
 
-- [ ] 4.2 promptMissingArguments関数の更新
+- [x] 4.2 promptMissingArguments関数の更新
   - promptProject関数呼び出し時に追加パラメータを渡す
   - リポジトリ、サブディレクトリ、GitHubクライアント、ロガー、verboseフラグを引数として渡す
   - 既存のフロー（リポジトリ入力→プロジェクト選択→出力ディレクトリ→サブディレクトリ→確認）を維持
