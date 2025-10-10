@@ -24,6 +24,7 @@ Kiro-style Spec Driven Development implementation using claude code slash comman
 - `kirox-multi-project`: Multiple project support within the same subdirectory for both interactive and non-interactive modes
 - `kirox-suggest-project`: Project suggestion feature in interactive mode - fetch available projects from GitHub API and present as radio button selection
 - `kirox-upgrade-suggest-project`: Enhanced project suggestion - auto-detect projects across all subdirectories using GitHub Tree API, eliminating the need for manual subdirectory input
+- `kirox-searchable-checkbox-upgrade`: Upgrade interactive mode with searchable checkbox for project selection, replacing two-step UI with single-step filterable checkbox using inquirer-ts-checkbox-plus-prompt
 - Use `/kiro:spec-status [feature-name]` to check progress
 
 ## Development Guidelines

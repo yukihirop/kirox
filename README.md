@@ -8,6 +8,10 @@ CLI tool to fetch Kiro specification and steering files from remote GitHub repos
 ## Features
 
 - 💬 **Interactive Mode** - Guided prompts for easy usage (no arguments needed)
+  - 🔍 **Smart Project Discovery** - Automatically scans repository using GitHub Tree API
+  - 🎯 **Searchable Project Selection** - Type to filter projects with real-time search
+  - 📂 **Multi-Project Support** - Select multiple projects at once with space key
+  - ⚡ **Intelligent Subdirectory Detection** - No need to manually specify subdirectory paths
 - 📦 Fetch Kiro specification and steering files from any GitHub repository
 - 🌿 Branch/tag specification support (`owner/repo#branch`)
 - 📁 Subdirectory support for monorepo structures
@@ -23,15 +27,23 @@ CLI tool to fetch Kiro specification and steering files from remote GitHub repos
 npx kirox
 
 ✔ Enter GitHub repository (owner/repo or owner/repo#branch) yukihirop/eg-kanban#test
-✔ Enter project name (comma-separated for multiple projects) simple-kanban-board-a,simple-kanban-board-b
-✔ Enter output directory tmp
-✔ Enter subdirectory in GitHub repository (optional) lib/a
+
+Scanning repository for projects...
+Found 4 projects across 3 subdirectories
+
+? Select projects (type to filter, space to select, enter to confirm): (Search: "lib/a")
+❯◉ lib/a/simple-kanban-board-a
+ ◉ lib/a/simple-kanban-board-b
+(Press space to select, enter to proceed)
+
+✔ Enter output directory .
 
 Configuration:
   Repository: yukihirop/eg-kanban#test
   Project: simple-kanban-board-a, simple-kanban-board-b
-  Output: tmp
+  Output: .
   Subdirectory: lib/a
+
 ✔ Execute with this configuration? Yes
 Fetching files from yukihirop/eg-kanban#test/lib/a/.kiro
 Fetching 2 projects: simple-kanban-board-a, simple-kanban-board-b
@@ -111,14 +123,21 @@ npx kirox
 
 Interactive mode guides you through:
 1. **Repository**: Enter GitHub repository (owner/repo or owner/repo#branch)
-2. **Project**: Enter project name to fetch
-3. **Output**: Choose output directory (default: current directory)
-4. **Subdirectory**: Optional subdirectory path in repository
+2. **Project Discovery**: Automatically scans repository for available projects
+3. **Project Selection**:
+   - Type to filter projects with real-time search (e.g., "lib/a" to filter subdirectories)
+   - Use arrow keys to navigate
+   - Press space to select/deselect multiple projects
+   - Press enter to confirm selection
+4. **Output**: Choose output directory (default: current directory)
 5. **Confirmation**: Review and confirm your choices
 
 **Benefits:**
-- ✨ No need to remember command syntax
-- 🎯 Step-by-step guidance with validation
+- ✨ No need to remember command syntax or project names
+- 🔍 **Intelligent Discovery**: Automatically finds all projects in repository
+- 🎯 **Quick Filtering**: Type to instantly filter by project name or subdirectory path
+- 📦 **Multi-Select**: Select multiple projects at once with space key
+- 🗂️ **Auto-Subdirectory**: Automatically detects and uses correct subdirectory paths
 - 📝 Clear preview before execution
 - 🚫 Prevent mistakes with confirmation prompt
 
@@ -258,7 +277,16 @@ npx kirox yukihirop/eg-kanban -p simple-kanban-board
 
 ### Fetch Multiple Projects
 
-Fetch multiple projects from the same repository at once:
+**Interactive Mode (Recommended):**
+
+Simply run `npx kirox` and use the searchable checkbox interface:
+- Type to filter projects (e.g., "lib/" to show all projects in lib subdirectory)
+- Press space to select/deselect multiple projects
+- Press enter to confirm
+
+**Non-Interactive Mode:**
+
+Fetch multiple projects from the same repository with comma-separated names:
 
 ```bash
 # Fetch two projects with comma-separated names
@@ -269,7 +297,13 @@ npx kirox owner/repo#develop -p project-a,project-b,project-c
 
 # Fetch multiple projects with custom output
 npx kirox owner/repo -p api-service,web-app,mobile-app -o ./projects
+
+# Important: Multiple projects must be in the same subdirectory
+npx kirox owner/repo --subdir packages/api -p service-a,service-b
 ```
+
+**Subdirectory Constraint:**
+When selecting multiple projects, they must all be in the same subdirectory. This ensures consistent file paths and prevents conflicts. In interactive mode, the validation is automatic and will show an error if you try to select projects from different subdirectories.
 
 Each project's files are saved to separate directories:
 ```
