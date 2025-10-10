@@ -2,7 +2,7 @@
 
 ## Phase 1: コア実装
 
-- [ ] 1. CLI引数パーサーのデフォルト値を変更する
+- [x] 1. CLI引数パーサーのデフォルト値を変更する
   - Commander.jsの`.option()`でtrackオプションのデフォルト値をfalseに設定
   - 既存の相互排他性ロジック（--check-updates、--update時のtrack強制false設定）が正しく動作することを確認
   - 型チェックを実行してTypeScriptエラーがないことを確認
