@@ -5,9 +5,9 @@
  */
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import type { Octokit } from '@octokit/rest';
+import type { Octokit } from 'octokit';
 import type { Logger } from '../../../src/reporting/logger.js';
-import type { RepositoryRef } from '../../../src/types/repository.js';
+import type { RepositoryRef } from '../../../src/github/fetcher.js';
 
 // Will be implemented in GREEN phase
 interface TreeScanResult {

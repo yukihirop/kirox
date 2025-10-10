@@ -64,6 +64,23 @@ export class Logger {
   }
 
   /**
+   * Log verbose debug message to stdout
+   *
+   * @param message - Verbose debug message
+   * @param details - Optional details object
+   *
+   * @example
+   * ```typescript
+   * logger.verbose('Fetching tree SHA', { repository: 'owner/repo#branch' });
+   * // Output: [VERBOSE] 2025-10-06T12:00:00 Fetching tree SHA {"repository":"owner/repo#branch"}
+   * ```
+   */
+  verbose(message: string, details?: unknown): void {
+    const formatted = this.formatLogMessage('VERBOSE', message, details);
+    console.log(formatted);
+  }
+
+  /**
    * Log error result with appropriate level
    *
    * Recoverable errors are logged as WARN, fatal errors as ERROR

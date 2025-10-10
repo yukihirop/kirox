@@ -4,11 +4,11 @@
  * Scans GitHub repositories using Tree API to find .kiro/specs/ projects across all subdirectories
  */
 
-import type { Octokit } from '@octokit/rest';
+import type { Octokit } from 'octokit';
 import type { Logger } from '../reporting/logger.js';
-import type { RepositoryRef } from '../types/repository.js';
+import type { RepositoryRef } from './fetcher.js';
 import { getTreeSha } from './tree-sha-fetcher.js';
-import { parseTreeResponse } from './tree-response-parser.js';
+import { parseTreeResponse, type TreeItem } from './tree-response-parser.js';
 import { buildProjectLocations, type ProjectLocation } from './project-location-builder.js';
 
 /**
@@ -90,7 +90,7 @@ export async function scanProjectsAcrossSubdirs(
       logger.verbose(`Parsing tree response (${treeResponse.data.tree.length} entries)`);
     }
 
-    const parsedItems = parseTreeResponse(treeResponse.data.tree);
+    const parsedItems = parseTreeResponse(treeResponse.data.tree as TreeItem[]);
 
     if (verbose) {
       logger.verbose(`Found ${parsedItems.length} .kiro/specs/ directories`);
