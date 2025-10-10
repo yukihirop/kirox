@@ -194,9 +194,9 @@ describe('Interactive Mode Config File Integration', () => {
         subdir: undefined,
       };
 
-      // Mock prompts
-      mockInput.mockResolvedValueOnce('./config-output'); // promptOutput
+      // Mock prompts (Task 5.3: subdir now comes before output)
       mockInput.mockResolvedValueOnce('config/subdir'); // promptSubdir
+      mockInput.mockResolvedValueOnce('./config-output'); // promptOutput
       mockConfirm.mockResolvedValueOnce(true); // confirmExecution
 
       const result = await promptMissingArguments(args, configFile);
@@ -204,14 +204,14 @@ describe('Interactive Mode Config File Integration', () => {
       expect(result.output).toBe('./config-output');
       expect(result.subdir).toBe('config/subdir');
 
-      // Verify config defaults were used
+      // Verify config defaults were used (Task 5.3: order changed)
       expect(mockInput).toHaveBeenNthCalledWith(1, {
-        message: 'Enter output directory',
-        default: './config-output',
-      });
-      expect(mockInput).toHaveBeenNthCalledWith(2, {
         message: 'Enter subdirectory in GitHub repository (optional)',
         default: 'config/subdir',
+      });
+      expect(mockInput).toHaveBeenNthCalledWith(2, {
+        message: 'Enter output directory',
+        default: './config-output',
       });
     });
 
@@ -235,9 +235,9 @@ describe('Interactive Mode Config File Integration', () => {
         subdir: undefined,
       };
 
-      // Mock user overriding defaults
-      mockInput.mockResolvedValueOnce('./user-output');
-      mockInput.mockResolvedValueOnce('user/subdir');
+      // Mock user overriding defaults (Task 5.3: subdir before output)
+      mockInput.mockResolvedValueOnce('user/subdir'); // promptSubdir
+      mockInput.mockResolvedValueOnce('./user-output'); // promptOutput
       mockConfirm.mockResolvedValueOnce(true);
 
       const result = await promptMissingArguments(args, configFile);
@@ -261,9 +261,9 @@ describe('Interactive Mode Config File Integration', () => {
         subdir: undefined,
       };
 
-      // Mock prompts without config file
-      mockInput.mockResolvedValueOnce('./output');
-      mockInput.mockResolvedValueOnce('');
+      // Mock prompts without config file (Task 5.3: subdir before output)
+      mockInput.mockResolvedValueOnce(''); // promptSubdir
+      mockInput.mockResolvedValueOnce('./output'); // promptOutput
       mockConfirm.mockResolvedValueOnce(true);
 
       const result = await promptMissingArguments(args, undefined);
@@ -271,14 +271,14 @@ describe('Interactive Mode Config File Integration', () => {
       expect(result.output).toBe('./output');
       expect(result.subdir).toBeUndefined();
 
-      // Verify default values were used
+      // Verify default values were used (Task 5.3: order changed)
       expect(mockInput).toHaveBeenNthCalledWith(1, {
-        message: 'Enter output directory',
-        default: '.',
-      });
-      expect(mockInput).toHaveBeenNthCalledWith(2, {
         message: 'Enter subdirectory in GitHub repository (optional)',
         default: '',
+      });
+      expect(mockInput).toHaveBeenNthCalledWith(2, {
+        message: 'Enter output directory',
+        default: '.',
       });
     });
   });
