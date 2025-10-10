@@ -8,8 +8,9 @@ CLI tool to fetch Kiro specification and steering files from remote GitHub repos
 ## Features
 
 - 💬 **Interactive Mode** - Guided prompts for easy usage (no arguments needed)
+  - 🌿 **Smart Branch Selection** - Automatically detects default branch and suggests all available branches
   - 🔍 **Smart Project Discovery** - Automatically scans repository using GitHub Tree API
-  - 🎯 **Searchable Project Selection** - Type to filter projects with real-time search
+  - 🎯 **Searchable Selection UI** - Type to filter branches and projects with real-time search
   - 📂 **Multi-Project Support** - Select multiple projects at once with space key
   - ⚡ **Intelligent Subdirectory Detection** - No need to manually specify subdirectory paths
 - 📦 Fetch Kiro specification and steering files from any GitHub repository
@@ -26,7 +27,17 @@ CLI tool to fetch Kiro specification and steering files from remote GitHub repos
 ```bash
 npx kirox
 
-✔ Enter GitHub repository (owner/repo or owner/repo#branch) yukihirop/eg-kanban#test
+✔ Enter GitHub repository (owner/repo or owner/repo#branch) yukihirop/eg-kanban
+
+Fetching branches...
+? Select branch (type to filter, enter to confirm): (Search: "test")
+❯◉ main (default)
+ ◯ develop
+ ◯ test
+ ◯ feature/new-ui
+(Press space to select, enter to proceed)
+
+✔ Selected branch: test
 
 Scanning repository for projects...
 Found 4 projects across 3 subdirectories
@@ -123,19 +134,26 @@ npx kirox
 
 Interactive mode guides you through:
 1. **Repository**: Enter GitHub repository (owner/repo or owner/repo#branch)
-2. **Project Discovery**: Automatically scans repository for available projects
-3. **Project Selection**:
+2. **Branch Selection** (if branch not specified):
+   - Automatically detects repository's default branch
+   - Displays all available branches with searchable interface
+   - Type to filter branches (e.g., "feature" to show feature branches)
+   - Press space to select a branch, or press enter without selection to use default branch
+   - Selected branch is highlighted with "(default)" label if it's the repository's default
+3. **Project Discovery**: Automatically scans repository for available projects
+4. **Project Selection**:
    - Type to filter projects with real-time search (e.g., "lib/a" to filter subdirectories)
    - Use arrow keys to navigate
    - Press space to select/deselect multiple projects
    - Press enter to confirm selection
-4. **Output**: Choose output directory (default: current directory)
-5. **Confirmation**: Review and confirm your choices
+5. **Output**: Choose output directory (default: current directory)
+6. **Confirmation**: Review and confirm your choices
 
 **Benefits:**
-- ✨ No need to remember command syntax or project names
+- ✨ No need to remember command syntax, branch names, or project names
+- 🌿 **Smart Branch Detection**: Automatically detects default branch and offers all branches
 - 🔍 **Intelligent Discovery**: Automatically finds all projects in repository
-- 🎯 **Quick Filtering**: Type to instantly filter by project name or subdirectory path
+- 🎯 **Quick Filtering**: Type to instantly filter branches, projects, or subdirectory paths
 - 📦 **Multi-Select**: Select multiple projects at once with space key
 - 🗂️ **Auto-Subdirectory**: Automatically detects and uses correct subdirectory paths
 - 📝 Clear preview before execution
@@ -172,6 +190,15 @@ npx kirox owner/repo#v1.2.3 -p project
 # Fetch from development branch
 npx kirox owner/repo#develop -p project
 ```
+
+**Interactive Mode Branch Selection:**
+
+When you don't specify a branch in interactive mode (`npx kirox`):
+1. Kirox automatically fetches all available branches from the repository
+2. Displays a searchable list with the default branch marked
+3. You can type to filter branches (e.g., type "feature" to see only feature branches)
+4. Press space to select a branch, or press enter without selection to use the default branch
+5. The selected branch is then used for fetching files
 
 ### Subdirectory Support
 
