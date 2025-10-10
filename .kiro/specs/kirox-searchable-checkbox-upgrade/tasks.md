@@ -14,7 +14,7 @@
 
 ---
 
-- [ ] 1. `@inquirer/prompts`カスタムプロンプトAPIの調査と設計
+- [x] 1. `@inquirer/prompts`カスタムプロンプトAPIの調査と設計
 - [x] 1.1 `@inquirer/prompts`の`createPrompt` APIと既存実装の調査
   - ✅ `@inquirer/prompts`の`createPrompt` APIドキュメントとTypeScript型定義を調査
   - ✅ `@inquirer/checkbox`プロンプトのソースコード（npm package内）を確認
@@ -37,11 +37,13 @@
   - _Requirements: 2.1-2.7, 3.1-3.4_
   - _Result: 実装準備完了。状態管理、イベント処理、フィルタリング、レンダリングの全設計が完成_
 
-- [ ] 1.3 必要な依存関係の確認
-  - 既存の`@inquirer/prompts`パッケージで必要なAPIが利用可能か確認
-  - 追加パッケージが必要かどうか評価（chalk、ansi-escapes等は既に利用可能）
-  - TypeScript型定義の整備方針を決定
+- [x] 1.3 必要な依存関係の確認
+  - ✅ 既存の`@inquirer/prompts`パッケージで必要なAPIが利用可能か確認
+  - ✅ 追加パッケージが必要かどうか評価（chalk、ansi-escapes等は既に利用可能）
+  - ✅ TypeScript型定義の整備方針を決定
+  - ✅ 依存関係検証ドキュメント作成（investigation-1.3.md）
   - _Requirements: 1.1-1.3_
+  - _Result: 追加パッケージのインストール不要。全ての必要なAPIが`@inquirer/core@10.2.2`とそのサブ依存関係で利用可能_
 
 - [ ] 2. カスタム検索可能チェックボックスプロンプトの実装
 - [ ] 2.1 カスタムプロンプトのコアロジック実装
