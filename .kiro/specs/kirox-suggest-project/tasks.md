@@ -78,6 +78,17 @@
   - _Issue: 現在の実装ではサジェスト成功時にすべてのプロジェクトが自動選択されてしまう_
   - _Location: src/cli/interactive-prompt.ts:140-155_
 
+- [x] 4.4 プロジェクト選択UIの簡略化（UX改善）
+  - 現在の2段階選択（ラジオボタン→チェックボックス）を1段階に簡略化
+  - promptSingleProjectの呼び出しとMULTIPLE_SELECTION_MARKERの分岐処理を削除
+  - いきなりpromptMultipleProjectsWithValidationを呼び出す
+  - チェックボックスUIで単一・複数どちらも選択可能にする
+  - 1つ選択された場合は選択されたプロジェクト名を文字列として返却
+  - 複数選択された場合はformatMultipleProjectsToStringでカンマ区切り文字列に変換して返却
+  - _Requirements: 2.1, 2.4, 3.1, 3.2, 3.3, 3.4, 3.5_
+  - _Issue: 現在は2段階選択で使い勝手が悪い（ラジオボタン→「複数選択モード」選択→チェックボックス）_
+  - _Location: src/cli/interactive-prompt.ts:140-155_
+
 - [x] 5. パフォーマンスとユーザーフィードバックの実装（タスク5.1〜5.3完了）
 - [x] 5.1 ローディングメッセージ表示機能を実装
   - GitHub API呼び出し前に「Fetching available projects...」メッセージを表示

@@ -273,13 +273,13 @@ describe('promptProject', () => {
 
       it('全ての依存が揃っている場合、サジェスト機能を呼び出す', async () => {
         const suggester = await import('@/cli/project-suggester.js');
-        const mockPromptSingleProject = suggester.promptSingleProject as ReturnType<typeof vi.fn>;
+        const mockPromptMultipleProjectsWithValidation = suggester.promptMultipleProjectsWithValidation as ReturnType<typeof vi.fn>;
 
         mockSuggestProjects.mockResolvedValue({
           projects: ['suggested-project'],
           success: true,
         });
-        mockPromptSingleProject.mockResolvedValue('suggested-project');
+        mockPromptMultipleProjectsWithValidation.mockResolvedValue(['suggested-project']);
 
         const repository = 'owner/repo';
 
@@ -296,64 +296,75 @@ describe('promptProject', () => {
       });
     });
 
-    describe('サジェスト成功時にプロンプトUIを表示 (Task 4.3)', () => {
-      let mockPromptSingleProject: ReturnType<typeof vi.fn>;
+    describe('プロジェクト選択UIの簡略化 (Task 4.4)', () => {
       let mockPromptMultipleProjectsWithValidation: ReturnType<typeof vi.fn>;
       let mockFormatMultipleProjectsToString: ReturnType<typeof vi.fn>;
 
       beforeEach(async () => {
-        // Mock promptSingleProject and promptMultipleProjectsWithValidation
         const suggester = await import('@/cli/project-suggester.js');
-        mockPromptSingleProject = suggester.promptSingleProject as ReturnType<typeof vi.fn>;
         mockPromptMultipleProjectsWithValidation = suggester.promptMultipleProjectsWithValidation as ReturnType<typeof vi.fn>;
         mockFormatMultipleProjectsToString = suggester.formatMultipleProjectsToString as ReturnType<typeof vi.fn>;
-        mockPromptSingleProject.mockClear();
         mockPromptMultipleProjectsWithValidation.mockClear();
         mockFormatMultipleProjectsToString.mockClear();
       });
 
-      it('サジェスト成功時、promptSingleProjectを呼び出してユーザーに選択させる', async () => {
+      it('サジェスト成功時、promptMultipleProjectsWithValidationを直接呼び出す', async () => {
         mockSuggestProjects.mockResolvedValue({
           projects: ['project-a', 'project-b'],
           success: true,
         });
-        mockPromptSingleProject.mockResolvedValue('project-a');
+        mockPromptMultipleProjectsWithValidation.mockResolvedValue(['project-a']);
 
         const result = await promptProject('', 'owner/repo', undefined, mockClient, mockLogger, false);
 
-        expect(mockPromptSingleProject).toHaveBeenCalledWith(['project-a', 'project-b']);
-        expect(result).toBe('project-a');
+        expect(mockPromptMultipleProjectsWithValidation).toHaveBeenCalledWith(['project-a', 'project-b']);
         expect(mockInput).not.toHaveBeenCalled();
+        expect(result).toBe('project-a');
       });
 
       it('単一プロジェクト選択時、プロジェクト名文字列を返す', async () => {
         mockSuggestProjects.mockResolvedValue({
-          projects: ['selected-project'],
+          projects: ['project-a', 'project-b', 'project-c'],
           success: true,
         });
-        mockPromptSingleProject.mockResolvedValue('selected-project');
+        mockPromptMultipleProjectsWithValidation.mockResolvedValue(['project-b']);
 
         const result = await promptProject('', 'owner/repo', undefined, mockClient, mockLogger, false);
 
-        expect(result).toBe('selected-project');
+        expect(mockPromptMultipleProjectsWithValidation).toHaveBeenCalledWith(['project-a', 'project-b', 'project-c']);
+        expect(result).toBe('project-b');
         expect(mockInput).not.toHaveBeenCalled();
       });
 
-      it('複数選択モード(__MULTIPLE__)選択時、promptMultipleProjectsWithValidationを呼び出す', async () => {
+      it('複数プロジェクト選択時、カンマ区切り文字列を返す', async () => {
         mockSuggestProjects.mockResolvedValue({
           projects: ['project-a', 'project-b', 'project-c'],
           success: true,
         });
-        mockPromptSingleProject.mockResolvedValue('__MULTIPLE__');
         mockPromptMultipleProjectsWithValidation.mockResolvedValue(['project-a', 'project-c']);
         mockFormatMultipleProjectsToString.mockReturnValue('project-a,project-c');
 
         const result = await promptProject('', 'owner/repo', undefined, mockClient, mockLogger, false);
 
-        expect(mockPromptSingleProject).toHaveBeenCalledWith(['project-a', 'project-b', 'project-c']);
         expect(mockPromptMultipleProjectsWithValidation).toHaveBeenCalledWith(['project-a', 'project-b', 'project-c']);
         expect(mockFormatMultipleProjectsToString).toHaveBeenCalledWith(['project-a', 'project-c']);
         expect(result).toBe('project-a,project-c');
+      });
+
+      it('promptSingleProjectは呼び出されない（簡略化）', async () => {
+        const suggester = await import('@/cli/project-suggester.js');
+        const mockPromptSingleProject = suggester.promptSingleProject as ReturnType<typeof vi.fn>;
+
+        mockSuggestProjects.mockResolvedValue({
+          projects: ['project-a'],
+          success: true,
+        });
+        mockPromptMultipleProjectsWithValidation.mockResolvedValue(['project-a']);
+
+        await promptProject('', 'owner/repo', undefined, mockClient, mockLogger, false);
+
+        expect(mockPromptSingleProject).not.toHaveBeenCalled();
+        expect(mockPromptMultipleProjectsWithValidation).toHaveBeenCalled();
       });
 
       it('ブランチ指定がある場合、repositoryオブジェクトにbranchを含める', async () => {
@@ -361,6 +372,7 @@ describe('promptProject', () => {
           projects: ['suggested-project'],
           success: true,
         });
+        mockPromptMultipleProjectsWithValidation.mockResolvedValue(['suggested-project']);
 
         const repository = 'owner/repo#feature-branch';
 
@@ -380,6 +392,7 @@ describe('promptProject', () => {
           projects: ['suggested-project'],
           success: true,
         });
+        mockPromptMultipleProjectsWithValidation.mockResolvedValue(['suggested-project']);
 
         const repository = 'owner/repo';
         const subdir = 'lib/components';
@@ -400,6 +413,7 @@ describe('promptProject', () => {
           projects: ['suggested-project'],
           success: true,
         });
+        mockPromptMultipleProjectsWithValidation.mockResolvedValue(['suggested-project']);
 
         await promptProject('', 'owner/repo', undefined, mockClient, mockLogger, true);
 
