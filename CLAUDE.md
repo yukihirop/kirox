@@ -22,6 +22,7 @@ Kiro-style Spec Driven Development implementation using claude code slash comman
 - `kirox-github-workflow`: GitHub Actions CI/CD workflow setup and configuration
 - `kirox-cli-interactive`: Interactive mode for kirox CLI when executed without options
 - `kirox-multi-project`: Multiple project support within the same subdirectory for both interactive and non-interactive modes
+- `kirox-suggest-project`: Project suggestion feature in interactive mode - fetch available projects from GitHub API and present as radio button selection
 - Use `/kiro:spec-status [feature-name]` to check progress
 
 ## Development Guidelines
@@ -71,6 +72,7 @@ Managed by `/kiro:steering` command. Updates here reflect command changes.
   Pattern: File patterns for Conditional mode
 -->
 - `language.md`: Conditional - `"src/cli/**/*"`, `"src/reporting/**/*"`, `"src/**/*prompt*.ts"` - Language policy for user-facing messages (English-only requirement)
+- `testing.md`: Conditional - `"**/*.test.ts"`, `"**/*.test.js"` - Testing standards, TDD methodology, and external API mocking strategies
 
 ### Inclusion Modes
 - **Always**: Loaded in every interaction (default)

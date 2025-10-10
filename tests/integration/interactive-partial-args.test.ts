@@ -110,7 +110,9 @@ describe('Interactive Mode Partial Arguments Integration', () => {
           repository: 'owner/repo',
           projects: [],
         }),
-        expect.any(Object) // config file
+        expect.any(Object), // config file
+        expect.any(Object), // logger
+        false // verbose
       );
     });
 
@@ -140,7 +142,9 @@ describe('Interactive Mode Partial Arguments Integration', () => {
           repository: 'owner/repo#feature-branch',
           projects: [],
         }),
-        expect.any(Object)
+        expect.any(Object), // config file
+        expect.any(Object), // logger
+        false // verbose
       );
     });
 
@@ -171,7 +175,9 @@ describe('Interactive Mode Partial Arguments Integration', () => {
           projects: [],
           subdir: 'packages/api',
         }),
-        expect.any(Object)
+        expect.any(Object), // config file
+        expect.any(Object), // logger
+        false // verbose
       );
     });
   });
@@ -211,7 +217,9 @@ describe('Interactive Mode Partial Arguments Integration', () => {
           repository: '',
           projects: ['my-project'],
         }),
-        expect.any(Object)
+        expect.any(Object), // config file
+        expect.any(Object), // logger
+        false // verbose
       );
     });
   });
@@ -244,7 +252,9 @@ describe('Interactive Mode Partial Arguments Integration', () => {
           projects: [],
           output: './custom-output',
         }),
-        expect.any(Object)
+        expect.any(Object), // config file
+        expect.any(Object), // logger
+        false // verbose
       );
     });
 
@@ -276,7 +286,9 @@ describe('Interactive Mode Partial Arguments Integration', () => {
           force: true,
           verbose: true,
         }),
-        expect.any(Object)
+        expect.any(Object), // config file
+        expect.any(Object), // logger
+        true // verbose
       );
     });
   });
@@ -311,7 +323,9 @@ describe('Interactive Mode Partial Arguments Integration', () => {
           subdir: 'src',
           dryRun: true,
         }),
-        expect.any(Object)
+        expect.any(Object), // config file
+        expect.any(Object), // logger
+        false // verbose
       );
     });
 
@@ -343,7 +357,9 @@ describe('Interactive Mode Partial Arguments Integration', () => {
           force: true,
           verbose: true,
         }),
-        expect.any(Object)
+        expect.any(Object), // config file
+        expect.any(Object), // logger
+        true // verbose
       );
     });
 
@@ -390,7 +406,9 @@ describe('Interactive Mode Partial Arguments Integration', () => {
           verbose: true,
           config: '/custom/config.json',
         }),
-        expect.any(Object)
+        expect.any(Object), // config file
+        expect.any(Object), // logger
+        true // verbose
       );
     });
   });

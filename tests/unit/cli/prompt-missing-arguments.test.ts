@@ -54,9 +54,9 @@ describe('promptMissingArguments', () => {
     it('リポジトリとプロジェクト両方が欠落している場合、両方をプロンプトする', async () => {
       mockInput
         .mockResolvedValueOnce('owner/repo') // repository prompt
+        .mockResolvedValueOnce('') // subdir prompt (Task 5.3: moved before project)
         .mockResolvedValueOnce('my-project') // project prompt
-        .mockResolvedValueOnce('.') // output prompt
-        .mockResolvedValueOnce(''); // subdir prompt
+        .mockResolvedValueOnce('.'); // output prompt
 
       mockConfirm.mockResolvedValue(true);
 
@@ -70,9 +70,9 @@ describe('promptMissingArguments', () => {
 
     it('リポジトリのみが指定されている場合、プロジェクトのみをプロンプトする', async () => {
       mockInput
+        .mockResolvedValueOnce('') // subdir prompt (Task 5.3: moved before project)
         .mockResolvedValueOnce('my-project') // project prompt
-        .mockResolvedValueOnce('.') // output prompt
-        .mockResolvedValueOnce(''); // subdir prompt
+        .mockResolvedValueOnce('.'); // output prompt
 
       mockConfirm.mockResolvedValue(true);
 
@@ -88,8 +88,8 @@ describe('promptMissingArguments', () => {
     it('プロジェクトのみが指定されている場合、リポジトリのみをプロンプトする', async () => {
       mockInput
         .mockResolvedValueOnce('owner/repo') // repository prompt
-        .mockResolvedValueOnce('.') // output prompt
-        .mockResolvedValueOnce(''); // subdir prompt
+        .mockResolvedValueOnce('') // subdir prompt (Task 5.3: moved before output)
+        .mockResolvedValueOnce('.'); // output prompt
 
       mockConfirm.mockResolvedValue(true);
 
@@ -104,8 +104,8 @@ describe('promptMissingArguments', () => {
 
     it('リポジトリとプロジェクトが両方指定されている場合、オプションパラメータのみをプロンプトする', async () => {
       mockInput
-        .mockResolvedValueOnce('./custom-output') // output prompt
-        .mockResolvedValueOnce('lib/src'); // subdir prompt
+        .mockResolvedValueOnce('lib/src') // subdir prompt (Task 5.3: moved before output)
+        .mockResolvedValueOnce('./custom-output'); // output prompt
 
       mockConfirm.mockResolvedValue(true);
 
@@ -115,7 +115,7 @@ describe('promptMissingArguments', () => {
       });
       const result = await promptMissingArguments(args);
 
-      // Only output and subdir prompts
+      // Only subdir and output prompts (Task 5.3: subdir now comes first)
       expect(mockInput).toHaveBeenCalledTimes(2);
       expect(result.repository).toBe('owner/repo');
       expect(result.projects).toEqual(['my-project']);
@@ -125,7 +125,7 @@ describe('promptMissingArguments', () => {
   });
 
   describe('プロンプトの順序', () => {
-    it('プロンプトは正しい順序で表示される（repository → project → output → subdir → confirm）', async () => {
+    it('プロンプトは正しい順序で表示される（repository → subdir → project → output → confirm）', async () => {
       const callOrder: string[] = [];
 
       mockInput.mockImplementation((options) => {
@@ -156,11 +156,12 @@ describe('promptMissingArguments', () => {
       const args = createValidArgs();
       await promptMissingArguments(args);
 
+      // Task 5.3: subdir prompt moved before project prompt
       expect(callOrder).toEqual([
         'repository',
+        'subdir',
         'project',
         'output',
-        'subdir',
         'confirm',
       ]);
     });
@@ -170,9 +171,9 @@ describe('promptMissingArguments', () => {
     it('全ての入力が完了した後、確認プロンプトを表示する', async () => {
       mockInput
         .mockResolvedValueOnce('owner/repo')
+        .mockResolvedValueOnce('') // subdir (Task 5.3)
         .mockResolvedValueOnce('my-project')
-        .mockResolvedValueOnce('.')
-        .mockResolvedValueOnce('');
+        .mockResolvedValueOnce('.'); // output
 
       mockConfirm.mockResolvedValue(true);
 
@@ -191,9 +192,9 @@ describe('promptMissingArguments', () => {
     it('ユーザーが確認を承認した場合、補完された引数を返す', async () => {
       mockInput
         .mockResolvedValueOnce('owner/repo')
+        .mockResolvedValueOnce('') // subdir (Task 5.3)
         .mockResolvedValueOnce('my-project')
-        .mockResolvedValueOnce('.')
-        .mockResolvedValueOnce('');
+        .mockResolvedValueOnce('.'); // output
 
       mockConfirm.mockResolvedValue(true);
 
@@ -209,9 +210,9 @@ describe('promptMissingArguments', () => {
     it('ユーザーが確認を拒否した場合、エラーをスローする', async () => {
       mockInput
         .mockResolvedValueOnce('owner/repo')
+        .mockResolvedValueOnce('') // subdir (Task 5.3)
         .mockResolvedValueOnce('my-project')
-        .mockResolvedValueOnce('.')
-        .mockResolvedValueOnce('');
+        .mockResolvedValueOnce('.'); // output
 
       mockConfirm.mockResolvedValue(false);
 
@@ -227,9 +228,9 @@ describe('promptMissingArguments', () => {
     it('補完された引数は元の引数のプロパティを保持する', async () => {
       mockInput
         .mockResolvedValueOnce('owner/repo')
+        .mockResolvedValueOnce('') // subdir (Task 5.3)
         .mockResolvedValueOnce('my-project')
-        .mockResolvedValueOnce('.')
-        .mockResolvedValueOnce('');
+        .mockResolvedValueOnce('.'); // output
 
       mockConfirm.mockResolvedValue(true);
 
@@ -248,9 +249,9 @@ describe('promptMissingArguments', () => {
     it('サブディレクトリが入力されている場合、正しく設定される', async () => {
       mockInput
         .mockResolvedValueOnce('owner/repo')
+        .mockResolvedValueOnce('lib/src') // subdir (Task 5.3)
         .mockResolvedValueOnce('my-project')
-        .mockResolvedValueOnce('.')
-        .mockResolvedValueOnce('lib/src');
+        .mockResolvedValueOnce('.'); // output
 
       mockConfirm.mockResolvedValue(true);
 
@@ -263,9 +264,9 @@ describe('promptMissingArguments', () => {
     it('サブディレクトリが空の場合、undefinedが設定される', async () => {
       mockInput
         .mockResolvedValueOnce('owner/repo')
+        .mockResolvedValueOnce('') // subdir (Task 5.3)
         .mockResolvedValueOnce('my-project')
-        .mockResolvedValueOnce('.')
-        .mockResolvedValueOnce('');
+        .mockResolvedValueOnce('.'); // output
 
       mockConfirm.mockResolvedValue(true);
 
@@ -280,9 +281,9 @@ describe('promptMissingArguments', () => {
     it('ブランチ付きリポジトリが入力された場合、正しく設定される', async () => {
       mockInput
         .mockResolvedValueOnce('owner/repo#feature-branch')
+        .mockResolvedValueOnce('') // subdir (Task 5.3)
         .mockResolvedValueOnce('my-project')
-        .mockResolvedValueOnce('.')
-        .mockResolvedValueOnce('');
+        .mockResolvedValueOnce('.'); // output
 
       mockConfirm.mockResolvedValue(true);
 
@@ -297,15 +298,16 @@ describe('promptMissingArguments', () => {
     it('既にoutputが指定されている場合、プロンプトをスキップする', async () => {
       mockInput
         .mockResolvedValueOnce('owner/repo')
-        .mockResolvedValueOnce('my-project')
-        .mockResolvedValueOnce(''); // subdir only
+        .mockResolvedValueOnce('') // subdir (Task 5.3)
+        .mockResolvedValueOnce('my-project');
+        // output prompt skipped because it's already set
 
       mockConfirm.mockResolvedValue(true);
 
       const args = createValidArgs({ output: './custom' });
       const result = await promptMissingArguments(args);
 
-      // Should skip output prompt
+      // Should skip output prompt (Task 5.3: only 3 prompts)
       expect(mockInput).toHaveBeenCalledTimes(3);
       expect(result.output).toBe('./custom');
     });

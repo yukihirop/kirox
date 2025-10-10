@@ -118,7 +118,9 @@ describe('Interactive Mode Config File Integration', () => {
           repository: '',
           projects: [],
         }),
-        configFile
+        configFile,
+        expect.any(Object), // logger
+        false // verbose
       );
     });
 
@@ -264,7 +266,9 @@ describe('Interactive Mode Config File Integration', () => {
       // Verify empty config was passed
       expect(mockPromptMissingArguments).toHaveBeenCalledWith(
         expect.any(Object),
-        {}
+        {},
+        expect.any(Object), // logger
+        false // verbose
       );
 
       const completedArgs = mockPromptMissingArguments.mock.results[0]?.value;
@@ -344,7 +348,9 @@ describe('Interactive Mode Config File Integration', () => {
         expect.objectContaining({
           config: customConfigPath,
         }),
-        customConfig
+        customConfig,
+        expect.any(Object), // logger
+        false // verbose
       );
     });
 
@@ -418,7 +424,9 @@ describe('Interactive Mode Config File Integration', () => {
       expect(mockShouldEnterInteractiveMode).toHaveBeenCalled();
       expect(mockPromptMissingArguments).toHaveBeenCalledWith(
         expect.any(Object),
-        configFile
+        configFile,
+        expect.any(Object), // logger
+        false // verbose
       );
     });
   });
