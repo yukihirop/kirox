@@ -4,6 +4,7 @@
  * Tests Tree API integration with promptMissingArguments function
  * Task 4.1: Tree API検索の統合とフォールバック分岐の実装
  * Task 4.2: プロジェクト選択からサブディレクトリパス自動抽出の実装
+ * Task 4.3: 既存機能との互換性維持の実装
  *
  * Verifies that:
  * - Tree API is attempted when Logger is provided (Requirement 3.1)
@@ -12,6 +13,8 @@
  * - Subdirectory is auto-extracted from selected project (Requirements 3.3, 3.4)
  * - Loading and summary messages are displayed (Requirements 7.1-7.3)
  * - Truncated warning is displayed when response is truncated (Requirement 5.3)
+ * - Tree API is skipped when subdirectory is already specified (Requirement 6.1)
+ * - Tree API is skipped in non-TTY environment (Requirement 6.4)
  */
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
@@ -247,6 +250,91 @@ describe('Tree API Project Scan Integration (Task 4.1)', () => {
       expect(consoleLogSpy).toHaveBeenCalledWith(
         expect.stringContaining('Some projects may not be displayed')
       );
+    });
+  });
+
+  describe('既存機能との互換性 (Requirements 6.1, 6.3, 6.4)', () => {
+    it('should skip Tree API when subdirectory is already specified (Requirement 6.1)', async () => {
+      const initialArgs: ParsedArguments = {
+        repository: 'owner/repo',
+        projects: [],
+        output: '.',
+        subdir: 'lib/a', // Subdirectory already specified (non-interactive mode)
+        force: false,
+        dryRun: false,
+        verbose: false,
+        config: undefined,
+        checkUpdates: false,
+        update: false,
+        track: true,
+      };
+
+      // Mock existing workflow: project prompt only
+      mockInput.mockResolvedValueOnce('project-a'); // Project input
+
+      await promptMissingArguments(initialArgs, undefined, mockLogger, false);
+
+      // Assert: Tree API was NOT called (subdirectory already specified)
+      expect(mockScanProjectsAcrossSubdirs).not.toHaveBeenCalled();
+
+      // Assert: Project prompt WAS called (existing workflow)
+      expect(mockInput).toHaveBeenCalledWith(
+        expect.objectContaining({
+          message: expect.stringContaining('project name'),
+        })
+      );
+    });
+
+    it('should skip Tree API in non-TTY environment (Requirement 6.4)', async () => {
+      // Save original value
+      const originalIsTTY = process.stdin.isTTY;
+
+      try {
+        // Mock non-TTY environment
+        Object.defineProperty(process.stdin, 'isTTY', {
+          value: false,
+          writable: true,
+          configurable: true,
+        });
+
+        const initialArgs: ParsedArguments = {
+          repository: 'owner/repo',
+          projects: [],
+          output: '.',
+          subdir: undefined,
+          force: false,
+          dryRun: false,
+          verbose: false,
+          config: undefined,
+          checkUpdates: false,
+          update: false,
+          track: true,
+        };
+
+        // Mock existing workflow
+        mockInput
+          .mockResolvedValueOnce('lib/a') // Subdirectory input
+          .mockResolvedValueOnce('project-a'); // Project input
+
+        await promptMissingArguments(initialArgs, undefined, mockLogger, false);
+
+        // Assert: Tree API was NOT called (non-TTY environment)
+        expect(mockScanProjectsAcrossSubdirs).not.toHaveBeenCalled();
+
+        // Assert: Existing workflow was used
+        expect(mockInput).toHaveBeenCalledWith(
+          expect.objectContaining({
+            message: expect.stringContaining('subdirectory'),
+          })
+        );
+      } finally {
+        // Restore original value
+        Object.defineProperty(process.stdin, 'isTTY', {
+          value: originalIsTTY,
+          writable: true,
+          configurable: true,
+        });
+      }
     });
   });
 

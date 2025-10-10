@@ -324,13 +324,19 @@ export async function promptMissingArguments(
   }
 
   // 3. Task 4.1: Attempt Tree API search if logger and client are available
-  // Skip Tree API if:
+  // Task 4.3: Skip Tree API in the following cases (Requirements 6.1, 6.4):
   // - Logger is not provided (Requirement 3.1)
   // - Client initialization failed
   // - Projects are already specified
+  // - Subdirectory is already specified (Requirement 6.1: non-interactive mode)
+  // - Non-TTY environment (Requirement 6.4)
   let treeApiSuccess = false;
   const shouldAttemptTreeAPI =
-    logger && client && (!completedArgs.projects || completedArgs.projects.length === 0);
+    logger &&
+    client &&
+    (!completedArgs.projects || completedArgs.projects.length === 0) &&
+    !completedArgs.subdir && // Skip if subdirectory already specified (Requirement 6.1)
+    process.stdin.isTTY !== false; // Skip in non-TTY environment (Requirement 6.4), treat undefined as TTY
 
   if (shouldAttemptTreeAPI && client) {
     try {
