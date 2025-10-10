@@ -155,13 +155,22 @@
   - _Result: タスク3.1で完了。コードが73行削減され、非常にシンプルで保守しやすい実装になった_
 
 - [ ] 4. エラーハンドリングの実装と維持
-- [ ] 4.1 基本的なエラーハンドリングの実装
-  - カスタムプロンプト内でCtrl+C中断時に`ExitPromptError`をスローする処理を実装
-  - `promptProjectSelection`関数で`ExitPromptError`を適切にハンドリング
-  - 選択されたプロジェクトが見つからない場合のエラー処理を実装
-  - 有効なプロジェクトが0個選択された場合のエラー処理を実装
-  - 既存の中断処理フローとの統合を確認
+- [x] 4.1 基本的なエラーハンドリングの実装
+  - ✅ Ctrl+C中断時に`ExitPromptError`を正しく伝播（`@inquirer/core`が内部処理）
+  - ✅ Escapeキー中断時に`CancelPromptError`を正しく伝播（src/cli/prompts/searchable-checkbox.ts:272-273）
+  - ✅ 選択されたプロジェクトが見つからない場合のエラー処理を実装（src/cli/searchable-project-prompt.ts:133-135）
+  - ✅ 有効なプロジェクトが0個選択された場合のエラー処理を実装（同上）
+  - ✅ 既存の中断処理フローとの統合を確認（既存のinteractive-prompt.tsと統合済み）
+  - ✅ エラーハンドリングのユニットテスト追加（tests/unit/cli/searchable-project-prompt.test.ts:461-563、4テスト）
+    - `CancelPromptError`伝播テスト（:487-511）
+    - `ExitPromptError`伝播テスト（:513-537）
+    - 空の選択配列エラーテスト（:539-562）
+    - 見つからないプロジェクトエラーテスト（:462-485）
+  - ✅ 型チェック完了（TypeScriptエラーなし）
+  - ✅ リント完了（ESLintエラーなし）
+  - ✅ 全テスト通過（13テスト、searchable-project-promptファイル）
   - _Requirements: 6.1-6.3_
+  - _Result: 基本的なエラーハンドリング完了。既存実装が既に要件を満たしていることを確認し、テストで検証完了_
 
 - [ ] 4.2 カスタムプロンプト内のエラーハンドリング
   - フィルタリングロジックでの例外処理を実装

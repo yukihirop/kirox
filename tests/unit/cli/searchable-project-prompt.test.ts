@@ -457,4 +457,108 @@ describe('SearchableProjectPrompt (Task 3.1)', () => {
       });
     });
   });
+
+  describe('error handling (Task 4.1)', () => {
+    it('should throw Error when no valid projects are selected', async () => {
+      const projectLocations: ProjectLocation[] = [
+        {
+          name: 'project-a',
+          subdir: '',
+          displayName: 'project-a',
+          projectName: 'project-a',
+          path: '.kiro/specs/project-a',
+          type: 'tree',
+          mode: '040000',
+          sha: 'sha-a',
+          url: 'https://api.github.com/repos/owner/repo/git/trees/sha-a',
+        },
+      ];
+
+      // Mock: User selects a project that doesn't exist in projectLocations
+      // Return displayName that doesn't match any project
+      mockSearchableCheckbox.mockResolvedValueOnce(['non-existent-project']);
+
+      // Act & Assert: Should throw error
+      await expect(promptProjectSelection(projectLocations)).rejects.toThrow(
+        'No valid projects selected'
+      );
+    });
+
+    it('should propagate CancelPromptError from searchableCheckbox (Escape key)', async () => {
+      const projectLocations: ProjectLocation[] = [
+        {
+          name: 'project-a',
+          subdir: '',
+          displayName: 'project-a',
+          projectName: 'project-a',
+          path: '.kiro/specs/project-a',
+          type: 'tree',
+          mode: '040000',
+          sha: 'sha-a',
+          url: 'https://api.github.com/repos/owner/repo/git/trees/sha-a',
+        },
+      ];
+
+      // Mock: User presses Escape key
+      const { CancelPromptError } = await import('@inquirer/core');
+      const cancelError = new CancelPromptError();
+      mockSearchableCheckbox.mockRejectedValueOnce(cancelError);
+
+      // Act & Assert: CancelPromptError should propagate to caller
+      await expect(promptProjectSelection(projectLocations)).rejects.toThrow(
+        CancelPromptError
+      );
+    });
+
+    it('should propagate ExitPromptError from searchableCheckbox (Ctrl+C)', async () => {
+      const projectLocations: ProjectLocation[] = [
+        {
+          name: 'project-a',
+          subdir: '',
+          displayName: 'project-a',
+          projectName: 'project-a',
+          path: '.kiro/specs/project-a',
+          type: 'tree',
+          mode: '040000',
+          sha: 'sha-a',
+          url: 'https://api.github.com/repos/owner/repo/git/trees/sha-a',
+        },
+      ];
+
+      // Mock: User presses Ctrl+C
+      const { ExitPromptError } = await import('@inquirer/core');
+      const exitError = new ExitPromptError();
+      mockSearchableCheckbox.mockRejectedValueOnce(exitError);
+
+      // Act & Assert: ExitPromptError should propagate to caller
+      await expect(promptProjectSelection(projectLocations)).rejects.toThrow(
+        ExitPromptError
+      );
+    });
+
+    it('should handle empty selection array and throw error', async () => {
+      const projectLocations: ProjectLocation[] = [
+        {
+          name: 'project-a',
+          subdir: '',
+          displayName: 'project-a',
+          projectName: 'project-a',
+          path: '.kiro/specs/project-a',
+          type: 'tree',
+          mode: '040000',
+          sha: 'sha-a',
+          url: 'https://api.github.com/repos/owner/repo/git/trees/sha-a',
+        },
+      ];
+
+      // Mock: Somehow validation passes but empty array is returned
+      // This tests the safety check after selection
+      mockSearchableCheckbox.mockResolvedValueOnce([]);
+
+      // Act & Assert: Should throw error for empty selection
+      await expect(promptProjectSelection(projectLocations)).rejects.toThrow(
+        'No valid projects selected'
+      );
+    });
+  });
 });
