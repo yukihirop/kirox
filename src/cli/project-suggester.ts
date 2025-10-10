@@ -347,10 +347,13 @@ export async function suggestProjects(
 
     // Verbose logging: Error details with full error object
     if (verbose) {
+      const errorObj = error as Error & { debugInfo?: unknown };
       logger.error('Failed to fetch projects from GitHub', {
         error: actualError,
         repository: repoPath,
         path,
+        // Include debug info if available
+        debugInfo: errorObj.debugInfo,
         // Include full error object for debugging
         fullError: error instanceof Error ? {
           name: error.name,

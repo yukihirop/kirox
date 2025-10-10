@@ -150,17 +150,36 @@ export async function fetchDirectoryContents(
         };
       };
 
+      // Preserve original error for debugging
+      const debugInfo = {
+        errorType: error.constructor.name,
+        status: errorWithResponse.status || errorWithResponse.response?.status,
+        hasResponse: !!errorWithResponse.response,
+        contentType: errorWithResponse.response?.headers?.['content-type'],
+        message: error.message,
+      };
+
       // Log detailed error for debugging
       if (errorWithResponse.response) {
         const contentType = errorWithResponse.response.headers?.['content-type'] || '';
         const isHtml = contentType.includes('text/html');
 
         if (isHtml) {
-          throw new Error(
+          const enhancedError = new Error(
             `GitHub returned an HTML error page instead of API response. ` +
             `This may indicate: (1) Invalid API endpoint, (2) GitHub service issue, or (3) Rate limit exceeded. ` +
-            `Repository: ${owner}/${repo}, Path: ${path}${ref ? `, Branch: ${ref}` : ''}`
+            `Repository: ${owner}/${repo}, Path: ${path}${ref ? `, Branch: ${ref}` : ''}. ` +
+            `Status: ${debugInfo.status || 'unknown'}, Content-Type: ${contentType}`
           );
+          // Attach debug info to error object
+          (enhancedError as Error & { debugInfo?: unknown }).debugInfo = {
+            ...debugInfo,
+            responseDataType: typeof errorWithResponse.response.data,
+            responseDataSnippet: typeof errorWithResponse.response.data === 'string'
+              ? (errorWithResponse.response.data as string).substring(0, 200)
+              : 'Not a string',
+          };
+          throw enhancedError;
         }
       }
 
@@ -212,9 +231,13 @@ export async function fetchDirectoryContents(
           }
         }
       }
-      throw new Error(
-        `Failed to fetch directory contents: ${error.message}`
+
+      // Enhance error message with debug info
+      const enhancedError = new Error(
+        `Failed to fetch directory contents: ${error.message}. Debug: ${JSON.stringify(debugInfo)}`
       );
+      (enhancedError as Error & { debugInfo?: unknown }).debugInfo = debugInfo;
+      throw enhancedError;
     }
     throw error;
   }
