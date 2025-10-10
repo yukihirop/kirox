@@ -437,4 +437,46 @@ describe('promptMissingArguments - Branch Selection Integration (Task 3.1)', () 
       expect(mockConsoleLog).toHaveBeenCalledWith(expect.stringContaining('Fetching branches'));
     });
   });
+
+  describe('Requirement 11.1, 11.2: ブランチ一覧取得成功時のverboseログ記録', () => {
+    it('ブランチ一覧取得成功時にverboseモードでブランチ数をログに記録', async () => {
+      mockInput
+        .mockResolvedValueOnce('owner/repo')
+        .mockResolvedValueOnce('') // subdir
+        .mockResolvedValueOnce('my-project')
+        .mockResolvedValueOnce('.');
+
+      mockConfirm.mockResolvedValue(true);
+
+      mockFetchDefaultBranch.mockResolvedValue('main');
+      mockFetchBranches.mockResolvedValue(['main', 'develop', 'feature/auth']);
+      mockPromptBranch.mockResolvedValue('develop');
+
+      const args = createValidArgs();
+      await promptMissingArguments(args, undefined, mockLogger, true); // verbose: true
+
+      expect(mockLogger.verbose).toHaveBeenCalledWith('Fetched branches', {
+        count: 3,
+      });
+    });
+
+    it('ブランチ一覧が0件の場合はverboseログを記録しない', async () => {
+      mockInput
+        .mockResolvedValueOnce('owner/repo')
+        .mockResolvedValueOnce('') // subdir
+        .mockResolvedValueOnce('my-project')
+        .mockResolvedValueOnce('.');
+
+      mockConfirm.mockResolvedValue(true);
+
+      mockFetchDefaultBranch.mockResolvedValue('main');
+      mockFetchBranches.mockResolvedValue([]); // Empty branches
+
+      const args = createValidArgs();
+      await promptMissingArguments(args, undefined, mockLogger, true); // verbose: true
+
+      // Should not log branch count for empty branches
+      expect(mockLogger.verbose).not.toHaveBeenCalledWith('Fetched branches', expect.any(Object));
+    });
+  });
 });

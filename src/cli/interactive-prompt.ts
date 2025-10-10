@@ -356,6 +356,11 @@ export async function promptMissingArguments(
         console.log('\nFetching branches...');
         const branches = await fetchBranches(client, repositoryRef.owner, repositoryRef.repo);
 
+        // Task 3.3: Requirement 11.1, 11.2 - Log branch count in verbose mode
+        if (verbose && branches.length > 0) {
+          logger.verbose('Fetched branches', { count: branches.length });
+        }
+
         if (branches.length === 0) {
           console.error('No branches found in repository');
           // Continue without branch selection
