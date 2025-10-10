@@ -47,9 +47,12 @@ export async function promptProjectSelection(
   projectLocations: ProjectLocation[]
 ): Promise<ProjectSelectionResult> {
   // Source function: Filters projects based on user input (Requirement 2.6)
-  const sourceFunction = async (input: string): Promise<Array<{ value: string; name: string }>> => {
-    // Normalize input for case-insensitive search
-    const normalizedInput = input.toLowerCase();
+  const sourceFunction = async (
+    input: string | undefined,
+    _opt: { signal: AbortSignal }
+  ): Promise<Array<{ value: string; name: string }>> => {
+    // Normalize input for case-insensitive search (empty string if undefined)
+    const normalizedInput = (input || '').toLowerCase();
 
     // Filter projects: case-insensitive partial match on displayName
     const filteredProjects = projectLocations.filter((project) =>
