@@ -3,11 +3,13 @@
  *
  * Tests Tree API integration with promptMissingArguments function
  * Task 4.1: Tree API検索の統合とフォールバック分岐の実装
+ * Task 4.2: プロジェクト選択からサブディレクトリパス自動抽出の実装
  *
  * Verifies that:
  * - Tree API is attempted when Logger is provided (Requirement 3.1)
  * - Subdirectory prompt is skipped on Tree API success (Requirement 3.1)
  * - Existing workflow is used on Tree API failure (Requirement 3.2)
+ * - Subdirectory is auto-extracted from selected project (Requirements 3.3, 3.4)
  * - Loading and summary messages are displayed (Requirements 7.1-7.3)
  * - Truncated warning is displayed when response is truncated (Requirement 5.3)
  */
@@ -165,6 +167,45 @@ describe('Tree API Project Scan Integration (Task 4.1)', () => {
 
       // Assert: Summary message was displayed (Requirement 7.3)
       expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('Found 2 projects'));
+    });
+
+    it('should auto-extract subdirectory from selected root project (Requirement 3.4)', async () => {
+      const initialArgs: ParsedArguments = {
+        repository: 'owner/repo',
+        projects: [],
+        output: '.',
+        subdir: undefined,
+        force: false,
+        dryRun: false,
+        verbose: false,
+        config: undefined,
+        checkUpdates: false,
+        update: false,
+        track: true,
+      };
+
+      // Mock Tree API with root and subdir projects
+      mockScanProjectsAcrossSubdirs.mockResolvedValue({
+        projects: [
+          { name: 'root-project', subdir: '', displayName: 'root-project' },
+          { name: 'subdir-project', subdir: 'lib/a', displayName: 'lib/a/subdir-project' },
+        ],
+        success: true,
+        truncated: false,
+        entryCount: 50,
+      });
+
+      // Mock user selects root project
+      mockPromptProjectSelection.mockResolvedValue({
+        projects: ['root-project'],
+        subdir: '',
+      });
+
+      const result = await promptMissingArguments(initialArgs, undefined, mockLogger, false);
+
+      // Assert: Result has empty subdirectory for root project
+      expect(result.projects).toEqual(['root-project']);
+      expect(result.subdir).toBe('');
     });
 
     it('should display truncated warning when response is truncated (Requirement 5.3)', async () => {
