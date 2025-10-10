@@ -321,5 +321,140 @@ describe('SearchableProjectPrompt (Task 3.1)', () => {
         expect(mixedResult).toContain('root');
       });
     });
+
+    describe('project sorting (Task 2.5)', () => {
+      it('should sort projects alphabetically by subdirectory first, then by project name', async () => {
+        // Arrange: Unsorted projects with various subdirectories
+        const projectLocations: ProjectLocation[] = [
+          {
+            name: 'zebra-project',
+            subdir: 'lib/b',
+            displayName: 'lib/b/zebra-project',
+            projectName: 'zebra-project',
+            path: 'lib/b/.kiro/specs/zebra-project',
+            type: 'tree',
+            mode: '040000',
+            sha: 'sha-z',
+            url: 'https://api.github.com/repos/owner/repo/git/trees/sha-z',
+          },
+          {
+            name: 'alpha-project',
+            subdir: '',
+            displayName: 'alpha-project',
+            projectName: 'alpha-project',
+            path: '.kiro/specs/alpha-project',
+            type: 'tree',
+            mode: '040000',
+            sha: 'sha-a',
+            url: 'https://api.github.com/repos/owner/repo/git/trees/sha-a',
+          },
+          {
+            name: 'charlie-project',
+            subdir: 'lib/a',
+            displayName: 'lib/a/charlie-project',
+            projectName: 'charlie-project',
+            path: 'lib/a/.kiro/specs/charlie-project',
+            type: 'tree',
+            mode: '040000',
+            sha: 'sha-c',
+            url: 'https://api.github.com/repos/owner/repo/git/trees/sha-c',
+          },
+          {
+            name: 'bravo-project',
+            subdir: 'lib/a',
+            displayName: 'lib/a/bravo-project',
+            projectName: 'bravo-project',
+            path: 'lib/a/.kiro/specs/bravo-project',
+            type: 'tree',
+            mode: '040000',
+            sha: 'sha-b',
+            url: 'https://api.github.com/repos/owner/repo/git/trees/sha-b',
+          },
+          {
+            name: 'zulu-project',
+            subdir: '',
+            displayName: 'zulu-project',
+            projectName: 'zulu-project',
+            path: '.kiro/specs/zulu-project',
+            type: 'tree',
+            mode: '040000',
+            sha: 'sha-zu',
+            url: 'https://api.github.com/repos/owner/repo/git/trees/sha-zu',
+          },
+        ];
+
+        mockSearchableCheckbox.mockResolvedValueOnce(['alpha-project']);
+
+        await promptProjectSelection(projectLocations);
+
+        // Get choices from mock call
+        expect(mockSearchableCheckbox).toHaveBeenCalledTimes(1);
+        const config = mockSearchableCheckbox.mock.calls[0][0];
+        const choices = config.choices as Array<{ value: string; name: string }>;
+
+        // Assert: Choices should be sorted:
+        // 1. Root projects first (empty subdir), sorted alphabetically by name
+        // 2. Then subdirectory projects, sorted by subdirectory, then by name within same subdirectory
+        expect(choices.map(c => c.value)).toEqual([
+          'alpha-project',        // root, alphabetically first
+          'zulu-project',         // root, alphabetically second
+          'lib/a/bravo-project',  // lib/a, bravo before charlie
+          'lib/a/charlie-project',// lib/a, charlie after bravo
+          'lib/b/zebra-project',  // lib/b
+        ]);
+      });
+
+      it('should handle projects with deeply nested subdirectories', async () => {
+        const projectLocations: ProjectLocation[] = [
+          {
+            name: 'project-3',
+            subdir: 'packages/z/deep',
+            displayName: 'packages/z/deep/project-3',
+            projectName: 'project-3',
+            path: 'packages/z/deep/.kiro/specs/project-3',
+            type: 'tree',
+            mode: '040000',
+            sha: 'sha-3',
+            url: 'https://api.github.com/repos/owner/repo/git/trees/sha-3',
+          },
+          {
+            name: 'project-1',
+            subdir: 'packages/a',
+            displayName: 'packages/a/project-1',
+            projectName: 'project-1',
+            path: 'packages/a/.kiro/specs/project-1',
+            type: 'tree',
+            mode: '040000',
+            sha: 'sha-1',
+            url: 'https://api.github.com/repos/owner/repo/git/trees/sha-1',
+          },
+          {
+            name: 'project-2',
+            subdir: 'packages/a/nested',
+            displayName: 'packages/a/nested/project-2',
+            projectName: 'project-2',
+            path: 'packages/a/nested/.kiro/specs/project-2',
+            type: 'tree',
+            mode: '040000',
+            sha: 'sha-2',
+            url: 'https://api.github.com/repos/owner/repo/git/trees/sha-2',
+          },
+        ];
+
+        mockSearchableCheckbox.mockResolvedValueOnce(['packages/a/project-1']);
+
+        await promptProjectSelection(projectLocations);
+
+        const config = mockSearchableCheckbox.mock.calls[0][0];
+        const choices = config.choices as Array<{ value: string; name: string }>;
+
+        // Should be sorted by subdirectory path alphabetically
+        expect(choices.map(c => c.value)).toEqual([
+          'packages/a/project-1',
+          'packages/a/nested/project-2',
+          'packages/z/deep/project-3',
+        ]);
+      });
+    });
   });
 });

@@ -18,6 +18,35 @@ export interface ProjectSelectionResult {
 }
 
 /**
+ * Sort project locations for display
+ *
+ * Sorting rules (Task 2.5):
+ * 1. Root projects first (empty subdir), sorted alphabetically by name
+ * 2. Then subdirectory projects, sorted by subdirectory path, then by name within same subdirectory
+ *
+ * @param projectLocations - Unsorted project locations
+ * @returns Sorted project locations
+ */
+function sortProjectLocations(projectLocations: ProjectLocation[]): ProjectLocation[] {
+  return [...projectLocations].sort((a, b) => {
+    // Root projects (empty subdir) come first
+    if (a.subdir === '' && b.subdir !== '') return -1;
+    if (a.subdir !== '' && b.subdir === '') return 1;
+
+    // If both are root, sort by name
+    if (a.subdir === '' && b.subdir === '') {
+      return a.name.localeCompare(b.name);
+    }
+
+    // If both have subdirectories, sort by subdir first, then by name
+    const subdirCompare = a.subdir.localeCompare(b.subdir);
+    if (subdirCompare !== 0) return subdirCompare;
+
+    return a.name.localeCompare(b.name);
+  });
+}
+
+/**
  * Prompt user to select project(s) with search functionality
  *
  * Uses custom searchableCheckbox prompt to provide real-time filtering and selection:
@@ -47,8 +76,11 @@ export interface ProjectSelectionResult {
 export async function promptProjectSelection(
   projectLocations: ProjectLocation[]
 ): Promise<ProjectSelectionResult> {
+  // Sort projects for better UX (Task 2.5)
+  const sortedLocations = sortProjectLocations(projectLocations);
+
   // Convert ProjectLocation[] to choices for searchableCheckbox
-  const choices = projectLocations.map((project) => ({
+  const choices = sortedLocations.map((project) => ({
     value: project.displayName,
     name: project.displayName,
   }));
