@@ -479,4 +479,65 @@ describe('promptMissingArguments - Branch Selection Integration (Task 3.1)', () 
       expect(mockLogger.verbose).not.toHaveBeenCalledWith('Fetched branches', expect.any(Object));
     });
   });
+
+  describe('Requirement 10.1, Task 3.5: Tree API連携テスト', () => {
+    it('ブランチが適用されたリポジトリ文字列でTree API検索が実行される', async () => {
+      mockInput
+        .mockResolvedValueOnce('owner/repo') // repository without branch
+        .mockResolvedValueOnce('') // subdir
+        .mockResolvedValueOnce('my-project') // project (Tree API fails, so manual prompt)
+        .mockResolvedValueOnce('.'); // output
+
+      mockConfirm.mockResolvedValue(true);
+
+      // Mock branch selection
+      mockFetchDefaultBranch.mockResolvedValue('main');
+      mockFetchBranches.mockResolvedValue(['main', 'develop']);
+      mockPromptBranch.mockResolvedValue('develop'); // User selects 'develop'
+
+      const args = createValidArgs();
+      await promptMissingArguments(args, undefined, mockLogger, false);
+
+      // Import the mocked scanProjectsAcrossSubdirs to verify it was called
+      const { scanProjectsAcrossSubdirs } = await import('@/github/tree-based-project-scanner.js');
+
+      // Verify Tree API was called with branch-applied repository string
+      expect(scanProjectsAcrossSubdirs).toHaveBeenCalledWith(
+        expect.objectContaining({
+          repository: expect.objectContaining({
+            owner: 'owner',
+            repo: 'repo',
+            branch: 'develop', // Branch should be applied
+          }),
+        })
+      );
+    });
+
+    it('ブランチ指定済みリポジトリでもTree API検索にブランチが渡される', async () => {
+      mockInput
+        .mockResolvedValueOnce('owner/repo#feature') // repository with branch
+        .mockResolvedValueOnce('') // subdir
+        .mockResolvedValueOnce('my-project') // project (Tree API fails, so manual prompt)
+        .mockResolvedValueOnce('.'); // output
+
+      mockConfirm.mockResolvedValue(true);
+
+      const args = createValidArgs();
+      await promptMissingArguments(args, undefined, mockLogger, false);
+
+      // Import the mocked scanProjectsAcrossSubdirs
+      const { scanProjectsAcrossSubdirs } = await import('@/github/tree-based-project-scanner.js');
+
+      // Verify Tree API was called with the specified branch
+      expect(scanProjectsAcrossSubdirs).toHaveBeenCalledWith(
+        expect.objectContaining({
+          repository: expect.objectContaining({
+            owner: 'owner',
+            repo: 'repo',
+            branch: 'feature', // Pre-specified branch should be preserved
+          }),
+        })
+      );
+    });
+  });
 });
