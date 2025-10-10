@@ -322,6 +322,204 @@ describe('SearchableProjectPrompt (Task 3.1)', () => {
       });
     });
 
+    describe('validation functionality (Task 6.4)', () => {
+      const createTestProjects = (): ProjectLocation[] => [
+        {
+          name: 'project-a',
+          subdir: 'lib/a',
+          displayName: 'lib/a/project-a',
+          projectName: 'project-a',
+          path: 'lib/a/.kiro/specs/project-a',
+          type: 'tree',
+          mode: '040000',
+          sha: 'sha-a',
+          url: 'https://api.github.com/repos/owner/repo/git/trees/sha-a',
+        },
+        {
+          name: 'project-b',
+          subdir: 'lib/a',
+          displayName: 'lib/a/project-b',
+          projectName: 'project-b',
+          path: 'lib/a/.kiro/specs/project-b',
+          type: 'tree',
+          mode: '040000',
+          sha: 'sha-b',
+          url: 'https://api.github.com/repos/owner/repo/git/trees/sha-b',
+        },
+        {
+          name: 'project-c',
+          subdir: 'lib/b',
+          displayName: 'lib/b/project-c',
+          projectName: 'project-c',
+          path: 'lib/b/.kiro/specs/project-c',
+          type: 'tree',
+          mode: '040000',
+          sha: 'sha-c',
+          url: 'https://api.github.com/repos/owner/repo/git/trees/sha-c',
+        },
+      ];
+
+      it('should return exact error message when 0 projects are selected', async () => {
+        // RED phase: Test error message for empty selection
+        const projectLocations = createTestProjects();
+
+        mockSearchableCheckbox.mockResolvedValueOnce(['lib/a/project-a']);
+
+        await promptProjectSelection(projectLocations);
+
+        const config = mockSearchableCheckbox.mock.calls[0][0];
+        const validateFn = config.validate!;
+
+        // Act: Call validation with empty selection
+        const result = validateFn([]);
+
+        // Assert: Error message should be exact
+        expect(result).toBe('Please select at least one project');
+      });
+
+      it('should pass validation when same subdirectory projects are selected', async () => {
+        // RED phase: Test validation pass for same subdirectory
+        const projectLocations = createTestProjects();
+
+        mockSearchableCheckbox.mockResolvedValueOnce(['lib/a/project-a']);
+
+        await promptProjectSelection(projectLocations);
+
+        const config = mockSearchableCheckbox.mock.calls[0][0];
+        const validateFn = config.validate!;
+
+        // Act: Call validation with same subdirectory projects
+        const result = validateFn([
+          { value: 'lib/a/project-a', name: 'lib/a/project-a', short: 'lib/a/project-a', disabled: false, checked: true },
+          { value: 'lib/a/project-b', name: 'lib/a/project-b', short: 'lib/a/project-b', disabled: false, checked: true },
+        ]);
+
+        // Assert: Should return true
+        expect(result).toBe(true);
+      });
+
+      it('should return error message when different subdirectory projects are selected', async () => {
+        // RED phase: Test error message for different subdirectories
+        const projectLocations = createTestProjects();
+
+        mockSearchableCheckbox.mockResolvedValueOnce(['lib/a/project-a']);
+
+        await promptProjectSelection(projectLocations);
+
+        const config = mockSearchableCheckbox.mock.calls[0][0];
+        const validateFn = config.validate!;
+
+        // Act: Call validation with different subdirectory projects
+        const result = validateFn([
+          { value: 'lib/a/project-a', name: 'lib/a/project-a', short: 'lib/a/project-a', disabled: false, checked: true },
+          { value: 'lib/b/project-c', name: 'lib/b/project-c', short: 'lib/b/project-c', disabled: false, checked: true },
+        ]);
+
+        // Assert: Should return error message
+        expect(typeof result).toBe('string');
+        expect(result).toContain('All projects must be in the same subdirectory');
+      });
+
+      it('should include subdirectory list in error message when different subdirectories are selected', async () => {
+        // RED phase: Test that error message includes subdirectory list
+        const projectLocations = createTestProjects();
+
+        mockSearchableCheckbox.mockResolvedValueOnce(['lib/a/project-a']);
+
+        await promptProjectSelection(projectLocations);
+
+        const config = mockSearchableCheckbox.mock.calls[0][0];
+        const validateFn = config.validate!;
+
+        // Act: Call validation with different subdirectory projects
+        const result = validateFn([
+          { value: 'lib/a/project-a', name: 'lib/a/project-a', short: 'lib/a/project-a', disabled: false, checked: true },
+          { value: 'lib/b/project-c', name: 'lib/b/project-c', short: 'lib/b/project-c', disabled: false, checked: true },
+        ]);
+
+        // Assert: Error message should contain both subdirectories
+        expect(typeof result).toBe('string');
+        expect(result).toContain('Selected subdirectories:');
+        expect(result).toContain('lib/a');
+        expect(result).toContain('lib/b');
+      });
+
+      it('should display root directory as "root" in error message', async () => {
+        // RED phase: Test that root directory is displayed as "root"
+        const projectLocations: ProjectLocation[] = [
+          {
+            name: 'root-project',
+            subdir: '',
+            displayName: 'root-project',
+            projectName: 'root-project',
+            path: '.kiro/specs/root-project',
+            type: 'tree',
+            mode: '040000',
+            sha: 'sha-root',
+            url: 'https://api.github.com/repos/owner/repo/git/trees/sha-root',
+          },
+          ...createTestProjects(),
+        ];
+
+        mockSearchableCheckbox.mockResolvedValueOnce(['root-project']);
+
+        await promptProjectSelection(projectLocations);
+
+        const config = mockSearchableCheckbox.mock.calls[0][0];
+        const validateFn = config.validate!;
+
+        // Act: Call validation with root + subdirectory project
+        const result = validateFn([
+          { value: 'root-project', name: 'root-project', short: 'root-project', disabled: false, checked: true },
+          { value: 'lib/a/project-a', name: 'lib/a/project-a', short: 'lib/a/project-a', disabled: false, checked: true },
+        ]);
+
+        // Assert: Error message should display empty subdir as "root"
+        expect(typeof result).toBe('string');
+        expect(result).toContain('root');
+        expect(result).toContain('lib/a');
+        expect(result).toContain('Selected subdirectories:');
+      });
+
+      it('should handle multiple different subdirectories in error message', async () => {
+        // RED phase: Test error message with 3+ subdirectories
+        const projectLocations: ProjectLocation[] = [
+          ...createTestProjects(),
+          {
+            name: 'project-d',
+            subdir: 'lib/c',
+            displayName: 'lib/c/project-d',
+            projectName: 'project-d',
+            path: 'lib/c/.kiro/specs/project-d',
+            type: 'tree',
+            mode: '040000',
+            sha: 'sha-d',
+            url: 'https://api.github.com/repos/owner/repo/git/trees/sha-d',
+          },
+        ];
+
+        mockSearchableCheckbox.mockResolvedValueOnce(['lib/a/project-a']);
+
+        await promptProjectSelection(projectLocations);
+
+        const config = mockSearchableCheckbox.mock.calls[0][0];
+        const validateFn = config.validate!;
+
+        // Act: Call validation with 3 different subdirectories
+        const result = validateFn([
+          { value: 'lib/a/project-a', name: 'lib/a/project-a', short: 'lib/a/project-a', disabled: false, checked: true },
+          { value: 'lib/b/project-c', name: 'lib/b/project-c', short: 'lib/b/project-c', disabled: false, checked: true },
+          { value: 'lib/c/project-d', name: 'lib/c/project-d', short: 'lib/c/project-d', disabled: false, checked: true },
+        ]);
+
+        // Assert: Error message should contain all 3 subdirectories
+        expect(typeof result).toBe('string');
+        expect(result).toContain('lib/a');
+        expect(result).toContain('lib/b');
+        expect(result).toContain('lib/c');
+      });
+    });
+
     describe('project sorting (Task 2.5)', () => {
       it('should sort projects alphabetically by subdirectory first, then by project name', async () => {
         // Arrange: Unsorted projects with various subdirectories
