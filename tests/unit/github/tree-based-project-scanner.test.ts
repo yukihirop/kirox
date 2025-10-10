@@ -441,6 +441,153 @@ describe('Tree-Based Project Scanner', () => {
       });
     });
 
+    describe('enhanced error handling (task 2.3)', () => {
+      it('should handle 404 error with specific error message', async () => {
+        // Arrange: Mock Tree API to return 404 error
+        vi.mocked(mockClient.rest.repos.getBranch).mockResolvedValue({
+          data: {
+            commit: {
+              sha: 'commit-sha',
+            },
+          },
+        } as any);
+
+        const error404 = new Error('Not Found') as Error & { status?: number };
+        error404.status = 404;
+        vi.mocked(mockClient.rest.git.getTree).mockRejectedValue(error404);
+
+        // Act
+        const { scanProjectsAcrossSubdirs } = await import('../../../src/github/tree-based-project-scanner.js');
+        const result = await scanProjectsAcrossSubdirs({
+          repository,
+          client: mockClient,
+          logger: mockLogger,
+          verbose: false,
+        });
+
+        // Assert
+        expect(result.success).toBe(false);
+        expect(result.projects).toEqual([]);
+        expect(result.errorMessage).toBe('Repository or branch not found');
+      });
+
+      it('should handle 409 error (empty repository) with specific error message', async () => {
+        // Arrange: Mock Tree API to return 409 error
+        vi.mocked(mockClient.rest.repos.getBranch).mockResolvedValue({
+          data: {
+            commit: {
+              sha: 'commit-sha',
+            },
+          },
+        } as any);
+
+        const error409 = new Error('Git Repository is empty') as Error & { status?: number };
+        error409.status = 409;
+        vi.mocked(mockClient.rest.git.getTree).mockRejectedValue(error409);
+
+        // Act
+        const { scanProjectsAcrossSubdirs } = await import('../../../src/github/tree-based-project-scanner.js');
+        const result = await scanProjectsAcrossSubdirs({
+          repository,
+          client: mockClient,
+          logger: mockLogger,
+          verbose: false,
+        });
+
+        // Assert
+        expect(result.success).toBe(false);
+        expect(result.projects).toEqual([]);
+        expect(result.errorMessage).toBe('Repository is empty');
+      });
+
+      it('should handle 401 error (unauthorized) with specific error message', async () => {
+        // Arrange: Mock Tree API to return 401 error
+        vi.mocked(mockClient.rest.repos.getBranch).mockResolvedValue({
+          data: {
+            commit: {
+              sha: 'commit-sha',
+            },
+          },
+        } as any);
+
+        const error401 = new Error('Bad credentials') as Error & { status?: number };
+        error401.status = 401;
+        vi.mocked(mockClient.rest.git.getTree).mockRejectedValue(error401);
+
+        // Act
+        const { scanProjectsAcrossSubdirs } = await import('../../../src/github/tree-based-project-scanner.js');
+        const result = await scanProjectsAcrossSubdirs({
+          repository,
+          client: mockClient,
+          logger: mockLogger,
+          verbose: false,
+        });
+
+        // Assert
+        expect(result.success).toBe(false);
+        expect(result.projects).toEqual([]);
+        expect(result.errorMessage).toBe('Authentication error: Please set GITHUB_TOKEN environment variable');
+      });
+
+      it('should handle 403 error (forbidden) with specific error message', async () => {
+        // Arrange: Mock Tree API to return 403 error
+        vi.mocked(mockClient.rest.repos.getBranch).mockResolvedValue({
+          data: {
+            commit: {
+              sha: 'commit-sha',
+            },
+          },
+        } as any);
+
+        const error403 = new Error('Forbidden') as Error & { status?: number };
+        error403.status = 403;
+        vi.mocked(mockClient.rest.git.getTree).mockRejectedValue(error403);
+
+        // Act
+        const { scanProjectsAcrossSubdirs } = await import('../../../src/github/tree-based-project-scanner.js');
+        const result = await scanProjectsAcrossSubdirs({
+          repository,
+          client: mockClient,
+          logger: mockLogger,
+          verbose: false,
+        });
+
+        // Assert
+        expect(result.success).toBe(false);
+        expect(result.projects).toEqual([]);
+        expect(result.errorMessage).toBe('Authentication error: Please set GITHUB_TOKEN environment variable');
+      });
+
+      it('should handle other errors with generic error message', async () => {
+        // Arrange: Mock Tree API to return generic error
+        vi.mocked(mockClient.rest.repos.getBranch).mockResolvedValue({
+          data: {
+            commit: {
+              sha: 'commit-sha',
+            },
+          },
+        } as any);
+
+        vi.mocked(mockClient.rest.git.getTree).mockRejectedValue(
+          new Error('Network error')
+        );
+
+        // Act
+        const { scanProjectsAcrossSubdirs } = await import('../../../src/github/tree-based-project-scanner.js');
+        const result = await scanProjectsAcrossSubdirs({
+          repository,
+          client: mockClient,
+          logger: mockLogger,
+          verbose: false,
+        });
+
+        // Assert
+        expect(result.success).toBe(false);
+        expect(result.projects).toEqual([]);
+        expect(result.errorMessage).toContain('Failed to call Tree API');
+      });
+    });
+
     describe('alphabetical sorting (task 2.2)', () => {
       it('should sort projects alphabetically by subdirectory path and project name', async () => {
         // Arrange: Create unsorted project list

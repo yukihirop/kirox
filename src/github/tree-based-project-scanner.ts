@@ -124,8 +124,32 @@ export async function scanProjectsAcrossSubdirs(
       truncated,
     };
   } catch (error) {
-    // Error handling: Return error result with message
-    const errorMessage = error instanceof Error ? error.message : String(error);
+    // Enhanced error handling (Task 2.3)
+    let errorMessage: string;
+
+    // Check for HTTP status code errors
+    const errorWithStatus = error as Error & { status?: number };
+
+    if (errorWithStatus.status) {
+      switch (errorWithStatus.status) {
+        case 404:
+          errorMessage = 'Repository or branch not found';
+          break;
+        case 409:
+          errorMessage = 'Repository is empty';
+          break;
+        case 401:
+        case 403:
+          errorMessage = 'Authentication error: Please set GITHUB_TOKEN environment variable';
+          break;
+        default:
+          errorMessage = `Failed to call Tree API: ${errorWithStatus.message}`;
+      }
+    } else {
+      // Generic error message for non-HTTP errors
+      const message = error instanceof Error ? error.message : String(error);
+      errorMessage = `Failed to call Tree API: ${message}`;
+    }
 
     logger.error(`Failed to scan projects: ${errorMessage}`);
 
