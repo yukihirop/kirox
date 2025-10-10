@@ -60,7 +60,7 @@
   - _Requirements: 8.4 (completed), 5.3 (deferred to Task 4.1)_
 
 - [ ] 3. SearchableProjectPromptサービスの実装
-- [ ] 3.1 検索可能なプロジェクト選択UIの実装
+- [x] 3.1 検索可能なプロジェクト選択UIの実装
   - `@inquirer/prompts`の`search`プロンプトを使用してリアルタイムフィルタリングを実装
   - ユーザーのテキスト入力に応じて選択肢を動的にフィルタリング
   - 大文字小文字を区別しない部分一致検索を実装
