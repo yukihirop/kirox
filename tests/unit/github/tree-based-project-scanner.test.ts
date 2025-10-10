@@ -439,6 +439,169 @@ describe('Tree-Based Project Scanner', () => {
         // Assert: Should have logged verbose messages
         expect(mockLogger.verbose).toHaveBeenCalled();
       });
+
+      it('should log Tree SHA, entry count, and .kiro/specs/ directory count when verbose=true (task 2.4)', async () => {
+        // Arrange
+        vi.mocked(mockClient.rest.repos.getBranch).mockResolvedValue({
+          data: {
+            commit: {
+              sha: 'commit-sha-detailed',
+              commit: {
+                tree: {
+                  sha: 'tree-sha-abc123',
+                },
+              },
+            },
+          },
+        } as any);
+
+        vi.mocked(mockClient.rest.git.getTree).mockResolvedValue({
+          data: {
+            sha: 'tree-sha-abc123',
+            tree: [
+              {
+                path: '.kiro/specs/project-a',
+                type: 'tree',
+                mode: '040000',
+                sha: 'sha-a',
+                url: 'https://api.github.com/repos/test-owner/test-repo/git/trees/sha-a',
+              },
+              {
+                path: 'lib/utils/.kiro/specs/project-b',
+                type: 'tree',
+                mode: '040000',
+                sha: 'sha-b',
+                url: 'https://api.github.com/repos/test-owner/test-repo/git/trees/sha-b',
+              },
+              {
+                path: 'src/index.ts',
+                type: 'blob',
+                mode: '100644',
+                sha: 'sha-file',
+                url: 'https://api.github.com/repos/test-owner/test-repo/git/blobs/sha-file',
+              },
+            ],
+            truncated: false,
+          },
+        } as any);
+
+        // Act
+        const { scanProjectsAcrossSubdirs } = await import('../../../src/github/tree-based-project-scanner.js');
+        await scanProjectsAcrossSubdirs({
+          repository,
+          client: mockClient,
+          logger: mockLogger,
+          verbose: true,
+        });
+
+        // Assert: Should log Tree SHA, total entry count, and .kiro/specs/ directory count
+        // Requirement 7.4: Log Tree SHA, entry count, and processing details
+
+        // 1. Should log Tree SHA during fetch (using commit SHA from getTreeSha)
+        expect(mockLogger.verbose).toHaveBeenCalledWith(
+          expect.stringContaining('Fetching repository tree (recursive) with SHA: commit-sha-detailed')
+        );
+
+        // 2. Should log total entry count from tree response
+        expect(mockLogger.verbose).toHaveBeenCalledWith(
+          expect.stringContaining('Parsing tree response (3 entries)')
+        );
+
+        // 3. Should log count of found .kiro/specs/ directories
+        expect(mockLogger.verbose).toHaveBeenCalledWith(
+          expect.stringContaining('Found 2 .kiro/specs/ directories')
+        );
+      });
+
+      it('should not log verbose messages when verbose=false', async () => {
+        // Arrange
+        vi.mocked(mockClient.rest.repos.getBranch).mockResolvedValue({
+          data: {
+            commit: {
+              sha: 'commit-sha',
+              commit: {
+                tree: {
+                  sha: 'tree-sha-silent',
+                },
+              },
+            },
+          },
+        } as any);
+
+        vi.mocked(mockClient.rest.git.getTree).mockResolvedValue({
+          data: {
+            sha: 'tree-sha-silent',
+            tree: [
+              {
+                path: '.kiro/specs/silent-project',
+                type: 'tree',
+                mode: '040000',
+                sha: 'sha-silent',
+                url: 'https://api.github.com/repos/test-owner/test-repo/git/trees/sha-silent',
+              },
+            ],
+            truncated: false,
+          },
+        } as any);
+
+        // Act
+        const { scanProjectsAcrossSubdirs } = await import('../../../src/github/tree-based-project-scanner.js');
+        await scanProjectsAcrossSubdirs({
+          repository,
+          client: mockClient,
+          logger: mockLogger,
+          verbose: false,
+        });
+
+        // Assert: Should NOT log verbose messages
+        expect(mockLogger.verbose).not.toHaveBeenCalled();
+      });
+
+      it('should log truncation warning when truncated=true and verbose=true (task 2.4)', async () => {
+        // Arrange
+        vi.mocked(mockClient.rest.repos.getBranch).mockResolvedValue({
+          data: {
+            commit: {
+              sha: 'commit-sha',
+              commit: {
+                tree: {
+                  sha: 'tree-sha-truncated',
+                },
+              },
+            },
+          },
+        } as any);
+
+        vi.mocked(mockClient.rest.git.getTree).mockResolvedValue({
+          data: {
+            sha: 'tree-sha-truncated',
+            tree: [
+              {
+                path: '.kiro/specs/project-x',
+                type: 'tree',
+                mode: '040000',
+                sha: 'sha-x',
+                url: 'https://api.github.com/repos/test-owner/test-repo/git/trees/sha-x',
+              },
+            ],
+            truncated: true,
+          },
+        } as any);
+
+        // Act
+        const { scanProjectsAcrossSubdirs } = await import('../../../src/github/tree-based-project-scanner.js');
+        await scanProjectsAcrossSubdirs({
+          repository,
+          client: mockClient,
+          logger: mockLogger,
+          verbose: true,
+        });
+
+        // Assert: Should log truncation warning
+        expect(mockLogger.verbose).toHaveBeenCalledWith(
+          'Warning: Tree response was truncated (>100,000 entries)'
+        );
+      });
     });
 
     describe('enhanced error handling (task 2.3)', () => {

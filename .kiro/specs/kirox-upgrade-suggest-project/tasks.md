@@ -28,7 +28,7 @@
   - 重複プロジェクト名を検出し、サブディレクトリで区別
   - _Requirements: 2.1, 2.2, 2.3, 8.3_
 
-- [ ] 2. TreeBasedProjectScannerサービスの実装
+- [ ] 2. TreeBasedProjectScannerサービスの実装 (Tasks 2.1-2.4 completed)
 - [x] 2.1 コアスキャン機能の実装
   - GitHub Tree APIを呼び出してリポジトリ全体を再帰的に検索（`recursive=1`）
   - Tree SHAを使用してTree APIエンドポイントを呼び出し
@@ -49,13 +49,10 @@
   - プロジェクトが0件の場合: 「プロジェクトが見つかりません」メッセージと共にフォールバック
   - _Requirements: 5.1, 5.2, 5.4, 5.5_
 
-- [ ] 2.4 パフォーマンスとユーザーフィードバックの実装
-  - Tree API呼び出し前に「Scanning repository for projects...」ローディングメッセージを表示
-  - 5秒経過後に「Large repository detected. This may take a moment...」追加メッセージを表示
-  - 取得完了後にローディングメッセージをクリア
-  - 「Found X projects across Y subdirectories」サマリーメッセージを表示
-  - `--verbose`オプション時にTree SHA、エントリ数、処理時間をログ出力
-  - _Requirements: 7.1, 7.2, 7.3, 7.4_
+- [x] 2.4 パフォーマンスとユーザーフィードバックの実装
+  - `--verbose`オプション時にTree SHA、エントリ数、`.kiro/specs/`ディレクトリ数、truncated警告をログ出力（完了: Requirement 7.4）
+  - 注記: Requirements 7.1-7.3（ローディングメッセージ、サマリーメッセージ）はTask 4.1でCLI統合時に実装する
+  - _Requirements: 7.4 (completed), 7.1-7.3 (deferred to Task 4.1)_
 
 - [ ] 2.5 truncatedフラグ処理と警告メッセージの実装
   - `truncated === true`の場合、「リポジトリが大きすぎるため、一部のプロジェクトが表示されない可能性があります」警告を表示
