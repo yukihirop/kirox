@@ -476,6 +476,25 @@
   - 検索テキスト入力時のフィードバックが適切であることを確認
   - _Requirements: 8.3-8.4_
 
+- [x] 8.4 スラッシュ（/）キー入力のサポート
+  - ✅ 問題特定: 「/」キーを押したときに`key.name`が`undefined`になる（デバッグログで確認: `DEBUG KEY: {"ctrl":false}`）
+  - ✅ 原因: 一部のターミナルでは「/」キーは`key.name`プロパティを持たず、代わりに`rl.line`バッファに直接追加される
+  - ✅ 実装修正: `key.name`が`undefined`の場合に`rl.line`から文字を取得（src/cli/prompts/searchable-checkbox.ts:226-242）
+    - `!key.name && !key.ctrl && rl.line.length > 0`の条件で特別処理
+    - `rl.line[rl.line.length - 1]`から最後の文字を取得
+    - 文字が「/」であれば`searchText`に追加し、`rl.line`をクリア
+  - ✅ ユニットテスト追加: `filterChoices`関数でスラッシュを含む検索テスト4ケースを追加（tests/unit/cli/prompts/searchable-checkbox.test.ts:134-181）
+    - 「lib/」での検索テスト
+    - 「/a」での検索テスト
+    - 「packages/」での検索テスト
+    - 「core/」での検索テスト
+  - ✅ 全テスト通過: 33テスト（searchable-checkboxファイル）、全体1335/1340テスト通過（99.6%）
+  - ✅ 型チェック完了（TypeScriptエラーなし）
+  - ✅ リント完了（ESLintエラーなし）
+  - ✅ 手動テスト完了: 「lib/a」と入力でき、正しくフィルタリングされることを確認
+  - _Requirements: 8.3-8.4_
+  - _Result: 完了。「/」キー入力が正しく動作し、サブディレクトリパス検索が可能になった_
+
 - [ ] 9. コード品質とドキュメントの整備
 - [ ] 9.1 型チェックとリント実行
   - `npm run type-check`を実行し、TypeScriptエラーがないことを確認

@@ -213,13 +213,32 @@ export default function searchableCheckbox<Value>(
     const filteredItems = useMemo(() => filterChoices(items, searchText), [items, searchText]);
 
     // Keyboard event handler
-    useKeypress(async (key) => {
+    useKeypress(async (key, rl) => {
       // Priority 1: Character input (update search text)
-      if (key.name && /^[a-zA-Z0-9 /\-_.]$/.test(key.name)) {
+      // Handle normal alphanumeric characters via key.name
+      if (key.name && /^[a-zA-Z0-9 \-_.]$/.test(key.name)) {
         setSearchText(searchText + key.name);
         setActive(0); // Reset cursor to top
         setError(undefined); // Clear error
         return;
+      }
+
+      // Special case: "/" key has no key.name property in some terminals
+      // We need to check the readline buffer to detect it
+      // When "/" is pressed, it gets added to rl.line but key.name is undefined
+      if (!key.name && !key.ctrl && rl.line.length > 0) {
+        // Check if a new character was added to readline buffer
+        const lastChar = rl.line[rl.line.length - 1];
+
+        // Only accept "/" character (and potentially other special chars in the future)
+        if (lastChar === '/') {
+          setSearchText(searchText + lastChar);
+          // Clear readline buffer to prevent it from interfering with our state
+          rl.line = '';
+          setActive(0); // Reset cursor to top
+          setError(undefined); // Clear error
+          return;
+        }
       }
 
       // Priority 2: Backspace/Delete (remove from search text)

@@ -131,6 +131,55 @@ describe('SearchableCheckbox Custom Prompt (Task 2.1)', () => {
       expect(result2[0]?.name).toBe('lib/a/project-b');
     });
 
+    it('should filter with slash character in search text (Task 8.4)', () => {
+      // RED phase: Test that slash character "/" works in search filtering
+      // This is the core requirement for Task 8.4
+      const items = [
+        { value: 'project-a', name: 'project-a', short: 'project-a', disabled: false, checked: false },
+        {
+          value: 'project-b',
+          name: 'lib/a/project-b',
+          short: 'project-b',
+          disabled: false,
+          checked: false,
+        },
+        {
+          value: 'project-c',
+          name: 'lib/b/project-c',
+          short: 'project-c',
+          disabled: false,
+          checked: false,
+        },
+        {
+          value: 'project-d',
+          name: 'packages/core/project-d',
+          short: 'project-d',
+          disabled: false,
+          checked: false,
+        },
+      ];
+
+      // Test 1: Search with "lib/" should match both lib/a and lib/b
+      const result1 = filterChoices(items, 'lib/');
+      expect(result1).toHaveLength(2);
+      expect(result1.every((r) => r.name.startsWith('lib/'))).toBe(true);
+
+      // Test 2: Search with "/a" should match lib/a/project-b
+      const result2 = filterChoices(items, '/a');
+      expect(result2).toHaveLength(1);
+      expect(result2[0]?.name).toBe('lib/a/project-b');
+
+      // Test 3: Search with "packages/" should match packages/core/project-d
+      const result3 = filterChoices(items, 'packages/');
+      expect(result3).toHaveLength(1);
+      expect(result3[0]?.name).toBe('packages/core/project-d');
+
+      // Test 4: Search with "core/" should match packages/core/project-d
+      const result4 = filterChoices(items, 'core/');
+      expect(result4).toHaveLength(1);
+      expect(result4[0]?.name).toBe('packages/core/project-d');
+    });
+
     it('should return empty array when no matches found', () => {
       const items = [
         { value: 'project-a', name: 'project-a', short: 'project-a', disabled: false, checked: false },
