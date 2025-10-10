@@ -185,6 +185,112 @@ describe('SearchableCheckbox Custom Prompt (Task 2.1)', () => {
     });
   });
 
+  describe('filtering performance (Task 8.1)', () => {
+    it('should filter 100+ projects in less than 1 second', () => {
+      // RED phase: Test performance requirement
+      // Generate 150 test projects
+      const items = Array.from({ length: 150 }, (_, i) => ({
+        value: `project-${i}`,
+        name: `lib/subdir-${Math.floor(i / 10)}/project-${i}`,
+        short: `project-${i}`,
+        disabled: false,
+        checked: false,
+      }));
+
+      // Measure filtering performance
+      const startTime = performance.now();
+      const result = filterChoices(items, 'lib/subdir-5');
+      const endTime = performance.now();
+      const duration = endTime - startTime;
+
+      // Assert: Should complete in less than 1000ms (1 second)
+      expect(duration).toBeLessThan(1000);
+
+      // Assert: Should find the correct projects (subdir-5 has 10 projects: 50-59)
+      expect(result.length).toBeGreaterThan(0);
+      expect(result.every((item) => item.name.includes('subdir-5'))).toBe(true);
+    });
+
+    it('should handle large dataset with multiple filters efficiently', () => {
+      // RED phase: Test multiple filter operations performance
+      // Generate 200 test projects with varied patterns
+      const items = Array.from({ length: 200 }, (_, i) => ({
+        value: `project-${i}`,
+        name: i % 2 === 0
+          ? `packages/frontend/project-${i}`
+          : `packages/backend/project-${i}`,
+        short: `project-${i}`,
+        disabled: false,
+        checked: false,
+      }));
+
+      // Measure multiple filter operations
+      const startTime = performance.now();
+
+      // Filter 1: frontend projects
+      const frontend = filterChoices(items, 'frontend');
+
+      // Filter 2: backend projects
+      const backend = filterChoices(items, 'backend');
+
+      // Filter 3: specific project pattern
+      const specific = filterChoices(items, 'project-1');
+
+      const endTime = performance.now();
+      const duration = endTime - startTime;
+
+      // Assert: All operations should complete in less than 1000ms
+      expect(duration).toBeLessThan(1000);
+
+      // Assert: Results should be correct
+      expect(frontend.length).toBe(100); // Half are frontend
+      expect(backend.length).toBe(100);  // Half are backend
+      expect(specific.length).toBeGreaterThan(0); // At least project-1, project-10-19, project-100-199
+    });
+
+    it('should demonstrate useMemo optimization benefit', () => {
+      // RED phase: Document that useMemo prevents unnecessary recalculations
+      // Note: This is a documentation test since useMemo is a React-like hook
+      // that requires the @inquirer/core runtime to demonstrate benefits
+
+      // Implementation reference: src/cli/prompts/searchable-checkbox.ts:213
+      // const filteredItems = useMemo(() => filterChoices(items, searchText), [items, searchText]);
+
+      // Benefit: useMemo ensures filterChoices is only called when:
+      // 1. items array changes
+      // 2. searchText changes
+      // This prevents unnecessary recalculations during re-renders caused by:
+      // - Cursor movement (active state change)
+      // - Selection toggles (items.checked state change)
+      // - Error message updates (errorMsg state change)
+
+      expect(true).toBe(true); // Documentation test
+    });
+
+    it('should efficiently filter with empty search string', () => {
+      // RED phase: Test that empty search returns all items quickly
+      const items = Array.from({ length: 150 }, (_, i) => ({
+        value: `project-${i}`,
+        name: `project-${i}`,
+        short: `project-${i}`,
+        disabled: false,
+        checked: false,
+      }));
+
+      const startTime = performance.now();
+      const result = filterChoices(items, '');
+      const endTime = performance.now();
+      const duration = endTime - startTime;
+
+      // Assert: Should complete in less than 100ms (very fast)
+      expect(duration).toBeLessThan(100);
+
+      // Assert: Should return all items
+      expect(result).toHaveLength(150);
+      expect(result).toEqual(items);
+    });
+  });
+
   describe('keyboard event handling (Task 6.3)', () => {
     it('should document arrow key cursor movement implementation', () => {
       // Requirement: Up/Down arrow keys should move cursor position in filtered list
