@@ -169,7 +169,7 @@ export async function promptMultipleProjects(projects: string[]): Promise<string
 export async function promptMultipleProjectsWithValidation(
   projects: string[]
 ): Promise<string[]> {
-  // eslint-disable-next-line no-constant-condition
+   
   while (true) {
     const selected = await promptMultipleProjects(projects);
 

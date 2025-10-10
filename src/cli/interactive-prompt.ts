@@ -170,7 +170,7 @@ export async function promptProject(
       }
 
       // Fall through to manual input mode
-    } catch (error) {
+    } catch (_error) {
       // Exception occurred during suggestion, fall through to manual input
       // Requirement 5.4: 例外時のフォールバック
     }
