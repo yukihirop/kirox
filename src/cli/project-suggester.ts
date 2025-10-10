@@ -22,6 +22,12 @@ export interface ProjectSuggestionResult {
   success: boolean;
   /** Error message when success is false (optional) */
   errorMessage?: string;
+  /** Detailed error information for debugging (optional) */
+  errorDetails?: {
+    repository: string;
+    path: string;
+    error: string;
+  };
 }
 
 /**
@@ -300,12 +306,22 @@ export async function suggestProjects(
     // Check if any projects found
     if (projects.length === 0) {
       const errorMessage = 'No projects found in .kiro/specs/';
+      const repoPath = `${repository.owner}/${repository.repo}${repository.branch ? `#${repository.branch}` : ''}`;
       if (verbose) {
         logger.error(errorMessage, {
-          repository: `${repository.owner}/${repository.repo}`,
+          repository: repoPath,
         });
       }
-      return { projects: [], success: false, errorMessage };
+      return {
+        projects: [],
+        success: false,
+        errorMessage,
+        errorDetails: {
+          repository: repoPath,
+          path,
+          error: errorMessage,
+        },
+      };
     }
 
     // Verbose logging: Success
@@ -326,16 +342,27 @@ export async function suggestProjects(
 
     // Determine error message based on error type
     const errorMessage = getErrorMessage(error);
+    const repoPath = `${repository.owner}/${repository.repo}${repository.branch ? `#${repository.branch}` : ''}`;
+    const actualError = error instanceof Error ? error.message : String(error);
 
     // Verbose logging: Error details
     if (verbose) {
       logger.error('Failed to fetch projects from GitHub', {
-        error: error instanceof Error ? error.message : String(error),
-        repository: `${repository.owner}/${repository.repo}`,
+        error: actualError,
+        repository: repoPath,
       });
     }
 
-    // Fallback: Return empty projects with success: false and error message
-    return { projects: [], success: false, errorMessage };
+    // Fallback: Return empty projects with success: false, error message, and details
+    return {
+      projects: [],
+      success: false,
+      errorMessage,
+      errorDetails: {
+        repository: repoPath,
+        path,
+        error: actualError,
+      },
+    };
   }
 }

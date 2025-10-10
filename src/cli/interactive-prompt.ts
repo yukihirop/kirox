@@ -138,9 +138,22 @@ export async function promptProject(
       }
 
       // Requirement 5.4: サジェスト失敗時のフォールバック
-      // Display error message if available
+      // Display error message if available (in red for visibility)
       if (suggestionResult.errorMessage) {
-        console.log(suggestionResult.errorMessage);
+        console.error(`\n✗ ${suggestionResult.errorMessage}`);
+
+        // Display detailed error information if available
+        if (suggestionResult.errorDetails) {
+          const { repository, path, error } = suggestionResult.errorDetails;
+          console.error(`\nRepository: ${repository}`);
+          console.error(`Path: ${path}`);
+          console.error(`Error: ${error}`);
+          console.error('\nPlease check:');
+          console.error('  - The subdirectory path is correct');
+          console.error('  - The .kiro/specs/ directory exists in the specified path');
+          console.error('  - You have access to the repository (set GITHUB_TOKEN if private)');
+          console.error('');
+        }
       }
 
       // Fall through to manual input mode

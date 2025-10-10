@@ -386,18 +386,28 @@ describe('promptProject', () => {
       });
 
       it('エラーメッセージが存在する場合、コンソールに表示する', async () => {
-        const consoleLogSpy = vi.spyOn(console, 'log');
+        const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
         mockSuggestProjects.mockResolvedValue({
           projects: [],
           success: false,
           errorMessage: 'Authentication error: Please set GITHUB_TOKEN',
+          errorDetails: {
+            repository: 'owner/repo',
+            path: '.kiro/specs/',
+            error: 'Request failed with status code 401',
+          },
         });
         mockInput.mockResolvedValue('manual-project');
 
         await promptProject('', 'owner/repo', undefined, mockClient, mockLogger, false);
 
-        expect(consoleLogSpy).toHaveBeenCalledWith('Authentication error: Please set GITHUB_TOKEN');
-        consoleLogSpy.mockRestore();
+        // Verify error message is displayed (now uses console.error instead of console.log)
+        expect(consoleErrorSpy).toHaveBeenCalledWith('\n✗ Authentication error: Please set GITHUB_TOKEN');
+        // Verify error details are displayed
+        expect(consoleErrorSpy).toHaveBeenCalledWith('\nRepository: owner/repo');
+        expect(consoleErrorSpy).toHaveBeenCalledWith('Path: .kiro/specs/');
+        expect(consoleErrorSpy).toHaveBeenCalledWith('Error: Request failed with status code 401');
+        consoleErrorSpy.mockRestore();
       });
 
       it('suggestProjectsが例外をスローした場合、手動入力モードにフォールバック', async () => {
