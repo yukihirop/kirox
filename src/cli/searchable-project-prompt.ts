@@ -116,7 +116,7 @@ export async function promptProjectSelection(
       // Task 3.6: Validation function (Requirement 4.7)
       // Task 3.4: Enforce same subdirectory constraint (Requirements 4.2-4.4, 4.8)
       // Note: The validate function receives the array of selected VALUES (strings), not Choice objects
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+       
       validate: ((selectedValues: readonly string[]) => {
         // Must select at least one project
         if (selectedValues.length === 0) {
@@ -157,7 +157,7 @@ export async function promptProjectSelection(
     }
 
     // All selected projects should have same subdirectory (enforced by dynamic filtering)
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+     
     const subdir = selectedProjects[0]!.subdir;
 
     return {

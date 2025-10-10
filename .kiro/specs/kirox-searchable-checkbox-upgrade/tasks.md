@@ -46,13 +46,22 @@
   - _Result: 追加パッケージのインストール不要。全ての必要なAPIが`@inquirer/core@10.2.2`とそのサブ依存関係で利用可能_
 
 - [ ] 2. カスタム検索可能チェックボックスプロンプトの実装
-- [ ] 2.1 カスタムプロンプトのコアロジック実装
-  - `src/cli/prompts/searchable-checkbox.ts`ファイルを新規作成
-  - `createPrompt`を使用してカスタムプロンプトの基本構造を実装
-  - プロンプトの設定型定義（`SearchableCheckboxConfig`インターフェース）を定義
-  - 選択肢の型定義（`Choice`インターフェース: `value`, `name`, `checked`プロパティ）を定義
-  - 状態管理フックの実装（`useState`で検索テキスト、選択状態、カーソル位置を管理）
+- [x] 2.1 カスタムプロンプトのコアロジック実装
+  - ✅ `src/cli/prompts/searchable-checkbox.ts`ファイルを新規作成
+  - ✅ `createPrompt`を使用してカスタムプロンプトの基本構造を実装
+  - ✅ プロンプトの設定型定義（`SearchableCheckboxConfig`インターフェース）を定義
+  - ✅ 選択肢の型定義（`Choice`, `NormalizedChoice`インターフェース）を定義
+  - ✅ 状態管理フックの実装（6つの状態: status, searchText, items, active, errorMsg, filteredItems）
+  - ✅ キーボードイベントハンドラの実装（6つの優先順位: 文字入力、Backspace、Enter、Space、矢印キー、Escape）
+  - ✅ フィルタリングロジックの実装（`useMemo`でメモ化、大文字小文字を区別しない部分一致検索）
+  - ✅ レンダリングロジックの実装（検索バー、ページネーション、エラー表示、ヘルプテキスト）
+  - ✅ バリデーション機能の実装（非同期バリデーション関数、エラーメッセージ表示）
+  - ✅ テーマシステムの実装（`makeTheme`, `usePrefix`, カスタマイズ可能なアイコンとスタイル）
+  - ✅ ユニットテストの作成（`tests/unit/cli/prompts/searchable-checkbox.test.ts`）
+  - ✅ 型チェック完了（TypeScriptエラーなし）
+  - ✅ リント完了（ESLintエラーなし）
   - _Requirements: 2.1-2.7_
+  - _Result: カスタムプロンプトのコア実装完了。全ての基本機能（検索、選択、バリデーション、レンダリング）が動作_
 
 - [ ] 2.2 検索フィルタリング機能の実装
   - 検索テキスト入力時のリアルタイムフィルタリングロジックを実装
