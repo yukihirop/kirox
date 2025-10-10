@@ -59,4 +59,4 @@ export interface ErrorContext {
 /**
  * Log level for structured logging
  */
-export type LogLevel = 'INFO' | 'WARN' | 'ERROR';
+export type LogLevel = 'INFO' | 'WARN' | 'ERROR' | 'VERBOSE';
