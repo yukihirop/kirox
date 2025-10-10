@@ -89,8 +89,8 @@
 
 - [ ] 4. リポジトリ入力プロンプトメッセージの更新
 - [ ] 4.1 promptRepository関数のメッセージ変更
-  - リポジトリ入力プロンプトメッセージを「Enter GitHub repository (owner/repo)」に変更
-  - 「or owner/repo#branch」の記述を削除
+  - リポジトリ入力プロンプトメッセージはそのまま維持（「Enter GitHub repository (owner/repo or owner/repo#branch)」）
+  - owner/repo#branch形式の入力は既存機能として引き続きサポート
   - _Requirements: 6.1, 6.2_
 
 - [ ] 5. 非対話モード動作保証のテスト作成

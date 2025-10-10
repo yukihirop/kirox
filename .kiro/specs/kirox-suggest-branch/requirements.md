@@ -76,14 +76,14 @@ Kirox CLIの対話モードにおいて、ユーザーが`owner/repo`形式で�
 5. WHEN ユーザーがブランチ選択をキャンセルする（0件選択） THEN Kirox CLI SHALL デフォルトブランチをリポジトリ文字列に追加する
 6. WHEN プロジェクト選択プロンプトが開始される THEN Kirox CLI SHALL ブランチが適用されたリポジトリ文字列を使用する
 
-### Requirement 6: リポジトリ入力プロンプトメッセージの更新
+### Requirement 6: リポジトリ入力プロンプトメッセージの維持
 
-**Objective:** As a Kirox CLIユーザー, I want リポジトリ入力プロンプトでブランチ指定が不要であることを理解する, so that 安心して`owner/repo`形式のみを入力できる
+**Objective:** As a Kirox CLIユーザー, I want リポジトリ入力プロンプトで両方の入力形式が使えることを理解する, so that 状況に応じて`owner/repo`または`owner/repo#branch`形式を選択できる
 
 #### Acceptance Criteria
 
-1. WHEN リポジトリ入力プロンプトを表示する THEN Kirox CLI SHALL メッセージを「Enter GitHub repository (owner/repo)」に変更する
-2. WHEN プロンプトメッセージを表示する THEN Kirox CLI SHALL `or owner/repo#branch`の記述を削除する
+1. WHEN リポジトリ入力プロンプトを表示する THEN Kirox CLI SHALL メッセージ「Enter GitHub repository (owner/repo or owner/repo#branch)」を維持する
+2. WHEN プロンプトメッセージを表示する THEN Kirox CLI SHALL `owner/repo#branch`形式の入力を引き続きサポートする
 3. WHEN ユーザーがヘルプやドキュメントを参照する THEN Kirox CLI SHALL 対話モードではブランチ指定が任意である旨を明記する
 
 ### Requirement 7: エラーハンドリングとフォールバック
