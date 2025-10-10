@@ -230,11 +230,23 @@
   - _Requirements: 7.3_
   - _Result: Tree APIフォールバック機能の維持完了。既存実装が既にRequirement 7.3を満たしていることを確認_
 
-- [ ] 5.3 非インタラクティブモードとの互換性確認
-  - 非インタラクティブモード（CLI引数指定）でプロジェクト選択UIが起動しないことを確認
-  - CLI引数として渡されたプロジェクト名が正しく処理されることを確認
-  - TTY環境でない場合の適切なエラーメッセージ表示を確認
+- [x] 5.3 非インタラクティブモードとの互換性確認
+  - ✅ 非インタラクティブモード（CLI引数指定）でプロジェクト選択UIが起動しないことを確認
+    - `shouldEnterInteractiveMode`関数がプロジェクト指定済みの場合にfalseを返す（src/cli/interactive-prompt.ts:40-61）
+    - Tree APIスキップ条件にプロジェクト指定チェック（:309）
+    - 統合テスト: "should skip Tree API when subdirectory is already specified" (tests/integration/tree-api-project-scan.test.ts:136-165)
+  - ✅ CLI引数として渡されたプロジェクト名が正しく処理されることを確認
+    - `promptRepository`と`promptProject`が既存値をスキップ（src/cli/interactive-prompt.ts:44-92）
+    - Tree APIがスキップされ、既存値がそのまま使用される
+  - ✅ TTY環境でない場合の適切なエラーメッセージ表示を確認
+    - `shouldEnterInteractiveMode`がTTYチェックを実施（:42-44）
+    - Tree APIスキップ条件にTTYチェック（:311）
+    - `checkTTYEnvironment`関数で適切なエラーメッセージ表示（:430-456）
+      - エラーメッセージ: "Interactive mode is only available in TTY environment. Please specify arguments explicitly."
+      - 使用例表示: "Usage: npx kirox owner/repo -p project-name"
+    - 統合テスト: "should skip Tree API in non-TTY environment" (tests/integration/tree-api-project-scan.test.ts:167-217)
   - _Requirements: 7.4-7.5_
+  - _Result: 非インタラクティブモードとの互換性確認完了。既存実装がRequirements 7.4-7.5を完全に満たしていることを確認_
 
 - [ ] 6. ユニットテストの実装と更新
 - [ ] 6.1 カスタムプロンプトのユニットテスト作成
