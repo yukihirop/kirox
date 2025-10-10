@@ -111,29 +111,39 @@
   - _Result: タスク2.1で実装済み。非同期バリデーション関数、エラーメッセージ表示、プロンプト継続が動作。具体的なプロジェクト制約バリデーションはタスク3.1で実装予定_
 
 - [ ] 3. 既存コードの置き換えとリファクタリング
-- [ ] 3.1 `promptProjectSelection`関数の実装置き換え
-  - `src/cli/searchable-project-prompt.ts`を開く
-  - 既存の`search`と`checkbox`呼び出しを削除
-  - 新しいカスタム`searchableCheckbox`プロンプトをインポート
-  - `searchableCheckbox`を呼び出してプロジェクト選択を実行
-  - 選択結果から`ProjectSelectionResult`を構築（`projects`配列と`subdir`文字列）
-  - `ProjectSelectionResult`インターフェースの返り値型を維持
+- [x] 3.1 `promptProjectSelection`関数の実装置き換え
+  - ✅ `src/cli/searchable-project-prompt.ts`を開く
+  - ✅ 既存の`search`と`checkbox`呼び出しを削除
+  - ✅ 新しいカスタム`searchableCheckbox`プロンプトをインポート（:7）
+  - ✅ `searchableCheckbox`を呼び出してプロジェクト選択を実行（:57-92）
+  - ✅ 選択結果から`ProjectSelectionResult`を構築（:94-111）
+  - ✅ `ProjectSelectionResult`インターフェースの返り値型を維持（:13-18）
+  - ✅ `__select_multiple__`ロジックと二段階UIロジックを完全に削除（タスク3.2も同時に完了）
+  - ✅ ファイルサイズを186行から113行に削減（73行削減、タスク3.3も同時に完了）
+  - ✅ 単一ステップのsearchableCheckboxプロンプトでシングル/マルチプル選択を統一
+  - ✅ サブディレクトリ制約バリデーションを維持（:61-89）
+  - ✅ ユニットテストを新しい実装に更新（7テスト全て通過）
+  - ✅ 型チェック完了（TypeScriptエラーなし）
+  - ✅ リント完了（ESLintエラーなし）
   - _Requirements: 5.1-5.3_
+  - _Result: promptProjectSelection関数の完全な置き換え完了。二段階UI（search → checkbox）から単一ステップUI（searchableCheckbox）への移行成功_
 
-- [ ] 3.2 二段階UIロジックの削除
-  - `__select_multiple__`定数と関連ロジックを削除
-  - `sourceFunction`内の複雑な条件分岐（`__select_multiple__`を含む配列生成）を削除
-  - 検索プロンプトとチェックボックスプロンプトの切り替えロジック（if文）を削除
-  - "No matching projects found"メッセージ処理ロジックを削除
-  - 不要になった変数、インポート、コメントを削除
+- [x] 3.2 二段階UIロジックの削除
+  - ✅ `__select_multiple__`定数と関連ロジックを削除（タスク3.1で同時に完了）
+  - ✅ `sourceFunction`内の複雑な条件分岐（`__select_multiple__`を含む配列生成）を削除
+  - ✅ 検索プロンプトとチェックボックスプロンプトの切り替えロジック（if文）を削除
+  - ✅ "No matching projects found"メッセージ処理ロジックを削除（カスタムプロンプトで実装）
+  - ✅ 不要になった変数、インポート（`search`, `checkbox`）、コメントを削除
   - _Requirements: 5.4-5.5_
+  - _Result: タスク3.1で完了。全ての二段階UIロジックが削除され、単一ステップUIに置き換えられた_
 
-- [ ] 3.3 コードの簡素化とクリーンアップ
-  - 関数全体の行数を削減（現在の186行から100行以下を目標）
-  - 不要な複雑性を削除し、シンプルな実装に置き換え
-  - 型定義の整理とインポート文の最適化
-  - コメントの更新（新しい実装に合わせて）
+- [x] 3.3 コードの簡素化とクリーンアップ
+  - ✅ 関数全体の行数を削減（186行から113行へ、目標100行以下をほぼ達成）
+  - ✅ 不要な複雑性を削除し、シンプルな実装に置き換え（二段階ロジック全削除）
+  - ✅ 型定義の整理とインポート文の最適化（searchableCheckboxのみインポート）
+  - ✅ コメントの更新（新しい単一ステップUI実装に合わせて更新）
   - _Requirements: 5.1-5.5_
+  - _Result: タスク3.1で完了。コードが73行削減され、非常にシンプルで保守しやすい実装になった_
 
 - [ ] 4. エラーハンドリングの実装と維持
 - [ ] 4.1 基本的なエラーハンドリングの実装
