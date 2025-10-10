@@ -129,7 +129,32 @@ function normalizeChoices<Value>(
     });
 }
 
-// Removed unused function isSelectable
+/**
+ * Filter choices based on search text
+ *
+ * @param items - Normalized choices to filter
+ * @param searchText - Search query (case-insensitive partial match)
+ * @returns Filtered choices matching the search text
+ *
+ * @internal Exported for testing purposes
+ */
+export function filterChoices<Value>(
+  items: NormalizedChoice<Value>[],
+  searchText: string
+): NormalizedChoice<Value>[] {
+  if (!searchText) return items;
+
+  return items.filter((item) => {
+    // Skip separators (though normalizeChoices already removes them)
+    if (Separator.isSeparator(item)) return false;
+
+    // Case-insensitive partial match on name
+    const normalizedSearch = searchText.toLowerCase();
+    const normalizedName = item.name.toLowerCase();
+
+    return normalizedName.includes(normalizedSearch);
+  });
+}
 
 /**
  * Default theme for searchable checkbox
@@ -185,20 +210,7 @@ export default function searchableCheckbox<Value>(
     const firstRender = useRef(true);
 
     // Computed: Filtered items based on search text
-    const filteredItems = useMemo(() => {
-      if (!searchText) return items;
-
-      return items.filter((item) => {
-        // Skip separators
-        if (Separator.isSeparator(item)) return false;
-
-        // Case-insensitive partial match on name
-        const normalizedSearch = searchText.toLowerCase();
-        const normalizedName = item.name.toLowerCase();
-
-        return normalizedName.includes(normalizedSearch);
-      });
-    }, [items, searchText]);
+    const filteredItems = useMemo(() => filterChoices(items, searchText), [items, searchText]);
 
     // Keyboard event handler
     useKeypress(async (key) => {

@@ -6,7 +6,7 @@
  */
 
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import searchableCheckbox from '../../../../src/cli/prompts/searchable-checkbox.js';
+import searchableCheckbox, { filterChoices } from '../../../../src/cli/prompts/searchable-checkbox.js';
 
 describe('SearchableCheckbox Custom Prompt (Task 2.1)', () => {
   beforeEach(() => {
@@ -75,6 +75,113 @@ describe('SearchableCheckbox Custom Prompt (Task 2.1)', () => {
       // For now, this is a placeholder test
       // Full implementation will require mocking user interaction
       expect(true).toBe(true); // Placeholder
+    });
+  });
+
+  describe('search filtering functionality (Task 6.2)', () => {
+    it('should filter choices with case-insensitive partial match', () => {
+      // RED phase: This test will initially fail until filterChoices is exported
+      const items = [
+        { value: 'project-a', name: 'project-a', short: 'project-a', disabled: false, checked: false },
+        { value: 'project-b', name: 'Project-B', short: 'Project-B', disabled: false, checked: false },
+        { value: 'project-c', name: 'PROJECT-C', short: 'PROJECT-C', disabled: false, checked: false },
+      ];
+
+      // Search for "project" (lowercase) should match all
+      const result1 = filterChoices(items, 'project');
+      expect(result1).toHaveLength(3);
+
+      // Search for "PROJECT" (uppercase) should match all
+      const result2 = filterChoices(items, 'PROJECT');
+      expect(result2).toHaveLength(3);
+
+      // Search for "project-b" should match only project-b
+      const result3 = filterChoices(items, 'project-b');
+      expect(result3).toHaveLength(1);
+      expect(result3[0]?.name).toBe('Project-B');
+    });
+
+    it('should filter subdirectory paths correctly', () => {
+      const items = [
+        { value: 'project-a', name: 'project-a', short: 'project-a', disabled: false, checked: false },
+        {
+          value: 'project-b',
+          name: 'lib/a/project-b',
+          short: 'project-b',
+          disabled: false,
+          checked: false,
+        },
+        {
+          value: 'project-c',
+          name: 'lib/b/project-c',
+          short: 'project-c',
+          disabled: false,
+          checked: false,
+        },
+      ];
+
+      // Search for "lib" should match lib/a/project-b and lib/b/project-c
+      const result1 = filterChoices(items, 'lib');
+      expect(result1).toHaveLength(2);
+      expect(result1.map((r) => r.name)).toEqual(['lib/a/project-b', 'lib/b/project-c']);
+
+      // Search for "lib/a" should match only lib/a/project-b
+      const result2 = filterChoices(items, 'lib/a');
+      expect(result2).toHaveLength(1);
+      expect(result2[0]?.name).toBe('lib/a/project-b');
+    });
+
+    it('should return empty array when no matches found', () => {
+      const items = [
+        { value: 'project-a', name: 'project-a', short: 'project-a', disabled: false, checked: false },
+        { value: 'project-b', name: 'project-b', short: 'project-b', disabled: false, checked: false },
+      ];
+
+      // Search for non-existent string
+      const result = filterChoices(items, 'nonexistent');
+      expect(result).toHaveLength(0);
+      expect(result).toEqual([]);
+    });
+
+    it('should return all items when search text is empty', () => {
+      const items = [
+        { value: 'project-a', name: 'project-a', short: 'project-a', disabled: false, checked: false },
+        { value: 'project-b', name: 'project-b', short: 'project-b', disabled: false, checked: false },
+      ];
+
+      // Empty search text should return all items
+      const result = filterChoices(items, '');
+      expect(result).toHaveLength(2);
+      expect(result).toEqual(items);
+    });
+
+    it('should handle special regex characters safely', () => {
+      const items = [
+        {
+          value: 'project-[test]',
+          name: 'project-[test]',
+          short: 'project-[test]',
+          disabled: false,
+          checked: false,
+        },
+        {
+          value: 'project.(dev)',
+          name: 'project.(dev)',
+          short: 'project.(dev)',
+          disabled: false,
+          checked: false,
+        },
+      ];
+
+      // Search for "[test]" should match project-[test]
+      const result1 = filterChoices(items, '[test]');
+      expect(result1).toHaveLength(1);
+      expect(result1[0]?.name).toBe('project-[test]');
+
+      // Search for "(dev)" should match project.(dev)
+      const result2 = filterChoices(items, '(dev)');
+      expect(result2).toHaveLength(1);
+      expect(result2[0]?.name).toBe('project.(dev)');
     });
   });
 
