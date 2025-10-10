@@ -29,7 +29,7 @@
   - _Requirements: 2.1, 2.2, 2.3, 8.3_
 
 - [ ] 2. TreeBasedProjectScannerサービスの実装
-- [ ] 2.1 コアスキャン機能の実装
+- [x] 2.1 コアスキャン機能の実装
   - GitHub Tree APIを呼び出してリポジトリ全体を再帰的に検索（`recursive=1`）
   - Tree SHAを使用してTree APIエンドポイントを呼び出し
   - レスポンスからProjectLocationリストを生成
