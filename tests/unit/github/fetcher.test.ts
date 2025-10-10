@@ -703,4 +703,230 @@ describe('GitHubFetcher', () => {
       );
     });
   });
+
+  // Task 1.2: fetchBranches tests
+  describe('fetchBranches', () => {
+    it('should fetch all branches from repository', async () => {
+      const mockClient = {
+        rest: {
+          repos: {
+            listBranches: vi.fn().mockResolvedValue({
+              data: [
+                { name: 'main' },
+                { name: 'develop' },
+                { name: 'feature/branch-selection' },
+              ],
+            }),
+          },
+        },
+      } as unknown as Octokit;
+
+      const { fetchBranches } = await import('@/github/fetcher');
+      const branches = await fetchBranches(mockClient, 'octocat', 'Hello-World');
+
+      expect(branches).toEqual(['main', 'develop', 'feature/branch-selection']);
+      expect(mockClient.rest.repos.listBranches).toHaveBeenCalledWith({
+        owner: 'octocat',
+        repo: 'Hello-World',
+        per_page: 100,
+        page: 1,
+      });
+    });
+
+    it('should handle pagination and fetch all branches (>100)', async () => {
+      // Create 150 mock branches
+      const page1Data = Array.from({ length: 100 }, (_, i) => ({ name: `branch-${i + 1}` }));
+      const page2Data = Array.from({ length: 50 }, (_, i) => ({ name: `branch-${i + 101}` }));
+
+      const mockClient = {
+        rest: {
+          repos: {
+            listBranches: vi
+              .fn()
+              .mockResolvedValueOnce({ data: page1Data })
+              .mockResolvedValueOnce({ data: page2Data }),
+          },
+        },
+      } as unknown as Octokit;
+
+      const { fetchBranches } = await import('@/github/fetcher');
+      const branches = await fetchBranches(mockClient, 'octocat', 'Hello-World');
+
+      expect(branches.length).toBe(150);
+      expect(branches[0]).toBe('branch-1');
+      expect(branches[99]).toBe('branch-100');
+      expect(branches[100]).toBe('branch-101');
+      expect(branches[149]).toBe('branch-150');
+      // Called twice: page 1 (100 items) and page 2 (50 items, less than per_page so we stop)
+      expect(mockClient.rest.repos.listBranches).toHaveBeenCalledTimes(2);
+    });
+
+    it('should return empty array for repository with no branches', async () => {
+      const mockClient = {
+        rest: {
+          repos: {
+            listBranches: vi.fn().mockResolvedValue({
+              data: [],
+            }),
+          },
+        },
+      } as unknown as Octokit;
+
+      const { fetchBranches } = await import('@/github/fetcher');
+      const branches = await fetchBranches(mockClient, 'octocat', 'Hello-World');
+
+      expect(branches).toEqual([]);
+    });
+
+    it('should throw error for non-existent repository (404)', async () => {
+      const mockError = Object.assign(new Error('Not Found'), { status: 404 });
+      const mockClient = {
+        rest: {
+          repos: {
+            listBranches: vi.fn().mockRejectedValue(mockError),
+          },
+        },
+      } as unknown as Octokit;
+
+      const { fetchBranches } = await import('@/github/fetcher');
+
+      await expect(
+        fetchBranches(mockClient, 'nonexistent', 'repo')
+      ).rejects.toThrow('Repository "nonexistent/repo" not found');
+    });
+
+    it('should throw error for authentication error (401)', async () => {
+      const mockError = Object.assign(new Error('Unauthorized'), { status: 401 });
+      const mockClient = {
+        rest: {
+          repos: {
+            listBranches: vi.fn().mockRejectedValue(mockError),
+          },
+        },
+      } as unknown as Octokit;
+
+      const { fetchBranches } = await import('@/github/fetcher');
+
+      await expect(
+        fetchBranches(mockClient, 'private', 'repo')
+      ).rejects.toThrow('Failed to access repository "private/repo" (unauthorized)');
+    });
+
+    it('should throw error for forbidden access (403)', async () => {
+      const mockError = Object.assign(new Error('Forbidden'), { status: 403 });
+      const mockClient = {
+        rest: {
+          repos: {
+            listBranches: vi.fn().mockRejectedValue(mockError),
+          },
+        },
+      } as unknown as Octokit;
+
+      const { fetchBranches } = await import('@/github/fetcher');
+
+      await expect(
+        fetchBranches(mockClient, 'restricted', 'repo')
+      ).rejects.toThrow('Failed to access repository "restricted/repo" (forbidden)');
+    });
+  });
+
+  // Task 1.1: fetchDefaultBranch tests
+  describe('fetchDefaultBranch', () => {
+    it('should fetch default branch name from repository', async () => {
+      const mockClient = {
+        rest: {
+          repos: {
+            get: vi.fn().mockResolvedValue({
+              data: {
+                default_branch: 'main',
+                name: 'Hello-World',
+                owner: { login: 'octocat' },
+              },
+            }),
+          },
+        },
+      } as unknown as Octokit;
+
+      const { fetchDefaultBranch } = await import('@/github/fetcher');
+      const defaultBranch = await fetchDefaultBranch(mockClient, 'octocat', 'Hello-World');
+
+      expect(defaultBranch).toBe('main');
+      expect(mockClient.rest.repos.get).toHaveBeenCalledWith({
+        owner: 'octocat',
+        repo: 'Hello-World',
+      });
+    });
+
+    it('should return "master" for repositories using master as default', async () => {
+      const mockClient = {
+        rest: {
+          repos: {
+            get: vi.fn().mockResolvedValue({
+              data: {
+                default_branch: 'master',
+                name: 'legacy-repo',
+                owner: { login: 'someuser' },
+              },
+            }),
+          },
+        },
+      } as unknown as Octokit;
+
+      const { fetchDefaultBranch } = await import('@/github/fetcher');
+      const defaultBranch = await fetchDefaultBranch(mockClient, 'someuser', 'legacy-repo');
+
+      expect(defaultBranch).toBe('master');
+    });
+
+    it('should throw error for non-existent repository (404)', async () => {
+      const mockError = Object.assign(new Error('Not Found'), { status: 404 });
+      const mockClient = {
+        rest: {
+          repos: {
+            get: vi.fn().mockRejectedValue(mockError),
+          },
+        },
+      } as unknown as Octokit;
+
+      const { fetchDefaultBranch } = await import('@/github/fetcher');
+
+      await expect(
+        fetchDefaultBranch(mockClient, 'nonexistent', 'repo')
+      ).rejects.toThrow('Repository "nonexistent/repo" not found');
+    });
+
+    it('should throw error for authentication error (401)', async () => {
+      const mockError = Object.assign(new Error('Unauthorized'), { status: 401 });
+      const mockClient = {
+        rest: {
+          repos: {
+            get: vi.fn().mockRejectedValue(mockError),
+          },
+        },
+      } as unknown as Octokit;
+
+      const { fetchDefaultBranch } = await import('@/github/fetcher');
+
+      await expect(
+        fetchDefaultBranch(mockClient, 'private', 'repo')
+      ).rejects.toThrow('Failed to access repository "private/repo" (unauthorized)');
+    });
+
+    it('should throw error for forbidden access (403)', async () => {
+      const mockError = Object.assign(new Error('Forbidden'), { status: 403 });
+      const mockClient = {
+        rest: {
+          repos: {
+            get: vi.fn().mockRejectedValue(mockError),
+          },
+        },
+      } as unknown as Octokit;
+
+      const { fetchDefaultBranch } = await import('@/github/fetcher');
+
+      await expect(
+        fetchDefaultBranch(mockClient, 'restricted', 'repo')
+      ).rejects.toThrow('Failed to access repository "restricted/repo" (forbidden)');
+    });
+  });
 });

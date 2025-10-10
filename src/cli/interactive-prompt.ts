@@ -22,9 +22,10 @@ import {
   promptMultipleProjectsWithValidation,
   formatMultipleProjectsToString,
 } from './project-suggester.js';
-import { parseRepositoryPath } from '../github/fetcher.js';
+import { parseRepositoryPath, fetchBranches, fetchDefaultBranch } from '../github/fetcher.js';
 import { scanProjectsAcrossSubdirs } from '../github/tree-based-project-scanner.js';
 import { promptProjectSelection } from './searchable-project-prompt.js';
+import { promptBranch } from './branch-prompt.js';
 
 /**
  * Determine if interactive mode should be entered
@@ -317,6 +318,83 @@ export async function promptMissingArguments(
       // Both Tree API and promptProject will fall back to manual input
       if (verbose) {
         logger.warn('Failed to initialize GitHub client for project suggestion', {
+          error: error instanceof Error ? error.message : String(error),
+        });
+      }
+    }
+  }
+
+  // Task 3.1: Branch selection logic
+  // 2.5. Branch selection prompt (before Tree API search)
+  // Skip if:
+  // - Repository already contains #branch (Requirement 5.1, 5.2)
+  // - Logger/Client not available (Requirement 8.1)
+  // - Projects already specified (Requirement 8.2) - will skip Tree API too
+  // - Non-TTY environment (Requirement 8.3)
+  if (!completedArgs.repository.includes('#') && logger && client && process.stdin.isTTY) {
+    try {
+      const repositoryRef = parseRepositoryPath(completedArgs.repository);
+
+      // 2.5.1 Fetch default branch
+      let defaultBranch: string | undefined;
+      try {
+        defaultBranch = await fetchDefaultBranch(client, repositoryRef.owner, repositoryRef.repo);
+        if (verbose) {
+          logger.verbose('Default branch detected', { defaultBranch });
+        }
+      } catch (error) {
+        // Log error but continue without default branch
+        if (verbose) {
+          logger.warn('Failed to fetch default branch', {
+            error: error instanceof Error ? error.message : String(error),
+          });
+        }
+      }
+
+      // 2.5.2 Fetch branches
+      try {
+        console.log('\nFetching branches...');
+        const branches = await fetchBranches(client, repositoryRef.owner, repositoryRef.repo);
+
+        // Task 3.3: Requirement 11.1, 11.2 - Log branch count in verbose mode
+        if (verbose && branches.length > 0) {
+          logger.verbose('Fetched branches', { count: branches.length });
+        }
+
+        if (branches.length === 0) {
+          console.error('No branches found in repository');
+          // Continue without branch selection
+        } else {
+          // 2.5.3 Prompt for branch selection
+          const selectedBranch = await promptBranch(branches, defaultBranch);
+
+          // 2.5.4 Append branch to repository string
+          const branchToUse = selectedBranch || defaultBranch;
+          if (branchToUse) {
+            completedArgs.repository = `${completedArgs.repository}#${branchToUse}`;
+            if (verbose) {
+              logger.verbose('Branch selected', { branch: branchToUse });
+            }
+          }
+        }
+      } catch (error) {
+        // Log error and continue without branch selection
+        if (verbose) {
+          logger.warn('Failed to fetch branches', {
+            error: error instanceof Error ? error.message : String(error),
+          });
+        }
+        console.error('\n✗ Failed to fetch branches. Continuing with default branch...');
+
+        // Fallback to default branch if available
+        if (defaultBranch) {
+          completedArgs.repository = `${completedArgs.repository}#${defaultBranch}`;
+        }
+      }
+    } catch (error) {
+      // Catch-all for unexpected errors - continue without branch
+      if (verbose && logger) {
+        logger.error('Unexpected error in branch selection', {
           error: error instanceof Error ? error.message : String(error),
         });
       }

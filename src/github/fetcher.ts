@@ -88,6 +88,128 @@ export function parseRepositoryPath(repositoryPath: string): RepositoryRef {
 }
 
 /**
+ * Fetch all branch names from GitHub repository
+ *
+ * @param client - Octokit client instance
+ * @param owner - Repository owner
+ * @param repo - Repository name
+ * @returns Array of branch names
+ * @throws Error if repository not found or API request fails
+ */
+export async function fetchBranches(
+  client: Octokit,
+  owner: string,
+  repo: string
+): Promise<string[]> {
+  try {
+    const branches: string[] = [];
+    let page = 1;
+    const perPage = 100;
+
+    // Fetch all pages until we get an empty response
+    while (true) {
+      const response = await client.rest.repos.listBranches({
+        owner,
+        repo,
+        per_page: perPage,
+        page,
+      });
+
+      if (response.data.length === 0) {
+        break;
+      }
+
+      branches.push(...response.data.map((branch) => branch.name));
+
+      // If we got less than perPage items, we've reached the last page
+      if (response.data.length < perPage) {
+        break;
+      }
+
+      page++;
+    }
+
+    return branches;
+  } catch (error) {
+    if (error instanceof Error) {
+      // Extract status code from error (same pattern as fetchDefaultBranch)
+      const errorWithStatus = error as {
+        status?: number;
+        response?: {
+          status?: number;
+        };
+      };
+      const status = errorWithStatus.status || errorWithStatus.response?.status;
+
+      if (status === 404) {
+        throw new Error(`Repository "${owner}/${repo}" not found`);
+      }
+
+      if (status === 401) {
+        throw new Error(`Failed to access repository "${owner}/${repo}" (unauthorized)`);
+      }
+
+      if (status === 403) {
+        throw new Error(`Failed to access repository "${owner}/${repo}" (forbidden)`);
+      }
+
+      throw new Error(`Failed to fetch branches: ${error.message}`);
+    }
+    throw error;
+  }
+}
+
+/**
+ * Fetch default branch name from GitHub repository
+ *
+ * @param client - Octokit client instance
+ * @param owner - Repository owner
+ * @param repo - Repository name
+ * @returns Default branch name (e.g., 'main', 'master')
+ * @throws Error if repository not found or API request fails
+ */
+export async function fetchDefaultBranch(
+  client: Octokit,
+  owner: string,
+  repo: string
+): Promise<string> {
+  try {
+    const response = await client.rest.repos.get({
+      owner,
+      repo,
+    });
+
+    return response.data.default_branch;
+  } catch (error) {
+    if (error instanceof Error) {
+      // Extract status code from error (same pattern as fetchDirectoryContents)
+      const errorWithStatus = error as {
+        status?: number;
+        response?: {
+          status?: number;
+        };
+      };
+      const status = errorWithStatus.status || errorWithStatus.response?.status;
+
+      if (status === 404) {
+        throw new Error(`Repository "${owner}/${repo}" not found`);
+      }
+
+      if (status === 401) {
+        throw new Error(`Failed to access repository "${owner}/${repo}" (unauthorized)`);
+      }
+
+      if (status === 403) {
+        throw new Error(`Failed to access repository "${owner}/${repo}" (forbidden)`);
+      }
+
+      throw new Error(`Failed to fetch default branch: ${error.message}`);
+    }
+    throw error;
+  }
+}
+
+/**
  * Fetch directory contents from GitHub repository
  *
  * @param client - Octokit client instance
