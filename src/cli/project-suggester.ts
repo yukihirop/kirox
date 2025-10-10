@@ -216,10 +216,35 @@ function getErrorMessage(error: unknown): string {
 }
 
 /**
+ * Show loading message
+ *
+ * Displays a loading message in the console.
+ *
+ * @param message - Loading message to display
+ */
+function showLoadingMessage(message: string): void {
+  process.stdout.write(message);
+}
+
+/**
+ * Clear loading message
+ *
+ * Clears the current line in the console.
+ */
+function clearLoadingMessage(): void {
+  process.stdout.write('\r\x1b[K');
+}
+
+/**
  * Suggest projects from GitHub repository
  *
  * Fetches available projects from .kiro/specs/ directory and returns them.
  * Falls back gracefully on any error (returns success: false).
+ *
+ * Task 5.1: ローディングメッセージ表示機能を実装
+ * - GitHub API呼び出し前に「Fetching available projects...」メッセージを表示
+ * - 3秒経過後に「Please wait...」追加メッセージを表示
+ * - API呼び出し完了後にローディングメッセージをクリア
  *
  * @param options - Suggestion options
  * @returns Project suggestion result with project list
@@ -231,6 +256,16 @@ export async function suggestProjects(
 
   // Build path: {subdir}/.kiro/specs/ or .kiro/specs/
   const path = subdir ? `${subdir}/.kiro/specs/` : '.kiro/specs/';
+
+  // Show loading message (Task 5.1)
+  showLoadingMessage('Fetching available projects...');
+
+  // Set up timeout for additional wait message (Task 5.1)
+  let waitMessageTimeout: NodeJS.Timeout | null = null;
+  waitMessageTimeout = setTimeout(() => {
+    clearLoadingMessage();
+    showLoadingMessage('Fetching available projects... Please wait...');
+  }, 3000);
 
   try {
     // Verbose logging: API call details
@@ -250,6 +285,12 @@ export async function suggestProjects(
       path,
       repository.branch
     );
+
+    // Clear timeout and loading message (Task 5.1)
+    if (waitMessageTimeout) {
+      clearTimeout(waitMessageTimeout);
+    }
+    clearLoadingMessage();
 
     // Filter directories only
     const projects = contents
@@ -277,6 +318,12 @@ export async function suggestProjects(
 
     return { projects, success: true };
   } catch (error) {
+    // Clear timeout and loading message on error (Task 5.1)
+    if (waitMessageTimeout) {
+      clearTimeout(waitMessageTimeout);
+    }
+    clearLoadingMessage();
+
     // Determine error message based on error type
     const errorMessage = getErrorMessage(error);
 

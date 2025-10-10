@@ -776,4 +776,148 @@ describe('ProjectSuggester', () => {
       expect(result).toBe('');
     });
   });
+
+  describe('ローディングメッセージ表示 (Task 5.1)', () => {
+    it('GitHub API呼び出し前に「Fetching available projects...」メッセージを表示する', async () => {
+      // Arrange
+      const stdoutWriteSpy = vi.spyOn(process.stdout, 'write').mockImplementation(() => true);
+      mockFetchDirectoryContents.mockResolvedValue([
+        { name: 'project-a', path: '.kiro/specs/project-a', type: 'dir' as const, sha: 'abc123' },
+      ]);
+
+      // Act
+      const { suggestProjects } = await import('@/cli/project-suggester.js');
+      await suggestProjects({
+        repository: { owner: 'test-owner', repo: 'test-repo' },
+        client: mockClient,
+        logger: mockLogger,
+        verbose: false,
+      });
+
+      // Assert
+      expect(stdoutWriteSpy).toHaveBeenCalledWith(
+        expect.stringContaining('Fetching available projects')
+      );
+
+      stdoutWriteSpy.mockRestore();
+    });
+
+    it('API呼び出し完了後にローディングメッセージをクリアする', async () => {
+      // Arrange
+      const stdoutWriteSpy = vi.spyOn(process.stdout, 'write').mockImplementation(() => true);
+      mockFetchDirectoryContents.mockResolvedValue([
+        { name: 'project-a', path: '.kiro/specs/project-a', type: 'dir' as const, sha: 'abc123' },
+      ]);
+
+      // Act
+      const { suggestProjects } = await import('@/cli/project-suggester.js');
+      await suggestProjects({
+        repository: { owner: 'test-owner', repo: 'test-repo' },
+        client: mockClient,
+        logger: mockLogger,
+        verbose: false,
+      });
+
+      // Assert - Loading message should be cleared (shown then cleared)
+      expect(stdoutWriteSpy).toHaveBeenCalledWith(
+        expect.stringContaining('Fetching available projects')
+      );
+      // The last call should clear the loading message
+      const lastCall = stdoutWriteSpy.mock.calls[stdoutWriteSpy.mock.calls.length - 1];
+      expect(lastCall[0]).toBe('\r\x1b[K'); // Clear line escape sequence
+
+      stdoutWriteSpy.mockRestore();
+    });
+
+    it('3秒以上かかる場合は「Please wait...」追加メッセージを表示する', async () => {
+      // Arrange
+      const stdoutWriteSpy = vi.spyOn(process.stdout, 'write').mockImplementation(() => true);
+
+      // Simulate slow API call (3.5 seconds)
+      mockFetchDirectoryContents.mockImplementation(() => {
+        return new Promise((resolve) => {
+          setTimeout(() => {
+            resolve([
+              { name: 'project-a', path: '.kiro/specs/project-a', type: 'dir' as const, sha: 'abc123' },
+            ]);
+          }, 3500);
+        });
+      });
+
+      // Act
+      const { suggestProjects } = await import('@/cli/project-suggester.js');
+      await suggestProjects({
+        repository: { owner: 'test-owner', repo: 'test-repo' },
+        client: mockClient,
+        logger: mockLogger,
+        verbose: false,
+      });
+
+      // Assert - Should show additional wait message
+      expect(stdoutWriteSpy).toHaveBeenCalledWith(
+        expect.stringContaining('Please wait')
+      );
+
+      stdoutWriteSpy.mockRestore();
+    }, 10000); // Increase timeout for this test
+
+    it('API呼び出しが3秒未満で完了する場合は追加メッセージを表示しない', async () => {
+      // Arrange
+      const stdoutWriteSpy = vi.spyOn(process.stdout, 'write').mockImplementation(() => true);
+
+      // Simulate fast API call (1 second)
+      mockFetchDirectoryContents.mockImplementation(() => {
+        return new Promise((resolve) => {
+          setTimeout(() => {
+            resolve([
+              { name: 'project-a', path: '.kiro/specs/project-a', type: 'dir' as const, sha: 'abc123' },
+            ]);
+          }, 1000);
+        });
+      });
+
+      // Act
+      const { suggestProjects } = await import('@/cli/project-suggester.js');
+      await suggestProjects({
+        repository: { owner: 'test-owner', repo: 'test-repo' },
+        client: mockClient,
+        logger: mockLogger,
+        verbose: false,
+      });
+
+      // Assert - Should NOT show additional wait message
+      const waitMessages = stdoutWriteSpy.mock.calls.filter(
+        call => call[0] && call[0].includes && call[0].includes('Please wait')
+      );
+      expect(waitMessages.length).toBe(0);
+
+      stdoutWriteSpy.mockRestore();
+    }, 10000); // Increase timeout for this test
+
+    it('エラー時もローディングメッセージをクリアする', async () => {
+      // Arrange
+      const stdoutWriteSpy = vi.spyOn(process.stdout, 'write').mockImplementation(() => true);
+      const error404 = new Error('Repository not found');
+      Object.assign(error404, { status: 404 });
+      mockFetchDirectoryContents.mockRejectedValue(error404);
+
+      // Act
+      const { suggestProjects } = await import('@/cli/project-suggester.js');
+      await suggestProjects({
+        repository: { owner: 'test-owner', repo: 'test-repo' },
+        client: mockClient,
+        logger: mockLogger,
+        verbose: false,
+      });
+
+      // Assert - Loading message should be cleared even on error
+      expect(stdoutWriteSpy).toHaveBeenCalledWith(
+        expect.stringContaining('Fetching available projects')
+      );
+      const lastCall = stdoutWriteSpy.mock.calls[stdoutWriteSpy.mock.calls.length - 1];
+      expect(lastCall[0]).toBe('\r\x1b[K'); // Clear line escape sequence
+
+      stdoutWriteSpy.mockRestore();
+    });
+  });
 });
