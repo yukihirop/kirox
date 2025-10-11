@@ -307,4 +307,93 @@ describe('ArgumentParser', () => {
       expect(result.verbose).toBe(true);
     });
   });
+
+  // Task 1.1: Add subcommand parser tests
+  describe('Add subcommand', () => {
+    it('should route add subcommand correctly', () => {
+      const argv = ['node', 'kirox', 'add', 'owner/repo', '-p', 'new-project'];
+      const result = parseArguments(argv);
+
+      expect(result.subcommand).toBe('add');
+      expect(result.repository).toBe('owner/repo');
+      expect(result.projects).toEqual(['new-project']);
+    });
+
+    it('should parse add subcommand with all options', () => {
+      const argv = [
+        'node', 'kirox', 'add', 'owner/repo',
+        '-p', 'proj1',
+        '-o', './output',
+        '-s', 'packages/api',
+        '--force',
+        '--dry-run',
+        '--verbose',
+        '--config', '/path/to/config.json'
+      ];
+      const result = parseArguments(argv);
+
+      expect(result.subcommand).toBe('add');
+      expect(result.repository).toBe('owner/repo');
+      expect(result.projects).toEqual(['proj1']);
+      expect(result.output).toBe('./output');
+      expect(result.subdir).toBe('packages/api');
+      expect(result.force).toBe(true);
+      expect(result.dryRun).toBe(true);
+      expect(result.verbose).toBe(true);
+      expect(result.config).toBe('/path/to/config.json');
+    });
+
+    it('should parse add subcommand with multiple projects', () => {
+      const argv = ['node', 'kirox', 'add', 'owner/repo', '-p', 'proj1,proj2,proj3'];
+      const result = parseArguments(argv);
+
+      expect(result.subcommand).toBe('add');
+      expect(result.projects).toEqual(['proj1', 'proj2', 'proj3']);
+    });
+
+    it('should parse add subcommand with branch specification', () => {
+      const argv = ['node', 'kirox', 'add', 'owner/repo#feature', '-p', 'new-project'];
+      const result = parseArguments(argv);
+
+      expect(result.subcommand).toBe('add');
+      expect(result.repository).toBe('owner/repo#feature');
+      expect(result.projects).toEqual(['new-project']);
+    });
+
+    it('should allow empty repository for add subcommand (interactive mode)', () => {
+      const argv = ['node', 'kirox', 'add'];
+      const result = parseArguments(argv);
+
+      expect(result.subcommand).toBe('add');
+      expect(result.repository).toBe('');
+      expect(result.projects).toEqual([]);
+    });
+
+    it('should always set track to true for add subcommand', () => {
+      const argv = ['node', 'kirox', 'add', 'owner/repo', '-p', 'new-project'];
+      const result = parseArguments(argv);
+
+      expect(result.subcommand).toBe('add');
+      expect(result.track).toBe(true);
+    });
+
+    it('should set checkUpdates and update to false for add subcommand', () => {
+      const argv = ['node', 'kirox', 'add', 'owner/repo', '-p', 'new-project'];
+      const result = parseArguments(argv);
+
+      expect(result.subcommand).toBe('add');
+      expect(result.checkUpdates).toBe(false);
+      expect(result.update).toBe(false);
+    });
+
+    it('should not interfere with main command parsing', () => {
+      const argv = ['node', 'kirox', 'owner/repo', '-p', 'project'];
+      const result = parseArguments(argv);
+
+      expect(result.subcommand).toBeUndefined();
+      expect(result.repository).toBe('owner/repo');
+      expect(result.projects).toEqual(['project']);
+      expect(result.track).toBe(false); // Main command default
+    });
+  });
 });

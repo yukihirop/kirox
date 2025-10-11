@@ -16,6 +16,100 @@ import { parseProjects } from './project-name-parser.js';
  * @throws Error if required arguments are missing or invalid
  */
 export function parseArguments(argv: string[]): ParsedArguments {
+  // Check if 'add' subcommand is present
+  const isAddCommand = argv.includes('add') && argv.indexOf('add') >=2; // must be after 'node' and 'script'
+
+  if (isAddCommand) {
+    // Parse add subcommand
+    return parseAddCommand(argv);
+  }
+
+  // Parse main command (existing behavior)
+  return parseMainCommand(argv);
+}
+
+/**
+ * Parse 'add' subcommand arguments
+ */
+function parseAddCommand(argv: string[]): ParsedArguments {
+  const program = new Command();
+
+  program
+    .name('kirox add')
+    .description('Add new projects to existing metadata')
+    .argument('[repository]', 'GitHub repository in format "owner/repo" or "owner/repo#branch"')
+    .option('-p, --project <name>', 'Project names - comma-separated for multiple projects')
+    .option('-o, --output <path>', 'Output directory (default: current directory)', '.')
+    .option('-s, --subdir <path>', 'Subdirectory path containing .kiro folder')
+    .option('--force', 'Overwrite existing projects', false)
+    .option('--dry-run', 'Dry-run mode (no actual writes)', false)
+    .option('--verbose', 'Verbose logging', false)
+    .option('--config <path>', 'Custom config file path')
+    .addHelpText('after', `
+Examples:
+  # Add new project to existing metadata
+  $ npx kirox add owner/repo -p new-project
+
+  # Add multiple projects at once
+  $ npx kirox add owner/repo -p proj1,proj2,proj3
+
+  # Add project from specific branch
+  $ npx kirox add owner/repo#feature -p new-project
+
+  # Add project with subdirectory
+  $ npx kirox add owner/repo --subdir packages/api -p new-project
+
+  # Force overwrite existing project
+  $ npx kirox add owner/repo -p existing-project --force
+
+  # Interactive mode (no arguments)
+  $ npx kirox add
+
+Note:
+  The 'add' command requires existing metadata file (.kirox-meta.json).
+  Run regular fetch command first if metadata doesn't exist.
+`)
+    .allowExcessArguments(false);
+
+  // Remove 'add' from argv to parse correctly
+  const addIndex = argv.indexOf('add');
+  const addArgv = [...argv.slice(0, addIndex), ...argv.slice(addIndex + 1)];
+
+  program.parse(addArgv);
+
+  const repository = program.args[0] || '';
+  const options = program.opts<{
+    project?: string;
+    output: string;
+    subdir?: string;
+    force: boolean;
+    dryRun: boolean;
+    verbose: boolean;
+    config?: string;
+  }>();
+
+  const projects = parseProjects(options.project || '');
+
+  return {
+    subcommand: 'add',
+    repository,
+    projects,
+    output: options.output,
+    force: options.force,
+    dryRun: options.dryRun,
+    verbose: options.verbose,
+    config: options.config,
+    track: true, // Always true for add command
+    checkUpdates: false,
+    update: false,
+    subdir: options.subdir,
+  };
+}
+
+/**
+ * Parse main command arguments (existing behavior)
+ */
+function parseMainCommand(argv: string[]): ParsedArguments {
   const program = new Command();
 
   program

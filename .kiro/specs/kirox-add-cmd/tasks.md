@@ -1,7 +1,7 @@
 # 実装計画
 
 - [ ] 1. コマンドパーサーにaddサブコマンドを追加
-- [ ] 1.1 Commander.jsでaddサブコマンドを定義
+- [x] 1.1 Commander.jsでaddサブコマンドを定義
   - サブコマンドの引数とオプションを設定（repository、-p、--force、--dry-run、--verbose、--config、--subdir、-o）
   - サブコマンドのdescriptionとhelpテキストを追加
   - サブコマンドのアクションハンドラーを設定し、executeAddCommand()を呼び出す

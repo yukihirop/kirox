@@ -6,6 +6,8 @@
  * Parsed command-line arguments
  */
 export interface ParsedArguments {
+  /** Subcommand name (e.g., 'add') */
+  subcommand?: string;
   /** Repository in format "owner/repo" */
   repository: string;
   /** Project name(s) to fetch (array for multi-project support) */
