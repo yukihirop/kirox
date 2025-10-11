@@ -26,6 +26,7 @@ Kiro-style Spec Driven Development implementation using claude code slash comman
 - `kirox-upgrade-suggest-project`: Enhanced project suggestion - auto-detect projects across all subdirectories using GitHub Tree API, eliminating the need for manual subdirectory input
 - `kirox-searchable-checkbox-upgrade`: Upgrade interactive mode with searchable checkbox for project selection, replacing two-step UI with single-step filterable checkbox using inquirer-ts-checkbox-plus-prompt
 - `kirox-suggest-branch`: Interactive branch selection with searchable checkbox when branch is not specified in repository input
+- `kirox-track-default-false`: Change default value of --track option to false
 - Use `/kiro:spec-status [feature-name]` to check progress
 
 ## Development Guidelines

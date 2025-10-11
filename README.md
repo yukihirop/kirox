@@ -19,6 +19,7 @@ CLI tool to fetch Kiro specification and steering files from remote GitHub repos
 - 📦 Fetch Kiro specification and steering files from any GitHub repository
 - 🌿 Branch/tag specification support (`owner/repo#branch`)
 - 📁 Subdirectory support for monorepo structures
+- 🔄 **Update Tracking** - Detect remote changes and update only modified files (opt-in with `--track`)
 - 🚀 NPX support - no installation required
 - 🔄 Automatic directory creation
 - ✅ Overwrite confirmation prompts
@@ -238,6 +239,15 @@ npx kirox owner/repo -p project --dry-run
 # Verbose output for debugging
 npx kirox owner/repo -p project --verbose
 
+# Track files for update detection (creates .kirox-meta.json with file hashes)
+npx kirox owner/repo -p project --track
+
+# Check for updates to previously tracked files
+npx kirox owner/repo -p project --check-updates
+
+# Update only changed files (requires prior --track usage)
+npx kirox owner/repo -p project --update
+
 # Combine options
 npx kirox owner/repo#develop -s packages/api -p project -o ./output --verbose --dry-run
 ```
@@ -249,6 +259,9 @@ npx kirox owner/repo#develop -s packages/api -p project -o ./output --verbose --
 | `--project <name>` | `-p` | Project name(s) to fetch - supports comma-separated multiple projects (required) | - |
 | `--output <path>` | `-o` | Output directory | `.` (current directory) |
 | `--subdir <path>` | `-s` | Subdirectory path containing .kiro folder | - |
+| `--track` | - | Track fetched files for update detection (creates `.kirox-meta.json`) | `false` |
+| `--check-updates` | - | Check for updates to previously tracked files (requires prior `--track` usage) | `false` |
+| `--update` | - | Update tracked files that have changed remotely (requires prior `--track` usage) | `false` |
 | `--force` | - | Force overwrite without confirmation | `false` |
 | `--dry-run` | - | Preview mode (no actual writes) | `false` |
 | `--verbose` | - | Verbose logging | `false` |
@@ -388,6 +401,89 @@ npx kirox yukihirop/eg-kanban -p simple-kanban-board --dry-run --verbose
 # Shows what would be fetched without writing files
 ```
 
+### Update Tracking
+
+Kirox supports tracking fetched files to detect remote changes and selectively update only modified files.
+
+**Important:** The `--track` option defaults to `false`. You must explicitly enable it to use update detection features.
+
+#### Enable Tracking
+
+```bash
+# Fetch files with tracking enabled (creates .kirox-meta.json)
+npx kirox owner/repo -p project --track
+```
+
+When `--track` is enabled, Kirox creates a `.kiro/.kirox-meta.json` file that stores:
+- File paths and SHA hashes from GitHub
+- Repository, branch, and project information
+- Last fetch timestamp
+
+#### Check for Updates
+
+```bash
+# Check which tracked files have been updated remotely
+npx kirox owner/repo -p project --check-updates
+```
+
+This compares local file hashes against remote versions and displays:
+- Files that have changed
+- Files that are up-to-date
+- Files that no longer exist remotely
+
+**Note:** Requires that files were previously fetched with `--track` enabled.
+
+#### Update Changed Files
+
+```bash
+# Fetch only files that have changed remotely
+npx kirox owner/repo -p project --update
+```
+
+This updates only the files that have changed, preserving local files that are unchanged.
+
+**Note:** Requires that files were previously fetched with `--track` enabled.
+
+#### Update Tracking Workflow
+
+```bash
+# 1. Initial fetch with tracking
+npx kirox owner/repo -p my-project --track
+
+# 2. Later, check for updates
+npx kirox owner/repo -p my-project --check-updates
+
+# 3. Update only changed files
+npx kirox owner/repo -p my-project --update
+```
+
+#### Metadata File
+
+The `.kiro/.kirox-meta.json` file contains tracking metadata:
+
+```json
+{
+  "version": "1.0",
+  "lastUpdated": "2025-10-11T12:34:56.789Z",
+  "projects": {
+    "my-project": {
+      "repository": "owner/repo",
+      "branch": "main",
+      "subdir": "",
+      "files": {
+        ".kiro/specs/my-project/spec.json": {
+          "sha": "abc123...",
+          "path": ".kiro/specs/my-project/spec.json",
+          "lastFetched": "2025-10-11T12:34:56.789Z"
+        }
+      }
+    }
+  }
+}
+```
+
+**Important:** Do not manually edit this file. It is automatically managed by Kirox.
+
 ## Development
 
 ### Setup
@@ -441,9 +537,12 @@ Create a `.kiroxrc.json` file in your project root to set default values:
   "outputDirectory": "./kiro-files",
   "defaultConcurrency": 5,
   "verbose": false,
-  "force": false
+  "force": false,
+  "track": false
 }
 ```
+
+**Note:** The `track` option defaults to `false`. To enable update tracking, you must explicitly set it to `true` in the configuration file or use the `--track` flag. Update detection features (`--check-updates` and `--update`) require that files have been previously tracked.
 
 ### Multiple Projects in Configuration
 

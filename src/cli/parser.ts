@@ -30,7 +30,7 @@ export function parseArguments(argv: string[]): ParsedArguments {
     .option('--dry-run', 'Dry-run mode (no actual writes)', false)
     .option('--verbose', 'Verbose logging', false)
     .option('--config <path>', 'Custom config file path')
-    .option('--track', 'Track fetched files for update detection', true)
+    .option('--track', 'Track fetched files for update detection', false)
     .option('--check-updates', 'Check for updates to tracked files', false)
     .option('--update', 'Apply updates to tracked files', false)
     .addHelpText('after', `

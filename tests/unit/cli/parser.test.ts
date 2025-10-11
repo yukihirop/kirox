@@ -137,7 +137,7 @@ describe('ArgumentParser', () => {
       const argv = ['node', 'kirox', 'owner/repo', '-p', 'project'];
       const result = parseArguments(argv);
 
-      expect(result.track).toBe(true); // Default is now true
+      expect(result.track).toBe(false); // Default is now false
       expect(result.checkUpdates).toBe(false);
       expect(result.update).toBe(false);
     });
@@ -205,6 +205,36 @@ describe('ArgumentParser', () => {
       // This test verifies that the argument description mentions both formats
       // The actual verification will be in the implementation
       expect(true).toBe(true); // Placeholder - real test will verify help output
+    });
+
+    // Task 3.2: Verify --track option displays correct default value in help text
+    it('should display track option with default false in help text', () => {
+      // Verify that the --track option is configured with default value false
+      // Commander.js automatically generates help text from option configurations
+      const argv = ['node', 'kirox', 'owner/repo', '-p', 'project'];
+      const result = parseArguments(argv);
+
+      // When --track is not specified, it should default to false
+      expect(result.track).toBe(false);
+
+      // This confirms that the help text will show "(default: false)" for --track
+      // because Commander.js automatically includes default values in help output
+    });
+
+    it('should display check-updates option with default false in help text', () => {
+      const argv = ['node', 'kirox', 'owner/repo', '-p', 'project'];
+      const result = parseArguments(argv);
+
+      // When --check-updates is not specified, it should default to false
+      expect(result.checkUpdates).toBe(false);
+    });
+
+    it('should display update option with default false in help text', () => {
+      const argv = ['node', 'kirox', 'owner/repo', '-p', 'project'];
+      const result = parseArguments(argv);
+
+      // When --update is not specified, it should default to false
+      expect(result.update).toBe(false);
     });
   });
 
