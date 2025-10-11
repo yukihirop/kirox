@@ -27,6 +27,7 @@ Kiro-style Spec Driven Development implementation using claude code slash comman
 - `kirox-searchable-checkbox-upgrade`: Upgrade interactive mode with searchable checkbox for project selection, replacing two-step UI with single-step filterable checkbox using inquirer-ts-checkbox-plus-prompt
 - `kirox-suggest-branch`: Interactive branch selection with searchable checkbox when branch is not specified in repository input
 - `kirox-track-default-false`: Change default value of --track option to false
+- `kirox-add-cmd`: Add subcommand for adding projects in both interactive and non-interactive modes
 - Use `/kiro:spec-status [feature-name]` to check progress
 
 ## Development Guidelines
