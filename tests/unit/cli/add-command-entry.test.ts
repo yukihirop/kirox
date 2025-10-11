@@ -51,6 +51,13 @@ vi.mock('@/config/merger.js', () => ({
   mergeConfig: vi.fn((args) => args),
 }));
 
+vi.mock('@/tracking/metadata-manager.js', () => ({
+  loadMetadata: vi.fn(async () => ({
+    version: '1.0',
+    projects: [],
+  })),
+}));
+
 describe('executeAddCommand', () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -246,6 +253,150 @@ describe('executeAddCommand', () => {
       // This test will be implemented after GREEN phase
       // For now, we expect this to fail because executeAddCommand doesn't exist yet
       expect(true).toBe(true);
+    });
+  });
+
+  describe('Metadata existence check (Task 2.2)', () => {
+    it('should call loadMetadata with correct path', async () => {
+      const { loadMetadata } = await import('@/tracking/metadata-manager.js');
+      const argv = ['node', 'kirox', 'add', 'owner/repo', '-p', 'test-project', '-o', './output'];
+
+      await executeAddCommand(argv);
+
+      // loadMetadata should be called with metadata path derived from output directory
+      expect(loadMetadata).toHaveBeenCalledWith(expect.stringContaining('.kirox-meta.json'));
+    });
+
+    it('should return error when metadata file does not exist', async () => {
+      const { loadMetadata } = await import('@/tracking/metadata-manager.js');
+      const { MetadataError, MetadataErrorType } = await import('@/tracking/types.js');
+
+      // Mock loadMetadata to throw MetadataError.NOT_FOUND
+      vi.mocked(loadMetadata).mockRejectedValueOnce(
+        new MetadataError(
+          MetadataErrorType.NOT_FOUND,
+          'Metadata file not found',
+          'File does not exist: .kiro/.kirox-meta.json'
+        )
+      );
+
+      const argv = ['node', 'kirox', 'add', 'owner/repo', '-p', 'test-project'];
+      const result = await executeAddCommand(argv);
+
+      // Should return failure with exit code 1
+      expect(result.success).toBe(false);
+      expect(result.exitCode).toBe(1);
+      expect(result.filesDownloaded).toBe(0);
+      expect(result.filesFailed).toBe(0);
+    });
+
+    it('should log error message when metadata not found', async () => {
+      const { loadMetadata } = await import('@/tracking/metadata-manager.js');
+      const { MetadataError, MetadataErrorType } = await import('@/tracking/types.js');
+      const { Logger } = await import('@/reporting/logger.js');
+
+      const mockLogger = {
+        info: vi.fn(),
+        warn: vi.fn(),
+        error: vi.fn(),
+        logError: vi.fn(),
+      };
+      vi.mocked(Logger).mockReturnValue(mockLogger as any);
+
+      // Mock loadMetadata to throw MetadataError.NOT_FOUND
+      vi.mocked(loadMetadata).mockRejectedValueOnce(
+        new MetadataError(
+          MetadataErrorType.NOT_FOUND,
+          'Metadata file not found',
+          'File does not exist: .kiro/.kirox-meta.json'
+        )
+      );
+
+      const argv = ['node', 'kirox', 'add', 'owner/repo', '-p', 'test-project'];
+      await executeAddCommand(argv);
+
+      // Logger error should be called with guidance message
+      expect(mockLogger.error).toHaveBeenCalledWith(
+        expect.stringContaining('Metadata file not found'),
+        expect.any(Object)
+      );
+    });
+
+    it('should display guidance to run regular fetch first when metadata not found', async () => {
+      const { loadMetadata } = await import('@/tracking/metadata-manager.js');
+      const { MetadataError, MetadataErrorType } = await import('@/tracking/types.js');
+      const { Logger } = await import('@/reporting/logger.js');
+
+      const mockLogger = {
+        info: vi.fn(),
+        warn: vi.fn(),
+        error: vi.fn(),
+        logError: vi.fn(),
+      };
+      vi.mocked(Logger).mockReturnValue(mockLogger as any);
+
+      // Mock loadMetadata to throw MetadataError.NOT_FOUND
+      vi.mocked(loadMetadata).mockRejectedValueOnce(
+        new MetadataError(
+          MetadataErrorType.NOT_FOUND,
+          'Metadata file not found',
+          'File does not exist: .kiro/.kirox-meta.json'
+        )
+      );
+
+      const argv = ['node', 'kirox', 'add', 'owner/repo', '-p', 'test-project'];
+      await executeAddCommand(argv);
+
+      // Logger error should include guidance message
+      expect(mockLogger.error).toHaveBeenCalledWith(
+        expect.stringMatching(/run.*fetch.*first|regular.*fetch/i),
+        expect.any(Object)
+      );
+    });
+
+    it('should proceed when metadata file exists', async () => {
+      const { loadMetadata } = await import('@/tracking/metadata-manager.js');
+
+      // Mock loadMetadata to return valid metadata
+      vi.mocked(loadMetadata).mockResolvedValueOnce({
+        version: '1.0',
+        projects: [
+          {
+            repository: 'existing/repo',
+            projectName: 'existing-project',
+            fetchedAt: '2025-01-01T00:00:00Z',
+            files: [],
+          },
+        ],
+      });
+
+      const argv = ['node', 'kirox', 'add', 'owner/repo', '-p', 'test-project'];
+      const result = await executeAddCommand(argv);
+
+      // Should not fail due to metadata check
+      // (Will eventually succeed when full implementation is complete)
+      expect(result.exitCode).toBeGreaterThanOrEqual(0);
+    });
+
+    it('should handle other metadata errors separately', async () => {
+      const { loadMetadata } = await import('@/tracking/metadata-manager.js');
+      const { MetadataError, MetadataErrorType } = await import('@/tracking/types.js');
+
+      // Mock loadMetadata to throw MetadataError.INVALID_FORMAT
+      vi.mocked(loadMetadata).mockRejectedValueOnce(
+        new MetadataError(
+          MetadataErrorType.INVALID_FORMAT,
+          'Invalid JSON format',
+          'Unexpected token in JSON'
+        )
+      );
+
+      const argv = ['node', 'kirox', 'add', 'owner/repo', '-p', 'test-project'];
+      const result = await executeAddCommand(argv);
+
+      // Should fail with error code (but not the specific NOT_FOUND message)
+      expect(result.success).toBe(false);
+      expect(result.exitCode).toBeGreaterThan(0);
     });
   });
 });

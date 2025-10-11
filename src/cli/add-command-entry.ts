@@ -5,6 +5,7 @@
  * Task 2.1: executeAddCommand function basic structure
  */
 
+import path from 'path';
 import { parseArguments } from './parser.js';
 import { validateInput } from './validator.js';
 import { Logger } from '../reporting/logger.js';
@@ -12,7 +13,19 @@ import { ErrorHandler } from '../reporting/error-handler.js';
 import { ProgressReporter } from '../reporting/progress-reporter.js';
 import { loadConfig } from '../config/loader.js';
 import { mergeConfig } from '../config/merger.js';
+import { loadMetadata } from '../tracking/metadata-manager.js';
+import { MetadataError, MetadataErrorType } from '../tracking/types.js';
 import type { ExecutionResult } from './types.js';
+
+/**
+ * Get metadata file path based on output directory
+ *
+ * @param outputDir - Output directory from args
+ * @returns Metadata file path
+ */
+function getMetadataPath(outputDir: string): string {
+  return path.join(outputDir, '.kiro', '.kirox-meta.json');
+}
 
 /**
  * Execute add command with provided arguments
@@ -22,7 +35,7 @@ import type { ExecutionResult } from './types.js';
  * 2. Initialize Logger, ErrorHandler, ProgressReporter
  * 3. Load and merge configuration
  * 4. Validate input
- * 5. Check metadata existence (Task 2.2 - to be implemented)
+ * 5. Check metadata existence (Task 2.2 - implemented)
  * 6. Detect duplicate projects (Task 2.3 - to be implemented)
  * 7. Fetch files from GitHub (Task 3.1, 3.2 - to be implemented)
  * 8. Write files to local filesystem (Task 4.1, 4.2 - to be implemented)
@@ -85,9 +98,41 @@ export async function executeAddCommand(argv: string[]): Promise<ExecutionResult
       };
     }
 
-    // TODO: Step 6: Check metadata existence (Task 2.2)
+    // Step 6: Check metadata existence (Task 2.2)
     // Verify .kirox-meta.json exists before proceeding
-    // If not found, display error: "Run regular fetch command first"
+    // The add command requires existing metadata to add projects to
+    // This check happens early to provide fast feedback to the user
+    const metadataPath = getMetadataPath(mergedConfig.output);
+
+    try {
+      // Attempt to load existing metadata
+      // This will throw MetadataError.NOT_FOUND if file doesn't exist
+      await loadMetadata(metadataPath);
+
+      if (args.verbose) {
+        logger.info('Metadata file found', { path: metadataPath });
+      }
+    } catch (error) {
+      // Handle metadata not found error specifically
+      // This is a user error - they must run regular fetch first
+      if (error instanceof MetadataError && error.type === MetadataErrorType.NOT_FOUND) {
+        logger.error('Metadata file not found. Please run regular fetch command first.', {
+          path: metadataPath,
+          suggestion: 'Run: npx kirox <owner/repo> -p <project> --track',
+        });
+
+        return {
+          success: false,
+          filesDownloaded: 0,
+          filesFailed: 0,
+          exitCode: 1, // User error - metadata file required
+        };
+      }
+
+      // Re-throw other metadata errors (e.g., INVALID_FORMAT, INVALID_SCHEMA)
+      // These will be caught by the outer catch block and handled generically
+      throw error;
+    }
 
     // TODO: Step 7: Detect duplicate projects (Task 2.3)
     // Check if project already exists in metadata
