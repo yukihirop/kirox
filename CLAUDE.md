@@ -76,6 +76,7 @@ Managed by `/kiro:steering` command. Updates here reflect command changes.
   Mode: Always|Conditional|Manual
   Pattern: File patterns for Conditional mode
 -->
+- `development.md`: Always - Development workflow, commit policy, token optimization, and conversation management
 - `language.md`: Conditional - `"src/cli/**/*"`, `"src/reporting/**/*"`, `"src/**/*prompt*.ts"` - Language policy for user-facing messages (English-only requirement)
 - `testing.md`: Conditional - `"**/*.test.ts"`, `"**/*.test.js"` - Testing standards, TDD methodology, and external API mocking strategies
 
