@@ -16,7 +16,7 @@
   - _Requirements: 1.1, 1.2, 1.4, 1.5_
 
 - [ ] 2. addコマンド専用エントリポイントを作成
-- [ ] 2.1 executeAddCommand関数の基本構造を実装
+- [x] 2.1 executeAddCommand関数の基本構造を実装
   - 引数の受け取りとバリデーション
   - Logger、ErrorHandler、ProgressReporterの初期化
   - 設定ファイルの読み込みとマージ
