@@ -11,7 +11,7 @@
 ## Phase 2: テスト更新
 
 - [ ] 2. 単体テストを新しいデフォルト値に更新する
-- [ ] 2.1 ArgumentParserの単体テストを更新
+- [x] 2.1 ArgumentParserの単体テストを更新
   - デフォルト値がfalseであることを検証するテストを更新
   - 明示的な--track指定でtrueになることを検証
   - --check-updates/--update指定時にtrackがfalseになることを検証
