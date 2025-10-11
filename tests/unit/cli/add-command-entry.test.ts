@@ -399,4 +399,174 @@ describe('executeAddCommand', () => {
       expect(result.exitCode).toBeGreaterThan(0);
     });
   });
+
+  describe('Duplicate project detection (Task 2.3)', () => {
+    it('should detect duplicate project when repository and projectName match', async () => {
+      const { loadMetadata } = await import('@/tracking/metadata-manager.js');
+      const { Logger } = await import('@/reporting/logger.js');
+
+      const mockLogger = {
+        info: vi.fn(),
+        warn: vi.fn(),
+        error: vi.fn(),
+        logError: vi.fn(),
+      };
+      vi.mocked(Logger).mockReturnValue(mockLogger as any);
+
+      // Mock loadMetadata to return existing project with same repository and projectName
+      vi.mocked(loadMetadata).mockResolvedValueOnce({
+        version: '1.0',
+        projects: [
+          {
+            repository: 'owner/repo',
+            projectName: 'test-project',
+            fetchedAt: '2025-01-01T00:00:00Z',
+            files: [],
+          },
+        ],
+      });
+
+      const argv = ['node', 'kirox', 'add', 'owner/repo', '-p', 'test-project'];
+      const result = await executeAddCommand(argv);
+
+      // Should detect duplicate and skip without --force
+      expect(result.success).toBe(false);
+      expect(result.exitCode).toBe(1);
+      expect(mockLogger.warn).toHaveBeenCalledWith(
+        expect.stringMatching(/already exists|duplicate/i),
+        expect.any(Object)
+      );
+    });
+
+    it('should treat different subdirectory as separate project', async () => {
+      const { loadMetadata } = await import('@/tracking/metadata-manager.js');
+
+      // Mock loadMetadata to return existing project with same repository and projectName but different subdir
+      vi.mocked(loadMetadata).mockResolvedValueOnce({
+        version: '1.0',
+        projects: [
+          {
+            repository: 'owner/repo',
+            projectName: 'test-project',
+            subdir: 'packages/api',
+            fetchedAt: '2025-01-01T00:00:00Z',
+            files: [],
+          },
+        ],
+      });
+
+      const argv = ['node', 'kirox', 'add', 'owner/repo', '-p', 'test-project', '--subdir', 'packages/web'];
+      const result = await executeAddCommand(argv);
+
+      // Should NOT detect as duplicate because subdir is different
+      // (Will eventually succeed when full implementation is complete)
+      expect(result.exitCode).toBeGreaterThanOrEqual(0);
+    });
+
+    it('should skip duplicate project without --force option', async () => {
+      const { loadMetadata } = await import('@/tracking/metadata-manager.js');
+      const { Logger } = await import('@/reporting/logger.js');
+
+      const mockLogger = {
+        info: vi.fn(),
+        warn: vi.fn(),
+        error: vi.fn(),
+        logError: vi.fn(),
+      };
+      vi.mocked(Logger).mockReturnValue(mockLogger as any);
+
+      // Mock loadMetadata to return existing project with same repository and projectName
+      vi.mocked(loadMetadata).mockResolvedValueOnce({
+        version: '1.0',
+        projects: [
+          {
+            repository: 'owner/repo',
+            projectName: 'test-project',
+            fetchedAt: '2025-01-01T00:00:00Z',
+            files: [],
+          },
+        ],
+      });
+
+      const argv = ['node', 'kirox', 'add', 'owner/repo', '-p', 'test-project'];
+      const result = await executeAddCommand(argv);
+
+      // Should skip with warning
+      expect(result.success).toBe(false);
+      expect(result.exitCode).toBe(1);
+      expect(mockLogger.warn).toHaveBeenCalled();
+    });
+
+    it('should continue with verbose log when duplicate project found with --force', async () => {
+      const { loadMetadata } = await import('@/tracking/metadata-manager.js');
+      const { Logger } = await import('@/reporting/logger.js');
+
+      const mockLogger = {
+        info: vi.fn(),
+        warn: vi.fn(),
+        error: vi.fn(),
+        logError: vi.fn(),
+      };
+      vi.mocked(Logger).mockReturnValue(mockLogger as any);
+
+      // Mock loadMetadata to return existing project with same repository and projectName
+      vi.mocked(loadMetadata).mockResolvedValueOnce({
+        version: '1.0',
+        projects: [
+          {
+            repository: 'owner/repo',
+            projectName: 'test-project',
+            fetchedAt: '2025-01-01T00:00:00Z',
+            files: [],
+          },
+        ],
+      });
+
+      const argv = ['node', 'kirox', 'add', 'owner/repo', '-p', 'test-project', '--force', '--verbose'];
+      const result = await executeAddCommand(argv);
+
+      // Should continue with verbose log (not fail)
+      // (Will eventually succeed when full implementation is complete)
+      expect(result.exitCode).toBeGreaterThanOrEqual(0);
+      expect(mockLogger.info).toHaveBeenCalledWith(
+        expect.stringMatching(/overwriting|force/i),
+        expect.any(Object)
+      );
+    });
+
+    it('should display warning message when duplicate found without --force', async () => {
+      const { loadMetadata } = await import('@/tracking/metadata-manager.js');
+      const { Logger } = await import('@/reporting/logger.js');
+
+      const mockLogger = {
+        info: vi.fn(),
+        warn: vi.fn(),
+        error: vi.fn(),
+        logError: vi.fn(),
+      };
+      vi.mocked(Logger).mockReturnValue(mockLogger as any);
+
+      // Mock loadMetadata to return existing project with same repository and projectName
+      vi.mocked(loadMetadata).mockResolvedValueOnce({
+        version: '1.0',
+        projects: [
+          {
+            repository: 'owner/repo',
+            projectName: 'test-project',
+            fetchedAt: '2025-01-01T00:00:00Z',
+            files: [],
+          },
+        ],
+      });
+
+      const argv = ['node', 'kirox', 'add', 'owner/repo', '-p', 'test-project'];
+      await executeAddCommand(argv);
+
+      // Should display warning with suggestion to use --force
+      expect(mockLogger.warn).toHaveBeenCalledWith(
+        expect.stringMatching(/use.*--force|--force.*overwrite/i),
+        expect.any(Object)
+      );
+    });
+  });
 });

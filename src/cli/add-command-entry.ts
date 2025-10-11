@@ -16,6 +16,7 @@ import { mergeConfig } from '../config/merger.js';
 import { loadMetadata } from '../tracking/metadata-manager.js';
 import { MetadataError, MetadataErrorType } from '../tracking/types.js';
 import type { ExecutionResult } from './types.js';
+import type { Metadata, ProjectMetadata } from '../tracking/types.js';
 
 /**
  * Get metadata file path based on output directory
@@ -28,6 +29,33 @@ function getMetadataPath(outputDir: string): string {
 }
 
 /**
+ * Check if a project with the same repository, projectName, and subdir exists in metadata
+ *
+ * Task 2.3: Duplicate project detection
+ * - Same repository + projectName + subdir = duplicate
+ * - Different subdir = separate project
+ *
+ * @param metadata - Existing metadata
+ * @param repository - Repository to check
+ * @param projectName - Project name to check
+ * @param subdir - Optional subdirectory to check
+ * @returns True if duplicate exists, false otherwise
+ */
+function isDuplicateProject(
+  metadata: Metadata,
+  repository: string,
+  projectName: string,
+  subdir?: string
+): boolean {
+  return metadata.projects.some(
+    (project) =>
+      project.repository === repository &&
+      project.projectName === projectName &&
+      project.subdir === subdir
+  );
+}
+
+/**
  * Execute add command with provided arguments
  *
  * Orchestrates the complete flow for adding new projects to existing metadata:
@@ -36,7 +64,7 @@ function getMetadataPath(outputDir: string): string {
  * 3. Load and merge configuration
  * 4. Validate input
  * 5. Check metadata existence (Task 2.2 - implemented)
- * 6. Detect duplicate projects (Task 2.3 - to be implemented)
+ * 6. Detect duplicate projects (Task 2.3 - implemented)
  * 7. Fetch files from GitHub (Task 3.1, 3.2 - to be implemented)
  * 8. Write files to local filesystem (Task 4.1, 4.2 - to be implemented)
  * 9. Update metadata (Task 5.1, 5.2 - to be implemented)
@@ -104,10 +132,11 @@ export async function executeAddCommand(argv: string[]): Promise<ExecutionResult
     // This check happens early to provide fast feedback to the user
     const metadataPath = getMetadataPath(mergedConfig.output);
 
+    let metadata: Metadata;
     try {
       // Attempt to load existing metadata
       // This will throw MetadataError.NOT_FOUND if file doesn't exist
-      await loadMetadata(metadataPath);
+      metadata = await loadMetadata(metadataPath);
 
       if (args.verbose) {
         logger.info('Metadata file found', { path: metadataPath });
@@ -134,9 +163,51 @@ export async function executeAddCommand(argv: string[]): Promise<ExecutionResult
       throw error;
     }
 
-    // TODO: Step 7: Detect duplicate projects (Task 2.3)
+    // Step 7: Detect duplicate projects (Task 2.3)
     // Check if project already exists in metadata
-    // Handle based on --force option (skip or overwrite)
+    // Handle based on --force option:
+    // - Without --force: Warn user and skip to prevent accidental overwrites
+    // - With --force: Log verbose message and continue to overwrite
+    //
+    // A project is considered duplicate if repository + projectName + subdir all match.
+    // Different subdir values create separate projects, even with the same repo + name.
+    for (const projectName of mergedConfig.projects) {
+      const isDuplicate = isDuplicateProject(
+        metadata,
+        mergedConfig.repository,
+        projectName,
+        mergedConfig.subdir
+      );
+
+      if (isDuplicate) {
+        if (!mergedConfig.force) {
+          // Without --force: warn and skip
+          // This is a user error - they likely didn't intend to overwrite
+          logger.warn('Project already exists. Use --force to overwrite.', {
+            repository: mergedConfig.repository,
+            projectName,
+            subdir: mergedConfig.subdir,
+          });
+
+          return {
+            success: false,
+            filesDownloaded: 0,
+            filesFailed: 0,
+            exitCode: 1, // User error - duplicate project without --force
+          };
+        } else {
+          // With --force: log verbose message and continue
+          // User explicitly requested overwrite, so we proceed
+          if (args.verbose) {
+            logger.info('Overwriting existing project with --force option', {
+              repository: mergedConfig.repository,
+              projectName,
+              subdir: mergedConfig.subdir,
+            });
+          }
+        }
+      }
+    }
 
     // TODO: Step 8: Fetch files from GitHub (Task 3.1, 3.2)
     // Use existing GitHub fetcher to download project files
