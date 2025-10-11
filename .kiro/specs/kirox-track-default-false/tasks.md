@@ -17,7 +17,7 @@
   - --check-updates/--update指定時にtrackがfalseになることを検証
   - _Requirements: 2.1_
 
-- [ ] 2.2 統合テストを新しいデフォルト値に更新
+- [x] 2.2 統合テストを新しいデフォルト値に更新
   - CLI→Config Merger→MetadataManagerのフローテストを更新
   - デフォルト動作でメタデータファイルが作成されないことを確認
   - 明示的な--track指定時にメタデータファイルが作成されることを確認
