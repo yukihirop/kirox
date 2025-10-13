@@ -107,6 +107,11 @@ ${chalk.bold.blue('Installation:')}
   const completionIndex = argv.indexOf('completion');
   const completionArgv = [...argv.slice(0, completionIndex), ...argv.slice(completionIndex + 1)];
 
+  // Avoid process.exit during tests (e.g., --help)
+  if (process.env.NODE_ENV === 'test') {
+    program.exitOverride();
+  }
+
   program.parse(completionArgv);
 
   const shellType = program.args[0] || '';
@@ -175,6 +180,11 @@ ${chalk.bold.yellow('Note:')}
   // Remove 'add' from argv to parse correctly
   const addIndex = argv.indexOf('add');
   const addArgv = [...argv.slice(0, addIndex), ...argv.slice(addIndex + 1)];
+
+  // Avoid process.exit during tests (e.g., --help)
+  if (process.env.NODE_ENV === 'test') {
+    program.exitOverride();
+  }
 
   program.parse(addArgv);
 
@@ -268,6 +278,11 @@ ${chalk.bold.yellow('Note:')}
   • Interactive mode is only available in TTY environments
 `)
     .allowExcessArguments(false);
+
+  // Avoid process.exit during tests (e.g., --help)
+  if (process.env.NODE_ENV === 'test') {
+    program.exitOverride();
+  }
 
   program.parse(argv);
 
