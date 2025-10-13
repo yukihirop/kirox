@@ -524,6 +524,64 @@
     - 修正は既存のテストロジックを維持しつつ、Chalkスタイリングに対して柔軟にする
   - _Requirements: Testing Strategy - Unit Tests, Task 10.4 (テスト修正対応)_
 
+- [ ] 11.5 npm run testで失敗している19テストを修正（BUG FIX）
+  - **問題**: `npm run test`実行時に19テストが失敗している（Test Files 3 failed, Tests 19 failed）
+  - **失敗テストの分類**:
+    1. **`tests/integration/project-suggestion-github-api.test.ts`** - 5テスト失敗
+       - 実際のGitHub APIを呼び出すテストがタイムアウトまたは失敗
+       - エラー: `expected false to be true`
+       - 原因: GitHub API制約またはネットワーク問題の可能性
+    2. **`tests/unit/cli/add-command-entry.test.ts`** - 4テスト失敗（Task 8.7関連）
+       - ステアリングファイルの重複取得防止テスト
+       - エラー: `expected "spy" to be called 2 times, but got 0 times`
+       - 原因: モック設定が不適切で`fetchDirectoryContents`が呼ばれていない
+    3. **`tests/unit/cli/add-duplicate-detection.test.ts`** - 2テスト失敗
+       - 重複プロジェクト検出ロジックのテスト
+       - エラー: `expected false to be true`
+       - 原因: `result.success`が期待通りtrueにならない
+    4. **`tests/unit/cli/add-metadata-existence-check.test.ts`** - 8テスト失敗
+       - メタデータ存在チェックと空メタデータ作成のテスト
+       - エラー: `expected false to be true`、`expected "spy" to be called at least once`
+       - 原因: モック設定が不適切で実行が中断されている
+  - **修正方針**:
+    - **優先度1**: `add-command-entry.test.ts`のTask 8.7テスト修正
+      - モック設定を見直し、`fetchDirectoryContents`が正しく呼ばれるようにする
+      - `executeAddCommand`の実行フローを確認し、テストがモック構造と一致しているか検証
+    - **優先度2**: `add-duplicate-detection.test.ts`の失敗テスト修正
+      - `result.success`がfalseになる原因を調査（エラーログ確認）
+      - 重複検出ロジックが正しく動作しているか検証
+    - **優先度3**: `add-metadata-existence-check.test.ts`の失敗テスト修正
+      - メタデータ不存在時の実行継続ロジックを検証
+      - モック設定を見直し、GitHub API呼び出しとメタデータ保存が正しく行われるようにする
+    - **優先度4**: `project-suggestion-github-api.test.ts`の統合テスト修正
+      - タイムアウト設定を延長（5000ms → 10000ms）
+      - GitHub APIのモック化を検討（実際のAPI呼び出しを避ける）
+  - **修正対象ファイル**:
+    1. `tests/unit/cli/add-command-entry.test.ts` (line 2970-3070付近のTask 8.7テスト)
+    2. `tests/unit/cli/add-duplicate-detection.test.ts` (失敗している2テスト)
+    3. `tests/unit/cli/add-metadata-existence-check.test.ts` (失敗している8テスト)
+    4. `tests/integration/project-suggestion-github-api.test.ts` (タイムアウト設定)
+  - **テスト確認項目**:
+    - [ ] `add-command-entry.test.ts`の4テストが通過することを確認
+    - [ ] `add-duplicate-detection.test.ts`の2テストが通過することを確認
+    - [ ] `add-metadata-existence-check.test.ts`の8テストが通過することを確認
+    - [ ] `project-suggestion-github-api.test.ts`の5テストが通過することを確認
+    - [ ] 全テストスイートが通過することを確認（1626テスト全て）
+    - [ ] 修正がテストの本質的なロジックを変更していないことを確認
+  - **デバッグ手順**:
+    1. 失敗テストを個別実行して詳細なエラーメッセージを確認
+       - `npm test -- tests/unit/cli/add-command-entry.test.ts`
+       - `npm test -- tests/unit/cli/add-duplicate-detection.test.ts`
+       - `npm test -- tests/unit/cli/add-metadata-existence-check.test.ts`
+    2. モック設定を確認し、実際の実装と一致しているか検証
+    3. `console.log`デバッグでモック呼び出し状況を確認
+    4. 修正後、全テストスイートを実行して他のテストに影響がないか確認
+  - **注意事項**:
+    - Task 11.3で作成した`add-metadata-existence-check.test.ts`は「10テスト失敗中」と記載されているが、実際は8テスト失敗（最新の実行結果を反映）
+    - Task 8.7で作成したステアリングファイル関連テストが失敗しているため、テスト実装とモック設定を再確認する必要がある
+    - 統合テスト（`project-suggestion-github-api.test.ts`）は実際のGitHub APIを呼び出すため、ネットワーク環境やAPIレート制限の影響を受ける可能性がある
+  - _Requirements: Testing Strategy - Unit Tests, Task 8.7 (ステアリングファイルテスト), Task 11.2-11.3 (重複検出・メタデータ存在チェックテスト)_
+
 - [ ] 12. 統合テストを実装
 - [ ] 12.1 CLI → Metadata Manager統合テストを実装
   - addコマンド実行の完全なフローをテスト（引数パース → メタデータチェック → GitHub取得 → ファイル書き込み → メタデータ更新）
