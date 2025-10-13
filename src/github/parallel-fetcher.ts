@@ -217,12 +217,37 @@ export async function fetchFilesInParallel(
       const file = await fetchFileContents(client, owner, repo, path, ref);
       success.push(file);
     } catch (error) {
-      const errorMessage =
-        error instanceof Error ? error.message : 'Unknown error';
+      // Task 8.1: Network error detection and user-friendly message
+      let errorMessage = 'Unknown error';
+      let retryable = true;
+
+      if (error instanceof Error) {
+        errorMessage = error.message;
+
+        // Detect network errors by checking error code
+        const networkError = error as NodeJS.ErrnoException;
+        const networkErrorCodes = [
+          'ENOTFOUND',   // DNS lookup failed
+          'ETIMEDOUT',   // Connection timeout
+          'ECONNREFUSED', // Connection refused
+          'ECONNRESET',  // Connection reset
+          'EHOSTUNREACH', // Host unreachable
+          'ENETUNREACH',  // Network unreachable
+        ];
+
+        if (networkError.code && networkErrorCodes.includes(networkError.code)) {
+          // Format network error with user-friendly guidance
+          errorMessage = `Network error: ${errorMessage}. Check your internet connection.`;
+        }
+
+        // File size errors are not retryable
+        retryable = !errorMessage.includes('size exceeds');
+      }
+
       failed.push({
         path,
         error: errorMessage,
-        retryable: !errorMessage.includes('size exceeds'),
+        retryable,
       });
     } finally {
       semaphore.release();

@@ -398,6 +398,17 @@ export async function executeAddCommand(argv: string[]): Promise<ExecutionResult
           });
         }
 
+        // Task 8.1: Log network errors for failed file fetches
+        // Display user-friendly error messages for network failures
+        if (fetchResult.failed.length > 0) {
+          for (const failedFile of fetchResult.failed) {
+            logger.error(failedFile.error, {
+              path: failedFile.path,
+              retryable: failedFile.retryable,
+            });
+          }
+        }
+
         // Step 12: Write files to local filesystem (Task 4.1)
         // Iterate through successfully fetched files and write them to disk
         const writeOptions = {

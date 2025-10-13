@@ -474,5 +474,164 @@ describe('ParallelFileFetcher', () => {
         ref: 'feature/new-api',
       });
     });
+
+    // Task 8.1: Network error handling tests
+    describe('Network Error Handling', () => {
+      it('should detect and format network errors (ENOTFOUND)', async () => {
+        const networkError = new Error('getaddrinfo ENOTFOUND api.github.com');
+        (networkError as NodeJS.ErrnoException).code = 'ENOTFOUND';
+
+        const mockClient = {
+          rest: {
+            repos: {
+              getContent: vi.fn().mockRejectedValue(networkError),
+            },
+          },
+        } as unknown as Octokit;
+
+        const filePaths = ['file1.md'];
+
+        const results = await fetchFilesInParallel(
+          mockClient,
+          'owner',
+          'repo',
+          filePaths,
+          5
+        );
+
+        expect(results.success).toHaveLength(0);
+        expect(results.failed).toHaveLength(1);
+        expect(results.failed[0].error).toContain('Network error:');
+        expect(results.failed[0].error).toContain('Check your internet connection');
+      });
+
+      it('should detect and format network errors (ETIMEDOUT)', async () => {
+        const networkError = new Error('connect ETIMEDOUT');
+        (networkError as NodeJS.ErrnoException).code = 'ETIMEDOUT';
+
+        const mockClient = {
+          rest: {
+            repos: {
+              getContent: vi.fn().mockRejectedValue(networkError),
+            },
+          },
+        } as unknown as Octokit;
+
+        const filePaths = ['file1.md'];
+
+        const results = await fetchFilesInParallel(
+          mockClient,
+          'owner',
+          'repo',
+          filePaths,
+          5
+        );
+
+        expect(results.success).toHaveLength(0);
+        expect(results.failed).toHaveLength(1);
+        expect(results.failed[0].error).toContain('Network error:');
+        expect(results.failed[0].error).toContain('Check your internet connection');
+      });
+
+      it('should detect and format network errors (ECONNREFUSED)', async () => {
+        const networkError = new Error('connect ECONNREFUSED');
+        (networkError as NodeJS.ErrnoException).code = 'ECONNREFUSED';
+
+        const mockClient = {
+          rest: {
+            repos: {
+              getContent: vi.fn().mockRejectedValue(networkError),
+            },
+          },
+        } as unknown as Octokit;
+
+        const filePaths = ['file1.md'];
+
+        const results = await fetchFilesInParallel(
+          mockClient,
+          'owner',
+          'repo',
+          filePaths,
+          5
+        );
+
+        expect(results.success).toHaveLength(0);
+        expect(results.failed).toHaveLength(1);
+        expect(results.failed[0].error).toContain('Network error:');
+        expect(results.failed[0].error).toContain('Check your internet connection');
+      });
+
+      it('should handle partial success with network errors', async () => {
+        const networkError = new Error('getaddrinfo ENOTFOUND api.github.com');
+        (networkError as NodeJS.ErrnoException).code = 'ENOTFOUND';
+
+        const mockClient = {
+          rest: {
+            repos: {
+              getContent: vi.fn().mockImplementation((params) => {
+                if (params.path === 'error.md') {
+                  return Promise.reject(networkError);
+                }
+                return Promise.resolve({
+                  data: {
+                    type: 'file',
+                    name: params.path,
+                    path: params.path,
+                    content: Buffer.from(`Content of ${params.path}`, 'utf-8').toString('base64'),
+                    encoding: 'base64',
+                    size: 20,
+                    sha: 'abc123',
+                  },
+                });
+              }),
+            },
+          },
+        } as unknown as Octokit;
+
+        const filePaths = ['file1.md', 'error.md', 'file2.md'];
+
+        const results = await fetchFilesInParallel(
+          mockClient,
+          'owner',
+          'repo',
+          filePaths,
+          5
+        );
+
+        // Should continue processing other files despite network error
+        expect(results.success).toHaveLength(2);
+        expect(results.failed).toHaveLength(1);
+        expect(results.failed[0].path).toBe('error.md');
+        expect(results.failed[0].error).toContain('Network error:');
+      });
+
+      it('should not format non-network errors as network errors', async () => {
+        const apiError = new Error('Repository not found');
+
+        const mockClient = {
+          rest: {
+            repos: {
+              getContent: vi.fn().mockRejectedValue(apiError),
+            },
+          },
+        } as unknown as Octokit;
+
+        const filePaths = ['file1.md'];
+
+        const results = await fetchFilesInParallel(
+          mockClient,
+          'owner',
+          'repo',
+          filePaths,
+          5
+        );
+
+        expect(results.success).toHaveLength(0);
+        expect(results.failed).toHaveLength(1);
+        // Should not contain "Network error:" prefix for non-network errors
+        expect(results.failed[0].error).not.toContain('Network error:');
+        expect(results.failed[0].error).toBe('Repository not found');
+      });
+    });
   });
 });
