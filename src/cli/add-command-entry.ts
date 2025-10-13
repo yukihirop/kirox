@@ -3,6 +3,7 @@
  *
  * Main execution logic for the 'add' subcommand
  * Task 2.1: executeAddCommand function basic structure
+ * Task 7.1: Interactive mode entry condition detection
  */
 
 import path from 'path';
@@ -21,6 +22,7 @@ import { fetchFilesInParallel } from '../github/parallel-fetcher.js';
 import { buildRemotePath, resolveOutputPath } from '../filesystem/path-utils.js';
 import { writeFile } from '../filesystem/writer.js';
 import { calculateFileHash } from '../tracking/hash-calculator.js';
+import { shouldEnterInteractiveMode } from './interactive-prompt.js';
 import type { ExecutionResult } from './types.js';
 import type { Metadata, ProjectMetadata, FileMetadata } from '../tracking/types.js';
 import type { ContentItem } from '../github/fetcher.js';
@@ -116,6 +118,27 @@ export async function executeAddCommand(argv: string[]): Promise<ExecutionResult
         projects: args.projects,
         config: args.config || 'default',
       });
+    }
+
+    // Step 4.5: Check if interactive mode should be entered (Task 7.1)
+    // This check happens BEFORE validation to allow interactive prompts
+    // to collect missing repository or project information
+    //
+    // shouldEnterInteractiveMode returns true if:
+    // - Repository or project name is missing, AND
+    // - Process is running in TTY environment, AND
+    // - --check-updates and --update options are NOT specified
+    if (shouldEnterInteractiveMode(args)) {
+      // TODO: Task 7.2, 7.3, 7.4 - Implement interactive prompts
+      // For now, we continue to validation which will fail and provide
+      // a helpful error message. Once Tasks 7.2-7.4 are implemented,
+      // this will trigger the interactive prompt flow instead.
+      if (args.verbose) {
+        logger.info('Interactive mode conditions met, but interactive prompts not yet implemented', {
+          repository: args.repository,
+          projects: args.projects,
+        });
+      }
     }
 
     // Step 5: Validate input

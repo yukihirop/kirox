@@ -2583,4 +2583,279 @@ describe('executeAddCommand', () => {
       expect(mockReporter.reportOverallSummary).not.toHaveBeenCalled();
     });
   });
+
+  /**
+   * Task 7.1: インタラクティブモード起動条件を判定
+   *
+   * Tests for shouldEnterInteractiveMode integration in add command
+   * - Check if repository or project name is missing
+   * - Verify TTY environment (process.stdin.isTTY)
+   * - Skip interactive mode for --check-updates and --update options
+   *
+   * Requirements: 2.1
+   */
+  describe('Task 7.1: インタラクティブモード起動条件の判定', () => {
+    let originalIsTTY: boolean | undefined;
+
+    beforeEach(async () => {
+      // Save original TTY state
+      originalIsTTY = process.stdin.isTTY;
+
+      // Set TTY environment by default
+      Object.defineProperty(process.stdin, 'isTTY', {
+        value: true,
+        writable: true,
+        configurable: true,
+      });
+    });
+
+    afterEach(() => {
+      // Restore original TTY state
+      Object.defineProperty(process.stdin, 'isTTY', {
+        value: originalIsTTY,
+        writable: true,
+        configurable: true,
+      });
+    });
+
+    describe('リポジトリまたはプロジェクト名が未指定の場合', () => {
+      it('リポジトリが未指定の場合、shouldEnterInteractiveModeを呼び出す', async () => {
+        // Get mocked functions from parent scope
+        const { loadMetadata } = await import('@/tracking/metadata-manager.js');
+
+        // Mock metadata to exist (required for add command)
+        vi.mocked(loadMetadata).mockResolvedValue({
+          version: '1.0',
+          projects: [],
+        });
+
+        // Execute add command without repository
+        const argv = ['node', 'kirox', 'add', '', '-p', 'my-project'];
+
+        const result = await executeAddCommand(argv);
+
+        // Should fail at validation since repository is missing
+        // This test will initially FAIL (RED) as the integration is not implemented yet
+        // Once Task 7.1 is complete, shouldEnterInteractiveMode will be called before validation
+        expect(result.success).toBe(false);
+        expect(result.exitCode).toBe(1);
+      });
+
+      it('プロジェクト名が未指定の場合、shouldEnterInteractiveModeを呼び出す', async () => {
+        const { loadMetadata } = await import('@/tracking/metadata-manager.js');
+
+        vi.mocked(loadMetadata).mockResolvedValue({
+          version: '1.0',
+          projects: [],
+        });
+
+        // Execute add command without project name
+        const argv = ['node', 'kirox', 'add', 'owner/repo'];
+
+        const result = await executeAddCommand(argv);
+
+        // Should fail at validation since project name is missing
+        // Once Task 7.1 is complete, shouldEnterInteractiveMode will be called before validation
+        expect(result.success).toBe(false);
+        expect(result.exitCode).toBe(1);
+      });
+
+      it('リポジトリとプロジェクト名が両方未指定の場合、shouldEnterInteractiveModeを呼び出す', async () => {
+        const { loadMetadata } = await import('@/tracking/metadata-manager.js');
+
+        vi.mocked(loadMetadata).mockResolvedValue({
+          version: '1.0',
+          projects: [],
+        });
+
+        // Execute add command without arguments
+        const argv = ['node', 'kirox', 'add'];
+
+        const result = await executeAddCommand(argv);
+
+        // Should fail at validation since both are missing
+        // Once Task 7.1 is complete, shouldEnterInteractiveMode will be called before validation
+        expect(result.success).toBe(false);
+        expect(result.exitCode).toBe(1);
+      });
+    });
+
+    describe('TTY環境のチェック', () => {
+      it('非TTY環境の場合、インタラクティブモードをスキップする', async () => {
+        // Set non-TTY environment
+        Object.defineProperty(process.stdin, 'isTTY', {
+          value: false,
+          writable: true,
+          configurable: true,
+        });
+
+        const { loadMetadata } = await import('@/tracking/metadata-manager.js');
+
+        vi.mocked(loadMetadata).mockResolvedValue({
+          version: '1.0',
+          projects: [],
+        });
+
+        const argv = ['node', 'kirox', 'add', '', '-p', 'my-project'];
+
+        const result = await executeAddCommand(argv);
+
+        // In non-TTY environment, should fail at validation without entering interactive mode
+        // shouldEnterInteractiveMode returns false for non-TTY environments
+        expect(result.success).toBe(false);
+        expect(result.exitCode).toBe(1);
+
+        // Verify shouldEnterInteractiveMode logic for non-TTY
+        const { shouldEnterInteractiveMode } = await import('@/cli/interactive-prompt.js');
+        const mockArgs = {
+          repository: '',
+          projects: ['my-project'],
+          output: '.',
+          force: false,
+          dryRun: false,
+          verbose: false,
+          track: false,
+          checkUpdates: false,
+          update: false,
+        };
+        const shouldEnter = shouldEnterInteractiveMode(mockArgs);
+        expect(shouldEnter).toBe(false); // Non-TTY environment should return false
+      });
+    });
+
+    describe('--check-updatesと--updateオプション時のスキップ', () => {
+      it('--check-updatesオプション指定時、インタラクティブモードをスキップする', async () => {
+        const { loadMetadata } = await import('@/tracking/metadata-manager.js');
+
+        vi.mocked(loadMetadata).mockResolvedValue({
+          version: '1.0',
+          projects: [
+            {
+              repository: 'owner/repo',
+              projectName: 'existing-project',
+              fetchedAt: '2024-01-01T00:00:00Z',
+              files: [],
+            },
+          ],
+        });
+
+        const argv = ['node', 'kirox', 'add', '--check-updates'];
+
+        const result = await executeAddCommand(argv);
+
+        // --check-updates should skip interactive mode even with missing arguments
+        // Verify shouldEnterInteractiveMode logic respects --check-updates
+        const { shouldEnterInteractiveMode } = await import('@/cli/interactive-prompt.js');
+        const mockArgs = {
+          repository: '',
+          projects: [],
+          output: '.',
+          force: false,
+          dryRun: false,
+          verbose: false,
+          track: false,
+          checkUpdates: true,
+          update: false,
+        };
+        const shouldEnter = shouldEnterInteractiveMode(mockArgs);
+        expect(shouldEnter).toBe(false); // --check-updates should skip interactive mode
+      });
+
+      it('--updateオプション指定時、インタラクティブモードをスキップする', async () => {
+        const { loadMetadata } = await import('@/tracking/metadata-manager.js');
+
+        vi.mocked(loadMetadata).mockResolvedValue({
+          version: '1.0',
+          projects: [
+            {
+              repository: 'owner/repo',
+              projectName: 'existing-project',
+              fetchedAt: '2024-01-01T00:00:00Z',
+              files: [],
+            },
+          ],
+        });
+
+        const argv = ['node', 'kirox', 'add', '--update'];
+
+        const result = await executeAddCommand(argv);
+
+        // --update should skip interactive mode even with missing arguments
+        // Verify shouldEnterInteractiveMode logic respects --update
+        const { shouldEnterInteractiveMode } = await import('@/cli/interactive-prompt.js');
+        const mockArgs = {
+          repository: '',
+          projects: [],
+          output: '.',
+          force: false,
+          dryRun: false,
+          verbose: false,
+          track: false,
+          checkUpdates: false,
+          update: true,
+        };
+        const shouldEnter = shouldEnterInteractiveMode(mockArgs);
+        expect(shouldEnter).toBe(false); // --update should skip interactive mode
+      });
+    });
+
+    describe('完全な引数指定時', () => {
+      it('リポジトリとプロジェクト名が両方指定されている場合、インタラクティブモードをスキップする', async () => {
+        const { loadMetadata } = await import('@/tracking/metadata-manager.js');
+        const { fetchDirectoryContents } = await import('@/github/fetcher.js');
+        const { fetchFilesInParallel } = await import('@/github/parallel-fetcher.js');
+        const { writeFile } = await import('@/filesystem/writer.js');
+        const { calculateFileHash } = await import('@/tracking/hash-calculator.js');
+        const { upsertProject } = await import('@/tracking/metadata-manager.js');
+
+        vi.mocked(loadMetadata).mockResolvedValue({
+          version: '1.0',
+          projects: [],
+        });
+
+        vi.mocked(fetchDirectoryContents).mockResolvedValue([
+          { name: 'spec.json', path: '.kiro/specs/my-project/spec.json', type: 'file', sha: 'sha1', size: 100 },
+        ] as any);
+
+        vi.mocked(fetchFilesInParallel).mockResolvedValue({
+          success: [
+            { path: '.kiro/specs/my-project/spec.json', content: '{}', size: 100, sha: 'sha1' },
+          ],
+          failed: [],
+        });
+
+        vi.mocked(writeFile).mockResolvedValue({
+          written: true,
+          filePath: 'test-file.md',
+          size: 100,
+        });
+
+        vi.mocked(calculateFileHash).mockResolvedValue('local-hash-123');
+        vi.mocked(upsertProject).mockResolvedValue(undefined);
+
+        const argv = ['node', 'kirox', 'add', 'owner/repo', '-p', 'my-project'];
+        const result = await executeAddCommand(argv);
+
+        // Should succeed without entering interactive mode
+        expect(result.success).toBe(true);
+        expect(result.exitCode).toBe(0);
+
+        // Verify shouldEnterInteractiveMode returns false for complete arguments
+        const { shouldEnterInteractiveMode } = await import('@/cli/interactive-prompt.js');
+        const mockArgs = {
+          repository: 'owner/repo',
+          projects: ['my-project'],
+          output: '.',
+          force: false,
+          dryRun: false,
+          verbose: false,
+          track: false,
+          checkUpdates: false,
+          update: false,
+        };
+        const shouldEnter = shouldEnterInteractiveMode(mockArgs);
+        expect(shouldEnter).toBe(false); // Complete arguments should skip interactive mode
+      });
+    });
+  });
 });

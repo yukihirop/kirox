@@ -97,7 +97,7 @@
   - _Requirements: 5.3, 5.4_
 
 - [ ] 7. インタラクティブモード対応を実装
-- [ ] 7.1 インタラクティブモード起動条件を判定
+- [x] 7.1 インタラクティブモード起動条件を判定
   - shouldEnterInteractiveMode()でリポジトリまたはプロジェクト名が未指定かをチェック
   - TTY環境の確認（process.stdin.isTTY）
   - --check-updates、--updateオプション時はインタラクティブモードをスキップ
