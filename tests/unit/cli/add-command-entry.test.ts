@@ -15,6 +15,7 @@ import { calculateFileHash } from '@/tracking/hash-calculator.js';
 import { upsertProject } from '@/tracking/metadata-manager.js';
 import { MetadataError, MetadataErrorType } from '@/tracking/types.js';
 import { mergeConfig } from '@/config/merger.js';
+import { promptMissingArguments, shouldEnterInteractiveMode } from '@/cli/interactive-prompt.js';
 
 // Mock all dependencies
 vi.mock('@/reporting/logger.js', () => ({
@@ -3252,6 +3253,154 @@ describe('executeAddCommand', () => {
       expect(writeFile).toHaveBeenCalledTimes(2);
       expect(result.success).toBe(true);
       expect(result.filesDownloaded).toBe(2);
+    });
+  });
+
+  // Task 8.8: Metadata loading timing fix for interactive mode
+  describe('Task 8.8: Metadata loading timing in interactive mode', () => {
+    it('should NOT call loadMetadata before interactive prompts when args are incomplete', async () => {
+      // Mock shouldEnterInteractiveMode to return true for tests without repository
+      vi.mocked(shouldEnterInteractiveMode).mockImplementation((args: any) => {
+        return !args.repository || args.projects.length === 0;
+      });
+
+      // Mock promptMissingArguments for interactive mode
+      vi.mocked(promptMissingArguments).mockResolvedValue({
+        repository: 'owner/repo',
+        projects: ['test-project'],
+        output: './custom-output',
+        subdir: undefined,
+        branch: undefined,
+      });
+
+      // Setup: Non-interactive mode should call loadMetadata early
+      const mockLoadMetadata = vi.fn().mockResolvedValue({
+        version: '1.0',
+        projects: [],
+      });
+      vi.mocked(loadMetadata).mockImplementation(mockLoadMetadata);
+
+      // Mock directory fetching
+      vi.mocked(fetchDirectoryContents).mockResolvedValue([
+        { type: 'file' as const, path: '.kiro/specs/test-project/spec.json', sha: 'sha1' },
+      ]);
+      vi.mocked(fetchFilesInParallel).mockResolvedValue({
+        success: [
+          { path: '.kiro/specs/test-project/spec.json', content: 'content', sha: 'sha1', size: 100 },
+        ],
+        failed: [],
+      });
+      vi.mocked(writeFile).mockResolvedValue({ written: true, skipped: false });
+      vi.mocked(calculateFileHash).mockResolvedValue('mockHash');
+      vi.mocked(upsertProject).mockResolvedValue();
+
+      // Execute: Interactive mode (no repository specified)
+      await executeAddCommand(['node', 'kirox', 'add']);
+
+      // Verify: loadMetadata should NOT be called with default output path before prompts
+      // It should be called AFTER promptMissingArguments completes with updated output path
+      const loadMetadataCalls = mockLoadMetadata.mock.calls;
+
+      // Find the call with default path (incorrect, should not happen in interactive mode)
+      const defaultPathCall = loadMetadataCalls.find(call => call[0] === '.kiro/.kirox-meta.json');
+
+      // This should NOT exist in interactive mode
+      expect(defaultPathCall).toBeUndefined();
+    });
+
+    it('should call loadMetadata AFTER interactive prompts with updated output path', async () => {
+      // Mock shouldEnterInteractiveMode to return true for tests without repository
+      vi.mocked(shouldEnterInteractiveMode).mockImplementation((args: any) => {
+        return !args.repository || args.projects.length === 0;
+      });
+
+      // Mock promptMissingArguments for interactive mode
+      vi.mocked(promptMissingArguments).mockResolvedValue({
+        repository: 'owner/repo',
+        projects: ['test-project'],
+        output: './custom-output',
+        subdir: undefined,
+        branch: undefined,
+      });
+
+      const mockLoadMetadata = vi.fn().mockResolvedValue({
+        version: '1.0',
+        projects: [],
+      });
+      vi.mocked(loadMetadata).mockImplementation(mockLoadMetadata);
+
+      // Mock directory fetching
+      vi.mocked(fetchDirectoryContents).mockResolvedValue([
+        { type: 'file' as const, path: '.kiro/specs/test-project/spec.json', sha: 'sha1' },
+      ]);
+      vi.mocked(fetchFilesInParallel).mockResolvedValue({
+        success: [
+          { path: '.kiro/specs/test-project/spec.json', content: 'content', sha: 'sha1', size: 100 },
+        ],
+        failed: [],
+      });
+      vi.mocked(writeFile).mockResolvedValue({ written: true, skipped: false });
+      vi.mocked(calculateFileHash).mockResolvedValue('mockHash');
+      vi.mocked(upsertProject).mockResolvedValue();
+
+      // Execute: Interactive mode (no repository specified)
+      // promptMissingArguments will return output: './custom-output'
+      await executeAddCommand(['node', 'kirox', 'add']);
+
+      // Verify: loadMetadata should be called with updated output path AFTER prompts
+      const loadMetadataCalls = mockLoadMetadata.mock.calls;
+
+      // Debug: Check if loadMetadata was called at all
+      expect(mockLoadMetadata).toHaveBeenCalled();
+
+      // Debug: Log all calls
+      if (loadMetadataCalls.length === 0) {
+        throw new Error('loadMetadata was never called');
+      }
+
+      // Find the call with custom output path (correct behavior)
+      // Note: path.join normalizes the path, so './custom-output' becomes 'custom-output'
+      const customPathCall = loadMetadataCalls.find(call =>
+        call[0] === 'custom-output/.kiro/.kirox-meta.json'
+      );
+
+      // This SHOULD exist after interactive mode completes
+      expect(customPathCall).toBeDefined();
+    });
+
+    it('should call loadMetadata immediately in non-interactive mode', async () => {
+      const mockLoadMetadata = vi.fn().mockResolvedValue({
+        version: '1.0',
+        projects: [],
+      });
+      vi.mocked(loadMetadata).mockImplementation(mockLoadMetadata);
+
+      // Mock directory fetching
+      vi.mocked(fetchDirectoryContents).mockResolvedValue([
+        { type: 'file' as const, path: '.kiro/specs/test-project/spec.json', sha: 'sha1' },
+      ]);
+      vi.mocked(fetchFilesInParallel).mockResolvedValue({
+        success: [
+          { path: '.kiro/specs/test-project/spec.json', content: 'content', sha: 'sha1', size: 100 },
+        ],
+        failed: [],
+      });
+      vi.mocked(writeFile).mockResolvedValue({ written: true, skipped: false });
+      vi.mocked(calculateFileHash).mockResolvedValue('mockHash');
+      vi.mocked(upsertProject).mockResolvedValue();
+
+      // Execute: Non-interactive mode (all args provided)
+      await executeAddCommand([
+        'node',
+        'kirox',
+        'add',
+        'owner/repo',
+        '-p',
+        'test-project',
+      ]);
+
+      // Verify: loadMetadata should be called immediately with default output path
+      expect(mockLoadMetadata).toHaveBeenCalledWith('.kiro/.kirox-meta.json');
     });
   });
 });

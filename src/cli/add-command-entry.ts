@@ -121,51 +121,6 @@ export async function executeAddCommand(argv: string[]): Promise<ExecutionResult
       });
     }
 
-    // Step 4.5: Load metadata BEFORE interactive mode (Task 7.2, 7.3)
-    // Task 2.4: Create empty metadata if file doesn't exist (metadata-free mode)
-    // This check happens early to provide fast feedback to the user
-    const metadataPath = getMetadataPath(args.output);
-
-    let metadata: Metadata;
-    let isNewMetadata = false; // Track if we're creating new metadata (Task 2.4)
-
-    try {
-      // Attempt to load existing metadata
-      // This will throw MetadataError.NOT_FOUND if file doesn't exist
-      metadata = await loadMetadata(metadataPath);
-
-      if (args.verbose) {
-        logger.info('Metadata file found', { path: metadataPath });
-      }
-    } catch (error) {
-      // Task 2.4: Handle metadata not found error - create empty metadata instead of error
-      if (error instanceof MetadataError && error.type === MetadataErrorType.NOT_FOUND) {
-        // Create empty metadata object
-        metadata = {
-          version: '1.0',
-          projects: [],
-        };
-
-        isNewMetadata = true;
-
-        // Log info message about creating new metadata
-        logger.info('Creating new metadata file', {
-          path: metadataPath,
-          message: 'New metadata file will be created after successful project addition',
-        });
-
-        if (args.verbose) {
-          logger.info('Metadata file does not exist, starting with empty metadata', {
-            path: metadataPath,
-          });
-        }
-      } else {
-        // Re-throw other metadata errors (e.g., INVALID_FORMAT, INVALID_SCHEMA)
-        // These will be caught by the outer catch block and handled generically
-        throw error;
-      }
-    }
-
     // Step 4.6: Check if interactive mode should be entered (Task 7.1)
     // This check happens BEFORE validation to allow interactive prompts
     // to collect missing repository or project information
@@ -174,16 +129,66 @@ export async function executeAddCommand(argv: string[]): Promise<ExecutionResult
     // - Repository or project name is missing, AND
     // - Process is running in TTY environment, AND
     // - --check-updates and --update options are NOT specified
-    if (shouldEnterInteractiveMode(args)) {
-      // Task 7.2, 7.3, 7.4: Call promptMissingArguments with metadata
-      // This enables repository suggestion from metadata and Tree API project suggestion
+    const enterInteractiveMode = shouldEnterInteractiveMode(args);
+
+    // Task 8.8: Declare metadata variables that will be initialized at different times
+    let metadataPath: string | undefined;
+    let metadata: Metadata | undefined;
+    let isNewMetadata = false;
+
+    // Task 8.8: Load metadata at different times based on interactive mode
+    if (!enterInteractiveMode) {
+      // Non-interactive mode: Load metadata immediately (BEFORE prompts)
+      // This provides fast feedback to the user
+      metadataPath = getMetadataPath(args.output);
+
+      try {
+        metadata = await loadMetadata(metadataPath);
+
+        if (args.verbose) {
+          logger.info('Metadata file found', { path: metadataPath });
+        }
+      } catch (error) {
+        // Task 2.4: Handle metadata not found error - create empty metadata instead of error
+        if (error instanceof MetadataError && error.type === MetadataErrorType.NOT_FOUND) {
+          // Create empty metadata object
+          metadata = {
+            version: '1.0',
+            projects: [],
+          };
+
+          isNewMetadata = true;
+
+          // Log info message about creating new metadata
+          logger.info('Creating new metadata file', {
+            path: metadataPath,
+            message: 'New metadata file will be created after successful project addition',
+          });
+
+          if (args.verbose) {
+            logger.info('Metadata file does not exist, starting with empty metadata', {
+              path: metadataPath,
+            });
+          }
+        } else {
+          // Re-throw other metadata errors (e.g., INVALID_FORMAT, INVALID_SCHEMA)
+          // These will be caught by the outer catch block and handled generically
+          throw error;
+        }
+      }
+    }
+
+    if (enterInteractiveMode) {
+      // Task 7.2, 7.3, 7.4: Call promptMissingArguments
+      // Task 8.8: Do NOT pass metadata to promptMissingArguments in interactive mode
+      // Metadata will be loaded AFTER prompts complete
       try {
         const completedArgs = await promptMissingArguments(
           args,
           fileConfig,
           logger,
           args.verbose,
-          metadata // Task 7.2: Pass metadata for repository suggestion
+          undefined // Task 8.8: No metadata passed (will be loaded after prompts)
         );
 
         // Update args with completed values from interactive prompts
@@ -220,6 +225,45 @@ export async function executeAddCommand(argv: string[]): Promise<ExecutionResult
         // Re-throw other errors
         throw error;
       }
+
+      // Task 8.8: Interactive mode - Load metadata AFTER prompts complete
+      // Now args.output has been updated by promptMissingArguments
+      metadataPath = getMetadataPath(args.output);
+
+      try {
+        metadata = await loadMetadata(metadataPath);
+
+        if (args.verbose) {
+          logger.info('Metadata file found', { path: metadataPath });
+        }
+      } catch (error) {
+        // Task 2.4: Handle metadata not found error - create empty metadata instead of error
+        if (error instanceof MetadataError && error.type === MetadataErrorType.NOT_FOUND) {
+          // Create empty metadata object
+          metadata = {
+            version: '1.0',
+            projects: [],
+          };
+
+          isNewMetadata = true;
+
+          // Log info message about creating new metadata
+          logger.info('Creating new metadata file', {
+            path: metadataPath,
+            message: 'New metadata file will be created after successful project addition',
+          });
+
+          if (args.verbose) {
+            logger.info('Metadata file does not exist, starting with empty metadata', {
+              path: metadataPath,
+            });
+          }
+        } else {
+          // Re-throw other metadata errors (e.g., INVALID_FORMAT, INVALID_SCHEMA)
+          // These will be caught by the outer catch block and handled generically
+          throw error;
+        }
+      }
     }
 
     // Step 5: Validate input
@@ -235,6 +279,12 @@ export async function executeAddCommand(argv: string[]): Promise<ExecutionResult
         filesFailed: 0,
         exitCode: 1, // User error
       };
+    }
+
+    // Task 8.8: Assert metadata is initialized at this point
+    // Both interactive and non-interactive paths initialize metadata
+    if (!metadata || !metadataPath) {
+      throw new Error('Internal error: metadata not initialized');
     }
 
     // Step 7: Detect duplicate projects (Task 2.3)
