@@ -5,6 +5,7 @@
  */
 
 import { Command } from 'commander';
+import chalk from 'chalk';
 import type { ParsedArguments } from './types.js';
 import { parseProjects } from './project-name-parser.js';
 
@@ -128,35 +129,35 @@ function parseMainCommand(argv: string[]): ParsedArguments {
     .option('--check-updates', 'Check for updates to tracked files', false)
     .option('--update', 'Apply updates to tracked files', false)
     .addHelpText('after', `
-Interactive Mode:
+${chalk.bold.blue('Interactive Mode:')}
   When run without arguments, kirox enters interactive mode and guides you
   through entering repository, project name, and other options step-by-step.
 
-  $ npx kirox
-  ? Enter GitHub repository (owner/repo or owner/repo#branch): owner/repo
-  ? Enter project name: my-project
-  ? Enter output directory: .
-  ? Enter subdirectory in GitHub repository (optional):
-  ✓ Configuration confirmed
+  ${chalk.green('$ npx kirox')}
+  ${chalk.cyan('?')} Enter GitHub repository (owner/repo or owner/repo#branch): owner/repo
+  ${chalk.cyan('?')} Enter project name: my-project
+  ${chalk.cyan('?')} Enter output directory: .
+  ${chalk.cyan('?')} Enter subdirectory in GitHub repository (optional):
+  ${chalk.green('✓')} Configuration confirmed
 
-Examples:
-  # Interactive mode (recommended for first-time users)
-  $ npx kirox
+${chalk.bold.blue('Examples:')}
+  ${chalk.dim('# Interactive mode (recommended for first-time users)')}
+  ${chalk.green('$ npx kirox')}
 
-  # Non-interactive mode with explicit arguments
-  $ npx kirox owner/repo -p my-project
-  $ npx kirox owner/repo#feature/new-api -p my-project
-  $ npx kirox owner/repo --subdir packages/api -p my-project
-  $ npx kirox owner/repo#develop --subdir packages/api -p my-project
+  ${chalk.dim('# Non-interactive mode with explicit arguments')}
+  ${chalk.green('$ npx kirox owner/repo -p my-project')}
+  ${chalk.green('$ npx kirox owner/repo#feature/new-api -p my-project')}
+  ${chalk.green('$ npx kirox owner/repo --subdir packages/api -p my-project')}
+  ${chalk.green('$ npx kirox owner/repo#develop --subdir packages/api -p my-project')}
 
-  # Multiple projects (カンマ区切りで複数プロジェクトを指定)
-  $ npx kirox owner/repo -p proj1,proj2,proj3
-  $ npx kirox owner/repo --subdir packages -p api-spec,web-spec
+  ${chalk.dim('# Multiple projects (comma-separated)')}
+  ${chalk.green('$ npx kirox owner/repo -p proj1,proj2,proj3')}
+  ${chalk.green('$ npx kirox owner/repo --subdir packages -p api-spec,web-spec')}
 
-Note:
-  ブランチ指定は#の後に指定 (例: owner/repo#develop)
-  複数プロジェクトはカンマ区切りで指定 (例: -p proj1,proj2)
-  Interactive mode is only available in TTY environments
+${chalk.bold.yellow('Note:')}
+  • Branch specification: Use ${chalk.cyan('#')} after repository (e.g., ${chalk.cyan('owner/repo#develop')})
+  • Multiple projects: Comma-separated list (e.g., ${chalk.cyan('-p proj1,proj2')})
+  • Interactive mode is only available in TTY environments
 `)
     .allowExcessArguments(false);
 

@@ -396,4 +396,44 @@ describe('ArgumentParser', () => {
       expect(result.track).toBe(false); // Main command default
     });
   });
+
+  // Task 10.3: Help text English-only verification
+  describe('Help text language policy', () => {
+    it('should not contain Japanese characters in help sections', () => {
+      const fs = require('fs');
+      const path = require('path');
+
+      // Read the parser source to verify help text has no Japanese
+      const parserSource = fs.readFileSync(
+        path.join(__dirname, '../../../src/cli/parser.ts'),
+        'utf-8'
+      );
+
+      // Check for Japanese characters (Hiragana, Katakana, Kanji)
+      const japaneseRegex = /[\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FAF]/;
+
+      // Find all Japanese text in help sections
+      const helpTextMatches = parserSource.match(/addHelpText\('after',[\s\S]*?`\s*\)/g) || [];
+
+      for (const helpSection of helpTextMatches) {
+        const hasJapanese = japaneseRegex.test(helpSection);
+        expect(hasJapanese).toBe(false);
+      }
+    });
+
+    it('should use English-only text for examples and notes', () => {
+      const fs = require('fs');
+      const path = require('path');
+
+      const parserSource = fs.readFileSync(
+        path.join(__dirname, '../../../src/cli/parser.ts'),
+        'utf-8'
+      );
+
+      // Specific checks for known Japanese patterns
+      expect(parserSource).not.toContain('カンマ区切り');
+      expect(parserSource).not.toContain('ブランチ指定');
+      expect(parserSource).not.toContain('プロジェクト');
+    });
+  });
 });
