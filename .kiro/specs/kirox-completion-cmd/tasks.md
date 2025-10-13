@@ -81,7 +81,7 @@
   - _Requirements: 3.1 (構文エラーなく実行)_
 
 - [ ] 7. PowerShellシェル用の補完スクリプトテンプレートを実装する
-- [ ] 7.1 PowerShellTemplateを実装する
+- [x] 7.1 PowerShellTemplateを実装する
   - PowerShell補完の構文（Register-ArgumentCompleter形式）に従ったスクリプトテンプレートを作成
   - サブコマンドとオプションをPowerShellの補完スクリプトブロックに変換
   - `TabExpansion2`関数を使用した補完ロジックを実装
