@@ -7,6 +7,14 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { executeAddCommand } from '@/cli/add-command-entry.js';
 import type { ExecutionResult } from '@/cli/types.js';
+import { loadMetadata } from '@/tracking/metadata-manager.js';
+import { fetchDirectoryContents } from '@/github/fetcher.js';
+import { fetchFilesInParallel } from '@/github/parallel-fetcher.js';
+import { writeFile } from '@/filesystem/writer.js';
+import { calculateFileHash } from '@/tracking/hash-calculator.js';
+import { upsertProject } from '@/tracking/metadata-manager.js';
+import { MetadataError, MetadataErrorType } from '@/tracking/types.js';
+import { mergeConfig } from '@/config/merger.js';
 
 // Mock all dependencies
 vi.mock('@/reporting/logger.js', () => ({
@@ -120,6 +128,9 @@ describe('executeAddCommand', () => {
   beforeEach(async () => {
     // Clear all mock call history between tests
     vi.clearAllMocks();
+
+    // Unstub all globals to reset existsSync and other global mocks
+    vi.unstubAllGlobals();
 
     // Reset mocks to their default behavior to prevent test interdependence
     const { loadMetadata } = await import('@/tracking/metadata-manager.js');
@@ -2932,6 +2943,315 @@ describe('executeAddCommand', () => {
       expect(secondCall).toBeDefined();
       const [argsInSecondCall] = secondCall!;
       expect(argsInSecondCall.subdir).toBe('lib/a');
+    });
+  });
+
+  describe('Task 8.7: Skip existing steering files to avoid duplicate fetching', () => {
+    it('should fetch steering files on first add execution', async () => {
+      // Setup: Mock empty metadata (first execution)
+      vi.mocked(loadMetadata).mockRejectedValue(
+        new MetadataError(MetadataErrorType.NOT_FOUND, 'not found')
+      );
+
+      // Mock GitHub API responses
+      const mockSpecContents = [
+        { type: 'file' as const, path: '.kiro/specs/test-project/spec.json', sha: 'abc123' },
+        { type: 'file' as const, path: '.kiro/specs/test-project/requirements.md', sha: 'def456' },
+      ];
+      const mockSteeringContents = [
+        { type: 'file' as const, path: '.kiro/steering/product.md', sha: 'ghi789' },
+        { type: 'file' as const, path: '.kiro/steering/tech.md', sha: 'jkl012' },
+      ];
+
+      vi.mocked(fetchDirectoryContents)
+        .mockResolvedValueOnce(mockSpecContents) // specs directory
+        .mockResolvedValueOnce(mockSteeringContents); // steering directory
+
+      vi.mocked(fetchFilesInParallel).mockResolvedValue({
+        success: [
+          { path: '.kiro/specs/test-project/spec.json', content: 'content1', sha: 'abc123', size: 100 },
+          { path: '.kiro/specs/test-project/requirements.md', content: 'content2', sha: 'def456', size: 200 },
+          { path: '.kiro/steering/product.md', content: 'content3', sha: 'ghi789', size: 300 },
+          { path: '.kiro/steering/tech.md', content: 'content4', sha: 'jkl012', size: 400 },
+        ],
+        failed: [],
+      });
+
+      vi.mocked(writeFile).mockResolvedValue({ written: true, skipped: false });
+      vi.mocked(calculateFileHash).mockResolvedValue('mockHash');
+      vi.mocked(upsertProject).mockResolvedValue();
+
+      // Execute add command
+      const result = await executeAddCommand([
+        'node',
+        'kirox',
+        'add',
+        'owner/repo',
+        '-p',
+        'test-project',
+      ]);
+
+      // Verify steering files were fetched (fetchDirectoryContents called for both specs and steering)
+      expect(fetchDirectoryContents).toHaveBeenCalledTimes(2);
+      expect(fetchDirectoryContents).toHaveBeenCalledWith(
+        expect.anything(),
+        'owner',
+        'repo',
+        '.kiro/specs/test-project',
+        undefined
+      );
+      expect(fetchDirectoryContents).toHaveBeenCalledWith(
+        expect.anything(),
+        'owner',
+        'repo',
+        expect.stringContaining('.kiro/steering'),
+        undefined
+      );
+
+      // Verify all 4 files (2 specs + 2 steering) were written
+      expect(writeFile).toHaveBeenCalledTimes(4);
+      expect(result.success).toBe(true);
+      expect(result.filesDownloaded).toBe(4);
+    });
+
+    it('should skip existing steering files on second add execution (without --force)', async () => {
+      // Setup: Mock existing metadata (second execution)
+      vi.mocked(loadMetadata).mockResolvedValue({
+        version: '1.0',
+        projects: [
+          {
+            repository: 'owner/repo',
+            projectName: 'first-project',
+            fetchedAt: '2025-01-01T00:00:00.000Z',
+            files: [
+              { path: '.kiro/steering/product.md', sha: 'old1', localHash: 'hash1', size: 100, fetchedAt: '2025-01-01T00:00:00.000Z' },
+              { path: '.kiro/steering/tech.md', sha: 'old2', localHash: 'hash2', size: 200, fetchedAt: '2025-01-01T00:00:00.000Z' },
+            ],
+          },
+        ],
+      });
+
+      // Mock GitHub API responses
+      const mockSpecContents = [
+        { type: 'file' as const, path: '.kiro/specs/second-project/spec.json', sha: 'new1' },
+        { type: 'file' as const, path: '.kiro/specs/second-project/requirements.md', sha: 'new2' },
+      ];
+      const mockSteeringContents = [
+        { type: 'file' as const, path: '.kiro/steering/product.md', sha: 'new3' },
+        { type: 'file' as const, path: '.kiro/steering/tech.md', sha: 'new4' },
+      ];
+
+      vi.mocked(fetchDirectoryContents)
+        .mockResolvedValueOnce(mockSpecContents) // specs directory
+        .mockResolvedValueOnce(mockSteeringContents); // steering directory
+
+      // Mock file existence check: steering files exist
+      const mockExistsSync = vi.fn((filePath: string) => {
+        // Steering files exist
+        if (filePath.includes('.kiro/steering/')) {
+          return true;
+        }
+        // Spec files don't exist
+        return false;
+      });
+      vi.stubGlobal('existsSync', mockExistsSync);
+
+      // Only spec files should be fetched (steering files skipped)
+      vi.mocked(fetchFilesInParallel).mockResolvedValue({
+        success: [
+          { path: '.kiro/specs/second-project/spec.json', content: 'content1', sha: 'new1', size: 100 },
+          { path: '.kiro/specs/second-project/requirements.md', content: 'content2', sha: 'new2', size: 200 },
+          // No steering files in fetch result
+        ],
+        failed: [],
+      });
+
+      vi.mocked(writeFile).mockResolvedValue({ written: true, skipped: false });
+      vi.mocked(calculateFileHash).mockResolvedValue('mockHash');
+      vi.mocked(upsertProject).mockResolvedValue();
+
+      // Execute add command (without --force)
+      const result = await executeAddCommand([
+        'node',
+        'kirox',
+        'add',
+        'owner/repo',
+        '-p',
+        'second-project',
+      ]);
+
+      // Verify steering files were NOT fetched in parallel (filtered out before fetchFilesInParallel)
+      // fetchFilesInParallel should only be called with spec files
+      expect(fetchFilesInParallel).toHaveBeenCalledWith(
+        expect.anything(),
+        'owner',
+        'repo',
+        expect.arrayContaining([
+          '.kiro/specs/second-project/spec.json',
+          '.kiro/specs/second-project/requirements.md',
+        ]),
+        5,
+        undefined
+      );
+
+      // Verify ONLY spec files were written (steering files skipped)
+      expect(writeFile).toHaveBeenCalledTimes(2);
+      expect(result.success).toBe(true);
+      expect(result.filesDownloaded).toBe(2);
+    });
+
+    it('should fetch steering files with --force option even if they exist', async () => {
+      // Setup: Mock existing metadata with steering files
+      vi.mocked(loadMetadata).mockResolvedValue({
+        version: '1.0',
+        projects: [
+          {
+            repository: 'owner/repo',
+            projectName: 'first-project',
+            fetchedAt: '2025-01-01T00:00:00.000Z',
+            files: [
+              { path: '.kiro/steering/product.md', sha: 'old1', localHash: 'hash1', size: 100, fetchedAt: '2025-01-01T00:00:00.000Z' },
+            ],
+          },
+        ],
+      });
+
+      // Mock GitHub API responses
+      const mockSpecContents = [
+        { type: 'file' as const, path: '.kiro/specs/test-project/spec.json', sha: 'abc' },
+      ];
+      const mockSteeringContents = [
+        { type: 'file' as const, path: '.kiro/steering/product.md', sha: 'def' },
+      ];
+
+      vi.mocked(fetchDirectoryContents)
+        .mockResolvedValueOnce(mockSpecContents)
+        .mockResolvedValueOnce(mockSteeringContents);
+
+      // Mock file existence: steering file exists
+      const mockExistsSync = vi.fn((filePath: string) => {
+        return filePath.includes('.kiro/steering/product.md');
+      });
+      vi.stubGlobal('existsSync', mockExistsSync);
+
+      // With --force, steering files should be included
+      vi.mocked(fetchFilesInParallel).mockResolvedValue({
+        success: [
+          { path: '.kiro/specs/test-project/spec.json', content: 'c1', sha: 'abc', size: 100 },
+          { path: '.kiro/steering/product.md', content: 'c2', sha: 'def', size: 200 },
+        ],
+        failed: [],
+      });
+
+      vi.mocked(writeFile).mockResolvedValue({ written: true, skipped: false });
+      vi.mocked(calculateFileHash).mockResolvedValue('mockHash');
+      vi.mocked(upsertProject).mockResolvedValue();
+
+      // Execute add command WITH --force
+      const result = await executeAddCommand([
+        'node',
+        'kirox',
+        'add',
+        'owner/repo',
+        '-p',
+        'test-project',
+        '--force',
+      ]);
+
+      // Verify both spec and steering files were fetched
+      expect(fetchFilesInParallel).toHaveBeenCalledWith(
+        expect.anything(),
+        'owner',
+        'repo',
+        expect.arrayContaining([
+          '.kiro/specs/test-project/spec.json',
+          '.kiro/steering/product.md',
+        ]),
+        5,
+        undefined
+      );
+
+      // Verify both files were written
+      expect(writeFile).toHaveBeenCalledTimes(2);
+      expect(result.success).toBe(true);
+      expect(result.filesDownloaded).toBe(2);
+    });
+
+    it('should always fetch project spec files regardless of steering file existence', async () => {
+      // Setup: Mock existing metadata
+      vi.mocked(loadMetadata).mockResolvedValue({
+        version: '1.0',
+        projects: [
+          {
+            repository: 'owner/repo',
+            projectName: 'first-project',
+            fetchedAt: '2025-01-01T00:00:00.000Z',
+            files: [
+              { path: '.kiro/steering/product.md', sha: 'old1', localHash: 'hash1', size: 100, fetchedAt: '2025-01-01T00:00:00.000Z' },
+            ],
+          },
+        ],
+      });
+
+      // Mock GitHub API responses
+      const mockSpecContents = [
+        { type: 'file' as const, path: '.kiro/specs/new-project/spec.json', sha: 'spec1' },
+        { type: 'file' as const, path: '.kiro/specs/new-project/design.md', sha: 'spec2' },
+      ];
+      const mockSteeringContents = [
+        { type: 'file' as const, path: '.kiro/steering/product.md', sha: 'steer1' },
+      ];
+
+      vi.mocked(fetchDirectoryContents)
+        .mockResolvedValueOnce(mockSpecContents)
+        .mockResolvedValueOnce(mockSteeringContents);
+
+      // Mock file existence: steering exists, specs don't
+      const mockExistsSync = vi.fn((filePath: string) => {
+        return filePath.includes('.kiro/steering/');
+      });
+      vi.stubGlobal('existsSync', mockExistsSync);
+
+      // Only spec files should be fetched (steering filtered out)
+      vi.mocked(fetchFilesInParallel).mockResolvedValue({
+        success: [
+          { path: '.kiro/specs/new-project/spec.json', content: 'c1', sha: 'spec1', size: 100 },
+          { path: '.kiro/specs/new-project/design.md', content: 'c2', sha: 'spec2', size: 200 },
+        ],
+        failed: [],
+      });
+
+      vi.mocked(writeFile).mockResolvedValue({ written: true, skipped: false });
+      vi.mocked(calculateFileHash).mockResolvedValue('mockHash');
+      vi.mocked(upsertProject).mockResolvedValue();
+
+      // Execute add command
+      const result = await executeAddCommand([
+        'node',
+        'kirox',
+        'add',
+        'owner/repo',
+        '-p',
+        'new-project',
+      ]);
+
+      // Verify project spec files were fetched (steering files filtered out)
+      expect(fetchFilesInParallel).toHaveBeenCalledWith(
+        expect.anything(),
+        'owner',
+        'repo',
+        expect.arrayContaining([
+          '.kiro/specs/new-project/spec.json',
+          '.kiro/specs/new-project/design.md',
+        ]),
+        5,
+        undefined
+      );
+
+      // Verify only spec files were written
+      expect(writeFile).toHaveBeenCalledTimes(2);
+      expect(result.success).toBe(true);
+      expect(result.filesDownloaded).toBe(2);
     });
   });
 });

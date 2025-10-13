@@ -7,6 +7,7 @@
  */
 
 import path from 'path';
+import { existsSync } from 'fs';
 import { Octokit } from 'octokit';
 import { parseArguments } from './parser.js';
 import { validateInput } from './validator.js';
@@ -380,7 +381,31 @@ export async function executeAddCommand(argv: string[]): Promise<ExecutionResult
 
         // Collect all file items
         const specFiles = specContents.filter((item) => item.type === 'file');
-        const steeringFiles = steeringContents.filter((item) => item.type === 'file');
+        let steeringFiles = steeringContents.filter((item) => item.type === 'file');
+
+        // Task 8.7: Filter out existing steering files unless --force is specified
+        // This prevents re-fetching and re-saving steering files on subsequent add executions
+        if (steeringFiles.length > 0 && !config.force) {
+          steeringFiles = steeringFiles.filter((steeringFile) => {
+            // Resolve local path for the steering file
+            const localPath = resolveOutputPath(args.output, steeringFile.path);
+
+            // Check if file already exists locally
+            const fileExists = existsSync(localPath);
+
+            if (fileExists && args.verbose) {
+              logger.info('Steering file already exists, skipping', {
+                path: steeringFile.path,
+                localPath,
+              });
+            }
+
+            // Keep file in list if it doesn't exist (needs to be fetched)
+            // Remove file from list if it exists (skip fetching)
+            return !fileExists;
+          });
+        }
+
         const allFiles: ContentItem[] = [...specFiles, ...steeringFiles];
 
         if (args.verbose) {
