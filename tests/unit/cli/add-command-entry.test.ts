@@ -125,6 +125,8 @@ vi.mock('@/cli/interactive-prompt.js', () => ({
   promptMissingArguments: vi.fn(async (args) => args),
 }));
 
+vi.mock('@/cli/validator.js');
+
 describe('executeAddCommand', () => {
   beforeEach(async () => {
     // Clear all mock call history between tests
@@ -207,6 +209,21 @@ describe('executeAddCommand', () => {
   });
 
   describe('Argument validation', () => {
+    beforeEach(async () => {
+      // Use actual validator for validation tests
+      const { validateInput } = await import('@/cli/validator.js');
+      vi.mocked(validateInput).mockImplementation((args) => {
+        // Real validation logic
+        if (!args.repository || args.repository === '') {
+          return { valid: false, errors: ['Repository is required'] };
+        }
+        if (!args.projects || args.projects.length === 0 || args.projects[0] === '') {
+          return { valid: false, errors: ['Project name is required'] };
+        }
+        return { valid: true, errors: [] };
+      });
+    });
+
     it('should validate repository argument', async () => {
       const argv = ['node', 'kirox', 'add', '', '-p', 'test-project'];
 
@@ -2948,6 +2965,15 @@ describe('executeAddCommand', () => {
   });
 
   describe('Task 8.7: Skip existing steering files to avoid duplicate fetching', () => {
+    beforeEach(async () => {
+      // Mock validator for Task 8.7 tests - these tests use valid arguments
+      const { validateInput } = await import('@/cli/validator.js');
+      vi.mocked(validateInput).mockReturnValue({
+        valid: true,
+        errors: [],
+      });
+    });
+
     it('should fetch steering files on first add execution', async () => {
       // Setup: Mock empty metadata (first execution)
       vi.mocked(loadMetadata).mockRejectedValue(
