@@ -12,7 +12,7 @@
   - パース結果を`ParsedArguments`型に格納（`subcommand: 'completion'`, `shellType: string`）
   - _Requirements: 4.1, 4.2 (ヘルプメッセージとコマンド構造)_
 
-- [ ] 1.3 CompletionEntry（実行エントリポイント）を実装する
+- [x] 1.3 CompletionEntry（実行エントリポイント）を実装する
   - 補完コマンドの実行フローを制御
   - Parser、ShellValidator、Generatorを統合
   - 標準出力/標準エラー出力の制御とexit codeの管理
