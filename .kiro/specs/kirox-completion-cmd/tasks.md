@@ -87,7 +87,7 @@
   - `TabExpansion2`関数を使用した補完ロジックを実装
   - _Requirements: 1.5, 3.1, 3.2 (powershell用スクリプト生成と補完候補)_
 
-- [ ] 7.2 PowerShell補完スクリプトの基本検証を実装する
+- [x] 7.2 PowerShell補完スクリプトの基本検証を実装する
   - 生成されたスクリプトが構文的に有効であることを確認
   - PowerShellスクリプトとして読み込み可能かをテスト
   - _Requirements: 3.1 (構文エラーなく実行)_
