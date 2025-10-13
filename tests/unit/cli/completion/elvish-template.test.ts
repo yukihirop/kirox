@@ -3,9 +3,11 @@
  *
  * Tests for Elvish completion script generation
  * Task 8.1: ElvishTemplate implementation
+ * Task 8.2: Elvish syntax validation
  */
 
 import { describe, it, expect } from 'vitest';
+import { execSync } from 'child_process';
 import { generateCompletionScript, type CompletionMetadata } from '@/cli/completion/generator.js';
 
 describe('Elvish Template Generation', () => {
@@ -549,6 +551,158 @@ describe('Elvish Template Generation', () => {
       // NOT PowerShell
       expect(elvishScript).not.toContain('Register-ArgumentCompleter');
       expect(elvishScript).not.toContain('CompletionResult');
+    });
+  });
+
+  describe('Elvish Syntax Validation (Task 8.2)', () => {
+    /**
+     * Helper function to check if Elvish is available on the system
+     */
+    function isElvishAvailable(): boolean {
+      try {
+        execSync('elvish -version', { stdio: 'ignore' });
+        return true;
+      } catch {
+        return false;
+      }
+    }
+
+    /**
+     * Helper function to validate Elvish script syntax
+     * Uses `elvish -compileonly` to check syntax without executing
+     */
+    function validateElvishSyntax(script: string): void {
+      if (!isElvishAvailable()) {
+        console.warn('Elvish is not available on this system, skipping syntax validation');
+        return;
+      }
+
+      try {
+        execSync('elvish -compileonly', {
+          input: script,
+          encoding: 'utf8',
+          stdio: ['pipe', 'pipe', 'pipe'],
+        });
+      } catch (error) {
+        throw new Error(`Elvish syntax validation failed: ${error}`);
+      }
+    }
+
+    it('should generate syntactically valid Elvish script', () => {
+      const metadata: CompletionMetadata = {
+        programName: 'testcli',
+        subcommands: [{ name: 'build', description: 'Build project', options: [] }],
+        globalOptions: [{ flag: '--help', description: 'Display help' }],
+      };
+
+      const script = generateCompletionScript('elvish', metadata);
+
+      expect(() => validateElvishSyntax(script)).not.toThrow();
+    });
+
+    it('should pass Elvish syntax check with empty subcommands', () => {
+      const metadata: CompletionMetadata = {
+        programName: 'testcli',
+        subcommands: [],
+        globalOptions: [{ flag: '--help', description: 'Help' }],
+      };
+
+      const script = generateCompletionScript('elvish', metadata);
+
+      expect(() => validateElvishSyntax(script)).not.toThrow();
+    });
+
+    it('should pass Elvish syntax check with empty options', () => {
+      const metadata: CompletionMetadata = {
+        programName: 'testcli',
+        subcommands: [{ name: 'test', description: 'Run tests', options: [] }],
+        globalOptions: [],
+      };
+
+      const script = generateCompletionScript('elvish', metadata);
+
+      expect(() => validateElvishSyntax(script)).not.toThrow();
+    });
+
+    it('should pass Elvish syntax check with many subcommands', () => {
+      const metadata: CompletionMetadata = {
+        programName: 'bigcli',
+        subcommands: Array.from({ length: 20 }, (_, i) => ({
+          name: `cmd${i + 1}`,
+          description: `Command ${i + 1}`,
+          options: [],
+        })),
+        globalOptions: [{ flag: '--help', description: 'Help' }],
+      };
+
+      const script = generateCompletionScript('elvish', metadata);
+
+      expect(() => validateElvishSyntax(script)).not.toThrow();
+    });
+
+    it('should pass Elvish syntax check with many options', () => {
+      const metadata: CompletionMetadata = {
+        programName: 'bigcli',
+        subcommands: [{ name: 'test', description: 'Test', options: [] }],
+        globalOptions: Array.from({ length: 30 }, (_, i) => ({
+          flag: `--option${i + 1}`,
+          description: `Option ${i + 1}`,
+        })),
+      };
+
+      const script = generateCompletionScript('elvish', metadata);
+
+      expect(() => validateElvishSyntax(script)).not.toThrow();
+    });
+
+    it('should pass Elvish syntax check with special characters in names', () => {
+      const metadata: CompletionMetadata = {
+        programName: 'my-cli-tool',
+        subcommands: [
+          { name: 'build-prod', description: 'Build production', options: [] },
+          { name: 'test-unit', description: 'Run unit tests', options: [] },
+        ],
+        globalOptions: [
+          { flag: '--dry-run', description: 'Dry run mode' },
+          { flag: '--no-cache', description: 'Disable cache' },
+        ],
+      };
+
+      const script = generateCompletionScript('elvish', metadata);
+
+      expect(() => validateElvishSyntax(script)).not.toThrow();
+    });
+
+    it('should pass Elvish syntax check with real Kirox metadata', () => {
+      const metadata: CompletionMetadata = {
+        programName: 'kirox',
+        subcommands: [
+          {
+            name: 'add',
+            description: 'Add a new project from a remote repository',
+            options: [
+              { flag: '-p, --project <name>', description: 'Project name to add' },
+              { flag: '--track', description: 'Enable update tracking for this project' },
+              { flag: '--force', description: 'Force overwrite existing project' },
+              { flag: '--dry-run', description: 'Preview without executing' },
+              { flag: '--verbose', description: 'Verbose output' },
+            ],
+          },
+          {
+            name: 'completion',
+            description: 'Generate shell completion script',
+            options: [{ flag: '-h, --help', description: 'Display help for completion command' }],
+          },
+        ],
+        globalOptions: [
+          { flag: '-h, --help', description: 'Display help information' },
+          { flag: '-V, --version', description: 'Output version number' },
+        ],
+      };
+
+      const script = generateCompletionScript('elvish', metadata);
+
+      expect(() => validateElvishSyntax(script)).not.toThrow();
     });
   });
 });
