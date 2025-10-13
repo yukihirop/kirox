@@ -12,8 +12,8 @@
   - リポジトリ引数のパース（owner/repo形式、ブランチ指定サポート）
   - プロジェクト名のカンマ区切りパース（複数プロジェクト対応）
   - オプションのデフォルト値設定
-  - track オプションを常にtrueに設定（addコマンド専用動作）
-  - _Requirements: 1.1, 1.2, 1.4, 1.5_
+  - track オプションを追加（デフォルト: false、ユーザーが明示的に指定可能）
+  - _Requirements: 1.1, 1.2, 1.4, 1.5, 8.9 (track option behavior)_
 
 - [ ] 2. addコマンド専用エントリポイントを作成
 - [x] 2.1 executeAddCommand関数の基本構造を実装
@@ -256,6 +256,49 @@
     - [x] Interactive mode開始時に不正なメタデータパスでログが出力されないことを確認
     - [x] Task 8.8のテスト3件全て通過
   - _Requirements: 2.2 (メタデータ存在チェック), 7.2 (リポジトリ提案), 8.1-8.4 (設定ファイル統合)_
+
+- [x] 8.9 addコマンドで--trackオプションなしの場合にメタデータファイルを作成しない（BUG FIX）
+  - **問題**: addコマンド実行時に`--track`を指定していなくてもメタデータファイル（`.kirox-meta.json`）が作成される
+  - **再現手順**:
+    1. `npm run dev -- add`を実行（`--track`オプションなし）
+    2. インタラクティブモードでリポジトリとプロジェクトを選択
+    3. プロジェクト追加が完了すると、`[INFO] Creating new metadata file {"path":"tmp/.kiro/.kirox-meta.json"}`というログが出力される
+    4. 結果: `--track`を指定していないにもかかわらず、メタデータファイルが作成される
+  - **期待動作**:
+    - `--track`オプションを指定した場合のみメタデータファイルを作成・更新する
+    - `--track`オプションなしの場合は、メタデータファイルの読み込み・作成・更新を一切行わない
+    - 既存の`kirox-track-default-false`仕様（`--track`のデフォルト値はfalse）に準拠
+  - **根本原因**:
+    - Task 1.2（line 15）で「track オプションを常にtrueに設定（addコマンド専用動作）」と実装されている
+    - `add-command-entry.ts`で`args.track`の値に関わらず、常にメタデータファイルの作成・保存が実行される
+    - メタデータ保存ロジックで`args.track`のチェックが行われていない
+  - **影響範囲**:
+    - `src/cli/parser.ts`のaddサブコマンド引数パース（Task 1.2の実装）
+    - `add-command-entry.ts`のメタデータ読み込み・保存ロジック
+    - `add-command-entry.ts`の全体的な実行フロー（メタデータありき前提の構造）
+  - **修正内容**:
+    - **アプローチA（採用）**: メタデータ処理を`args.track`の値で条件分岐
+      - Task 1.2の「track オプションを常にtrueに設定」の記述を削除（誤った実装方針）
+      - `add-command-entry.ts`で`args.track`が`true`の場合のみメタデータ処理を実行
+      - `args.track === false`の場合:
+        - メタデータファイルの読み込みをスキップ
+        - 重複チェックをスキップ（メタデータがないため）
+        - プロジェクト追加後のメタデータ保存をスキップ
+        - 「Metadata tracking is disabled. Use --track to enable.」というinfoログを表示
+      - `args.track === true`の場合:
+        - 現在の動作を維持（メタデータ読み込み → 重複チェック → 保存）
+  - **テスト確認項目**:
+    - [x] `--track`なしでaddコマンド実行時にメタデータファイルが作成されないことを確認
+    - [x] `--track`ありでaddコマンド実行時にメタデータファイルが作成されることを確認
+    - [x] `--track`なしの場合、重複チェックがスキップされることを確認
+    - [x] `--track`なしの場合、「Metadata tracking is disabled」というログが表示されることを確認
+    - [x] 既存のaddコマンド機能（ファイル取得・保存）が正常に動作することを確認
+    - [x] Task 8.9のテスト8件全て通過
+  - **実装完了**:
+    - `src/cli/parser.ts`: `--track`オプションを追加（デフォルト: false）
+    - `add-command-entry.ts`: 全てのメタデータ処理（読み込み、重複検出、保存）を`args.track`で条件分岐
+    - `tests/unit/cli/add-track-option.test.ts`: 8テスト作成、全て通過
+  - _Requirements: 1.2 (引数パース - 修正完了), kirox-track-default-false仕様準拠, 2.2-2.4 (メタデータ処理 - 条件分岐追加完了)_
 
 - [ ] 9. 既存機能との統合を確認
 - [x] 9.1 --check-updates機能との統合を確認

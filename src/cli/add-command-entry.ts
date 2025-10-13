@@ -146,13 +146,29 @@ export async function executeAddCommand(argv: string[]): Promise<ExecutionResult
     // - --check-updates and --update options are NOT specified
     const enterInteractiveMode = shouldEnterInteractiveMode(args);
 
-    // Task 8.8: Declare metadata variables that will be initialized at different times
+    // Task 8.8 & 8.9: Declare metadata variables that will be initialized at different times
+    // Metadata processing is only performed when --track option is enabled
     let metadataPath: string | undefined;
     let metadata: Metadata | undefined;
     let isNewMetadata = false;
 
+    // Task 8.9: Check if metadata tracking is enabled
+    // If --track is not specified (default: false), skip all metadata operations
+    if (!args.track) {
+      // Task 8.9: Log info message indicating metadata tracking is disabled
+      logger.info('Metadata tracking is disabled. Use --track to enable.');
+
+      if (args.verbose) {
+        logger.info('Skipping metadata operations', {
+          track: args.track,
+          message: 'Files will be downloaded but not tracked in metadata',
+        });
+      }
+    }
+
     // Task 8.8: Load metadata at different times based on interactive mode
-    if (!enterInteractiveMode) {
+    // Task 8.9: Only load metadata when --track is enabled
+    if (!enterInteractiveMode && args.track) {
       // Non-interactive mode: Load metadata immediately (BEFORE prompts)
       // This provides fast feedback to the user
       metadataPath = getMetadataPath(args.output);
@@ -241,42 +257,45 @@ export async function executeAddCommand(argv: string[]): Promise<ExecutionResult
         throw error;
       }
 
-      // Task 8.8: Interactive mode - Load metadata AFTER prompts complete
+      // Task 8.8 & 8.9: Interactive mode - Load metadata AFTER prompts complete
       // Now args.output has been updated by promptMissingArguments
-      metadataPath = getMetadataPath(args.output);
+      // Task 8.9: Only load metadata when --track is enabled
+      if (args.track) {
+        metadataPath = getMetadataPath(args.output);
 
-      try {
-        metadata = await loadMetadata(metadataPath);
-
-        if (args.verbose) {
-          logger.info('Metadata file found', { path: metadataPath });
-        }
-      } catch (error) {
-        // Task 2.4: Handle metadata not found error - create empty metadata instead of error
-        if (error instanceof MetadataError && error.type === MetadataErrorType.NOT_FOUND) {
-          // Create empty metadata object
-          metadata = {
-            version: '1.0',
-            projects: [],
-          };
-
-          isNewMetadata = true;
-
-          // Log info message about creating new metadata
-          logger.info('Creating new metadata file', {
-            path: metadataPath,
-            message: 'New metadata file will be created after successful project addition',
-          });
+        try {
+          metadata = await loadMetadata(metadataPath);
 
           if (args.verbose) {
-            logger.info('Metadata file does not exist, starting with empty metadata', {
-              path: metadataPath,
-            });
+            logger.info('Metadata file found', { path: metadataPath });
           }
-        } else {
-          // Re-throw other metadata errors (e.g., INVALID_FORMAT, INVALID_SCHEMA)
-          // These will be caught by the outer catch block and handled generically
-          throw error;
+        } catch (error) {
+          // Task 2.4: Handle metadata not found error - create empty metadata instead of error
+          if (error instanceof MetadataError && error.type === MetadataErrorType.NOT_FOUND) {
+            // Create empty metadata object
+            metadata = {
+              version: '1.0',
+              projects: [],
+            };
+
+            isNewMetadata = true;
+
+            // Log info message about creating new metadata
+            logger.info('Creating new metadata file', {
+              path: metadataPath,
+              message: 'New metadata file will be created after successful project addition',
+            });
+
+            if (args.verbose) {
+              logger.info('Metadata file does not exist, starting with empty metadata', {
+                path: metadataPath,
+              });
+            }
+          } else {
+            // Re-throw other metadata errors (e.g., INVALID_FORMAT, INVALID_SCHEMA)
+            // These will be caught by the outer catch block and handled generically
+            throw error;
+          }
         }
       }
     }
@@ -296,14 +315,16 @@ export async function executeAddCommand(argv: string[]): Promise<ExecutionResult
       };
     }
 
-    // Task 8.8: Assert metadata is initialized at this point
-    // Both interactive and non-interactive paths initialize metadata
-    if (!metadata || !metadataPath) {
-      throw new Error('Internal error: metadata not initialized');
+    // Task 8.8 & 8.9: Assert metadata is initialized at this point when --track is enabled
+    // Both interactive and non-interactive paths initialize metadata if --track is true
+    // Task 8.9: Skip this check if --track is false (metadata operations disabled)
+    if (args.track && (!metadata || !metadataPath)) {
+      throw new Error('Internal error: metadata not initialized when --track is enabled');
     }
 
     // Step 7: Detect duplicate projects (Task 2.3)
     // Task 2.4: Skip duplicate check if metadata is new (empty projects array)
+    // Task 8.9: Skip duplicate check if --track is false (metadata operations disabled)
     // Check if project already exists in metadata
     // Handle based on --force option:
     // - Without --force: Warn user and skip to prevent accidental overwrites
@@ -311,8 +332,8 @@ export async function executeAddCommand(argv: string[]): Promise<ExecutionResult
     //
     // A project is considered duplicate if repository + projectName + subdir all match.
     // Different subdir values create separate projects, even with the same repo + name.
-    if (!isNewMetadata) {
-      // Only check for duplicates if metadata already exists (Task 2.4)
+    if (args.track && !isNewMetadata && metadata) {
+      // Only check for duplicates if metadata already exists (Task 2.4) and --track is enabled (Task 8.9)
       for (const projectName of args.projects) {
         const isDuplicate = isDuplicateProject(
           metadata,
@@ -350,11 +371,18 @@ export async function executeAddCommand(argv: string[]): Promise<ExecutionResult
           }
         }
       }
-    } else {
+    } else if (args.track && isNewMetadata) {
       // Task 2.4: Skip duplicate check for new metadata
       if (args.verbose) {
         logger.info('Skipping duplicate check for new metadata', {
           message: 'No existing projects to check against',
+        });
+      }
+    } else if (!args.track) {
+      // Task 8.9: Skip duplicate check when metadata tracking is disabled
+      if (args.verbose) {
+        logger.info('Skipping duplicate check (metadata tracking disabled)', {
+          track: args.track,
         });
       }
     }
@@ -677,104 +705,120 @@ export async function executeAddCommand(argv: string[]): Promise<ExecutionResult
         }
 
         // Step 13: Update metadata (Task 5.1)
-        // Create FileMetadata array by calculating local hashes for written files
-        const fileMetadataList: FileMetadata[] = [];
-        const currentTimestamp = new Date().toISOString();
+        // Task 8.9: Only perform metadata operations when --track is enabled
+        if (args.track) {
+          // Create FileMetadata array by calculating local hashes for written files
+          const fileMetadataList: FileMetadata[] = [];
+          const currentTimestamp = new Date().toISOString();
 
-        for (const file of fetchResult.success) {
-          const localPath = resolveOutputPath(args.output, file.path);
+          for (const file of fetchResult.success) {
+            const localPath = resolveOutputPath(args.output, file.path);
 
-          try {
-            // Calculate local hash for the written file
-            const localHash = await calculateFileHash(localPath);
+            try {
+              // Calculate local hash for the written file
+              const localHash = await calculateFileHash(localPath);
 
-            // Create FileMetadata entry
-            const fileMetadata: FileMetadata = {
-              path: file.path,
-              sha: file.sha,
-              localHash,
-              size: file.size,
-              fetchedAt: currentTimestamp,
-            };
-
-            fileMetadataList.push(fileMetadata);
-
-            if (args.verbose) {
-              logger.info('Calculated file hash', {
+              // Create FileMetadata entry
+              const fileMetadata: FileMetadata = {
                 path: file.path,
-                localHash: localHash.substring(0, 8) + '...',
+                sha: file.sha,
+                localHash,
+                size: file.size,
+                fetchedAt: currentTimestamp,
+              };
+
+              fileMetadataList.push(fileMetadata);
+
+              if (args.verbose) {
+                logger.info('Calculated file hash', {
+                  path: file.path,
+                  localHash: localHash.substring(0, 8) + '...',
+                });
+              }
+            } catch (error) {
+              // If hash calculation fails, log warning but continue
+              // This shouldn't happen for files we just wrote, but handle gracefully
+              const errorMessage = error instanceof Error ? error.message : String(error);
+              logger.warn('Failed to calculate file hash', {
+                path: file.path,
+                error: errorMessage,
               });
             }
-          } catch (error) {
-            // If hash calculation fails, log warning but continue
-            // This shouldn't happen for files we just wrote, but handle gracefully
-            const errorMessage = error instanceof Error ? error.message : String(error);
-            logger.warn('Failed to calculate file hash', {
-              path: file.path,
-              error: errorMessage,
-            });
           }
-        }
 
-        // Create ProjectMetadata
-        const projectMetadata: ProjectMetadata = {
-          repository: args.repository,
-          projectName,
-          ...(config.subdir && { subdir: config.subdir }),
-          fetchedAt: currentTimestamp,
-          files: fileMetadataList,
-        };
+          // Create ProjectMetadata
+          const projectMetadata: ProjectMetadata = {
+            repository: args.repository,
+            projectName,
+            ...(config.subdir && { subdir: config.subdir }),
+            fetchedAt: currentTimestamp,
+            files: fileMetadataList,
+          };
 
-        // Task 8.4: Check if operation was interrupted before saving metadata
-        // Prevents partial metadata saves on interrupt
-        if (interrupted) {
-          // Don't save metadata - operation was interrupted
-          continue;
-        }
+          // Task 8.4: Check if operation was interrupted before saving metadata
+          // Prevents partial metadata saves on interrupt
+          if (interrupted) {
+            // Don't save metadata - operation was interrupted
+            continue;
+          }
 
-        // Save ProjectMetadata to metadata file using upsertProject
-        try {
-          await upsertProject(projectMetadata, metadataPath);
+          // Save ProjectMetadata to metadata file using upsertProject
+          try {
+            await upsertProject(projectMetadata, metadataPath!);
 
-          // Task 5.2: Display success summary message (non-verbose, user-facing)
-          // Always show this message after successful metadata update
-          logger.info(`Project '${projectName}' successfully added with ${fileMetadataList.length} file(s)`, {
-            project: projectName,
-            fileCount: fileMetadataList.length,
-          });
-
-          // Verbose log with additional details
-          if (args.verbose) {
-            logger.info('Metadata updated successfully', {
+            // Task 5.2: Display success summary message (non-verbose, user-facing)
+            // Always show this message after successful metadata update
+            logger.info(`Project '${projectName}' successfully added with ${fileMetadataList.length} file(s)`, {
               project: projectName,
               fileCount: fileMetadataList.length,
             });
-          }
 
-          // Task 6.1: Increment success counters for this project
+            // Verbose log with additional details
+            if (args.verbose) {
+              logger.info('Metadata updated successfully', {
+                project: projectName,
+                fileCount: fileMetadataList.length,
+              });
+            }
+
+            // Task 6.1: Increment success counters for this project
+            successfulProjects++;
+            totalFilesDownloaded += fetchResult.success.length;
+            totalFilesFailed += fetchResult.failed.length;
+
+            // Task 6.2: Display project summary for multi-project operations
+            if (projects.length > 1) {
+              reporter.reportProjectSummary(projectName, fetchResult.success.length, fetchResult.failed.length);
+            }
+          } catch (error) {
+            // Metadata save failure is critical for this project
+            // Task 6.1: Log error but continue processing other projects
+            const errorResult = errorHandler.handle(
+              new Error('Failed to update metadata'),
+              {
+                project: projectName,
+                details: error instanceof Error ? error.message : String(error),
+              }
+            );
+            logger.logError(errorResult);
+
+            // Increment failure counter
+            failedProjects++;
+            totalFilesFailed += fetchResult.success.length;
+          }
+        } else {
+          // Task 8.9: When --track is disabled, only count files as downloaded
+          // No metadata operations are performed
           successfulProjects++;
           totalFilesDownloaded += fetchResult.success.length;
           totalFilesFailed += fetchResult.failed.length;
 
-          // Task 6.2: Display project summary for multi-project operations
-          if (projects.length > 1) {
-            reporter.reportProjectSummary(projectName, fetchResult.success.length, fetchResult.failed.length);
-          }
-        } catch (error) {
-          // Metadata save failure is critical for this project
-          // Task 6.1: Log error but continue processing other projects
-          const errorResult = errorHandler.handle(
-            new Error('Failed to update metadata'),
-            {
+          if (args.verbose) {
+            logger.info('Project files downloaded (metadata tracking disabled)', {
               project: projectName,
-              details: error instanceof Error ? error.message : String(error),
-            }
-          );
-          logger.logError(errorResult);
-
-          // Increment failure counter
-          failedProjects++;
-          totalFilesFailed += fetchResult.success.length;
+              fileCount: fetchResult.success.length,
+            });
+          }
         }
       } catch (error) {
         // Handle project-specific errors

@@ -46,6 +46,7 @@ function parseAddCommand(argv: string[]): ParsedArguments {
     .option('--dry-run', 'Dry-run mode (no actual writes)', false)
     .option('--verbose', 'Verbose logging', false)
     .option('--config <path>', 'Custom config file path')
+    .option('--track', 'Track fetched files in metadata for update detection', false)
     .addHelpText('after', `
 ${chalk.bold.blue('Examples:')}
   ${chalk.dim('# Add new project to existing metadata')}
@@ -87,6 +88,7 @@ ${chalk.bold.yellow('Note:')}
     dryRun: boolean;
     verbose: boolean;
     config?: string;
+    track: boolean;
   }>();
 
   const projects = parseProjects(options.project || '');
@@ -100,7 +102,7 @@ ${chalk.bold.yellow('Note:')}
     dryRun: options.dryRun,
     verbose: options.verbose,
     config: options.config,
-    track: true, // Always true for add command
+    track: options.track, // Use value from options (default: false)
     checkUpdates: false,
     update: false,
     subdir: options.subdir,
