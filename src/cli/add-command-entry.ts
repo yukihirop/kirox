@@ -21,7 +21,7 @@ import { fetchFilesInParallel } from '../github/parallel-fetcher.js';
 import { buildRemotePath, resolveOutputPath } from '../filesystem/path-utils.js';
 import { writeFile } from '../filesystem/writer.js';
 import type { ExecutionResult } from './types.js';
-import type { Metadata, ProjectMetadata } from '../tracking/types.js';
+import type { Metadata } from '../tracking/types.js';
 import type { ContentItem } from '../github/fetcher.js';
 
 /**
@@ -106,13 +106,13 @@ export async function executeAddCommand(argv: string[]): Promise<ExecutionResult
     // Load config file (if specified) and merge with CLI arguments
     // CLI arguments take precedence over file config
     const fileConfig = await loadConfig(args.config);
-    const mergedConfig = mergeConfig(args, fileConfig);
+    const config = mergeConfig(args, fileConfig);
 
     // Log execution start if verbose mode is enabled
     if (args.verbose) {
       logger.info('Executing add command', {
-        repository: mergedConfig.repository,
-        projects: mergedConfig.projects,
+        repository: args.repository,
+        projects: args.projects,
         config: args.config || 'default',
       });
     }
@@ -120,7 +120,7 @@ export async function executeAddCommand(argv: string[]): Promise<ExecutionResult
     // Step 5: Validate input
     // Check that repository and project names are valid
     // This catches user errors before expensive API calls
-    const validation = validateInput(mergedConfig);
+    const validation = validateInput(args);
     if (!validation.valid) {
       logger.error('Validation failed', { errors: validation.errors });
 
@@ -136,7 +136,7 @@ export async function executeAddCommand(argv: string[]): Promise<ExecutionResult
     // Verify .kirox-meta.json exists before proceeding
     // The add command requires existing metadata to add projects to
     // This check happens early to provide fast feedback to the user
-    const metadataPath = getMetadataPath(mergedConfig.output);
+    const metadataPath = getMetadataPath(args.output);
 
     let metadata: Metadata;
     try {
@@ -177,22 +177,22 @@ export async function executeAddCommand(argv: string[]): Promise<ExecutionResult
     //
     // A project is considered duplicate if repository + projectName + subdir all match.
     // Different subdir values create separate projects, even with the same repo + name.
-    for (const projectName of mergedConfig.projects) {
+    for (const projectName of args.projects) {
       const isDuplicate = isDuplicateProject(
         metadata,
-        mergedConfig.repository,
+        args.repository,
         projectName,
-        mergedConfig.subdir
+        config.subdir
       );
 
       if (isDuplicate) {
-        if (!mergedConfig.force) {
+        if (!config.force) {
           // Without --force: warn and skip
           // This is a user error - they likely didn't intend to overwrite
           logger.warn('Project already exists. Use --force to overwrite.', {
-            repository: mergedConfig.repository,
+            repository: args.repository,
             projectName,
-            subdir: mergedConfig.subdir,
+            subdir: config.subdir,
           });
 
           return {
@@ -206,9 +206,9 @@ export async function executeAddCommand(argv: string[]): Promise<ExecutionResult
           // User explicitly requested overwrite, so we proceed
           if (args.verbose) {
             logger.info('Overwriting existing project with --force option', {
-              repository: mergedConfig.repository,
+              repository: args.repository,
               projectName,
-              subdir: mergedConfig.subdir,
+              subdir: config.subdir,
             });
           }
         }
@@ -218,8 +218,8 @@ export async function executeAddCommand(argv: string[]): Promise<ExecutionResult
     // Step 8: Parse repository and determine effective branch (Task 3.1)
     // Extract owner, repo, and optional branch from repository path
     // CLI branch (in repository#branch format) takes precedence over config file branch
-    const { owner, repo, branch } = parseRepositoryPath(mergedConfig.repository);
-    const effectiveBranch = branch || mergedConfig.branch;
+    const { owner, repo, branch } = parseRepositoryPath(args.repository);
+    const effectiveBranch = branch || config.branch;
 
     if (args.verbose) {
       logger.info('Repository parsed', {
@@ -236,7 +236,7 @@ export async function executeAddCommand(argv: string[]): Promise<ExecutionResult
 
     // Step 10: Prepare for GitHub file fetching (Task 3.1)
     // Extract subdirectory from merged config (defaults to empty string)
-    const subdir = mergedConfig.subdir || '';
+    const subdir = config.subdir || '';
 
     if (args.verbose && subdir) {
       logger.info('Using subdirectory', { subdir });
@@ -245,7 +245,7 @@ export async function executeAddCommand(argv: string[]): Promise<ExecutionResult
     // Track steering directory fetch status to avoid duplication across multiple projects
     // Task 3.1 Requirement 4.4: Steering files should only be fetched once
     let steeringFetched = false;
-    const projects = mergedConfig.projects.length > 0 ? mergedConfig.projects : [''];
+    const projects = args.projects.length > 0 ? args.projects : [''];
 
     for (const [index, projectName] of projects.entries()) {
       const isFirstProject = index === 0;
@@ -253,7 +253,7 @@ export async function executeAddCommand(argv: string[]): Promise<ExecutionResult
       try {
         // Step 10.1: Fetch directory listings for current project
         logger.info('Fetching directory listings from GitHub', {
-          repository: mergedConfig.repository,
+          repository: args.repository,
           project: projectName,
           ...(effectiveBranch && { branch: effectiveBranch }),
         });
@@ -343,16 +343,17 @@ export async function executeAddCommand(argv: string[]): Promise<ExecutionResult
         // Step 12: Write files to local filesystem (Task 4.1)
         // Iterate through successfully fetched files and write them to disk
         const writeOptions = {
-          force: mergedConfig.force,
+          force: config.force,
           prompt: false, // No interactive prompts in add command (use --force)
-          dryRun: mergedConfig.dryRun,
+          dryRun: config.dryRun,
+          verbose: config.verbose,
         };
 
         if (args.verbose) {
           logger.info('Starting file writes', {
             fileCount: fetchResult.success.length,
-            outputDir: mergedConfig.output,
-            dryRun: mergedConfig.dryRun,
+            outputDir: args.output,
+            dryRun: config.dryRun,
           });
         }
 
@@ -383,7 +384,7 @@ export async function executeAddCommand(argv: string[]): Promise<ExecutionResult
             );
 
             // Convert remote path to local path
-            const localPath = resolveOutputPath(mergedConfig.output, file.path);
+            const localPath = resolveOutputPath(args.output, file.path);
 
             if (args.verbose) {
               logger.info('Writing file', {
