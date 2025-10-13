@@ -1,14 +1,22 @@
 import { describe, it, expect } from 'vitest';
+import { exec } from 'child_process';
+import { promisify } from 'util';
+import { writeFile, unlink } from 'fs/promises';
+import { join } from 'path';
+import { tmpdir } from 'os';
 import { generateCompletionScript, type CompletionMetadata } from '@/cli/completion/generator';
+
+const execAsync = promisify(exec);
 
 /**
  * Tests for Bash Template
  *
  * Task 4.1: BashTemplate implementation
+ * Task 4.2: Bash syntax validation with `bash -n`
  *
  * Requirements tested:
  * - 1.2: Bash shell script generation
- * - 3.1: Script syntax correctness
+ * - 3.1: Script syntax correctness (verified by bash -n)
  * - 3.2: Subcommand completion
  * - 3.3: Option completion
  *
@@ -19,6 +27,7 @@ import { generateCompletionScript, type CompletionMetadata } from '@/cli/complet
  * - Subcommand completion logic
  * - Option completion logic
  * - Metadata injection (program name, subcommands, options)
+ * - Syntax validation with bash -n command (Task 4.2)
  */
 describe('Bash Template (Task 4.1)', () => {
   // Sample metadata for testing
@@ -398,6 +407,183 @@ describe('Bash Template (Task 4.1)', () => {
       expect(script).toContain('--track');
       expect(script).toContain('--help');
       expect(script).toContain('--version');
+    });
+  });
+
+  /**
+   * Task 4.2: Bash syntax validation with `bash -n`
+   *
+   * These tests verify that generated Bash scripts pass syntax checking
+   * using the `bash -n` command, which performs syntax validation without
+   * executing the script.
+   */
+  describe('Bash syntax validation (Task 4.2)', () => {
+    /**
+     * Helper function to check bash syntax using `bash -n`
+     *
+     * @param script - Bash script content to validate
+     * @returns Promise that resolves if syntax is valid, rejects otherwise
+     */
+    async function checkBashSyntax(script: string): Promise<{ valid: boolean; error?: string }> {
+      // Create temporary file for syntax check
+      const tempFile = join(tmpdir(), `kirox-completion-test-${Date.now()}.bash`);
+
+      try {
+        // Write script to temporary file
+        await writeFile(tempFile, script, 'utf-8');
+
+        // Run bash -n to check syntax
+        await execAsync(`bash -n "${tempFile}"`);
+
+        // Clean up temporary file
+        await unlink(tempFile);
+
+        return { valid: true };
+      } catch (error) {
+        // Clean up temporary file on error
+        try {
+          await unlink(tempFile);
+        } catch {
+          // Ignore cleanup errors
+        }
+
+        if (error instanceof Error) {
+          return {
+            valid: false,
+            error: error.message,
+          };
+        }
+
+        return {
+          valid: false,
+          error: 'Unknown syntax error',
+        };
+      }
+    }
+
+    it('should generate syntactically valid bash script', async () => {
+      const script = generateCompletionScript('bash', sampleMetadata);
+
+      const result = await checkBashSyntax(script);
+
+      expect(result.valid).toBe(true);
+      if (!result.valid) {
+        console.error('Bash syntax error:', result.error);
+      }
+    });
+
+    it('should pass bash -n check with empty subcommands', async () => {
+      const metadata: CompletionMetadata = {
+        programName: 'testcli',
+        subcommands: [],
+        globalOptions: [{ flag: '--help', description: 'Help' }],
+      };
+
+      const script = generateCompletionScript('bash', metadata);
+      const result = await checkBashSyntax(script);
+
+      expect(result.valid).toBe(true);
+    });
+
+    it('should pass bash -n check with empty options', async () => {
+      const metadata: CompletionMetadata = {
+        programName: 'testcli',
+        subcommands: [{ name: 'cmd', description: 'Command', options: [] }],
+        globalOptions: [],
+      };
+
+      const script = generateCompletionScript('bash', metadata);
+      const result = await checkBashSyntax(script);
+
+      expect(result.valid).toBe(true);
+    });
+
+    it('should pass bash -n check with many subcommands', async () => {
+      const metadata: CompletionMetadata = {
+        programName: 'cli',
+        subcommands: Array.from({ length: 20 }, (_, i) => ({
+          name: `cmd${i}`,
+          description: `Command ${i}`,
+          options: [],
+        })),
+        globalOptions: [],
+      };
+
+      const script = generateCompletionScript('bash', metadata);
+      const result = await checkBashSyntax(script);
+
+      expect(result.valid).toBe(true);
+    });
+
+    it('should pass bash -n check with many options', async () => {
+      const metadata: CompletionMetadata = {
+        programName: 'cli',
+        subcommands: [],
+        globalOptions: Array.from({ length: 15 }, (_, i) => ({
+          flag: `--option${i}`,
+          description: `Option ${i}`,
+        })),
+      };
+
+      const script = generateCompletionScript('bash', metadata);
+      const result = await checkBashSyntax(script);
+
+      expect(result.valid).toBe(true);
+    });
+
+    it('should pass bash -n check with special characters in names', async () => {
+      const metadata: CompletionMetadata = {
+        programName: 'my-cli',
+        subcommands: [
+          { name: 'cmd-one', description: 'Command one', options: [] },
+          { name: 'cmd_two', description: 'Command two', options: [] },
+        ],
+        globalOptions: [
+          { flag: '-v, --verbose', description: 'Verbose output' },
+          { flag: '--dry-run', description: 'Dry run mode' },
+        ],
+      };
+
+      const script = generateCompletionScript('bash', metadata);
+      const result = await checkBashSyntax(script);
+
+      expect(result.valid).toBe(true);
+    });
+
+    it('should pass bash -n check with real Kirox metadata', async () => {
+      const kiroxMetadata: CompletionMetadata = {
+        programName: 'kirox',
+        subcommands: [
+          {
+            name: 'add',
+            description: 'Add a new project from a remote repository',
+            options: [
+              { flag: '-p, --project <name>', description: 'Project name to add' },
+              { flag: '--track', description: 'Enable update tracking for this project' },
+              { flag: '--force', description: 'Force overwrite existing project' },
+              { flag: '--dry-run', description: 'Preview without executing' },
+              { flag: '--verbose', description: 'Verbose output' },
+            ],
+          },
+          {
+            name: 'completion',
+            description: 'Generate shell completion script',
+            options: [{ flag: '-h, --help', description: 'Display help for completion command' }],
+          },
+        ],
+        globalOptions: [
+          { flag: '-h, --help', description: 'Display help information' },
+          { flag: '-V, --version', description: 'Output version number' },
+        ],
+      };
+
+      const script = generateCompletionScript('bash', kiroxMetadata);
+      const result = await checkBashSyntax(script);
+
+      expect(result.valid).toBe(true);
+      if (!result.valid) {
+        console.error('Kirox bash completion syntax error:', result.error);
+      }
     });
   });
 });
