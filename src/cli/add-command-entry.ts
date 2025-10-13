@@ -17,6 +17,7 @@ import { mergeConfig } from '../config/merger.js';
 import { loadMetadata } from '../tracking/metadata-manager.js';
 import { MetadataError, MetadataErrorType } from '../tracking/types.js';
 import { parseRepositoryPath, fetchDirectoryContents } from '../github/fetcher.js';
+import { fetchFilesInParallel } from '../github/parallel-fetcher.js';
 import { buildRemotePath } from '../filesystem/path-utils.js';
 import type { ExecutionResult } from './types.js';
 import type { Metadata, ProjectMetadata } from '../tracking/types.js';
@@ -306,7 +307,37 @@ export async function executeAddCommand(argv: string[]): Promise<ExecutionResult
           });
         }
 
-        // TODO: Step 11: Fetch file contents in parallel (Task 3.2)
+        // Step 11: Fetch file contents in parallel (Task 3.2)
+        // Extract file paths from ContentItem array
+        const filePaths = allFiles.map((item) => item.path);
+
+        if (args.verbose) {
+          logger.info('Starting parallel file fetch', {
+            fileCount: filePaths.length,
+            maxConcurrency: 5,
+          });
+        }
+
+        // Fetch all files in parallel with semaphore control
+        // Task 3.2 Requirements:
+        // - fetchFilesInParallel() with semaphore control (max 5 concurrent)
+        // - Classify success/failed files
+        // - Partial failure tolerance (Promise.allSettled)
+        const fetchResult = await fetchFilesInParallel(
+          octokit,
+          owner,
+          repo,
+          filePaths,
+          5, // maxConcurrency
+          effectiveBranch
+        );
+
+        if (args.verbose) {
+          logger.info('Parallel file fetch completed', {
+            successCount: fetchResult.success.length,
+            failedCount: fetchResult.failed.length,
+          });
+        }
 
         // TODO: Step 12: Write files to local filesystem (Task 4.1, 4.2)
 

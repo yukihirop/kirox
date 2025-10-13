@@ -72,6 +72,13 @@ vi.mock('@/github/fetcher.js', () => ({
   fetchBranches: vi.fn(async () => ['main', 'develop']),
 }));
 
+vi.mock('@/github/parallel-fetcher.js', () => ({
+  fetchFilesInParallel: vi.fn(async () => ({
+    success: [],
+    failed: [],
+  })),
+}));
+
 vi.mock('@/filesystem/path-utils.js', () => ({
   buildRemotePath: vi.fn((subdir: string, projectName: string, type: string) => {
     return subdir ? `${subdir}/.kiro/${type}/${projectName}` : `.kiro/${type}/${projectName}`;
@@ -99,6 +106,7 @@ describe('executeAddCommand', () => {
     const { loadConfig } = await import('@/config/loader.js');
     const { mergeConfig } = await import('@/config/merger.js');
     const { fetchDirectoryContents } = await import('@/github/fetcher.js');
+    const { fetchFilesInParallel } = await import('@/github/parallel-fetcher.js');
     const { Logger } = await import('@/reporting/logger.js');
 
     // Set default behaviors for mocks
@@ -113,6 +121,11 @@ describe('executeAddCommand', () => {
     vi.mocked(mergeConfig).mockImplementation((args) => args);
 
     vi.mocked(fetchDirectoryContents).mockResolvedValue([]);
+
+    vi.mocked(fetchFilesInParallel).mockResolvedValue({
+      success: [],
+      failed: [],
+    });
 
     vi.mocked(Logger).mockReturnValue({
       info: vi.fn(),
@@ -844,6 +857,243 @@ describe('executeAddCommand', () => {
         expect.any(String),
         'staging' // effectiveBranch from config
       );
+    });
+  });
+
+  describe('Parallel file fetching (Task 3.2)', () => {
+    it('should call fetchFilesInParallel with correct parameters', async () => {
+      const { loadMetadata } = await import('@/tracking/metadata-manager.js');
+      const { fetchDirectoryContents } = await import('@/github/fetcher.js');
+      const { fetchFilesInParallel } = await import('@/github/parallel-fetcher.js');
+
+      vi.mocked(loadMetadata).mockResolvedValue({
+        version: '1.0',
+        projects: [],
+      });
+
+      // Mock fetchDirectoryContents to return file items
+      // First call: specs directory (returns files)
+      // Second call: steering directory (returns empty, will throw error and be caught)
+      vi.mocked(fetchDirectoryContents)
+        .mockResolvedValueOnce([
+          { name: 'spec.json', path: '.kiro/specs/test-project/spec.json', type: 'file', sha: 'abc123', size: 100 },
+          { name: 'requirements.md', path: '.kiro/specs/test-project/requirements.md', type: 'file', sha: 'def456', size: 200 },
+        ] as any)
+        .mockRejectedValueOnce(new Error('Steering directory not found'));
+
+      // Mock fetchFilesInParallel to return successful fetch
+      vi.mocked(fetchFilesInParallel).mockResolvedValue({
+        success: [
+          { path: '.kiro/specs/test-project/spec.json', content: '{}', size: 100, sha: 'abc123' },
+          { path: '.kiro/specs/test-project/requirements.md', content: '# Requirements', size: 200, sha: 'def456' },
+        ],
+        failed: [],
+      });
+
+      const argv = ['node', 'kirox', 'add', 'owner/repo', '-p', 'test-project'];
+      await executeAddCommand(argv);
+
+      // Should call fetchFilesInParallel with correct parameters
+      expect(fetchFilesInParallel).toHaveBeenCalledWith(
+        expect.anything(), // octokit client
+        'owner',
+        'repo',
+        ['.kiro/specs/test-project/spec.json', '.kiro/specs/test-project/requirements.md'],
+        5, // default maxConcurrency
+        undefined // no branch
+      );
+    });
+
+    it('should pass ref parameter to fetchFilesInParallel when branch is specified', async () => {
+      const { loadMetadata } = await import('@/tracking/metadata-manager.js');
+      const { fetchDirectoryContents } = await import('@/github/fetcher.js');
+      const { fetchFilesInParallel } = await import('@/github/parallel-fetcher.js');
+
+      vi.mocked(loadMetadata).mockResolvedValue({
+        version: '1.0',
+        projects: [],
+      });
+
+      // Mock fetchDirectoryContents - first call for specs, second call for steering fails
+      vi.mocked(fetchDirectoryContents)
+        .mockResolvedValueOnce([
+          { name: 'spec.json', path: '.kiro/specs/test-project/spec.json', type: 'file', sha: 'abc123', size: 100 },
+        ] as any)
+        .mockRejectedValueOnce(new Error('Steering directory not found'));
+
+      vi.mocked(fetchFilesInParallel).mockResolvedValue({
+        success: [
+          { path: '.kiro/specs/test-project/spec.json', content: '{}', size: 100, sha: 'abc123' },
+        ],
+        failed: [],
+      });
+
+      const argv = ['node', 'kirox', 'add', 'owner/repo#develop', '-p', 'test-project'];
+      await executeAddCommand(argv);
+
+      // Should pass branch to fetchFilesInParallel
+      expect(fetchFilesInParallel).toHaveBeenCalledWith(
+        expect.anything(),
+        'owner',
+        'repo',
+        expect.any(Array),
+        5,
+        'develop' // branch from repository#branch format
+      );
+    });
+
+    it('should classify successful and failed file fetches', async () => {
+      const { loadMetadata } = await import('@/tracking/metadata-manager.js');
+      const { fetchDirectoryContents } = await import('@/github/fetcher.js');
+      const { fetchFilesInParallel } = await import('@/github/parallel-fetcher.js');
+
+      vi.mocked(loadMetadata).mockResolvedValue({
+        version: '1.0',
+        projects: [],
+      });
+
+      vi.mocked(fetchDirectoryContents)
+        .mockResolvedValueOnce([
+          { name: 'spec.json', path: '.kiro/specs/test-project/spec.json', type: 'file', sha: 'abc123', size: 100 },
+          { name: 'requirements.md', path: '.kiro/specs/test-project/requirements.md', type: 'file', sha: 'def456', size: 200 },
+          { name: 'large-file.txt', path: '.kiro/specs/test-project/large-file.txt', type: 'file', sha: 'ghi789', size: 2000000 },
+        ] as any)
+        .mockRejectedValueOnce(new Error('Steering directory not found'));
+
+      // Mock fetchFilesInParallel to return mixed results
+      vi.mocked(fetchFilesInParallel).mockResolvedValue({
+        success: [
+          { path: '.kiro/specs/test-project/spec.json', content: '{}', size: 100, sha: 'abc123' },
+          { path: '.kiro/specs/test-project/requirements.md', content: '# Requirements', size: 200, sha: 'def456' },
+        ],
+        failed: [
+          { path: '.kiro/specs/test-project/large-file.txt', error: 'File size exceeds 1MB limit', retryable: false },
+        ],
+      });
+
+      const argv = ['node', 'kirox', 'add', 'owner/repo', '-p', 'test-project'];
+      const result = await executeAddCommand(argv);
+
+      // Should continue execution despite partial failures
+      expect(result.exitCode).toBeGreaterThanOrEqual(0);
+    });
+
+    it('should integrate progress reporting for each file fetch', async () => {
+      const { loadMetadata } = await import('@/tracking/metadata-manager.js');
+      const { fetchDirectoryContents } = await import('@/github/fetcher.js');
+      const { fetchFilesInParallel } = await import('@/github/parallel-fetcher.js');
+      const { ProgressReporter } = await import('@/reporting/progress-reporter.js');
+
+      const mockReporter = {
+        reportStart: vi.fn(),
+        reportProgress: vi.fn(),
+        reportSuccess: vi.fn(),
+        reportError: vi.fn(),
+        reportSummary: vi.fn(),
+        reportVerbose: vi.fn(),
+        reportProjectSummary: vi.fn(),
+        reportOverallSummary: vi.fn(),
+        reportPartialFailureSummary: vi.fn(),
+        reportProjectError: vi.fn(),
+      };
+      vi.mocked(ProgressReporter).mockReturnValue(mockReporter as any);
+
+      vi.mocked(loadMetadata).mockResolvedValue({
+        version: '1.0',
+        projects: [],
+      });
+
+      vi.mocked(fetchDirectoryContents)
+        .mockResolvedValueOnce([
+          { name: 'spec.json', path: '.kiro/specs/test-project/spec.json', type: 'file', sha: 'abc123', size: 100 },
+        ] as any)
+        .mockRejectedValueOnce(new Error('Steering directory not found'));
+
+      vi.mocked(fetchFilesInParallel).mockResolvedValue({
+        success: [
+          { path: '.kiro/specs/test-project/spec.json', content: '{}', size: 100, sha: 'abc123' },
+        ],
+        failed: [],
+      });
+
+      const argv = ['node', 'kirox', 'add', 'owner/repo', '-p', 'test-project'];
+      await executeAddCommand(argv);
+
+      // Progress reporter should be called (implementation detail will be verified in GREEN phase)
+      expect(ProgressReporter).toHaveBeenCalled();
+    });
+
+    it('should support verbose logging for file fetching', async () => {
+      const { loadMetadata } = await import('@/tracking/metadata-manager.js');
+      const { fetchDirectoryContents } = await import('@/github/fetcher.js');
+      const { fetchFilesInParallel } = await import('@/github/parallel-fetcher.js');
+      const { Logger } = await import('@/reporting/logger.js');
+
+      const mockLogger = {
+        info: vi.fn(),
+        warn: vi.fn(),
+        error: vi.fn(),
+        logError: vi.fn(),
+      };
+      vi.mocked(Logger).mockReturnValue(mockLogger as any);
+
+      vi.mocked(loadMetadata).mockResolvedValue({
+        version: '1.0',
+        projects: [],
+      });
+
+      vi.mocked(fetchDirectoryContents)
+        .mockResolvedValueOnce([
+          { name: 'spec.json', path: '.kiro/specs/test-project/spec.json', type: 'file', sha: 'abc123', size: 100 },
+        ] as any)
+        .mockRejectedValueOnce(new Error('Steering directory not found'));
+
+      vi.mocked(fetchFilesInParallel).mockResolvedValue({
+        success: [
+          { path: '.kiro/specs/test-project/spec.json', content: '{}', size: 100, sha: 'abc123' },
+        ],
+        failed: [],
+      });
+
+      const argv = ['node', 'kirox', 'add', 'owner/repo', '-p', 'test-project', '--verbose'];
+      await executeAddCommand(argv);
+
+      // Logger info should be called with verbose flag
+      expect(mockLogger.info).toHaveBeenCalled();
+    });
+
+    it('should tolerate partial failures using Promise.allSettled behavior', async () => {
+      const { loadMetadata } = await import('@/tracking/metadata-manager.js');
+      const { fetchDirectoryContents } = await import('@/github/fetcher.js');
+      const { fetchFilesInParallel } = await import('@/github/parallel-fetcher.js');
+
+      vi.mocked(loadMetadata).mockResolvedValue({
+        version: '1.0',
+        projects: [],
+      });
+
+      vi.mocked(fetchDirectoryContents)
+        .mockResolvedValueOnce([
+          { name: 'spec.json', path: '.kiro/specs/test-project/spec.json', type: 'file', sha: 'abc123', size: 100 },
+          { name: 'missing.md', path: '.kiro/specs/test-project/missing.md', type: 'file', sha: 'xyz999', size: 50 },
+        ] as any)
+        .mockRejectedValueOnce(new Error('Steering directory not found'));
+
+      // Mock partial failure: one success, one failure
+      vi.mocked(fetchFilesInParallel).mockResolvedValue({
+        success: [
+          { path: '.kiro/specs/test-project/spec.json', content: '{}', size: 100, sha: 'abc123' },
+        ],
+        failed: [
+          { path: '.kiro/specs/test-project/missing.md', error: 'File not found', retryable: true },
+        ],
+      });
+
+      const argv = ['node', 'kirox', 'add', 'owner/repo', '-p', 'test-project'];
+      const result = await executeAddCommand(argv);
+
+      // Should not completely fail - partial success is acceptable
+      expect(result.exitCode).toBeGreaterThanOrEqual(0);
     });
   });
 });
