@@ -164,11 +164,14 @@ describe('promptBranch', () => {
       const branches = ['main'];
       await promptBranch(branches, 'main');
 
-      expect(searchableCheckbox).toHaveBeenCalledWith(
-        expect.objectContaining({
-          message: 'Select branch (type to filter, space to select, enter to confirm):',
-        })
-      );
+      // Get the actual call arguments
+      const callArgs = vi.mocked(searchableCheckbox).mock.calls[0][0];
+
+      // Check that message contains key text (Chalk styling may be present)
+      expect(callArgs.message).toContain('Select branch');
+      expect(callArgs.message).toContain('type to filter');
+      expect(callArgs.message).toContain('space to select');
+      expect(callArgs.message).toContain('enter to confirm');
     });
 
     it('should configure pageSize and loop options', async () => {

@@ -418,8 +418,8 @@ describe('E2E CLI Options', () => {
       // Restore stdout
       process.stdout.write = originalWrite;
 
-      // Verify help message includes explanation about branch specification
-      expect(helpOutput).toMatch(/ブランチ指定は#の後に指定/i);
+      // Verify help message includes explanation about branch specification (English after Task 10.3)
+      expect(helpOutput).toMatch(/branch.*after.*#|specify.*branch.*#/i);
     });
   });
 });

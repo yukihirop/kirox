@@ -466,7 +466,7 @@
     - または別タスクとして管理する可能性あり
   - _Requirements: Testing Strategy - Unit Tests, Requirements 2.2, 2.4_
 
-- [ ] 11.4 Task 10.4のChalkスタイリング追加に伴うテストの修正（BUG FIX）
+- [x] 11.4 Task 10.4のChalkスタイリング追加に伴うテストの修正（BUG FIX）
   - **問題**: Task 10.4でインタラクティブモードのプロンプトメッセージにChalkスタイリングを追加したため、厳密な文字列マッチングを行っているテストが失敗している
   - **影響を受けているテストファイル**（21テスト失敗中）:
     - `tests/unit/cli/branch-prompt.test.ts` - 1テスト失敗
