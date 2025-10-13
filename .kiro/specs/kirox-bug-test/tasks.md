@@ -119,6 +119,18 @@
   - テスト実行で1個のテストが成功することを確認
   - _Requirements: 4.1, 4.3 (テストの独立性)_
 
+- [ ] 6.2 PowerShell completionテストのCI失敗を修正
+  - 問題分析: Ubuntuランナー上で`pwsh -Command`に渡すスクリプトのクォート解釈差異により構文検証が失敗（CIログ参照）。`validatePowerShellSyntax`が`execSync('pwsh -Command "..."')`で失敗している
+  - 解決策A: テスト内ヘルパー`validatePowerShellSyntax`を、一時ファイルへスクリプトを書き出し`pwsh -NoProfile -NonInteractive -File <temp.ps1>`で構文検証する方式に変更（シェルのクォート依存を排除）
+  - 解決策B: 代替として、CI環境(`process.env.CI==="true"`)ではPowerShell構文検証をスキップし、生成文字列の基本的検証のみに留める
+  - 成功基準: Node 18/20/22のマトリクスで当該テストが安定してグリーン。ローカル/CI双方で失敗しない
+  - _Requirements: 4.1, 4.2, 4.3_
+
+- [x] 6.3 --help系でのprocess.exit抑止（テスト安定化）
+  - 対応: `src/cli/parser.ts`の各パーサーで`process.env.NODE_ENV==='test'`時に`program.exitOverride()`を適用
+  - 成功確認: `tests/e2e/options.test.ts`の`--help`関連テストがグリーン
+  - _Requirements: 4.1, 4.3_
+
 ## Implementation Notes
 
 - 各タスクは独立して実行可能ですが、順次実行することを推奨します
