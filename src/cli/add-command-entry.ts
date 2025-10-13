@@ -6,6 +6,7 @@
  */
 
 import path from 'path';
+import { Octokit } from 'octokit';
 import { parseArguments } from './parser.js';
 import { validateInput } from './validator.js';
 import { Logger } from '../reporting/logger.js';
@@ -15,8 +16,11 @@ import { loadConfig } from '../config/loader.js';
 import { mergeConfig } from '../config/merger.js';
 import { loadMetadata } from '../tracking/metadata-manager.js';
 import { MetadataError, MetadataErrorType } from '../tracking/types.js';
+import { parseRepositoryPath, fetchDirectoryContents } from '../github/fetcher.js';
+import { buildRemotePath } from '../filesystem/path-utils.js';
 import type { ExecutionResult } from './types.js';
 import type { Metadata, ProjectMetadata } from '../tracking/types.js';
+import type { ContentItem } from '../github/fetcher.js';
 
 /**
  * Get metadata file path based on output directory
@@ -209,20 +213,124 @@ export async function executeAddCommand(argv: string[]): Promise<ExecutionResult
       }
     }
 
-    // TODO: Step 8: Fetch files from GitHub (Task 3.1, 3.2)
-    // Use existing GitHub fetcher to download project files
-    // Support branch specification and subdirectories
+    // Step 8: Parse repository and determine effective branch (Task 3.1)
+    // Extract owner, repo, and optional branch from repository path
+    // CLI branch (in repository#branch format) takes precedence over config file branch
+    const { owner, repo, branch } = parseRepositoryPath(mergedConfig.repository);
+    const effectiveBranch = branch || mergedConfig.branch;
 
-    // TODO: Step 9: Write files to local filesystem (Task 4.1, 4.2)
-    // Use existing file writer with --force and --dry-run support
-    // Show progress for each file
+    if (args.verbose) {
+      logger.info('Repository parsed', {
+        owner,
+        repo,
+        branch: effectiveBranch || 'default',
+      });
+    }
 
-    // TODO: Step 10: Update metadata (Task 5.1, 5.2)
-    // Use metadata manager to upsert project and file metadata
-    // Atomic write with temp file + rename pattern
+    // Step 9: Initialize Octokit client for GitHub API
+    const octokit = new Octokit({
+      auth: process.env.GITHUB_TOKEN,
+    });
 
-    // Temporary success return for Task 2.1 completion
-    // This will be replaced with actual implementation in subsequent tasks
+    // Step 10: Prepare for GitHub file fetching (Task 3.1)
+    // Extract subdirectory from merged config (defaults to empty string)
+    const subdir = mergedConfig.subdir || '';
+
+    if (args.verbose && subdir) {
+      logger.info('Using subdirectory', { subdir });
+    }
+
+    // Track steering directory fetch status to avoid duplication across multiple projects
+    // Task 3.1 Requirement 4.4: Steering files should only be fetched once
+    let steeringFetched = false;
+    const projects = mergedConfig.projects.length > 0 ? mergedConfig.projects : [''];
+
+    for (const [index, projectName] of projects.entries()) {
+      const isFirstProject = index === 0;
+
+      try {
+        // Step 10.1: Fetch directory listings for current project
+        logger.info('Fetching directory listings from GitHub', {
+          repository: mergedConfig.repository,
+          project: projectName,
+          ...(effectiveBranch && { branch: effectiveBranch }),
+        });
+
+        const specPath = buildRemotePath(subdir, projectName, 'specs');
+
+        // Fetch spec directory (required)
+        const specContents = await fetchDirectoryContents(
+          octokit,
+          owner,
+          repo,
+          specPath,
+          effectiveBranch
+        );
+
+        // Fetch steering directory only for first project (to avoid duplication)
+        // Task 3.1 Requirement 4.4: Avoid steering file duplication
+        let steeringContents: ContentItem[] = [];
+        if (isFirstProject && !steeringFetched) {
+          const steeringPath = buildRemotePath(subdir, '', 'steering');
+          try {
+            steeringContents = await fetchDirectoryContents(
+              octokit,
+              owner,
+              repo,
+              steeringPath,
+              effectiveBranch
+            );
+            steeringFetched = true; // Mark as fetched
+          } catch (error) {
+            // Steering directory is optional - log warning if verbose but continue
+            if (args.verbose) {
+              logger.warn('Steering directory not found, skipping', {
+                path: steeringPath,
+                error: error instanceof Error ? error.message : String(error),
+              });
+            }
+          }
+        }
+
+        // Collect all file items
+        const specFiles = specContents.filter((item) => item.type === 'file');
+        const steeringFiles = steeringContents.filter((item) => item.type === 'file');
+        const allFiles: ContentItem[] = [...specFiles, ...steeringFiles];
+
+        if (args.verbose) {
+          logger.info('Directory listings fetched', {
+            specFiles: specFiles.length,
+            steeringFiles: steeringFiles.length,
+            total: allFiles.length,
+            ...(subdir && { subdir }),
+          });
+        }
+
+        // TODO: Step 11: Fetch file contents in parallel (Task 3.2)
+
+        // TODO: Step 12: Write files to local filesystem (Task 4.1, 4.2)
+
+        // TODO: Step 13: Update metadata (Task 5.1, 5.2)
+      } catch (error) {
+        // Handle project-specific errors
+        const errorResult = errorHandler.handle(error, {
+          project: projectName,
+          details: error instanceof Error ? error.message : String(error),
+        });
+        logger.logError(errorResult);
+
+        // For now, return failure on first error (will handle partial success in later tasks)
+        return {
+          success: false,
+          filesDownloaded: 0,
+          filesFailed: 0,
+          exitCode: errorResult.exitCode,
+        };
+      }
+    }
+
+    // Temporary success return for Task 3.1 completion
+    // This will be replaced with actual file fetching and writing in subsequent tasks
     return {
       success: true,
       filesDownloaded: 0,

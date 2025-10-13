@@ -39,7 +39,7 @@
   - _Requirements: 1.3, 3.2, 3.3, 3.4_
 
 - [ ] 3. GitHub取得ロジックをaddコマンドに統合
-- [ ] 3.1 ディレクトリコンテンツ取得を実装
+- [x] 3.1 ディレクトリコンテンツ取得を実装
   - parseRepositoryPath()でリポジトリとブランチを解析
   - 設定ファイルとCLI引数からeffectiveBranchを決定
   - fetchDirectoryContents()でspecsディレクトリのファイル一覧を取得

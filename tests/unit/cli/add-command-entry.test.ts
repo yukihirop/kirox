@@ -58,6 +58,37 @@ vi.mock('@/tracking/metadata-manager.js', () => ({
   })),
 }));
 
+vi.mock('@/github/fetcher.js', () => ({
+  parseRepositoryPath: vi.fn((repo: string) => {
+    const parts = repo.split('#');
+    return {
+      owner: 'owner',
+      repo: 'repo',
+      branch: parts[1] || undefined,
+    };
+  }),
+  fetchDirectoryContents: vi.fn(async () => []),
+  fetchDefaultBranch: vi.fn(async () => 'main'),
+  fetchBranches: vi.fn(async () => ['main', 'develop']),
+}));
+
+vi.mock('@/filesystem/path-utils.js', () => ({
+  buildRemotePath: vi.fn((subdir: string, projectName: string, type: string) => {
+    return subdir ? `${subdir}/.kiro/${type}/${projectName}` : `.kiro/${type}/${projectName}`;
+  }),
+  resolveOutputPath: vi.fn((output: string, filePath: string) => `${output}/${filePath}`),
+}));
+
+vi.mock('octokit', () => ({
+  Octokit: vi.fn(() => ({
+    rest: {
+      repos: {
+        getContent: vi.fn(),
+      },
+    },
+  })),
+}));
+
 describe('executeAddCommand', () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -566,6 +597,220 @@ describe('executeAddCommand', () => {
       expect(mockLogger.warn).toHaveBeenCalledWith(
         expect.stringMatching(/use.*--force|--force.*overwrite/i),
         expect.any(Object)
+      );
+    });
+  });
+
+  describe('Directory content fetching (Task 3.1)', () => {
+    it('should fetch spec directory contents using buildRemotePath and fetchDirectoryContents', async () => {
+      const { loadMetadata } = await import('@/tracking/metadata-manager.js');
+      const { buildRemotePath } = await import('@/filesystem/path-utils.js');
+      const { fetchDirectoryContents } = await import('@/github/fetcher.js');
+
+      // Mock successful metadata load
+      vi.mocked(loadMetadata).mockResolvedValueOnce({
+        version: '1.0',
+        projects: [],
+      });
+
+      // Mock fetchDirectoryContents to return spec files
+      vi.mocked(fetchDirectoryContents).mockResolvedValueOnce([
+        { name: 'spec.json', path: '.kiro/specs/test-project/spec.json', type: 'file', sha: 'abc123' },
+      ] as any);
+
+      const argv = ['node', 'kirox', 'add', 'owner/repo', '-p', 'test-project'];
+      await executeAddCommand(argv);
+
+      // Should call buildRemotePath for specs directory
+      expect(buildRemotePath).toHaveBeenCalledWith('', 'test-project', 'specs');
+
+      // Should call fetchDirectoryContents with spec path
+      expect(fetchDirectoryContents).toHaveBeenCalledWith(
+        expect.anything(), // octokit client
+        'owner',
+        'repo',
+        '.kiro/specs/test-project',
+        undefined // no branch specified
+      );
+    });
+
+    it('should support branch specification via repository#branch format', async () => {
+      const { loadMetadata } = await import('@/tracking/metadata-manager.js');
+      const { parseRepositoryPath, fetchDirectoryContents } = await import('@/github/fetcher.js');
+
+      vi.mocked(loadMetadata).mockResolvedValueOnce({
+        version: '1.0',
+        projects: [],
+      });
+
+      vi.mocked(fetchDirectoryContents).mockResolvedValueOnce([]);
+
+      const argv = ['node', 'kirox', 'add', 'owner/repo#develop', '-p', 'test-project'];
+      await executeAddCommand(argv);
+
+      // Should parse branch from repository path
+      expect(parseRepositoryPath).toHaveBeenCalledWith('owner/repo#develop');
+
+      // Should call fetchDirectoryContents with branch
+      expect(fetchDirectoryContents).toHaveBeenCalledWith(
+        expect.anything(),
+        'owner',
+        'repo',
+        expect.any(String),
+        'develop' // branch should be passed
+      );
+    });
+
+    it('should support --subdir option when fetching directory contents', async () => {
+      const { loadMetadata } = await import('@/tracking/metadata-manager.js');
+      const { mergeConfig } = await import('@/config/merger.js');
+      const { buildRemotePath } = await import('@/filesystem/path-utils.js');
+      const { fetchDirectoryContents } = await import('@/github/fetcher.js');
+
+      vi.mocked(loadMetadata).mockResolvedValueOnce({
+        version: '1.0',
+        projects: [],
+      });
+
+      // Mock mergeConfig to return subdir
+      vi.mocked(mergeConfig).mockReturnValueOnce({
+        repository: 'owner/repo',
+        projects: ['test-project'],
+        subdir: 'packages/api',
+        output: '.',
+        force: false,
+        dryRun: false,
+        verbose: false,
+        track: true,
+        checkUpdates: false,
+        update: false,
+      });
+
+      vi.mocked(fetchDirectoryContents).mockResolvedValueOnce([]);
+
+      const argv = ['node', 'kirox', 'add', 'owner/repo', '-p', 'test-project', '--subdir', 'packages/api'];
+      await executeAddCommand(argv);
+
+      // Should call buildRemotePath with subdir
+      expect(buildRemotePath).toHaveBeenCalledWith('packages/api', 'test-project', 'specs');
+
+      // Should fetch from subdirectory path
+      expect(fetchDirectoryContents).toHaveBeenCalledWith(
+        expect.anything(),
+        'owner',
+        'repo',
+        'packages/api/.kiro/specs/test-project',
+        undefined
+      );
+    });
+
+    it('should fetch steering directory only once (avoid duplication)', async () => {
+      const { loadMetadata } = await import('@/tracking/metadata-manager.js');
+      const { buildRemotePath } = await import('@/filesystem/path-utils.js');
+      const { fetchDirectoryContents } = await import('@/github/fetcher.js');
+
+      vi.mocked(loadMetadata).mockResolvedValueOnce({
+        version: '1.0',
+        projects: [],
+      });
+
+      vi.mocked(fetchDirectoryContents)
+        .mockResolvedValueOnce([]) // specs for project1
+        .mockResolvedValueOnce([]) // steering (first time)
+        .mockResolvedValueOnce([]); // specs for project2 (no steering fetch)
+
+      const argv = ['node', 'kirox', 'add', 'owner/repo', '-p', 'project1,project2'];
+      await executeAddCommand(argv);
+
+      // Should call buildRemotePath for steering only once
+      const buildRemotePathMock = vi.mocked(buildRemotePath);
+      const steeringCalls = buildRemotePathMock.mock.calls.filter(
+        call => call[2] === 'steering'
+      );
+      expect(steeringCalls).toHaveLength(1);
+
+      // fetchDirectoryContents should be called 3 times total:
+      // - specs/project1
+      // - steering (once)
+      // - specs/project2
+      expect(fetchDirectoryContents).toHaveBeenCalledTimes(3);
+    });
+
+    it('should handle steering directory not found gracefully', async () => {
+      const { loadMetadata } = await import('@/tracking/metadata-manager.js');
+      const { Logger } = await import('@/reporting/logger.js');
+      const { fetchDirectoryContents } = await import('@/github/fetcher.js');
+
+      const mockLogger = {
+        info: vi.fn(),
+        warn: vi.fn(),
+        error: vi.fn(),
+        logError: vi.fn(),
+      };
+      vi.mocked(Logger).mockReturnValue(mockLogger as any);
+
+      vi.mocked(loadMetadata).mockResolvedValueOnce({
+        version: '1.0',
+        projects: [],
+      });
+
+      vi.mocked(fetchDirectoryContents)
+        .mockResolvedValueOnce([]) // specs
+        .mockRejectedValueOnce(new Error('Path not found')); // steering not found
+
+      const argv = ['node', 'kirox', 'add', 'owner/repo', '-p', 'test-project', '--verbose'];
+      const result = await executeAddCommand(argv);
+
+      // Should continue despite steering directory not found
+      expect(result.exitCode).toBeGreaterThanOrEqual(0);
+
+      // Should log warning when verbose
+      expect(mockLogger.warn).toHaveBeenCalledWith(
+        expect.stringMatching(/steering.*not found|skipping/i),
+        expect.any(Object)
+      );
+    });
+
+    it('should use effective branch from merged config when CLI branch not specified', async () => {
+      const { loadMetadata } = await import('@/tracking/metadata-manager.js');
+      const { loadConfig } = await import('@/config/loader.js');
+      const { mergeConfig } = await import('@/config/merger.js');
+      const { fetchDirectoryContents } = await import('@/github/fetcher.js');
+
+      vi.mocked(loadMetadata).mockResolvedValueOnce({
+        version: '1.0',
+        projects: [],
+      });
+
+      // Mock config file with branch
+      vi.mocked(loadConfig).mockResolvedValueOnce({ branch: 'staging' });
+
+      // Mock mergeConfig to return branch from config
+      vi.mocked(mergeConfig).mockReturnValueOnce({
+        repository: 'owner/repo',
+        projects: ['test-project'],
+        branch: 'staging',
+        output: '.',
+        force: false,
+        dryRun: false,
+        verbose: false,
+        track: true,
+        checkUpdates: false,
+        update: false,
+      });
+
+      vi.mocked(fetchDirectoryContents).mockResolvedValue([]);
+
+      const argv = ['node', 'kirox', 'add', 'owner/repo', '-p', 'test-project'];
+      await executeAddCommand(argv);
+
+      // Should use branch from merged config
+      expect(fetchDirectoryContents).toHaveBeenCalledWith(
+        expect.anything(),
+        'owner',
+        'repo',
+        expect.any(String),
+        'staging' // effectiveBranch from config
       );
     });
   });
