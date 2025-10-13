@@ -17,16 +17,101 @@ import { parseProjects } from './project-name-parser.js';
  * @throws Error if required arguments are missing or invalid
  */
 export function parseArguments(argv: string[]): ParsedArguments {
-  // Check if 'add' subcommand is present
-  const isAddCommand = argv.includes('add') && argv.indexOf('add') >=2; // must be after 'node' and 'script'
+  // Check subcommands - priority order: add > completion > main
+  // Subcommands must appear at index >= 2 (after 'node' and script path)
+  const isAddCommand = argv.includes('add') && argv.indexOf('add') >= 2;
+  const isCompletionCommand = argv.includes('completion') && argv.indexOf('completion') >= 2;
 
-  if (isAddCommand) {
-    // Parse add subcommand
+  // Route based on priority: add takes priority over completion
+  if (isAddCommand && isCompletionCommand) {
+    // If both present, use the one that appears first
+    const addIndex = argv.indexOf('add');
+    const completionIndex = argv.indexOf('completion');
+
+    if (addIndex < completionIndex) {
+      return parseAddCommand(argv);
+    } else {
+      return parseCompletionCommand(argv);
+    }
+  } else if (isAddCommand) {
+    // Only add is present
     return parseAddCommand(argv);
+  } else if (isCompletionCommand) {
+    // Only completion is present
+    return parseCompletionCommand(argv);
   }
 
   // Parse main command (existing behavior)
   return parseMainCommand(argv);
+}
+
+/**
+ * Parse 'completion' subcommand arguments
+ *
+ * Task 1.2: Completion subcommand parser
+ */
+function parseCompletionCommand(argv: string[]): ParsedArguments {
+  const program = new Command();
+
+  program
+    .name('kirox completion')
+    .description('Generate shell completion script')
+    .argument('[shell]', 'Shell type: bash, zsh, fish, powershell, elvish')
+    .addHelpText('after', `
+${chalk.bold.blue('Supported Shells:')}
+  • bash
+  • zsh
+  • fish
+  • powershell
+  • elvish
+
+${chalk.bold.blue('Examples:')}
+  ${chalk.dim('# Generate bash completion script')}
+  ${chalk.cyan('$')} ${chalk.green('kirox completion')} ${chalk.cyan('bash')} > ~/.kirox-completion.bash
+
+  ${chalk.dim('# Generate zsh completion script')}
+  ${chalk.cyan('$')} ${chalk.green('kirox completion')} ${chalk.cyan('zsh')} > ~/.kirox-completion.zsh
+
+  ${chalk.dim('# Generate fish completion script')}
+  ${chalk.cyan('$')} ${chalk.green('kirox completion')} ${chalk.cyan('fish')} > ~/.config/fish/completions/kirox.fish
+
+${chalk.bold.blue('Installation:')}
+  ${chalk.dim('For bash:')}
+  ${chalk.cyan('$')} ${chalk.green('kirox completion bash')} > ~/.kirox-completion.bash
+  ${chalk.cyan('$')} echo "source ~/.kirox-completion.bash" >> ~/.bashrc
+
+  ${chalk.dim('For zsh:')}
+  ${chalk.cyan('$')} ${chalk.green('kirox completion zsh')} > ~/.kirox-completion.zsh
+  ${chalk.cyan('$')} echo "source ~/.kirox-completion.zsh" >> ~/.zshrc
+
+  ${chalk.dim('For fish:')}
+  ${chalk.cyan('$')} ${chalk.green('kirox completion fish')} > ~/.config/fish/completions/kirox.fish
+`)
+    .allowExcessArguments(false);
+
+  // Remove 'completion' from argv to parse correctly
+  const completionIndex = argv.indexOf('completion');
+  const completionArgv = [...argv.slice(0, completionIndex), ...argv.slice(completionIndex + 1)];
+
+  program.parse(completionArgv);
+
+  const shellType = program.args[0] || '';
+
+  // Return ParsedArguments for completion command
+  return {
+    subcommand: 'completion',
+    shellType,
+    // Set defaults for unused fields
+    repository: '',
+    projects: [],
+    output: '.',
+    force: false,
+    dryRun: false,
+    verbose: false,
+    track: false,
+    checkUpdates: false,
+    update: false,
+  };
 }
 
 /**

@@ -6,7 +6,7 @@
   - 既存の`add`サブコマンドと同様のパターンでルーティング
   - _Requirements: 5.1 (Commanderのサブコマンド構造に従う)_
 
-- [ ] 1.2 Parserにcompletionサブコマンドの引数パース機能を追加する
+- [x] 1.2 Parserにcompletionサブコマンドの引数パース機能を追加する
   - Commander.jsを使用してシェル名を必須引数として受け取る
   - `--help`オプションでヘルプメッセージを表示
   - パース結果を`ParsedArguments`型に格納（`subcommand: 'completion'`, `shellType: string`）

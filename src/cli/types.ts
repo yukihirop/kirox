@@ -6,7 +6,7 @@
  * Parsed command-line arguments
  */
 export interface ParsedArguments {
-  /** Subcommand name (e.g., 'add') */
+  /** Subcommand name (e.g., 'add', 'completion') */
   subcommand?: string;
   /** Repository in format "owner/repo" */
   repository: string;
@@ -30,6 +30,8 @@ export interface ParsedArguments {
   update: boolean;
   /** Subdirectory path containing .kiro folder */
   subdir?: string;
+  /** Shell type for completion command (bash, zsh, fish, powershell, elvish) */
+  shellType?: string;
 }
 
 /**
