@@ -268,9 +268,13 @@ describe('FileWriter', () => {
       expect(result.written).toBe(true);
     });
 
-    it('should handle disk full errors (ENOSPC)', async () => {
+    // Task 8.3: Disk space error handling tests
+    it('should handle disk full errors (ENOSPC) with formatted message', async () => {
+      const diskError = new Error('ENOSPC: no space left on device') as NodeJS.ErrnoException;
+      diskError.code = 'ENOSPC';
+
       vi.mocked(fs.access).mockRejectedValue(new Error('ENOENT'));
-      vi.mocked(fs.writeFile).mockRejectedValue(new Error('ENOSPC: no space left on device'));
+      vi.mocked(fs.writeFile).mockRejectedValue(diskError);
 
       const options: WriteOptions = {
         force: false,
@@ -281,7 +285,64 @@ describe('FileWriter', () => {
 
       await expect(
         writeFile('.kiro/specs/project/file.md', 'content', options)
-      ).rejects.toThrow('no space left on device');
+      ).rejects.toThrow(/Disk space error:.*Free up space and retry/);
+    });
+
+    it('should handle permission errors (EACCES) with formatted message', async () => {
+      const permError = new Error('EACCES: permission denied') as NodeJS.ErrnoException;
+      permError.code = 'EACCES';
+
+      vi.mocked(fs.access).mockRejectedValue(new Error('ENOENT'));
+      vi.mocked(fs.writeFile).mockRejectedValue(permError);
+
+      const options: WriteOptions = {
+        force: false,
+        prompt: true,
+        dryRun: false,
+        verbose: false,
+      };
+
+      await expect(
+        writeFile('.kiro/specs/project/file.md', 'content', options)
+      ).rejects.toThrow(/Disk space error:.*Free up space and retry/);
+    });
+
+    it('should handle ENOSPC during directory creation', async () => {
+      const diskError = new Error('ENOSPC: no space left on device') as NodeJS.ErrnoException;
+      diskError.code = 'ENOSPC';
+
+      vi.mocked(fs.access)
+        .mockRejectedValueOnce(new Error('ENOENT')) // checkFileExists
+        .mockRejectedValueOnce(new Error('ENOENT')); // ensureDirectory check
+
+      vi.mocked(fs.mkdir).mockRejectedValue(diskError);
+
+      const options: WriteOptions = {
+        force: false,
+        prompt: true,
+        dryRun: false,
+        verbose: false,
+      };
+
+      await expect(
+        writeFile('.kiro/specs/project/file.md', 'content', options)
+      ).rejects.toThrow(/Disk space error:.*Free up space and retry/);
+    });
+
+    it('should preserve original error message for non-disk-space errors', async () => {
+      vi.mocked(fs.access).mockRejectedValue(new Error('ENOENT'));
+      vi.mocked(fs.writeFile).mockRejectedValue(new Error('Some other error'));
+
+      const options: WriteOptions = {
+        force: false,
+        prompt: true,
+        dryRun: false,
+        verbose: false,
+      };
+
+      await expect(
+        writeFile('.kiro/specs/project/file.md', 'content', options)
+      ).rejects.toThrow('Some other error');
     });
 
     it('should return file path in result when written successfully', async () => {
