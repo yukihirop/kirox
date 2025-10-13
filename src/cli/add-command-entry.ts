@@ -94,6 +94,21 @@ export async function executeAddCommand(argv: string[]): Promise<ExecutionResult
   const logger = new Logger();
   const errorHandler = new ErrorHandler();
 
+  // Task 8.4: Set up signal handlers for Ctrl+C interrupt handling
+  // Track whether operation was interrupted to prevent metadata saves
+  let interrupted = false;
+
+  // Define signal handler function that will be registered and cleaned up
+  const handleInterrupt = () => {
+    interrupted = true;
+    console.log('\nOperation was interrupted.');
+    process.exit(130); // Standard exit code for SIGINT (128 + 2)
+  };
+
+  // Register signal handlers for SIGINT (Ctrl+C) and SIGTERM
+  process.on('SIGINT', handleInterrupt);
+  process.on('SIGTERM', handleInterrupt);
+
   try {
     // Step 2: Parse arguments
     // Convert command-line arguments into structured ParsedArguments object
@@ -673,6 +688,13 @@ export async function executeAddCommand(argv: string[]): Promise<ExecutionResult
           files: fileMetadataList,
         };
 
+        // Task 8.4: Check if operation was interrupted before saving metadata
+        // Prevents partial metadata saves on interrupt
+        if (interrupted) {
+          // Don't save metadata - operation was interrupted
+          continue;
+        }
+
         // Save ProjectMetadata to metadata file using upsertProject
         try {
           await upsertProject(projectMetadata, metadataPath);
@@ -777,5 +799,10 @@ export async function executeAddCommand(argv: string[]): Promise<ExecutionResult
       filesFailed: 0,
       exitCode: errorResult.exitCode,
     };
+  } finally {
+    // Task 8.4: Clean up signal handlers after command completion
+    // Remove signal handlers to prevent memory leaks and unintended behavior
+    process.removeListener('SIGINT', handleInterrupt);
+    process.removeListener('SIGTERM', handleInterrupt);
   }
 }
