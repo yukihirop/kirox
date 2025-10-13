@@ -84,6 +84,7 @@ describe('Add Command Duplicate Project Detection (Task 11.2)', () => {
         'owner/repo',
         '-p',
         'test-project',
+        '--track',
       ]);
 
       // Should detect duplicate and skip (without --force)
@@ -173,6 +174,7 @@ describe('Add Command Duplicate Project Detection (Task 11.2)', () => {
         'owner/repo',
         '-p',
         'test-project',
+        '--track',
       ]);
 
       // Should be treated as duplicate (empty string subdir matches)
@@ -251,6 +253,7 @@ describe('Add Command Duplicate Project Detection (Task 11.2)', () => {
         'owner2/repo',
         '-p',
         'test-project',
+        '--track',
       ]);
 
       // Should NOT be treated as duplicate (different repository)
@@ -332,6 +335,7 @@ describe('Add Command Duplicate Project Detection (Task 11.2)', () => {
         'test-project',
         '--force',
         '--verbose',
+        '--track',
       ]);
 
       // Should log verbose message about overwriting
@@ -373,6 +377,7 @@ describe('Add Command Duplicate Project Detection (Task 11.2)', () => {
         'owner/repo',
         '-p',
         'test-project',
+        '--track',
       ]);
 
       // Should fail without --force
@@ -422,6 +427,7 @@ describe('Add Command Duplicate Project Detection (Task 11.2)', () => {
         'owner/repo',
         '-p',
         'project-a,project-b',
+        '--track',
       ]);
 
       // Should fail because project-a is duplicate (without --force)
@@ -475,6 +481,7 @@ describe('Add Command Duplicate Project Detection (Task 11.2)', () => {
         'owner/repo',
         '-p',
         'project-a,project-b',
+        '--track',
       ]);
 
       // Should fail (all projects are duplicates)

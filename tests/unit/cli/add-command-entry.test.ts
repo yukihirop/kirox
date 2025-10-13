@@ -388,7 +388,7 @@ describe('executeAddCommand', () => {
   describe('Metadata existence check (Task 2.2)', () => {
     it('should call loadMetadata with correct path', async () => {
       const { loadMetadata } = await import('@/tracking/metadata-manager.js');
-      const argv = ['node', 'kirox', 'add', 'owner/repo', '-p', 'test-project', '-o', './output'];
+      const argv = ['node', 'kirox', 'add', 'owner/repo', '-p', 'test-project', '-o', './output', '--track'];
 
       await executeAddCommand(argv);
 
@@ -418,7 +418,7 @@ describe('executeAddCommand', () => {
         )
       );
 
-      const argv = ['node', 'kirox', 'add', 'owner/repo', '-p', 'test-project'];
+      const argv = ['node', 'kirox', 'add', 'owner/repo', '-p', 'test-project', '--track'];
       const result = await executeAddCommand(argv);
 
       // Task 2.4: Should NOT return error, but proceed with empty metadata
@@ -490,7 +490,7 @@ describe('executeAddCommand', () => {
         )
       );
 
-      const argv = ['node', 'kirox', 'add', 'owner/repo', '-p', 'test-project'];
+      const argv = ['node', 'kirox', 'add', 'owner/repo', '-p', 'test-project', '--track'];
       const result = await executeAddCommand(argv);
 
       // Should fail with error code (but not the specific NOT_FOUND message)
@@ -525,7 +525,7 @@ describe('executeAddCommand', () => {
         ],
       });
 
-      const argv = ['node', 'kirox', 'add', 'owner/repo', '-p', 'test-project'];
+      const argv = ['node', 'kirox', 'add', 'owner/repo', '-p', 'test-project', '--track'];
       const result = await executeAddCommand(argv);
 
       // Should detect duplicate and skip without --force
@@ -554,7 +554,7 @@ describe('executeAddCommand', () => {
         ],
       });
 
-      const argv = ['node', 'kirox', 'add', 'owner/repo', '-p', 'test-project', '--subdir', 'packages/web'];
+      const argv = ['node', 'kirox', 'add', 'owner/repo', '-p', 'test-project', '--subdir', 'packages/web', '--track'];
       const result = await executeAddCommand(argv);
 
       // Should NOT detect as duplicate because subdir is different
@@ -587,7 +587,7 @@ describe('executeAddCommand', () => {
         ],
       });
 
-      const argv = ['node', 'kirox', 'add', 'owner/repo', '-p', 'test-project'];
+      const argv = ['node', 'kirox', 'add', 'owner/repo', '-p', 'test-project', '--track'];
       const result = await executeAddCommand(argv);
 
       // Should skip with warning
@@ -621,7 +621,7 @@ describe('executeAddCommand', () => {
         ],
       });
 
-      const argv = ['node', 'kirox', 'add', 'owner/repo', '-p', 'test-project', '--force', '--verbose'];
+      const argv = ['node', 'kirox', 'add', 'owner/repo', '-p', 'test-project', '--force', '--verbose', '--track'];
       const result = await executeAddCommand(argv);
 
       // Should continue with verbose log (not fail)
@@ -658,7 +658,7 @@ describe('executeAddCommand', () => {
         ],
       });
 
-      const argv = ['node', 'kirox', 'add', 'owner/repo', '-p', 'test-project'];
+      const argv = ['node', 'kirox', 'add', 'owner/repo', '-p', 'test-project', '--track'];
       await executeAddCommand(argv);
 
       // Should display warning with suggestion to use --force
@@ -1662,7 +1662,7 @@ describe('executeAddCommand', () => {
       // Mock calculateFileHash to return local hash
       vi.mocked(calculateFileHash).mockResolvedValue('local-hash-123');
 
-      const argv = ['node', 'kirox', 'add', 'owner/repo', '-p', 'test-project'];
+      const argv = ['node', 'kirox', 'add', 'owner/repo', '-p', 'test-project', '--track'];
       const result = await executeAddCommand(argv);
 
       // Should call upsertProject with ProjectMetadata
@@ -1727,7 +1727,7 @@ describe('executeAddCommand', () => {
         .mockResolvedValueOnce('local-hash-1')
         .mockResolvedValueOnce('local-hash-2');
 
-      const argv = ['node', 'kirox', 'add', 'owner/repo', '-p', 'test-project'];
+      const argv = ['node', 'kirox', 'add', 'owner/repo', '-p', 'test-project', '--track'];
       await executeAddCommand(argv);
 
       // Should call calculateFileHash for each written file
@@ -1828,7 +1828,7 @@ describe('executeAddCommand', () => {
 
       vi.mocked(calculateFileHash).mockResolvedValue('local-sha256-xyz');
 
-      const argv = ['node', 'kirox', 'add', 'owner/repo', '-p', 'test-project'];
+      const argv = ['node', 'kirox', 'add', 'owner/repo', '-p', 'test-project', '--track'];
       await executeAddCommand(argv);
 
       // Should record both GitHub SHA and local hash
@@ -1918,7 +1918,7 @@ describe('executeAddCommand', () => {
 
       const beforeTimestamp = new Date().toISOString();
 
-      const argv = ['node', 'kirox', 'add', 'owner/repo', '-p', 'test-project'];
+      const argv = ['node', 'kirox', 'add', 'owner/repo', '-p', 'test-project', '--track'];
       await executeAddCommand(argv);
 
       const afterTimestamp = new Date().toISOString();
@@ -1984,7 +1984,7 @@ describe('executeAddCommand', () => {
 
       vi.mocked(calculateFileHash).mockResolvedValue('local-hash-123');
 
-      const argv = ['node', 'kirox', 'add', 'owner/repo', '-p', 'proj1,proj2'];
+      const argv = ['node', 'kirox', 'add', 'owner/repo', '-p', 'proj1,proj2', '--track'];
       const result = await executeAddCommand(argv);
 
       // Should process both projects
@@ -2029,7 +2029,7 @@ describe('executeAddCommand', () => {
 
       vi.mocked(calculateFileHash).mockResolvedValue('local-hash-123');
 
-      const argv = ['node', 'kirox', 'add', 'owner/repo', '-p', 'proj1,proj2'];
+      const argv = ['node', 'kirox', 'add', 'owner/repo', '-p', 'proj1,proj2', '--track'];
       const result = await executeAddCommand(argv);
 
       // proj1 should succeed and be saved
@@ -2089,7 +2089,7 @@ describe('executeAddCommand', () => {
 
       vi.mocked(calculateFileHash).mockResolvedValue('local-hash-123');
 
-      const argv = ['node', 'kirox', 'add', 'owner/repo', '-p', 'proj1,proj2,proj3'];
+      const argv = ['node', 'kirox', 'add', 'owner/repo', '-p', 'proj1,proj2,proj3', '--track'];
       const result = await executeAddCommand(argv);
 
       // Should save both proj1 and proj3
@@ -2250,7 +2250,7 @@ describe('executeAddCommand', () => {
 
       vi.mocked(calculateFileHash).mockResolvedValue('local-hash-123');
 
-      const argv = ['node', 'kirox', 'add', 'owner/repo', '-p', 'test-project'];
+      const argv = ['node', 'kirox', 'add', 'owner/repo', '-p', 'test-project', '--track'];
       const result = await executeAddCommand(argv);
 
       // Should display success summary message
@@ -2313,7 +2313,7 @@ describe('executeAddCommand', () => {
       // Mock upsertProject to throw error (metadata write failure)
       vi.mocked(upsertProject).mockRejectedValue(new Error('Failed to write metadata'));
 
-      const argv = ['node', 'kirox', 'add', 'owner/repo', '-p', 'test-project'];
+      const argv = ['node', 'kirox', 'add', 'owner/repo', '-p', 'test-project', '--track'];
       const result = await executeAddCommand(argv);
 
       // Should NOT display success summary when metadata update fails
@@ -2380,7 +2380,7 @@ describe('executeAddCommand', () => {
       // IMPORTANT: Mock upsertProject to resolve successfully
       vi.mocked(upsertProject).mockResolvedValue(undefined);
 
-      const argv = ['node', 'kirox', 'add', 'owner/repo', '-p', 'test-project'];
+      const argv = ['node', 'kirox', 'add', 'owner/repo', '-p', 'test-project', '--track'];
       await executeAddCommand(argv);
 
       // Should display file count (5 files) in success message
@@ -2451,7 +2451,7 @@ describe('executeAddCommand', () => {
       vi.mocked(calculateFileHash).mockResolvedValue('local-hash-123');
       vi.mocked(upsertProject).mockResolvedValue(undefined);
 
-      const argv = ['node', 'kirox', 'add', 'owner/repo', '-p', 'proj1,proj2'];
+      const argv = ['node', 'kirox', 'add', 'owner/repo', '-p', 'proj1,proj2', '--track'];
       await executeAddCommand(argv);
 
       // Should call reportProjectSummary for each project
@@ -2966,12 +2966,27 @@ describe('executeAddCommand', () => {
 
   describe('Task 8.7: Skip existing steering files to avoid duplicate fetching', () => {
     beforeEach(async () => {
+      // Ensure no state leaks from previous tests (e.g., Task 8.6 subdir override)
+      vi.clearAllMocks();
+      vi.unstubAllGlobals();
+
       // Mock validator for Task 8.7 tests - these tests use valid arguments
       const { validateInput } = await import('@/cli/validator.js');
       vi.mocked(validateInput).mockReturnValue({
         valid: true,
         errors: [],
       });
+
+      // Reset mergeConfig to a pass-through that does NOT carry over subdir
+      const { mergeConfig } = await import('@/config/merger.js');
+      vi.mocked(mergeConfig).mockImplementation((args: any, fileConfig: any) => ({
+        ...args,
+        ...fileConfig,
+        subdir: undefined,
+        force: args.force,
+        dryRun: args.dryRun,
+        verbose: args.verbose,
+      }));
     });
 
     it('should fetch steering files on first add execution', async () => {
@@ -3016,6 +3031,7 @@ describe('executeAddCommand', () => {
         'owner/repo',
         '-p',
         'test-project',
+        '--track',
       ]);
 
       // Verify steering files were fetched (fetchDirectoryContents called for both specs and steering)
@@ -3371,7 +3387,7 @@ describe('executeAddCommand', () => {
 
       // Execute: Interactive mode (no repository specified)
       // promptMissingArguments will return output: './custom-output'
-      await executeAddCommand(['node', 'kirox', 'add']);
+      await executeAddCommand(['node', 'kirox', 'add', '--track']);
 
       // Verify: loadMetadata should be called with updated output path AFTER prompts
       const loadMetadataCalls = mockLoadMetadata.mock.calls;
@@ -3423,6 +3439,7 @@ describe('executeAddCommand', () => {
         'owner/repo',
         '-p',
         'test-project',
+        '--track',
       ]);
 
       // Verify: loadMetadata should be called immediately with default output path

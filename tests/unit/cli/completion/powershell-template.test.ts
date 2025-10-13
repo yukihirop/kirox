@@ -536,27 +536,29 @@ describe('PowerShell Template Generation', () => {
         return;
       }
 
-      // PowerShell syntax check: use -Command with a simple parse check
-      // We wrap the script in a try-catch to detect syntax errors
-      const syntaxCheckScript = `
-        try {
-          [scriptblock]::Create(@'
-${script}
-'@)
-          exit 0
-        } catch {
-          Write-Error $_.Exception.Message
-          exit 1
-        }
-      `;
+      // In CI, avoid shell quoting pitfalls by writing to a temporary .ps1 file
+      // and invoking PowerShell with -File.
+      const os = require('os');
+      const path = require('path');
+      const fs = require('fs');
+
+      // Wrap the provided script with a parse-only try/catch block
+      const wrapped = `try {\n  [scriptblock]::Create(@'\n${script}\n'@) | Out-Null\n  exit 0\n} catch {\n  Write-Error $_.Exception.Message\n  exit 1\n}`;
+
+      const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'kirox-pscheck-'));
+      const ps1Path = path.join(tmpDir, 'syntax-check.ps1');
+      fs.writeFileSync(ps1Path, wrapped, { encoding: 'utf8' });
 
       try {
-        execSync(`pwsh -Command "${syntaxCheckScript.replace(/"/g, '\\"')}"`, {
+        execSync(`pwsh -NoProfile -NonInteractive -File "${ps1Path}"`, {
           encoding: 'utf8',
           stdio: 'pipe',
         });
       } catch (error) {
         throw new Error(`PowerShell syntax validation failed: ${error}`);
+      } finally {
+        try { fs.unlinkSync(ps1Path); } catch {}
+        try { fs.rmdirSync(tmpDir); } catch {}
       }
     }
 
