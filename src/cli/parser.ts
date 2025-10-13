@@ -154,6 +154,10 @@ ${chalk.bold.blue('Examples:')}
   ${chalk.green('$ npx kirox owner/repo -p proj1,proj2,proj3')}
   ${chalk.green('$ npx kirox owner/repo --subdir packages -p api-spec,web-spec')}
 
+${chalk.bold.blue('Commands:')}
+  ${chalk.cyan('add')}       Add new projects to existing metadata
+              Use ${chalk.cyan('kirox add --help')} for detailed information
+
 ${chalk.bold.yellow('Note:')}
   • Branch specification: Use ${chalk.cyan('#')} after repository (e.g., ${chalk.cyan('owner/repo#develop')})
   • Multiple projects: Comma-separated list (e.g., ${chalk.cyan('-p proj1,proj2')})
