@@ -256,8 +256,11 @@ ${chalk.bold.blue('Examples:')}
   ${chalk.green('$ npx kirox owner/repo --subdir packages -p api-spec,web-spec')}
 
 ${chalk.bold.blue('Commands:')}
-  ${chalk.cyan('add')}       Add new projects to existing metadata
-              Use ${chalk.cyan('kirox add --help')} for detailed information
+  ${chalk.cyan('add')}        Add new projects to existing metadata
+               Use ${chalk.cyan('kirox add --help')} for detailed information
+
+  ${chalk.cyan('completion')} Generate shell completion scripts
+               Use ${chalk.cyan('kirox completion --help')} for detailed information
 
 ${chalk.bold.yellow('Note:')}
   • Branch specification: Use ${chalk.cyan('#')} after repository (e.g., ${chalk.cyan('owner/repo#develop')})

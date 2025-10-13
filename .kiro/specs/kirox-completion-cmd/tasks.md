@@ -111,7 +111,7 @@
   - `kirox completion --help`でヘルプメッセージを表示
   - _Requirements: 4.1, 4.3 (ヘルプメッセージとインストール例)_
 
-- [ ] 9.2 メインヘルプにcompletionサブコマンドを追加する
+- [x] 9.2 メインヘルプにcompletionサブコマンドを追加する
   - `kirox --help`の出力にcompletionサブコマンドの概要を追加
   - `kirox help completion`でも同じヘルプを表示できるようにする
   - _Requirements: 4.2 (詳細なヘルプメッセージ)_
