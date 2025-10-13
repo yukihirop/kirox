@@ -160,6 +160,44 @@
   - 既存メタデータの整合性を保護
   - _Requirements: 6.5_
 
+- [ ] 8.5 .kiroフォルダ不在エラーハンドリングを実装
+  - fetchDirectoryContents()で404エラーをキャッチ
+  - 「.kiro folder not found」エラー時に明確なメッセージを表示
+  - 「指定されたリポジトリ・ブランチ・サブディレクトリに.kiroフォルダが存在しません」というユーザーフレンドリーなメッセージに変換
+  - リポジトリ、ブランチ、サブディレクトリの確認を促すガイダンスを表示
+  - 終了コード1で終了（ユーザーエラー）
+  - _Requirements: 3.6 (新規)_
+
+- [ ] 8.6 インタラクティブモードで設定されたsubdirがconfig.subdirに反映されない問題を修正（BUG FIX）
+  - **問題**: Tree API経由でプロジェクト選択した際にargs.subdirは正しく設定されるが、mergeConfig()実行後のconfig.subdirには反映されず、buildRemotePath()呼び出し時に空文字列が使用されてしまう
+  - **再現手順**:
+    1. インタラクティブモードで実行: `npm run dev -- add`
+    2. リポジトリ入力: `yukihirop/eg-kanban`
+    3. ブランチ選択: `test`
+    4. プロジェクト選択: `lib/a/simple-kanban-board-b` (Tree APIで検出)
+    5. エラー発生: `.kiro folder not found on branch test`
+  - **根本原因**:
+    - `interactive-prompt.ts:473-474`でargs.subdirは正しく設定される（例: "lib/a"）
+    - しかし`add-command-entry.ts:112`のmergeConfig()は、インタラクティブモードの**前**に実行される
+    - そのため、インタラクティブモードで設定されたargs.subdirがconfig.subdirに反映されない
+    - `add-command-entry.ts:311`で`config.subdir`（空文字列）が使用され、正しいパスが構築されない
+  - **影響範囲**:
+    - `add-command-entry.ts`の設定マージタイミング（line 112）
+    - `add-command-entry.ts`のsubdir使用箇所（line 311, 339, 354）
+  - **修正内容** (2つのアプローチから選択):
+    - **アプローチA（推奨）**: インタラクティブモード後に再マージ
+      - `add-command-entry.ts:216`（インタラクティブモード完了後）で、argsをconfigに再マージ
+      - 既存のmergeConfig()を再利用して、更新されたargs.subdirをconfig.subdirに反映
+    - **アプローチB**: config.subdirを直接使わず、args.subdirを使用
+      - line 311の`config.subdir`を`args.subdir`に変更
+      - ただし、他のオプション（force, dryRun, verbose）はconfigから取得しているため、一貫性に欠ける
+  - **テスト確認項目**:
+    - Tree API経由でサブディレクトリ付きプロジェクト選択時、buildRemotePath()に正しいsubdirが渡されること
+    - 手動でsubdirを入力した場合も正しく動作すること
+    - 非インタラクティブモードでの既存動作が変更されないこと
+    - 複数プロジェクト選択時も正しくsubdirが反映されること
+  - _Requirements: 7.3 (修正), 2.1 (設定マージ), 3.1 (buildRemotePath)_
+
 - [ ] 9. 既存機能との統合を確認
 - [ ] 9.1 --check-updates機能との統合を確認
   - addコマンドで追加したプロジェクトが--check-updatesで認識されることを確認
