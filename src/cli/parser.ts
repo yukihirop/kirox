@@ -75,6 +75,12 @@ ${chalk.bold.blue('Examples:')}
   ${chalk.dim('# Generate fish completion script')}
   ${chalk.cyan('$')} ${chalk.green('kirox completion')} ${chalk.cyan('fish')} > ~/.config/fish/completions/kirox.fish
 
+  ${chalk.dim('# Generate PowerShell completion script')}
+  ${chalk.cyan('PS>')} ${chalk.green('kirox completion')} ${chalk.cyan('powershell')} > ~/kirox-completion.ps1
+
+  ${chalk.dim('# Generate Elvish completion script')}
+  ${chalk.cyan('$')} ${chalk.green('kirox completion')} ${chalk.cyan('elvish')} > ~/.elvish/lib/kirox-completion.elv
+
 ${chalk.bold.blue('Installation:')}
   ${chalk.dim('For bash:')}
   ${chalk.cyan('$')} ${chalk.green('kirox completion bash')} > ~/.kirox-completion.bash
@@ -86,6 +92,14 @@ ${chalk.bold.blue('Installation:')}
 
   ${chalk.dim('For fish:')}
   ${chalk.cyan('$')} ${chalk.green('kirox completion fish')} > ~/.config/fish/completions/kirox.fish
+
+  ${chalk.dim('For PowerShell:')}
+  ${chalk.cyan('PS>')} ${chalk.green('kirox completion powershell')} > ~/kirox-completion.ps1
+  ${chalk.cyan('PS>')} echo ". ~/kirox-completion.ps1" >> $PROFILE
+
+  ${chalk.dim('For Elvish:')}
+  ${chalk.cyan('$')} ${chalk.green('kirox completion elvish')} > ~/.elvish/lib/kirox-completion.elv
+  ${chalk.cyan('$')} echo "use ./kirox-completion" >> ~/.elvish/rc.elv
 `)
     .allowExcessArguments(false);
 
