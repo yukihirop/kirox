@@ -4,6 +4,7 @@
  * Provides search-enabled project selection UI using @inquirer/prompts search
  */
 
+import chalk from 'chalk';
 import searchableCheckbox from './prompts/searchable-checkbox.js';
 import type { ProjectLocation } from '../github/project-location-builder.js';
 
@@ -87,13 +88,14 @@ export async function promptProjectSelection(
 
   // Call searchable checkbox with validation
   const selectedDisplayNames = await searchableCheckbox<string>({
-    message: 'Select projects (type to filter, space to select, enter to confirm):',
+    message: chalk.bold.cyan('Select projects') +
+      chalk.dim(' (type to filter, space to select, enter to confirm)'),
     choices,
     // Validation: At least one selection + same subdirectory constraint
     validate: (selectedChoices) => {
       // Must select at least one project
       if (selectedChoices.length === 0) {
-        return 'Please select at least one project';
+        return chalk.red('Please select at least one project');
       }
 
       // Extract displayNames from normalized choices
@@ -114,7 +116,7 @@ export async function promptProjectSelection(
         const subdirList = Array.from(uniqueSubdirs)
           .map((s) => (s === '' ? 'root' : s))
           .join(', ');
-        return `All projects must be in the same subdirectory. Selected subdirectories: ${subdirList}`;
+        return chalk.red(`All projects must be in the same subdirectory. Selected subdirectories: ${subdirList}`);
       }
 
       return true;

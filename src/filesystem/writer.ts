@@ -38,8 +38,18 @@ export async function ensureDirectory(dirPath: string): Promise<void> {
     try {
       await fs.mkdir(normalizedPath, { recursive: true });
     } catch (mkdirError) {
-      // Re-throw with more context for better debugging
+      // Task 8.3: Handle disk space errors during directory creation
       if (mkdirError instanceof Error) {
+        const fsError = mkdirError as NodeJS.ErrnoException;
+
+        // Check for disk space errors (ENOSPC) or permission errors (EACCES)
+        if (fsError.code === 'ENOSPC' || fsError.code === 'EACCES') {
+          throw new Error(
+            `Disk space error: ${fsError.message}. Free up space and retry.`
+          );
+        }
+
+        // Re-throw other errors as-is
         throw mkdirError;
       }
       throw new Error(`Failed to create directory: ${normalizedPath}`);
@@ -143,8 +153,18 @@ export async function writeFile(
       size,
     };
   } catch (error) {
-    // Re-throw to let caller handle
+    // Task 8.3: Handle disk space and filesystem errors
     if (error instanceof Error) {
+      const fsError = error as NodeJS.ErrnoException;
+
+      // Check for disk space errors (ENOSPC) or permission errors (EACCES)
+      if (fsError.code === 'ENOSPC' || fsError.code === 'EACCES') {
+        throw new Error(
+          `Disk space error: ${fsError.message}. Free up space and retry.`
+        );
+      }
+
+      // Re-throw other errors as-is
       throw error;
     }
     throw new Error(`Failed to write file: ${filePath}`);

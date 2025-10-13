@@ -217,12 +217,69 @@ export async function fetchFilesInParallel(
       const file = await fetchFileContents(client, owner, repo, path, ref);
       success.push(file);
     } catch (error) {
-      const errorMessage =
-        error instanceof Error ? error.message : 'Unknown error';
+      // Task 8.1: Network error detection and user-friendly message
+      // Task 8.2: Rate limit error detection and reset time calculation
+      let errorMessage = 'Unknown error';
+      let retryable = true;
+
+      if (error instanceof Error) {
+        errorMessage = error.message;
+
+        // Check for HTTP status code
+        const errorWithStatus = error as Error & {
+          status?: number;
+          response?: {
+            status?: number;
+            headers?: Record<string, string>;
+          };
+        };
+        const status = errorWithStatus.status || errorWithStatus.response?.status;
+
+        // Task 8.2: Detect rate limit errors (status 429)
+        if (status === 429) {
+          // Extract rate limit reset time from headers
+          const resetHeader = errorWithStatus.response?.headers?.['x-ratelimit-reset'];
+          let waitMessage = 'Please wait and try again later.';
+
+          if (resetHeader) {
+            const resetTime = parseInt(resetHeader, 10);
+            const currentTime = Math.floor(Date.now() / 1000);
+            const waitSeconds = Math.max(0, resetTime - currentTime);
+            const waitMinutes = Math.ceil(waitSeconds / 60);
+
+            waitMessage = `Please wait ${waitMinutes} minutes and try again.`;
+          }
+
+          errorMessage = `GitHub API rate limit exceeded. ${waitMessage}`;
+          retryable = true; // Rate limit errors are retryable
+        } else {
+          // Detect network errors by checking error code
+          const networkError = error as NodeJS.ErrnoException;
+          const networkErrorCodes = [
+            'ENOTFOUND',   // DNS lookup failed
+            'ETIMEDOUT',   // Connection timeout
+            'ECONNREFUSED', // Connection refused
+            'ECONNRESET',  // Connection reset
+            'EHOSTUNREACH', // Host unreachable
+            'ENETUNREACH',  // Network unreachable
+          ];
+
+          if (networkError.code && networkErrorCodes.includes(networkError.code)) {
+            // Format network error with user-friendly guidance
+            errorMessage = `Network error: ${errorMessage}. Check your internet connection.`;
+          }
+        }
+
+        // File size errors are not retryable
+        if (errorMessage.includes('size exceeds')) {
+          retryable = false;
+        }
+      }
+
       failed.push({
         path,
         error: errorMessage,
-        retryable: !errorMessage.includes('size exceeds'),
+        retryable,
       });
     } finally {
       semaphore.release();

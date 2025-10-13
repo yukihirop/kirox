@@ -27,6 +27,7 @@ Kiro-style Spec Driven Development implementation using claude code slash comman
 - `kirox-searchable-checkbox-upgrade`: Upgrade interactive mode with searchable checkbox for project selection, replacing two-step UI with single-step filterable checkbox using inquirer-ts-checkbox-plus-prompt
 - `kirox-suggest-branch`: Interactive branch selection with searchable checkbox when branch is not specified in repository input
 - `kirox-track-default-false`: Change default value of --track option to false
+- `kirox-add-cmd`: Add subcommand for adding projects in both interactive and non-interactive modes
 - Use `/kiro:spec-status [feature-name]` to check progress
 
 ## Development Guidelines
@@ -75,6 +76,7 @@ Managed by `/kiro:steering` command. Updates here reflect command changes.
   Mode: Always|Conditional|Manual
   Pattern: File patterns for Conditional mode
 -->
+- `development.md`: Always - Development workflow, commit policy, token optimization, and conversation management
 - `language.md`: Conditional - `"src/cli/**/*"`, `"src/reporting/**/*"`, `"src/**/*prompt*.ts"` - Language policy for user-facing messages (English-only requirement)
 - `testing.md`: Conditional - `"**/*.test.ts"`, `"**/*.test.js"` - Testing standards, TDD methodology, and external API mocking strategies
 

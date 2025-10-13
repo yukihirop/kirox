@@ -5,6 +5,7 @@
  */
 
 import { Command } from 'commander';
+import chalk from 'chalk';
 import type { ParsedArguments } from './types.js';
 import { parseProjects } from './project-name-parser.js';
 
@@ -16,6 +17,102 @@ import { parseProjects } from './project-name-parser.js';
  * @throws Error if required arguments are missing or invalid
  */
 export function parseArguments(argv: string[]): ParsedArguments {
+  // Check if 'add' subcommand is present
+  const isAddCommand = argv.includes('add') && argv.indexOf('add') >=2; // must be after 'node' and 'script'
+
+  if (isAddCommand) {
+    // Parse add subcommand
+    return parseAddCommand(argv);
+  }
+
+  // Parse main command (existing behavior)
+  return parseMainCommand(argv);
+}
+
+/**
+ * Parse 'add' subcommand arguments
+ */
+function parseAddCommand(argv: string[]): ParsedArguments {
+  const program = new Command();
+
+  program
+    .name('kirox add')
+    .description('Add new projects to existing metadata')
+    .argument('[repository]', 'GitHub repository in format "owner/repo" or "owner/repo#branch"')
+    .option('-p, --project <name>', 'Project names - comma-separated for multiple projects')
+    .option('-o, --output <path>', 'Output directory (default: current directory)', '.')
+    .option('-s, --subdir <path>', 'Subdirectory path containing .kiro folder')
+    .option('--force', 'Overwrite existing projects', false)
+    .option('--dry-run', 'Dry-run mode (no actual writes)', false)
+    .option('--verbose', 'Verbose logging', false)
+    .option('--config <path>', 'Custom config file path')
+    .option('--track', 'Track fetched files in metadata for update detection', false)
+    .addHelpText('after', `
+${chalk.bold.blue('Examples:')}
+  ${chalk.dim('# Add new project to existing metadata')}
+  ${chalk.cyan('$')} ${chalk.green('npx kirox add')} ${chalk.cyan('owner/repo')} ${chalk.cyan('-p')} new-project
+
+  ${chalk.dim('# Add multiple projects at once')}
+  ${chalk.cyan('$')} ${chalk.green('npx kirox add')} ${chalk.cyan('owner/repo')} ${chalk.cyan('-p')} proj1,proj2,proj3
+
+  ${chalk.dim('# Add project from specific branch')}
+  ${chalk.cyan('$')} ${chalk.green('npx kirox add')} ${chalk.cyan('owner/repo#feature')} ${chalk.cyan('-p')} new-project
+
+  ${chalk.dim('# Add project with subdirectory')}
+  ${chalk.cyan('$')} ${chalk.green('npx kirox add')} ${chalk.cyan('owner/repo')} ${chalk.cyan('--subdir')} packages/api ${chalk.cyan('-p')} new-project
+
+  ${chalk.dim('# Force overwrite existing project')}
+  ${chalk.cyan('$')} ${chalk.green('npx kirox add')} ${chalk.cyan('owner/repo')} ${chalk.cyan('-p')} existing-project ${chalk.cyan('--force')}
+
+  ${chalk.dim('# Interactive mode (no arguments)')}
+  ${chalk.cyan('$')} ${chalk.green('npx kirox add')}
+
+${chalk.bold.yellow('Note:')}
+  The 'add' command requires existing metadata file (.kirox-meta.json).
+  Run regular fetch command first if metadata doesn't exist.
+`)
+    .allowExcessArguments(false);
+
+  // Remove 'add' from argv to parse correctly
+  const addIndex = argv.indexOf('add');
+  const addArgv = [...argv.slice(0, addIndex), ...argv.slice(addIndex + 1)];
+
+  program.parse(addArgv);
+
+  const repository = program.args[0] || '';
+  const options = program.opts<{
+    project?: string;
+    output: string;
+    subdir?: string;
+    force: boolean;
+    dryRun: boolean;
+    verbose: boolean;
+    config?: string;
+    track: boolean;
+  }>();
+
+  const projects = parseProjects(options.project || '');
+
+  return {
+    subcommand: 'add',
+    repository,
+    projects,
+    output: options.output,
+    force: options.force,
+    dryRun: options.dryRun,
+    verbose: options.verbose,
+    config: options.config,
+    track: options.track, // Use value from options (default: false)
+    checkUpdates: false,
+    update: false,
+    subdir: options.subdir,
+  };
+}
+
+/**
+ * Parse main command arguments (existing behavior)
+ */
+function parseMainCommand(argv: string[]): ParsedArguments {
   const program = new Command();
 
   program
@@ -34,35 +131,39 @@ export function parseArguments(argv: string[]): ParsedArguments {
     .option('--check-updates', 'Check for updates to tracked files', false)
     .option('--update', 'Apply updates to tracked files', false)
     .addHelpText('after', `
-Interactive Mode:
+${chalk.bold.blue('Interactive Mode:')}
   When run without arguments, kirox enters interactive mode and guides you
   through entering repository, project name, and other options step-by-step.
 
-  $ npx kirox
-  ? Enter GitHub repository (owner/repo or owner/repo#branch): owner/repo
-  ? Enter project name: my-project
-  ? Enter output directory: .
-  ? Enter subdirectory in GitHub repository (optional):
-  ✓ Configuration confirmed
+  ${chalk.green('$ npx kirox')}
+  ${chalk.cyan('?')} Enter GitHub repository (owner/repo or owner/repo#branch): owner/repo
+  ${chalk.cyan('?')} Enter project name: my-project
+  ${chalk.cyan('?')} Enter output directory: .
+  ${chalk.cyan('?')} Enter subdirectory in GitHub repository (optional):
+  ${chalk.green('✓')} Configuration confirmed
 
-Examples:
-  # Interactive mode (recommended for first-time users)
-  $ npx kirox
+${chalk.bold.blue('Examples:')}
+  ${chalk.dim('# Interactive mode (recommended for first-time users)')}
+  ${chalk.green('$ npx kirox')}
 
-  # Non-interactive mode with explicit arguments
-  $ npx kirox owner/repo -p my-project
-  $ npx kirox owner/repo#feature/new-api -p my-project
-  $ npx kirox owner/repo --subdir packages/api -p my-project
-  $ npx kirox owner/repo#develop --subdir packages/api -p my-project
+  ${chalk.dim('# Non-interactive mode with explicit arguments')}
+  ${chalk.green('$ npx kirox owner/repo -p my-project')}
+  ${chalk.green('$ npx kirox owner/repo#feature/new-api -p my-project')}
+  ${chalk.green('$ npx kirox owner/repo --subdir packages/api -p my-project')}
+  ${chalk.green('$ npx kirox owner/repo#develop --subdir packages/api -p my-project')}
 
-  # Multiple projects (カンマ区切りで複数プロジェクトを指定)
-  $ npx kirox owner/repo -p proj1,proj2,proj3
-  $ npx kirox owner/repo --subdir packages -p api-spec,web-spec
+  ${chalk.dim('# Multiple projects (comma-separated)')}
+  ${chalk.green('$ npx kirox owner/repo -p proj1,proj2,proj3')}
+  ${chalk.green('$ npx kirox owner/repo --subdir packages -p api-spec,web-spec')}
 
-Note:
-  ブランチ指定は#の後に指定 (例: owner/repo#develop)
-  複数プロジェクトはカンマ区切りで指定 (例: -p proj1,proj2)
-  Interactive mode is only available in TTY environments
+${chalk.bold.blue('Commands:')}
+  ${chalk.cyan('add')}       Add new projects to existing metadata
+              Use ${chalk.cyan('kirox add --help')} for detailed information
+
+${chalk.bold.yellow('Note:')}
+  • Branch specification: Use ${chalk.cyan('#')} after repository (e.g., ${chalk.cyan('owner/repo#develop')})
+  • Multiple projects: Comma-separated list (e.g., ${chalk.cyan('-p proj1,proj2')})
+  • Interactive mode is only available in TTY environments
 `)
     .allowExcessArguments(false);
 

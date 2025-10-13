@@ -48,10 +48,10 @@ describe('Interactive Mode Config File Integration', () => {
       const result = await promptOutput(configFile);
 
       expect(result).toBe('./custom-output');
-      expect(mockInput).toHaveBeenCalledWith({
-        message: 'Enter output directory',
-        default: './custom-output',
-      });
+      // Check call arguments (Chalk styling may be present)
+      const callArgs = mockInput.mock.calls[0][0];
+      expect(callArgs.message).toContain('Enter output directory');
+      expect(callArgs.default).toBe('./custom-output');
     });
 
     it('should use "." as default when config file has no outputDirectory', async () => {
@@ -62,10 +62,10 @@ describe('Interactive Mode Config File Integration', () => {
       const result = await promptOutput(configFile);
 
       expect(result).toBe('.');
-      expect(mockInput).toHaveBeenCalledWith({
-        message: 'Enter output directory',
-        default: '.',
-      });
+      // Check call arguments (Chalk styling may be present)
+      const callArgs = mockInput.mock.calls[0][0];
+      expect(callArgs.message).toContain('Enter output directory');
+      expect(callArgs.default).toBe('.');
     });
 
     it('should use "." as default when config file is undefined', async () => {
@@ -74,10 +74,10 @@ describe('Interactive Mode Config File Integration', () => {
       const result = await promptOutput(undefined);
 
       expect(result).toBe('.');
-      expect(mockInput).toHaveBeenCalledWith({
-        message: 'Enter output directory',
-        default: '.',
-      });
+      // Check call arguments (Chalk styling may be present)
+      const callArgs = mockInput.mock.calls[0][0];
+      expect(callArgs.message).toContain('Enter output directory');
+      expect(callArgs.default).toBe('.');
     });
 
     it('should allow user to override config file default', async () => {
@@ -91,10 +91,10 @@ describe('Interactive Mode Config File Integration', () => {
       const result = await promptOutput(configFile);
 
       expect(result).toBe('./user-override');
-      expect(mockInput).toHaveBeenCalledWith({
-        message: 'Enter output directory',
-        default: './custom-output',
-      });
+      // Check call arguments (Chalk styling may be present)
+      const callArgs = mockInput.mock.calls[0][0];
+      expect(callArgs.message).toContain('Enter output directory');
+      expect(callArgs.default).toBe('./custom-output');
     });
   });
 
@@ -110,10 +110,11 @@ describe('Interactive Mode Config File Integration', () => {
       const result = await promptSubdir(configFile);
 
       expect(result).toBe('lib/components');
-      expect(mockInput).toHaveBeenCalledWith({
-        message: 'Enter subdirectory in GitHub repository (optional)',
-        default: 'lib/components',
-      });
+      // Check call arguments (Chalk styling may be present)
+      const callArgs = mockInput.mock.calls[0][0];
+      expect(callArgs.message).toContain('Enter subdirectory');
+      expect(callArgs.message).toContain('optional');
+      expect(callArgs.default).toBe('lib/components');
     });
 
     it('should use empty string as default when config file has no subdir', async () => {
@@ -153,10 +154,11 @@ describe('Interactive Mode Config File Integration', () => {
       const result = await promptSubdir(configFile);
 
       expect(result).toBe('src/custom');
-      expect(mockInput).toHaveBeenCalledWith({
-        message: 'Enter subdirectory in GitHub repository (optional)',
-        default: 'lib/components',
-      });
+      // Check call arguments (Chalk styling may be present)
+      const callArgs = mockInput.mock.calls[0][0];
+      expect(callArgs.message).toContain('Enter subdirectory');
+      expect(callArgs.message).toContain('optional');
+      expect(callArgs.default).toBe('lib/components');
     });
 
     it('should return undefined when user enters empty string', async () => {
@@ -205,14 +207,15 @@ describe('Interactive Mode Config File Integration', () => {
       expect(result.subdir).toBe('config/subdir');
 
       // Verify config defaults were used (Task 5.3: order changed)
-      expect(mockInput).toHaveBeenNthCalledWith(1, {
-        message: 'Enter subdirectory in GitHub repository (optional)',
-        default: 'config/subdir',
-      });
-      expect(mockInput).toHaveBeenNthCalledWith(2, {
-        message: 'Enter output directory',
-        default: './config-output',
-      });
+      // Check call arguments (Chalk styling may be present)
+      const call1Args = mockInput.mock.calls[0][0];
+      expect(call1Args.message).toContain('Enter subdirectory');
+      expect(call1Args.message).toContain('optional');
+      expect(call1Args.default).toBe('config/subdir');
+
+      const call2Args = mockInput.mock.calls[1][0];
+      expect(call2Args.message).toContain('Enter output directory');
+      expect(call2Args.default).toBe('./config-output');
     });
 
     it('should prioritize user input over config file values', async () => {
@@ -272,14 +275,15 @@ describe('Interactive Mode Config File Integration', () => {
       expect(result.subdir).toBeUndefined();
 
       // Verify default values were used (Task 5.3: order changed)
-      expect(mockInput).toHaveBeenNthCalledWith(1, {
-        message: 'Enter subdirectory in GitHub repository (optional)',
-        default: '',
-      });
-      expect(mockInput).toHaveBeenNthCalledWith(2, {
-        message: 'Enter output directory',
-        default: '.',
-      });
+      // Check call arguments (Chalk styling may be present)
+      const call1Args = mockInput.mock.calls[0][0];
+      expect(call1Args.message).toContain('Enter subdirectory');
+      expect(call1Args.message).toContain('optional');
+      expect(call1Args.default).toBe('');
+
+      const call2Args = mockInput.mock.calls[1][0];
+      expect(call2Args.message).toContain('Enter output directory');
+      expect(call2Args.default).toBe('.');
     });
   });
 });

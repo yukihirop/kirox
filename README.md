@@ -16,6 +16,10 @@ CLI tool to fetch Kiro specification and steering files from remote GitHub repos
   - 🎯 **Searchable Selection UI** - Type to filter branches and projects with real-time search
   - 📂 **Multi-Project Support** - Select multiple projects at once with space key
   - ⚡ **Intelligent Subdirectory Detection** - No need to manually specify subdirectory paths
+- ➕ **Add Command** - Incrementally add new projects to existing metadata without re-fetching everything
+  - Works in both interactive and non-interactive modes
+  - Duplicate detection with `--force` option to overwrite
+  - Optional metadata tracking with `--track` flag
 - 📦 Fetch Kiro specification and steering files from any GitHub repository
 - 🌿 Branch/tag specification support (`owner/repo#branch`)
 - 📁 Subdirectory support for monorepo structures
@@ -252,6 +256,95 @@ npx kirox owner/repo -p project --update
 npx kirox owner/repo#develop -s packages/api -p project -o ./output --verbose --dry-run
 ```
 
+### Commands
+
+Kirox provides two main commands:
+
+- **`npx kirox [repository] [options]`** - Main command for initial fetch or starting fresh
+- **`npx kirox add [repository] [options]`** - Add new projects to existing metadata incrementally
+
+Use `kirox --help` or `kirox add --help` for detailed command information.
+
+## Add Command
+
+The `add` command allows you to incrementally add new projects to your existing metadata without re-fetching all files. This is useful when you want to manage multiple projects over time.
+
+### When to use `add` vs regular fetch
+
+- **Regular fetch** (`npx kirox owner/repo -p project`): Initial setup or when you want to start fresh
+- **Add command** (`npx kirox add owner/repo -p project`): Adding more projects after initial setup
+
+### Basic Usage
+
+```bash
+# Add a single project
+npx kirox add owner/repo -p new-project
+
+# Add multiple projects at once
+npx kirox add owner/repo -p proj1,proj2,proj3
+
+# Add project from specific branch
+npx kirox add owner/repo#feature -p new-project
+
+# Add project with subdirectory
+npx kirox add owner/repo --subdir packages/api -p new-project
+```
+
+### Interactive Mode
+
+Run without arguments to enter interactive mode:
+
+```bash
+npx kirox add
+```
+
+Interactive mode will guide you through:
+1. Repository selection (with suggestions from existing metadata)
+2. Branch selection (if not specified in repository)
+3. Project discovery and selection
+4. Output directory confirmation
+5. Final confirmation before execution
+
+### Duplicate Detection
+
+When adding a project that already exists in metadata:
+
+```bash
+# Without --force: shows warning and skips
+npx kirox add owner/repo -p existing-project
+# Warning: Project already exists: existing-project (skipping)
+
+# With --force: overwrites existing project metadata
+npx kirox add owner/repo -p existing-project --force
+```
+
+### Tracking with `add`
+
+The `--track` option is **optional** for the `add` command:
+
+```bash
+# Add without tracking (no metadata file created/updated)
+npx kirox add owner/repo -p project
+
+# Add with tracking (metadata file created/updated)
+npx kirox add owner/repo -p project --track
+```
+
+**Note:** Tracking allows you to use `--check-updates` and `--update` features later. If you don't need update detection, you can omit `--track`.
+
+### Advanced Examples
+
+```bash
+# Dry-run to preview changes
+npx kirox add owner/repo -p project --dry-run
+
+# Add with tracking and verbose output
+npx kirox add owner/repo -p project --track --verbose
+
+# Force overwrite with custom output directory
+npx kirox add owner/repo -p project --force -o ./custom-dir
+```
+
 ## Options
 
 | Option | Alias | Description | Default |
@@ -483,6 +576,70 @@ The `.kiro/.kirox-meta.json` file contains tracking metadata:
 ```
 
 **Important:** Do not manually edit this file. It is automatically managed by Kirox.
+
+### Using `add` Command with Update Tracking
+
+The `add` command integrates seamlessly with update tracking. Here's a typical workflow:
+
+```bash
+# 1. Initial fetch with tracking
+npx kirox owner/repo -p my-first-project --track
+
+# 2. Later, add more projects with tracking
+npx kirox add owner/repo -p my-second-project --track
+
+# 3. Check for updates across all tracked projects
+npx kirox --check-updates
+
+# 4. Update all changed files
+npx kirox --update
+```
+
+Both the regular `fetch` and `add` commands work together in the same metadata file, allowing you to build up your project collection incrementally while maintaining full update tracking.
+
+### Add Command Examples
+
+#### Add a Single Project
+
+```bash
+# Initial setup - fetch first project
+npx kirox owner/repo -p initial-project --track
+
+# Later - add another project
+npx kirox add owner/repo -p new-project --track
+```
+
+#### Add Projects in Interactive Mode
+
+```bash
+# Run add command without arguments
+npx kirox add
+
+# Interactive prompts will guide you through:
+# 1. Repository selection
+# 2. Branch selection
+# 3. Project discovery and selection
+# 4. Output directory
+# 5. Confirmation
+```
+
+#### Add from Different Branch
+
+```bash
+# Add project from feature branch
+npx kirox add owner/repo#feature/experimental -p experimental-project --track
+```
+
+#### Add with Duplicate Detection
+
+```bash
+# Try to add existing project - will skip with warning
+npx kirox add owner/repo -p existing-project
+# Output: Warning: Project already exists: existing-project (skipping)
+
+# Force overwrite existing project
+npx kirox add owner/repo -p existing-project --force --track
+```
 
 ## Development
 
