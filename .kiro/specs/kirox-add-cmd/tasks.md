@@ -456,6 +456,64 @@
   - 正しいエラーメッセージと終了コードが返されることをテスト
   - _Requirements: Testing Strategy - Unit Tests_
 
+- [ ] 11.4 Task 10.4のChalkスタイリング追加に伴うテストの修正（BUG FIX）
+  - **問題**: Task 10.4でインタラクティブモードのプロンプトメッセージにChalkスタイリングを追加したため、厳密な文字列マッチングを行っているテストが失敗している
+  - **影響を受けているテストファイル**（21テスト失敗中）:
+    - `tests/unit/cli/branch-prompt.test.ts` - 1テスト失敗
+    - `tests/unit/cli/interactive-config-integration.test.ts` - 6テスト失敗
+    - `tests/unit/cli/interactive-prompt-help.test.ts` - 1テスト失敗
+    - `tests/unit/cli/add-command-entry.test.ts` - 4テスト失敗（Task 8.7関連）
+    - `tests/e2e/options.test.ts` - 1テスト失敗
+    - `tests/integration/project-suggestion-github-api.test.ts` - 6テスト失敗（タイムアウト）
+  - **エラー例**:
+    ```
+    AssertionError: expected "spy" to be called with arguments: [ ObjectContaining{…} ]
+    Received:
+      1st spy call:
+      Array [
+    -   ObjectContaining {
+    -     "message": "Select branch (type to filter, space to select, enter to confirm):",
+    +   Object {
+    +     "message": "[chalk styled message]"
+    ```
+  - **修正方針**:
+    - **アプローチA（推奨）**: 厳密な文字列マッチングから部分文字列マッチングに変更
+      - `expect.objectContaining({ message: 'exact text' })` → `expect(callArgs.message).toContain('key text')`
+      - Chalkスタイリングのエスケープシーケンスを無視して、実際のテキスト内容のみをチェック
+      - テストは実装の本質（何を表示するか）に焦点を当て、スタイリング詳細は無視
+    - **アプローチB（代替案）**: Chalkスタイリングを剥がしてからマッチング
+      - `stripAnsi()`ユーティリティを使用してANSIエスケープシーケンスを削除
+      - 元の厳密なマッチングロジックを維持
+  - **修正対象**:
+    1. `tests/unit/cli/branch-prompt.test.ts`
+       - "should use correct prompt message" テスト
+       - メッセージの厳密なマッチングを`toContain()`に変更
+    2. `tests/unit/cli/interactive-config-integration.test.ts`
+       - promptOutput、promptSubdir、promptMissingArguments関連のテスト6件
+       - デフォルト値やメッセージの厳密なマッチングを`toContain()`に変更
+    3. `tests/unit/cli/interactive-prompt-help.test.ts`
+       - "should have promptProject function with message parameter" テスト
+       - メッセージパラメータの存在チェックを柔軟に
+    4. `tests/unit/cli/add-command-entry.test.ts`
+       - Task 8.7のステアリングファイル関連テスト4件
+       - モック構造の修正が必要（別問題の可能性あり）
+    5. `tests/e2e/options.test.ts`
+       - "--help option" テスト
+       - ヘルプメッセージの表示確認を柔軟に
+    6. `tests/integration/project-suggestion-github-api.test.ts`
+       - タイムアウトエラー（5000ms超過）
+       - テストタイムアウトを延長するか、モックを適切に設定
+  - **テスト確認項目**:
+    - [ ] 全21件の失敗テストが修正されることを確認
+    - [ ] 修正後のテストが本質的なロジックをカバーしていることを確認
+    - [ ] Chalkスタイリングの有無でテストが壊れないことを確認
+    - [ ] 全テストスイートが通過することを確認（1612テスト）
+  - **注意事項**:
+    - Task 10.4の注意事項に記載されていた通り、テスト修正が必要であることは既知の問題
+    - テストは実装の詳細（スタイリング）ではなく、振る舞い（何を表示するか）に焦点を当てるべき
+    - 修正は既存のテストロジックを維持しつつ、Chalkスタイリングに対して柔軟にする
+  - _Requirements: Testing Strategy - Unit Tests, Task 10.4 (テスト修正対応)_
+
 - [ ] 12. 統合テストを実装
 - [ ] 12.1 CLI → Metadata Manager統合テストを実装
   - addコマンド実行の完全なフローをテスト（引数パース → メタデータチェック → GitHub取得 → ファイル書き込み → メタデータ更新）
