@@ -283,6 +283,73 @@
   - 既存コマンドのヘルプが変更されていないことを確認
   - _Requirements: 9.2_
 
+- [ ] 10.5 addサブコマンドのヘルプテキストにスタイリングを追加（IMPROVEMENT）
+  - **問題**: `kirox add --help`のヘルプ出力がモノクロ表示で、セクションやオプションの区別がつきにくい
+  - **再現手順**:
+    1. `npm run dev -- add --help`を実行
+    2. ヘルプテキストが全てモノクロで表示される
+    3. セクション見出し、オプション、例、注意書きなどの視覚的な区別がない
+  - **期待動作**:
+    - Chalkを使用してヘルプテキストを色分けして可読性を向上させる
+    - セクションごとに適切なスタイリングを適用する
+  - **影響範囲**:
+    - `src/cli/parser.ts`のaddサブコマンド定義部分
+    - `.addHelpText()`で追加するヘルプテキストのスタイリング
+  - **修正内容**:
+    - Chalkでスタイリング追加:
+      - セクション見出し: `chalk.bold.blue` (例: "Description:", "Usage:", "Options:")
+      - サブコマンド名: `chalk.bold.green` (例: "add")
+      - オプションフラグ: `chalk.cyan` (例: "-p, --project")
+      - オプション説明: 通常テキスト
+      - 使用例のコマンド: `chalk.green` (例: "npx kirox add owner/repo -p project")
+      - 使用例のコメント: `chalk.dim` (例: "# Add single project")
+      - 注意書き: `chalk.bold.yellow` (例: "Note:")
+      - 重要な情報: `chalk.bold` (例: "Required:")
+    - `.addHelpText('after', ...)`でカスタムヘルプセクションを追加
+    - addサブコマンドの`.description()`にスタイリングを適用
+  - **実装例**:
+    ```typescript
+    program
+      .command('add')
+      .description(chalk.bold('Add new projects to existing metadata'))
+      .addHelpText('after', `
+    ${chalk.bold.blue('Usage:')}
+      ${chalk.cyan('$')} ${chalk.green('npx kirox add [repository] [options]')}
+
+    ${chalk.bold.blue('Examples:')}
+      ${chalk.dim('# Add single project')}
+      ${chalk.cyan('$')} ${chalk.green('npx kirox add owner/repo -p my-project')}
+
+      ${chalk.dim('# Add multiple projects')}
+      ${chalk.cyan('$')} ${chalk.green('npx kirox add owner/repo -p proj1,proj2,proj3')}
+
+      ${chalk.dim('# Interactive mode')}
+      ${chalk.cyan('$')} ${chalk.green('npx kirox add')}
+
+      ${chalk.dim('# Force overwrite existing project')}
+      ${chalk.cyan('$')} ${chalk.green('npx kirox add owner/repo -p project --force')}
+
+    ${chalk.bold.yellow('Note:')}
+      The add command requires existing metadata file.
+      Run ${chalk.green('npx kirox owner/repo -p project')} first if no metadata exists.
+      `);
+    ```
+  - **テスト確認項目**:
+    - [ ] `npm run dev -- add --help`実行時に適切に色分けされたヘルプが表示されることを確認
+    - [ ] セクション見出しが青色の太字で表示されることを確認
+    - [ ] 使用例のコマンドが緑色で表示されることを確認
+    - [ ] コメントがdim（薄い色）で表示されることを確認
+    - [ ] 注意書きが黄色の太字で表示されることを確認
+    - [ ] オプションフラグがシアン色で表示されることを確認
+    - [ ] ヘルプテキストの構造や内容が正しく保たれていることを確認
+    - [ ] 既存のaddサブコマンド機能に影響がないことを確認
+  - **注意事項**:
+    - Commander.jsの`.description()`と`.addHelpText()`でChalkスタイリングを使用
+    - スタイリングは既存のメインヘルプ（タスク10.3）と一貫性を保つ
+    - ヘルプテキストは英語のみで記述（language.mdポリシー準拠）
+    - Chalkスタイリングが無効な環境（CIなど）でも正常に動作することを確認
+  - _Requirements: 9.1 (ヘルプテキスト改善 - 拡張), 10.1 (addヘルプ実装), UX改善_
+
 - [x] 10.3 ヘルプテキストの英語化とChalkスタイリング（IMPROVEMENT）
   - **問題**: 現在のヘルプ出力に日本語テキストが混在しており、カラーリングによる視覚的な区別もない
   - **再現手順**:
