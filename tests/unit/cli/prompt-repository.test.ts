@@ -69,11 +69,11 @@ describe('promptRepository', () => {
 
       await promptRepository('');
 
-      expect(mockInput).toHaveBeenCalledWith(
-        expect.objectContaining({
-          message: 'Enter GitHub repository (owner/repo or owner/repo#branch)',
-        })
-      );
+      // Message includes chalk styling, so check if it contains the expected text
+      const callArgs = mockInput.mock.calls[0][0];
+      expect(callArgs.message).toContain('Enter GitHub repository');
+      expect(callArgs.message).toContain('owner/repo');
+      expect(callArgs.message).toContain('branch');
     });
 
     it('バリデーション関数が設定されている', async () => {
@@ -205,12 +205,9 @@ describe('promptRepository', () => {
       await promptRepository('', metadata);
 
       // Should call input with default value set to the last repository
-      expect(mockInput).toHaveBeenCalledWith(
-        expect.objectContaining({
-          message: 'Enter GitHub repository (owner/repo or owner/repo#branch)',
-          default: 'owner/repo2',
-        })
-      );
+      const callArgs = mockInput.mock.calls[0][0];
+      expect(callArgs.message).toContain('Enter GitHub repository');
+      expect(callArgs.default).toBe('owner/repo2');
     });
 
     it('メタデータが空の場合、デフォルト値なしでプロンプトを表示', async () => {
@@ -224,14 +221,10 @@ describe('promptRepository', () => {
       await promptRepository('', metadata);
 
       // Should call input without default value
-      expect(mockInput).toHaveBeenCalledWith(
-        expect.objectContaining({
-          message: 'Enter GitHub repository (owner/repo or owner/repo#branch)',
-        })
-      );
+      const callArgs = mockInput.mock.calls[0][0];
+      expect(callArgs.message).toContain('Enter GitHub repository');
 
       // Verify default is not set
-      const callArgs = mockInput.mock.calls[0][0];
       expect(callArgs).not.toHaveProperty('default');
     });
 
@@ -241,14 +234,10 @@ describe('promptRepository', () => {
       await promptRepository('');
 
       // Should call input without default value
-      expect(mockInput).toHaveBeenCalledWith(
-        expect.objectContaining({
-          message: 'Enter GitHub repository (owner/repo or owner/repo#branch)',
-        })
-      );
+      const callArgs = mockInput.mock.calls[0][0];
+      expect(callArgs.message).toContain('Enter GitHub repository');
 
       // Verify default is not set
-      const callArgs = mockInput.mock.calls[0][0];
       expect(callArgs).not.toHaveProperty('default');
     });
 

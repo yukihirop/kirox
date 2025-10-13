@@ -4,6 +4,7 @@
  * Provides search-enabled branch selection UI using searchable-checkbox
  */
 
+import chalk from 'chalk';
 import searchableCheckbox from './prompts/searchable-checkbox.js';
 
 /**
@@ -51,7 +52,9 @@ export async function promptBranch(
 
   // Create choices with default label
   const choices = sortedBranches.map((branch) => {
-    const label = branch === defaultBranch ? `${branch} (default)` : branch;
+    const label = branch === defaultBranch
+      ? chalk.green(`${branch}`) + chalk.dim(' (default)')
+      : branch;
     return {
       value: branch,
       name: label,
@@ -60,7 +63,8 @@ export async function promptBranch(
 
   // Call searchable checkbox with single-selection validation
   const selectedBranches = await searchableCheckbox<string>({
-    message: 'Select branch (type to filter, space to select, enter to confirm):',
+    message: chalk.bold.cyan('Select branch') +
+      chalk.dim(' (type to filter, space to select, enter to confirm)'),
     choices,
     // Validation: Exactly one selection or zero selections (use default)
     validate: (selectedChoices) => {
@@ -70,7 +74,7 @@ export async function promptBranch(
       }
 
       if (selectedChoices.length > 1) {
-        return 'Please select only one branch';
+        return chalk.red('Please select only one branch');
       }
 
       return true;

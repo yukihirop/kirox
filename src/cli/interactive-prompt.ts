@@ -12,6 +12,7 @@
 
 import { input, confirm } from '@inquirer/prompts';
 import { Octokit } from 'octokit';
+import chalk from 'chalk';
 import type { ParsedArguments } from './types.js';
 import { validateRepositoryFormat, validateProjectName } from './validator.js';
 import { parseProjects } from './project-name-parser.js';
@@ -95,13 +96,14 @@ export async function promptRepository(currentValue: string, metadata?: Metadata
   // Display interactive prompt with validation
   // If defaultRepository is defined, include it in the input options
   return await input({
-    message: 'Enter GitHub repository (owner/repo or owner/repo#branch)',
+    message: chalk.bold.cyan('Enter GitHub repository (owner/repo or owner/repo#branch)') +
+      (defaultRepository ? chalk.dim(` (default: ${defaultRepository})`) : ''),
     ...(defaultRepository && { default: defaultRepository }),
     validate: (value: string) => {
       const errors = validateRepositoryFormat(value);
       if (errors.length > 0) {
         // Return first error message, or fallback message if array is somehow empty
-        return errors[0]?.message || 'Invalid repository format';
+        return chalk.red(errors[0]?.message || 'Invalid repository format');
       }
       return true;
     },
@@ -174,18 +176,18 @@ export async function promptProject(
       // Requirement 5.4: サジェスト失敗時のフォールバック
       // Display error message if available (in red for visibility)
       if (suggestionResult.errorMessage) {
-        console.error(`\n✗ ${suggestionResult.errorMessage}`);
+        console.error(chalk.red(`\n✗ ${suggestionResult.errorMessage}`));
 
         // Display detailed error information if available
         if (suggestionResult.errorDetails) {
           const { repository, path, error } = suggestionResult.errorDetails;
-          console.error(`\nRepository: ${repository}`);
-          console.error(`Path: ${path}`);
-          console.error(`Error: ${error}`);
-          console.error('\nPlease check:');
-          console.error('  - The subdirectory path is correct');
-          console.error('  - The .kiro/specs/ directory exists in the specified path');
-          console.error('  - You have access to the repository (set GITHUB_TOKEN if private)');
+          console.error(chalk.gray(`\nRepository: ${repository}`));
+          console.error(chalk.gray(`Path: ${path}`));
+          console.error(chalk.gray(`Error: ${error}`));
+          console.error(chalk.yellow('\nPlease check:'));
+          console.error(chalk.dim('  - The subdirectory path is correct'));
+          console.error(chalk.dim('  - The .kiro/specs/ directory exists in the specified path'));
+          console.error(chalk.dim('  - You have access to the repository (set GITHUB_TOKEN if private)'));
           console.error('');
         }
       }
@@ -200,12 +202,13 @@ export async function promptProject(
   // Manual input mode (fallback or when preconditions not met)
   // Display interactive prompt with validation
   return await input({
-    message: 'Enter project name (comma-separated for multiple projects)',
+    message: chalk.bold.cyan('Enter project name') +
+      chalk.dim(' (comma-separated for multiple projects)'),
     validate: (value: string) => {
       const errors = validateProjectName(value);
       if (errors.length > 0) {
         // Return first error message, or fallback message if array is somehow empty
-        return errors[0]?.message || 'Invalid project name';
+        return chalk.red(errors[0]?.message || 'Invalid project name');
       }
       return true;
     },
@@ -224,7 +227,8 @@ export async function promptProject(
 export async function promptOutput(configFile?: KiroxConfig): Promise<string> {
   const defaultValue = configFile?.outputDirectory || '.';
   return await input({
-    message: 'Enter output directory',
+    message: chalk.bold.cyan('Enter output directory') +
+      chalk.dim(` (default: ${defaultValue})`),
     default: defaultValue,
   });
 }
@@ -242,7 +246,9 @@ export async function promptOutput(configFile?: KiroxConfig): Promise<string> {
 export async function promptSubdir(configFile?: KiroxConfig): Promise<string | undefined> {
   const defaultValue = configFile?.subdir || '';
   const value = await input({
-    message: 'Enter subdirectory in GitHub repository (optional)',
+    message: chalk.bold.cyan('Enter subdirectory in GitHub repository') +
+      chalk.dim(' (optional)') +
+      (defaultValue ? chalk.dim(` (default: ${defaultValue})`) : ''),
     default: defaultValue,
   });
 
@@ -265,25 +271,25 @@ export async function promptSubdir(configFile?: KiroxConfig): Promise<string | u
  */
 export async function confirmExecution(args: ParsedArguments): Promise<boolean> {
   // Display summary header
-  console.log('\nConfiguration:');
+  console.log('\n' + chalk.bold.blue('Configuration:'));
 
   // Display repository
-  console.log(`  Repository: ${args.repository}`);
+  console.log(chalk.cyan('  Repository: ') + chalk.green(args.repository));
 
   // Display project name(s)
-  console.log(`  Project: ${args.projects.join(', ')}`);
+  console.log(chalk.cyan('  Project: ') + chalk.green(args.projects.join(', ')));
 
   // Display output directory
-  console.log(`  Output: ${args.output}`);
+  console.log(chalk.cyan('  Output: ') + chalk.green(args.output));
 
   // Display subdirectory if specified
   if (args.subdir) {
-    console.log(`  Subdirectory: ${args.subdir}`);
+    console.log(chalk.cyan('  Subdirectory: ') + chalk.green(args.subdir));
   }
 
   // Show confirmation prompt with default: false
   return await confirm({
-    message: 'Execute with this configuration?',
+    message: chalk.bold.yellow('Execute with this configuration?'),
     default: false,
   });
 }
@@ -375,7 +381,7 @@ export async function promptMissingArguments(
 
       // 2.5.2 Fetch branches
       try {
-        console.log('\nFetching branches...');
+        console.log(chalk.cyan('\nFetching branches...'));
         const branches = await fetchBranches(client, repositoryRef.owner, repositoryRef.repo);
 
         // Task 3.3: Requirement 11.1, 11.2 - Log branch count in verbose mode
@@ -384,7 +390,7 @@ export async function promptMissingArguments(
         }
 
         if (branches.length === 0) {
-          console.error('No branches found in repository');
+          console.error(chalk.red('No branches found in repository'));
           // Continue without branch selection
         } else {
           // 2.5.3 Prompt for branch selection
@@ -406,7 +412,7 @@ export async function promptMissingArguments(
             error: error instanceof Error ? error.message : String(error),
           });
         }
-        console.error('\n✗ Failed to fetch branches. Continuing with default branch...');
+        console.error(chalk.red('\n✗ Failed to fetch branches. Continuing with default branch...'));
 
         // Fallback to default branch if available
         if (defaultBranch) {
@@ -441,7 +447,7 @@ export async function promptMissingArguments(
   if (shouldAttemptTreeAPI && client) {
     try {
       // Display loading message (Requirement 7.1)
-      console.log('\nScanning repository for projects...');
+      console.log(chalk.cyan('\nScanning repository for projects...'));
 
       // Parse repository reference
       const repositoryRef = parseRepositoryPath(completedArgs.repository);
@@ -458,12 +464,12 @@ export async function promptMissingArguments(
       if (scanResult.success && scanResult.projects.length > 0) {
         // Display summary message (Requirement 7.3)
         const subdirCount = new Set(scanResult.projects.map(p => p.subdir)).size;
-        console.log(`Found ${scanResult.projects.length} projects across ${subdirCount} subdirectories\n`);
+        console.log(chalk.green(`Found ${scanResult.projects.length} projects across ${subdirCount} subdirectories\n`));
 
         // Display truncated warning if applicable (Requirement 5.3)
         if (scanResult.truncated) {
-          console.log('⚠️  Large repository: Some projects may not be displayed');
-          console.log('   (GitHub API response was truncated)\n');
+          console.log(chalk.yellow('⚠️  Large repository: Some projects may not be displayed'));
+          console.log(chalk.dim('   (GitHub API response was truncated)\n'));
         }
 
         // Prompt user to select project(s) using searchable UI
@@ -559,10 +565,10 @@ export function checkTTYEnvironment(logger: Logger): TTYCheckResult {
   // Check if stdin is a TTY (terminal)
   if (!process.stdin.isTTY) {
     // Display error message
-    console.error('Interactive mode is only available in TTY environment. Please specify arguments explicitly.');
+    console.error(chalk.red('Interactive mode is only available in TTY environment. Please specify arguments explicitly.'));
 
     // Display usage example
-    console.log('Usage: npx kirox owner/repo -p project-name');
+    console.log(chalk.dim('Usage: npx kirox owner/repo -p project-name'));
 
     // Log the error
     logger.error('Interactive mode requires TTY environment', {
@@ -604,7 +610,7 @@ export function handleInteractiveError(
   if (error instanceof Error) {
     // Case 1: ExitPromptError (Ctrl+C by user)
     if (error.name === 'ExitPromptError') {
-      console.log('\nOperation cancelled');
+      console.log(chalk.yellow('\nOperation cancelled'));
       logger.info('User cancelled interactive mode', {
         reason: 'Ctrl+C',
         errorName: error.name,
@@ -617,7 +623,7 @@ export function handleInteractiveError(
 
     // Case 2: Confirmation cancellation ('Operation cancelled')
     if (error.message === 'Operation cancelled') {
-      console.log('Operation cancelled');
+      console.log(chalk.yellow('Operation cancelled'));
       logger.info('User cancelled execution at confirmation', {
         reason: 'Declined confirmation',
       });
@@ -628,7 +634,7 @@ export function handleInteractiveError(
     }
 
     // Case 3: Other errors
-    console.log(`Error occurred: ${error.message}`);
+    console.log(chalk.red(`Error occurred: ${error.message}`));
     logger.error('Interactive mode error', {
       message: error.message,
       stack: error.stack,
@@ -640,7 +646,7 @@ export function handleInteractiveError(
   }
 
   // Unknown error type
-  console.log('Error occurred');
+  console.log(chalk.red('Error occurred'));
   logger.error('Interactive mode error', {
     error: String(error),
   });
