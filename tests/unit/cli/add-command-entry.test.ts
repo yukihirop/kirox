@@ -86,6 +86,15 @@ vi.mock('@/filesystem/path-utils.js', () => ({
   resolveOutputPath: vi.fn((output: string, filePath: string) => `${output}/${filePath}`),
 }));
 
+vi.mock('@/filesystem/writer.js', () => ({
+  writeFile: vi.fn(async () => ({
+    written: true,
+    skipped: false,
+    filePath: 'test-file.md',
+    size: 100,
+  })),
+}));
+
 vi.mock('octokit', () => ({
   Octokit: vi.fn(() => ({
     rest: {
@@ -107,6 +116,7 @@ describe('executeAddCommand', () => {
     const { mergeConfig } = await import('@/config/merger.js');
     const { fetchDirectoryContents } = await import('@/github/fetcher.js');
     const { fetchFilesInParallel } = await import('@/github/parallel-fetcher.js');
+    const { writeFile } = await import('@/filesystem/writer.js');
     const { Logger } = await import('@/reporting/logger.js');
 
     // Set default behaviors for mocks
@@ -125,6 +135,13 @@ describe('executeAddCommand', () => {
     vi.mocked(fetchFilesInParallel).mockResolvedValue({
       success: [],
       failed: [],
+    });
+
+    vi.mocked(writeFile).mockResolvedValue({
+      written: true,
+      skipped: false,
+      filePath: 'test-file.md',
+      size: 100,
     });
 
     vi.mocked(Logger).mockReturnValue({
@@ -1094,6 +1111,209 @@ describe('executeAddCommand', () => {
 
       // Should not completely fail - partial success is acceptable
       expect(result.exitCode).toBeGreaterThanOrEqual(0);
+    });
+  });
+
+  describe('File writing (Task 4.1)', () => {
+    it('should call writeFile for each fetched file', async () => {
+      const { loadMetadata } = await import('@/tracking/metadata-manager.js');
+      const { fetchDirectoryContents } = await import('@/github/fetcher.js');
+      const { fetchFilesInParallel } = await import('@/github/parallel-fetcher.js');
+      const { writeFile } = await import('@/filesystem/writer.js');
+      const { resolveOutputPath } = await import('@/filesystem/path-utils.js');
+
+      vi.mocked(loadMetadata).mockResolvedValue({
+        version: '1.0',
+        projects: [],
+      });
+
+      vi.mocked(fetchDirectoryContents)
+        .mockResolvedValueOnce([
+          { name: 'spec.json', path: '.kiro/specs/test-project/spec.json', type: 'file', sha: 'abc123', size: 100 },
+        ] as any)
+        .mockRejectedValueOnce(new Error('Steering directory not found'));
+
+      vi.mocked(fetchFilesInParallel).mockResolvedValue({
+        success: [
+          { path: '.kiro/specs/test-project/spec.json', content: '{"test": "data"}', size: 100, sha: 'abc123' },
+        ],
+        failed: [],
+      });
+
+      vi.mocked(writeFile).mockResolvedValue({
+        written: true,
+        skipped: false,
+        filePath: './.kiro/specs/test-project/spec.json',
+        size: 100,
+      });
+
+      const argv = ['node', 'kirox', 'add', 'owner/repo', '-p', 'test-project'];
+      await executeAddCommand(argv);
+
+      // Should call resolveOutputPath for each file
+      expect(resolveOutputPath).toHaveBeenCalledWith('.', '.kiro/specs/test-project/spec.json');
+
+      // Should call writeFile with correct parameters
+      expect(writeFile).toHaveBeenCalledWith(
+        './.kiro/specs/test-project/spec.json',
+        '{"test": "data"}',
+        expect.objectContaining({
+          force: false,
+          dryRun: false,
+        })
+      );
+    });
+
+    it('should pass --force option to writeFile', async () => {
+      const { loadMetadata } = await import('@/tracking/metadata-manager.js');
+      const { fetchDirectoryContents } = await import('@/github/fetcher.js');
+      const { fetchFilesInParallel } = await import('@/github/parallel-fetcher.js');
+      const { writeFile } = await import('@/filesystem/writer.js');
+
+      vi.mocked(loadMetadata).mockResolvedValue({
+        version: '1.0',
+        projects: [],
+      });
+
+      vi.mocked(fetchDirectoryContents)
+        .mockResolvedValueOnce([
+          { name: 'spec.json', path: '.kiro/specs/test-project/spec.json', type: 'file', sha: 'abc123', size: 100 },
+        ] as any)
+        .mockRejectedValueOnce(new Error('Steering directory not found'));
+
+      vi.mocked(fetchFilesInParallel).mockResolvedValue({
+        success: [
+          { path: '.kiro/specs/test-project/spec.json', content: '{}', size: 100, sha: 'abc123' },
+        ],
+        failed: [],
+      });
+
+      const argv = ['node', 'kirox', 'add', 'owner/repo', '-p', 'test-project', '--force'];
+      await executeAddCommand(argv);
+
+      // Should pass force option to writeFile
+      expect(writeFile).toHaveBeenCalledWith(
+        expect.any(String),
+        expect.any(String),
+        expect.objectContaining({
+          force: true,
+        })
+      );
+    });
+
+    it('should pass --dry-run option to writeFile', async () => {
+      const { loadMetadata } = await import('@/tracking/metadata-manager.js');
+      const { fetchDirectoryContents } = await import('@/github/fetcher.js');
+      const { fetchFilesInParallel } = await import('@/github/parallel-fetcher.js');
+      const { writeFile } = await import('@/filesystem/writer.js');
+
+      vi.mocked(loadMetadata).mockResolvedValue({
+        version: '1.0',
+        projects: [],
+      });
+
+      vi.mocked(fetchDirectoryContents)
+        .mockResolvedValueOnce([
+          { name: 'spec.json', path: '.kiro/specs/test-project/spec.json', type: 'file', sha: 'abc123', size: 100 },
+        ] as any)
+        .mockRejectedValueOnce(new Error('Steering directory not found'));
+
+      vi.mocked(fetchFilesInParallel).mockResolvedValue({
+        success: [
+          { path: '.kiro/specs/test-project/spec.json', content: '{}', size: 100, sha: 'abc123' },
+        ],
+        failed: [],
+      });
+
+      // Mock writeFile to return skipped result for dry-run
+      vi.mocked(writeFile).mockResolvedValue({
+        written: false,
+        skipped: true,
+        reason: 'Skipped due to dry-run mode',
+        filePath: './.kiro/specs/test-project/spec.json',
+        size: 100,
+      });
+
+      const argv = ['node', 'kirox', 'add', 'owner/repo', '-p', 'test-project', '--dry-run'];
+      await executeAddCommand(argv);
+
+      // Should pass dryRun option to writeFile
+      expect(writeFile).toHaveBeenCalledWith(
+        expect.any(String),
+        expect.any(String),
+        expect.objectContaining({
+          dryRun: true,
+        })
+      );
+    });
+
+    it('should convert remote paths to local paths using resolveOutputPath', async () => {
+      const { loadMetadata } = await import('@/tracking/metadata-manager.js');
+      const { fetchDirectoryContents } = await import('@/github/fetcher.js');
+      const { fetchFilesInParallel } = await import('@/github/parallel-fetcher.js');
+      const { resolveOutputPath } = await import('@/filesystem/path-utils.js');
+
+      vi.mocked(loadMetadata).mockResolvedValue({
+        version: '1.0',
+        projects: [],
+      });
+
+      vi.mocked(fetchDirectoryContents)
+        .mockResolvedValueOnce([
+          { name: 'spec.json', path: '.kiro/specs/test-project/spec.json', type: 'file', sha: 'abc123', size: 100 },
+          { name: 'requirements.md', path: '.kiro/specs/test-project/requirements.md', type: 'file', sha: 'def456', size: 200 },
+        ] as any)
+        .mockRejectedValueOnce(new Error('Steering directory not found'));
+
+      vi.mocked(fetchFilesInParallel).mockResolvedValue({
+        success: [
+          { path: '.kiro/specs/test-project/spec.json', content: '{}', size: 100, sha: 'abc123' },
+          { path: '.kiro/specs/test-project/requirements.md', content: '# Requirements', size: 200, sha: 'def456' },
+        ],
+        failed: [],
+      });
+
+      const argv = ['node', 'kirox', 'add', 'owner/repo', '-p', 'test-project', '-o', './output'];
+      await executeAddCommand(argv);
+
+      // Should call resolveOutputPath for each file with output directory
+      expect(resolveOutputPath).toHaveBeenCalledWith('./output', '.kiro/specs/test-project/spec.json');
+      expect(resolveOutputPath).toHaveBeenCalledWith('./output', '.kiro/specs/test-project/requirements.md');
+    });
+
+    it('should handle file write failures gracefully', async () => {
+      const { loadMetadata } = await import('@/tracking/metadata-manager.js');
+      const { fetchDirectoryContents } = await import('@/github/fetcher.js');
+      const { fetchFilesInParallel } = await import('@/github/parallel-fetcher.js');
+      const { writeFile } = await import('@/filesystem/writer.js');
+
+      vi.mocked(loadMetadata).mockResolvedValue({
+        version: '1.0',
+        projects: [],
+      });
+
+      vi.mocked(fetchDirectoryContents)
+        .mockResolvedValueOnce([
+          { name: 'spec.json', path: '.kiro/specs/test-project/spec.json', type: 'file', sha: 'abc123', size: 100 },
+        ] as any)
+        .mockRejectedValueOnce(new Error('Steering directory not found'));
+
+      vi.mocked(fetchFilesInParallel).mockResolvedValue({
+        success: [
+          { path: '.kiro/specs/test-project/spec.json', content: '{}', size: 100, sha: 'abc123' },
+        ],
+        failed: [],
+      });
+
+      // Mock writeFile to throw error
+      vi.mocked(writeFile).mockRejectedValue(new Error('Disk full'));
+
+      const argv = ['node', 'kirox', 'add', 'owner/repo', '-p', 'test-project'];
+      const result = await executeAddCommand(argv);
+
+      // Should handle error gracefully
+      expect(result.success).toBe(false);
+      expect(result.exitCode).toBeGreaterThan(0);
     });
   });
 });

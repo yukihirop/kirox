@@ -18,7 +18,8 @@ import { loadMetadata } from '../tracking/metadata-manager.js';
 import { MetadataError, MetadataErrorType } from '../tracking/types.js';
 import { parseRepositoryPath, fetchDirectoryContents } from '../github/fetcher.js';
 import { fetchFilesInParallel } from '../github/parallel-fetcher.js';
-import { buildRemotePath } from '../filesystem/path-utils.js';
+import { buildRemotePath, resolveOutputPath } from '../filesystem/path-utils.js';
+import { writeFile } from '../filesystem/writer.js';
 import type { ExecutionResult } from './types.js';
 import type { Metadata, ProjectMetadata } from '../tracking/types.js';
 import type { ContentItem } from '../github/fetcher.js';
@@ -339,7 +340,96 @@ export async function executeAddCommand(argv: string[]): Promise<ExecutionResult
           });
         }
 
-        // TODO: Step 12: Write files to local filesystem (Task 4.1, 4.2)
+        // Step 12: Write files to local filesystem (Task 4.1)
+        // Iterate through successfully fetched files and write them to disk
+        const writeOptions = {
+          force: mergedConfig.force,
+          prompt: false, // No interactive prompts in add command (use --force)
+          dryRun: mergedConfig.dryRun,
+        };
+
+        if (args.verbose) {
+          logger.info('Starting file writes', {
+            fileCount: fetchResult.success.length,
+            outputDir: mergedConfig.output,
+            dryRun: mergedConfig.dryRun,
+          });
+        }
+
+        // Track write results
+        let filesWritten = 0;
+        let filesSkipped = 0;
+        const writeErrors: Array<{ path: string; error: string }> = [];
+
+        for (const file of fetchResult.success) {
+          try {
+            // Convert remote path to local path
+            const localPath = resolveOutputPath(mergedConfig.output, file.path);
+
+            if (args.verbose) {
+              logger.info('Writing file', {
+                remotePath: file.path,
+                localPath,
+                size: file.size,
+              });
+            }
+
+            // Write file to disk
+            const writeResult = await writeFile(localPath, file.content, writeOptions);
+
+            if (writeResult.written) {
+              filesWritten++;
+            } else if (writeResult.skipped) {
+              filesSkipped++;
+              if (args.verbose && writeResult.reason) {
+                logger.info('File skipped', {
+                  path: file.path,
+                  reason: writeResult.reason,
+                });
+              }
+            }
+          } catch (error) {
+            // Track write errors
+            const errorMessage = error instanceof Error ? error.message : String(error);
+            writeErrors.push({
+              path: file.path,
+              error: errorMessage,
+            });
+
+            logger.error('Failed to write file', {
+              path: file.path,
+              error: errorMessage,
+            });
+          }
+        }
+
+        if (args.verbose) {
+          logger.info('File writes completed', {
+            written: filesWritten,
+            skipped: filesSkipped,
+            failed: writeErrors.length,
+          });
+        }
+
+        // If any write errors occurred, handle them
+        if (writeErrors.length > 0) {
+          const errorResult = errorHandler.handle(
+            new Error(`Failed to write ${writeErrors.length} file(s)`),
+            {
+              project: projectName,
+              details: `Write errors: ${writeErrors.map(e => e.path).join(', ')}`,
+            }
+          );
+          logger.logError(errorResult);
+
+          // Return failure with write error details
+          return {
+            success: false,
+            filesDownloaded: fetchResult.success.length - writeErrors.length,
+            filesFailed: fetchResult.failed.length + writeErrors.length,
+            exitCode: errorResult.exitCode,
+          };
+        }
 
         // TODO: Step 13: Update metadata (Task 5.1, 5.2)
       } catch (error) {
