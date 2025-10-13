@@ -121,11 +121,13 @@ export async function executeAddCommand(argv: string[]): Promise<ExecutionResult
     }
 
     // Step 4.5: Load metadata BEFORE interactive mode (Task 7.2, 7.3)
-    // Metadata is required for add command and is used to suggest repository in interactive mode
+    // Task 2.4: Create empty metadata if file doesn't exist (metadata-free mode)
     // This check happens early to provide fast feedback to the user
     const metadataPath = getMetadataPath(args.output);
 
     let metadata: Metadata;
+    let isNewMetadata = false; // Track if we're creating new metadata (Task 2.4)
+
     try {
       // Attempt to load existing metadata
       // This will throw MetadataError.NOT_FOUND if file doesn't exist
@@ -135,25 +137,32 @@ export async function executeAddCommand(argv: string[]): Promise<ExecutionResult
         logger.info('Metadata file found', { path: metadataPath });
       }
     } catch (error) {
-      // Handle metadata not found error specifically
-      // This is a user error - they must run regular fetch first
+      // Task 2.4: Handle metadata not found error - create empty metadata instead of error
       if (error instanceof MetadataError && error.type === MetadataErrorType.NOT_FOUND) {
-        logger.error('Metadata file not found. Please run regular fetch command first.', {
+        // Create empty metadata object
+        metadata = {
+          version: '1.0',
+          projects: [],
+        };
+
+        isNewMetadata = true;
+
+        // Log info message about creating new metadata
+        logger.info('Creating new metadata file', {
           path: metadataPath,
-          suggestion: 'Run: npx kirox <owner/repo> -p <project> --track',
+          message: 'New metadata file will be created after successful project addition',
         });
 
-        return {
-          success: false,
-          filesDownloaded: 0,
-          filesFailed: 0,
-          exitCode: 1, // User error - metadata file required
-        };
+        if (args.verbose) {
+          logger.info('Metadata file does not exist, starting with empty metadata', {
+            path: metadataPath,
+          });
+        }
+      } else {
+        // Re-throw other metadata errors (e.g., INVALID_FORMAT, INVALID_SCHEMA)
+        // These will be caught by the outer catch block and handled generically
+        throw error;
       }
-
-      // Re-throw other metadata errors (e.g., INVALID_FORMAT, INVALID_SCHEMA)
-      // These will be caught by the outer catch block and handled generically
-      throw error;
     }
 
     // Step 4.6: Check if interactive mode should be entered (Task 7.1)
@@ -222,6 +231,7 @@ export async function executeAddCommand(argv: string[]): Promise<ExecutionResult
     }
 
     // Step 7: Detect duplicate projects (Task 2.3)
+    // Task 2.4: Skip duplicate check if metadata is new (empty projects array)
     // Check if project already exists in metadata
     // Handle based on --force option:
     // - Without --force: Warn user and skip to prevent accidental overwrites
@@ -229,41 +239,51 @@ export async function executeAddCommand(argv: string[]): Promise<ExecutionResult
     //
     // A project is considered duplicate if repository + projectName + subdir all match.
     // Different subdir values create separate projects, even with the same repo + name.
-    for (const projectName of args.projects) {
-      const isDuplicate = isDuplicateProject(
-        metadata,
-        args.repository,
-        projectName,
-        config.subdir
-      );
+    if (!isNewMetadata) {
+      // Only check for duplicates if metadata already exists (Task 2.4)
+      for (const projectName of args.projects) {
+        const isDuplicate = isDuplicateProject(
+          metadata,
+          args.repository,
+          projectName,
+          config.subdir
+        );
 
-      if (isDuplicate) {
-        if (!config.force) {
-          // Without --force: warn and skip
-          // This is a user error - they likely didn't intend to overwrite
-          logger.warn('Project already exists. Use --force to overwrite.', {
-            repository: args.repository,
-            projectName,
-            subdir: config.subdir,
-          });
-
-          return {
-            success: false,
-            filesDownloaded: 0,
-            filesFailed: 0,
-            exitCode: 1, // User error - duplicate project without --force
-          };
-        } else {
-          // With --force: log verbose message and continue
-          // User explicitly requested overwrite, so we proceed
-          if (args.verbose) {
-            logger.info('Overwriting existing project with --force option', {
+        if (isDuplicate) {
+          if (!config.force) {
+            // Without --force: warn and skip
+            // This is a user error - they likely didn't intend to overwrite
+            logger.warn('Project already exists. Use --force to overwrite.', {
               repository: args.repository,
               projectName,
               subdir: config.subdir,
             });
+
+            return {
+              success: false,
+              filesDownloaded: 0,
+              filesFailed: 0,
+              exitCode: 1, // User error - duplicate project without --force
+            };
+          } else {
+            // With --force: log verbose message and continue
+            // User explicitly requested overwrite, so we proceed
+            if (args.verbose) {
+              logger.info('Overwriting existing project with --force option', {
+                repository: args.repository,
+                projectName,
+                subdir: config.subdir,
+              });
+            }
           }
         }
+      }
+    } else {
+      // Task 2.4: Skip duplicate check for new metadata
+      if (args.verbose) {
+        logger.info('Skipping duplicate check for new metadata', {
+          message: 'No existing projects to check against',
+        });
       }
     }
 
