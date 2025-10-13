@@ -23,10 +23,12 @@ import type { ParsedArguments } from '../../src/cli/types.js';
 import type { Logger } from '../../src/reporting/logger.js';
 import * as treeScanner from '../../src/github/tree-based-project-scanner.js';
 import * as searchablePrompt from '../../src/cli/searchable-project-prompt.js';
+import * as projectSuggester from '../../src/cli/project-suggester.js';
 
 // Mock modules
 vi.mock('../../src/github/tree-based-project-scanner.js');
 vi.mock('../../src/cli/searchable-project-prompt.js');
+vi.mock('../../src/cli/project-suggester.js');
 vi.mock('@inquirer/prompts', () => ({
   input: vi.fn(),
   confirm: vi.fn(),
@@ -36,6 +38,7 @@ describe('Tree API Project Scan Integration (Task 4.1)', () => {
   let mockLogger: Logger;
   let mockScanProjectsAcrossSubdirs: ReturnType<typeof vi.fn>;
   let mockPromptProjectSelection: ReturnType<typeof vi.fn>;
+  let mockSuggestProjects: ReturnType<typeof vi.fn>;
   let mockInput: ReturnType<typeof vi.fn>;
   let mockConfirm: ReturnType<typeof vi.fn>;
   let consoleLogSpy: ReturnType<typeof vi.spyOn>;
@@ -59,6 +62,14 @@ describe('Tree API Project Scan Integration (Task 4.1)', () => {
 
     mockScanProjectsAcrossSubdirs = treeScanner.scanProjectsAcrossSubdirs as ReturnType<typeof vi.fn>;
     mockPromptProjectSelection = searchablePrompt.promptProjectSelection as ReturnType<typeof vi.fn>;
+    mockSuggestProjects = projectSuggester.suggestProjects as ReturnType<typeof vi.fn>;
+
+    // Default mock for suggestProjects (fallback to empty projects)
+    mockSuggestProjects.mockResolvedValue({
+      projects: [],
+      success: false,
+      errorMessage: 'Project suggestion failed',
+    });
 
     // Spy on console.log for loading/summary messages
     consoleLogSpy = vi.spyOn(console, 'log').mockImplementation(() => {});

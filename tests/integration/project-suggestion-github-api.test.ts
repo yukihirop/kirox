@@ -3,6 +3,9 @@
  *
  * Tests the integration between CLI and GitHub API for project suggestion feature
  * Task 7.1: CLI → GitHub API統合テストを作成
+ *
+ * Note: Following testing.md principles, all external API calls are mocked.
+ * This ensures tests are fast, reliable, and independent of network conditions.
  */
 
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
@@ -10,6 +13,9 @@ import { Octokit } from 'octokit';
 import { suggestProjects } from '@/cli/project-suggester.js';
 import type { Logger } from '@/reporting/logger.js';
 import type { RepositoryRef } from '@/github/fetcher.js';
+
+// Mock Octokit module to avoid external API calls (testing.md requirement)
+vi.mock('octokit');
 
 /**
  * Integration tests for project suggestion feature with real GitHub API calls
@@ -30,13 +36,25 @@ describe('Project Suggestion GitHub API Integration', () => {
 
   let client: Octokit;
   let mockLogger: Logger;
+  let mockGetContent: ReturnType<typeof vi.fn>;
 
   beforeEach(() => {
-    // Initialize real Octokit client
-    // Use GITHUB_TOKEN from environment if available
-    client = new Octokit({
-      auth: process.env.GITHUB_TOKEN,
-    });
+    // Create mock Octokit implementation
+    mockGetContent = vi.fn();
+
+    const mockOctokit = {
+      rest: {
+        repos: {
+          getContent: mockGetContent,
+        },
+      },
+    };
+
+    // Apply mock implementation to Octokit constructor
+    (Octokit as unknown as ReturnType<typeof vi.fn>).mockImplementation(() => mockOctokit);
+
+    // Initialize mocked Octokit client
+    client = new Octokit();
 
     // Create mock logger
     mockLogger = {
@@ -52,7 +70,30 @@ describe('Project Suggestion GitHub API Integration', () => {
 
   describe('実際のテストリポジトリからプロジェクト一覧取得', () => {
     it('Kiroxリポジトリから.kiro/specs/配下のプロジェクト一覧を取得できる', async () => {
-      // This test uses the actual Kirox repository
+      // Mock directory listing response for .kiro/specs/
+      mockGetContent.mockResolvedValueOnce({
+        data: [
+          {
+            name: 'kirox-cli',
+            path: '.kiro/specs/kirox-cli',
+            type: 'dir',
+            sha: 'abc123',
+          },
+          {
+            name: 'kirox-repo-branch',
+            path: '.kiro/specs/kirox-repo-branch',
+            type: 'dir',
+            sha: 'def456',
+          },
+          {
+            name: 'kirox-update-tracking',
+            path: '.kiro/specs/kirox-update-tracking',
+            type: 'dir',
+            sha: 'ghi789',
+          },
+        ],
+      });
+
       const repository: RepositoryRef = {
         owner: TEST_REPO_OWNER,
         repo: TEST_REPO_NAME,
@@ -78,9 +119,34 @@ describe('Project Suggestion GitHub API Integration', () => {
         expect(typeof project).toBe('string');
         expect(project.length).toBeGreaterThan(0);
       });
+
+      // Verify API was called with correct parameters
+      expect(mockGetContent).toHaveBeenCalledWith({
+        owner: TEST_REPO_OWNER,
+        repo: TEST_REPO_NAME,
+        path: '.kiro/specs',
+      });
     });
 
     it('プロジェクト名が正しい形式で返される', async () => {
+      // Mock directory listing with valid project names (no path separators)
+      mockGetContent.mockResolvedValueOnce({
+        data: [
+          {
+            name: 'valid-project-name',
+            path: '.kiro/specs/valid-project-name',
+            type: 'dir',
+            sha: 'abc123',
+          },
+          {
+            name: 'another_project',
+            path: '.kiro/specs/another_project',
+            type: 'dir',
+            sha: 'def456',
+          },
+        ],
+      });
+
       const repository: RepositoryRef = {
         owner: TEST_REPO_OWNER,
         repo: TEST_REPO_NAME,
@@ -108,7 +174,18 @@ describe('Project Suggestion GitHub API Integration', () => {
 
   describe('ブランチ指定でのプロジェクト一覧取得', () => {
     it('指定されたブランチからプロジェクト一覧を取得できる', async () => {
-      // Test with main branch explicitly specified
+      // Mock directory listing for specific branch
+      mockGetContent.mockResolvedValueOnce({
+        data: [
+          {
+            name: 'kirox-cli',
+            path: '.kiro/specs/kirox-cli',
+            type: 'dir',
+            sha: 'abc123',
+          },
+        ],
+      });
+
       const repository: RepositoryRef = {
         owner: TEST_REPO_OWNER,
         repo: TEST_REPO_NAME,
@@ -126,9 +203,22 @@ describe('Project Suggestion GitHub API Integration', () => {
       expect(result.success).toBe(true);
       expect(result.projects).toBeInstanceOf(Array);
       expect(result.projects.length).toBeGreaterThan(0);
+
+      // Verify API was called with branch parameter
+      expect(mockGetContent).toHaveBeenCalledWith({
+        owner: TEST_REPO_OWNER,
+        repo: TEST_REPO_NAME,
+        path: '.kiro/specs',
+        ref: MAIN_BRANCH,
+      });
     });
 
     it('存在しないブランチを指定した場合、適切なエラーを返す', async () => {
+      // Mock 404 error for non-existent branch
+      const error = new Error('Branch not found: non-existent-branch-12345');
+      (error as Error & { status: number }).status = 404;
+      mockGetContent.mockRejectedValueOnce(error);
+
       const repository: RepositoryRef = {
         owner: TEST_REPO_OWNER,
         repo: TEST_REPO_NAME,
@@ -151,18 +241,25 @@ describe('Project Suggestion GitHub API Integration', () => {
 
   describe('サブディレクトリ指定でのプロジェクト一覧取得', () => {
     it('サブディレクトリが指定されている場合、{subdir}/.kiro/specs/からプロジェクトを取得する', async () => {
-      // This test requires a test repository with subdirectory structure
-      // Structure: repo/{subdir}/.kiro/specs/{projects}/
-      //
-      // For this test, we'll use a hypothetical subdirectory
-      // If the repository doesn't have a subdirectory structure, this test will fail gracefully
+      // Mock directory listing for subdirectory path
+      mockGetContent.mockResolvedValueOnce({
+        data: [
+          {
+            name: 'project-in-subdir',
+            path: 'examples/.kiro/specs/project-in-subdir',
+            type: 'dir',
+            sha: 'abc123',
+          },
+        ],
+      });
+
       const repository: RepositoryRef = {
         owner: TEST_REPO_OWNER,
         repo: TEST_REPO_NAME,
         branch: undefined,
       };
 
-      const subdir = 'examples'; // Hypothetical subdirectory
+      const subdir = 'examples';
 
       const result = await suggestProjects({
         repository,
@@ -172,20 +269,25 @@ describe('Project Suggestion GitHub API Integration', () => {
         verbose: false,
       });
 
-      // This may succeed or fail depending on repository structure
-      // We're mainly testing that the path construction is correct
-      // The function should construct path as "examples/.kiro/specs/"
-      if (result.success) {
-        expect(result.projects).toBeInstanceOf(Array);
-      } else {
-        // If subdirectory doesn't exist, should return appropriate error
-        expect(result.errorMessage).toBeDefined();
-        expect(result.errorDetails).toBeDefined();
-        expect(result.errorDetails?.path).toBe('examples/.kiro/specs');
-      }
+      // Should succeed with mocked data
+      expect(result.success).toBe(true);
+      expect(result.projects).toBeInstanceOf(Array);
+      expect(result.projects.length).toBeGreaterThan(0);
+
+      // Verify API was called with subdirectory path
+      expect(mockGetContent).toHaveBeenCalledWith({
+        owner: TEST_REPO_OWNER,
+        repo: TEST_REPO_NAME,
+        path: 'examples/.kiro/specs',
+      });
     });
 
     it('サブディレクトリ配下に.kiro/specs/が存在しない場合、404エラーを返す', async () => {
+      // Mock 404 error for non-existent subdirectory
+      const error = new Error('Not Found');
+      (error as Error & { status: number }).status = 404;
+      mockGetContent.mockRejectedValueOnce(error);
+
       const repository: RepositoryRef = {
         owner: TEST_REPO_OWNER,
         repo: TEST_REPO_NAME,
@@ -212,7 +314,11 @@ describe('Project Suggestion GitHub API Integration', () => {
 
   describe('エラーリカバリーフローのテスト', () => {
     it('404エラー時、適切なエラーメッセージを返す', async () => {
-      // Use a non-existent repository
+      // Mock 404 error for non-existent repository
+      const error = new Error('Not Found');
+      (error as Error & { status: number }).status = 404;
+      mockGetContent.mockRejectedValueOnce(error);
+
       const repository: RepositoryRef = {
         owner: TEST_REPO_OWNER,
         repo: 'non-existent-repo-xyz123',
@@ -234,11 +340,11 @@ describe('Project Suggestion GitHub API Integration', () => {
     });
 
     it('認証エラー時、適切なエラーメッセージを返す（401/403）', async () => {
-      // Create Octokit client without authentication
-      const unauthClient = new Octokit();
+      // Mock 401 authentication error
+      const error = new Error('Unauthorized');
+      (error as Error & { status: number }).status = 401;
+      mockGetContent.mockRejectedValueOnce(error);
 
-      // Use a private repository that requires authentication
-      // This assumes the repository is private or doesn't exist
       const repository: RepositoryRef = {
         owner: TEST_REPO_OWNER,
         repo: 'private-repo-test-xyz',
@@ -248,14 +354,13 @@ describe('Project Suggestion GitHub API Integration', () => {
       const result = await suggestProjects({
         repository,
         subdir: undefined,
-        client: unauthClient,
+        client,
         logger: mockLogger,
         verbose: false,
       });
 
       expect(result.success).toBe(false);
       expect(result.projects).toEqual([]);
-      // Should either be auth error or 404 (if repo doesn't exist)
       expect(result.errorMessage).toBeDefined();
     });
 
@@ -288,6 +393,18 @@ describe('Project Suggestion GitHub API Integration', () => {
     });
 
     it('verboseモードでAPI呼び出し詳細をログ出力する', async () => {
+      // Mock successful directory listing
+      mockGetContent.mockResolvedValueOnce({
+        data: [
+          {
+            name: 'test-project',
+            path: '.kiro/specs/test-project',
+            type: 'dir',
+            sha: 'abc123',
+          },
+        ],
+      });
+
       const repository: RepositoryRef = {
         owner: TEST_REPO_OWNER,
         repo: TEST_REPO_NAME,
@@ -320,6 +437,11 @@ describe('Project Suggestion GitHub API Integration', () => {
     });
 
     it('verboseモードでエラー詳細をログ出力する', async () => {
+      // Mock 404 error
+      const error = new Error('Not Found');
+      (error as Error & { status: number }).status = 404;
+      mockGetContent.mockRejectedValueOnce(error);
+
       const repository: RepositoryRef = {
         owner: TEST_REPO_OWNER,
         repo: 'non-existent-repo-xyz123',
@@ -352,6 +474,18 @@ describe('Project Suggestion GitHub API Integration', () => {
 
   describe('GitHub API制約への対応', () => {
     it('レート制限に到達していない状態でプロジェクトを取得できる', async () => {
+      // Mock successful directory listing (simulating rate limit not exceeded)
+      mockGetContent.mockResolvedValueOnce({
+        data: [
+          {
+            name: 'project1',
+            path: '.kiro/specs/project1',
+            type: 'dir',
+            sha: 'abc123',
+          },
+        ],
+      });
+
       const repository: RepositoryRef = {
         owner: TEST_REPO_OWNER,
         repo: TEST_REPO_NAME,
@@ -374,7 +508,18 @@ describe('Project Suggestion GitHub API Integration', () => {
     });
 
     it('大量のプロジェクトが存在する場合でもすべて取得できる', async () => {
-      // This test assumes the test repository has multiple projects
+      // Mock large directory listing with many projects
+      const manyProjects = Array.from({ length: 20 }, (_, i) => ({
+        name: `project-${i + 1}`,
+        path: `.kiro/specs/project-${i + 1}`,
+        type: 'dir' as const,
+        sha: `sha${i + 1}`,
+      }));
+
+      mockGetContent.mockResolvedValueOnce({
+        data: manyProjects,
+      });
+
       const repository: RepositoryRef = {
         owner: TEST_REPO_OWNER,
         repo: TEST_REPO_NAME,
@@ -394,6 +539,7 @@ describe('Project Suggestion GitHub API Integration', () => {
       // GitHub API returns directory contents in a single response
       // No pagination is needed for a single directory listing
       expect(result.projects).toBeInstanceOf(Array);
+      expect(result.projects.length).toBe(20);
 
       // Verify all returned items are strings (project names)
       result.projects.forEach((project) => {
