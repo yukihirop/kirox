@@ -1937,6 +1937,266 @@ describe('executeAddCommand', () => {
     });
   });
 
+  describe('Multi-project loop processing (Task 6.1)', () => {
+    it('should process multiple projects sequentially in a loop', async () => {
+      const { loadMetadata } = await import('@/tracking/metadata-manager.js');
+      const { fetchDirectoryContents } = await import('@/github/fetcher.js');
+      const { fetchFilesInParallel } = await import('@/github/parallel-fetcher.js');
+      const { writeFile } = await import('@/filesystem/writer.js');
+      const { upsertProject } = await import('@/tracking/metadata-manager.js');
+      const { calculateFileHash } = await import('@/tracking/hash-calculator.js');
+
+      vi.mocked(loadMetadata).mockResolvedValue({
+        version: '1.0',
+        projects: [],
+      });
+
+      // Mock for proj1 and proj2
+      vi.mocked(fetchDirectoryContents)
+        .mockResolvedValueOnce([
+          { name: 'spec.json', path: '.kiro/specs/proj1/spec.json', type: 'file', sha: 'sha1', size: 100 },
+        ] as any)
+        .mockRejectedValueOnce(new Error('Steering directory not found'))
+        .mockResolvedValueOnce([
+          { name: 'spec.json', path: '.kiro/specs/proj2/spec.json', type: 'file', sha: 'sha2', size: 200 },
+        ] as any);
+
+      vi.mocked(fetchFilesInParallel)
+        .mockResolvedValueOnce({
+          success: [{ path: '.kiro/specs/proj1/spec.json', content: '{}', size: 100, sha: 'sha1' }],
+          failed: [],
+        })
+        .mockResolvedValueOnce({
+          success: [{ path: '.kiro/specs/proj2/spec.json', content: '{}', size: 200, sha: 'sha2' }],
+          failed: [],
+        });
+
+      vi.mocked(writeFile).mockResolvedValue({
+        written: true,
+        skipped: false,
+        filePath: 'test-file.md',
+        size: 100,
+      });
+
+      vi.mocked(calculateFileHash).mockResolvedValue('local-hash-123');
+
+      const argv = ['node', 'kirox', 'add', 'owner/repo', '-p', 'proj1,proj2'];
+      const result = await executeAddCommand(argv);
+
+      // Should process both projects
+      expect(upsertProject).toHaveBeenCalledTimes(2);
+      expect(result.success).toBe(true);
+      expect(result.exitCode).toBe(0);
+    });
+
+    it('should treat each project as independent transaction', async () => {
+      const { loadMetadata } = await import('@/tracking/metadata-manager.js');
+      const { fetchDirectoryContents } = await import('@/github/fetcher.js');
+      const { fetchFilesInParallel } = await import('@/github/parallel-fetcher.js');
+      const { writeFile } = await import('@/filesystem/writer.js');
+      const { upsertProject } = await import('@/tracking/metadata-manager.js');
+      const { calculateFileHash } = await import('@/tracking/hash-calculator.js');
+
+      vi.mocked(loadMetadata).mockResolvedValue({
+        version: '1.0',
+        projects: [],
+      });
+
+      // Mock successful fetch for proj1
+      vi.mocked(fetchDirectoryContents)
+        .mockResolvedValueOnce([
+          { name: 'spec.json', path: '.kiro/specs/proj1/spec.json', type: 'file', sha: 'sha1', size: 100 },
+        ] as any)
+        .mockRejectedValueOnce(new Error('Steering directory not found'))
+        // proj2 fetch will fail
+        .mockRejectedValueOnce(new Error('Project not found'));
+
+      vi.mocked(fetchFilesInParallel).mockResolvedValue({
+        success: [{ path: '.kiro/specs/proj1/spec.json', content: '{}', size: 100, sha: 'sha1' }],
+        failed: [],
+      });
+
+      vi.mocked(writeFile).mockResolvedValue({
+        written: true,
+        skipped: false,
+        filePath: 'test-file.md',
+        size: 100,
+      });
+
+      vi.mocked(calculateFileHash).mockResolvedValue('local-hash-123');
+
+      const argv = ['node', 'kirox', 'add', 'owner/repo', '-p', 'proj1,proj2'];
+      const result = await executeAddCommand(argv);
+
+      // proj1 should succeed and be saved
+      expect(upsertProject).toHaveBeenCalledWith(
+        expect.objectContaining({
+          projectName: 'proj1',
+        }),
+        expect.any(String)
+      );
+
+      // Should return partial success
+      expect(result.success).toBe(true);
+      expect(result.filesDownloaded).toBeGreaterThan(0);
+      expect(result.filesFailed).toBeGreaterThanOrEqual(0);
+    });
+
+    it('should continue processing other projects when one project fails', async () => {
+      const { loadMetadata } = await import('@/tracking/metadata-manager.js');
+      const { fetchDirectoryContents } = await import('@/github/fetcher.js');
+      const { fetchFilesInParallel } = await import('@/github/parallel-fetcher.js');
+      const { writeFile } = await import('@/filesystem/writer.js');
+      const { upsertProject } = await import('@/tracking/metadata-manager.js');
+      const { calculateFileHash } = await import('@/tracking/hash-calculator.js');
+
+      vi.mocked(loadMetadata).mockResolvedValue({
+        version: '1.0',
+        projects: [],
+      });
+
+      // proj1 succeeds, proj2 fails, proj3 succeeds
+      vi.mocked(fetchDirectoryContents)
+        .mockResolvedValueOnce([
+          { name: 'spec.json', path: '.kiro/specs/proj1/spec.json', type: 'file', sha: 'sha1', size: 100 },
+        ] as any)
+        .mockRejectedValueOnce(new Error('Steering directory not found'))
+        .mockRejectedValueOnce(new Error('Project not found')) // proj2 fails
+        .mockResolvedValueOnce([
+          { name: 'spec.json', path: '.kiro/specs/proj3/spec.json', type: 'file', sha: 'sha3', size: 300 },
+        ] as any);
+
+      vi.mocked(fetchFilesInParallel)
+        .mockResolvedValueOnce({
+          success: [{ path: '.kiro/specs/proj1/spec.json', content: '{}', size: 100, sha: 'sha1' }],
+          failed: [],
+        })
+        .mockResolvedValueOnce({
+          success: [{ path: '.kiro/specs/proj3/spec.json', content: '{}', size: 300, sha: 'sha3' }],
+          failed: [],
+        });
+
+      vi.mocked(writeFile).mockResolvedValue({
+        written: true,
+        skipped: false,
+        filePath: 'test-file.md',
+        size: 100,
+      });
+
+      vi.mocked(calculateFileHash).mockResolvedValue('local-hash-123');
+
+      const argv = ['node', 'kirox', 'add', 'owner/repo', '-p', 'proj1,proj2,proj3'];
+      const result = await executeAddCommand(argv);
+
+      // Should save both proj1 and proj3
+      expect(upsertProject).toHaveBeenCalledWith(
+        expect.objectContaining({ projectName: 'proj1' }),
+        expect.any(String)
+      );
+      expect(upsertProject).toHaveBeenCalledWith(
+        expect.objectContaining({ projectName: 'proj3' }),
+        expect.any(String)
+      );
+      expect(upsertProject).toHaveBeenCalledTimes(2);
+
+      // Should return partial success
+      expect(result.success).toBe(true);
+      expect(result.exitCode).toBe(0);
+    });
+
+    it('should aggregate success and failure counts across all projects', async () => {
+      const { loadMetadata } = await import('@/tracking/metadata-manager.js');
+      const { fetchDirectoryContents } = await import('@/github/fetcher.js');
+      const { fetchFilesInParallel } = await import('@/github/parallel-fetcher.js');
+      const { writeFile } = await import('@/filesystem/writer.js');
+      const { upsertProject } = await import('@/tracking/metadata-manager.js');
+      const { calculateFileHash } = await import('@/tracking/hash-calculator.js');
+
+      vi.mocked(loadMetadata).mockResolvedValue({
+        version: '1.0',
+        projects: [],
+      });
+
+      // proj1: 2 success, 1 failed
+      // proj2: 3 success, 0 failed
+      vi.mocked(fetchDirectoryContents)
+        .mockResolvedValueOnce([
+          { name: 'file1.md', path: '.kiro/specs/proj1/file1.md', type: 'file', sha: 'sha1', size: 100 },
+          { name: 'file2.md', path: '.kiro/specs/proj1/file2.md', type: 'file', sha: 'sha2', size: 200 },
+          { name: 'file3.md', path: '.kiro/specs/proj1/file3.md', type: 'file', sha: 'sha3', size: 300 },
+        ] as any)
+        .mockRejectedValueOnce(new Error('Steering directory not found'))
+        .mockResolvedValueOnce([
+          { name: 'file1.md', path: '.kiro/specs/proj2/file1.md', type: 'file', sha: 'sha4', size: 400 },
+          { name: 'file2.md', path: '.kiro/specs/proj2/file2.md', type: 'file', sha: 'sha5', size: 500 },
+          { name: 'file3.md', path: '.kiro/specs/proj2/file3.md', type: 'file', sha: 'sha6', size: 600 },
+        ] as any);
+
+      vi.mocked(fetchFilesInParallel)
+        .mockResolvedValueOnce({
+          success: [
+            { path: '.kiro/specs/proj1/file1.md', content: 'content1', size: 100, sha: 'sha1' },
+            { path: '.kiro/specs/proj1/file2.md', content: 'content2', size: 200, sha: 'sha2' },
+          ],
+          failed: [
+            { path: '.kiro/specs/proj1/file3.md', error: 'File too large', retryable: false },
+          ],
+        })
+        .mockResolvedValueOnce({
+          success: [
+            { path: '.kiro/specs/proj2/file1.md', content: 'content4', size: 400, sha: 'sha4' },
+            { path: '.kiro/specs/proj2/file2.md', content: 'content5', size: 500, sha: 'sha5' },
+            { path: '.kiro/specs/proj2/file3.md', content: 'content6', size: 600, sha: 'sha6' },
+          ],
+          failed: [],
+        });
+
+      vi.mocked(writeFile).mockResolvedValue({
+        written: true,
+        skipped: false,
+        filePath: 'test-file.md',
+        size: 100,
+      });
+
+      vi.mocked(calculateFileHash).mockResolvedValue('local-hash-123');
+
+      const argv = ['node', 'kirox', 'add', 'owner/repo', '-p', 'proj1,proj2'];
+      const result = await executeAddCommand(argv);
+
+      // Should aggregate counts:
+      // Total success: 2 (proj1) + 3 (proj2) = 5
+      // Total failed: 1 (proj1) + 0 (proj2) = 1
+      expect(result.filesDownloaded).toBe(5);
+      expect(result.filesFailed).toBe(1);
+      expect(result.success).toBe(true);
+      expect(result.exitCode).toBe(0);
+    });
+
+    it('should return failure when all projects fail', async () => {
+      const { loadMetadata } = await import('@/tracking/metadata-manager.js');
+      const { fetchDirectoryContents } = await import('@/github/fetcher.js');
+
+      vi.mocked(loadMetadata).mockResolvedValue({
+        version: '1.0',
+        projects: [],
+      });
+
+      // All projects fail
+      vi.mocked(fetchDirectoryContents)
+        .mockRejectedValueOnce(new Error('Project not found'))
+        .mockRejectedValueOnce(new Error('Project not found'))
+        .mockRejectedValueOnce(new Error('Project not found'));
+
+      const argv = ['node', 'kirox', 'add', 'owner/repo', '-p', 'proj1,proj2,proj3'];
+      const result = await executeAddCommand(argv);
+
+      // Should return failure when all projects fail
+      expect(result.success).toBe(false);
+      expect(result.filesDownloaded).toBe(0);
+      expect(result.exitCode).toBeGreaterThan(0);
+    });
+  });
+
   describe('Atomic metadata write and success summary (Task 5.2)', () => {
     it('should display success summary message after successful metadata update', async () => {
       const { loadMetadata } = await import('@/tracking/metadata-manager.js');

@@ -248,6 +248,12 @@ export async function executeAddCommand(argv: string[]): Promise<ExecutionResult
     let steeringFetched = false;
     const projects = args.projects.length > 0 ? args.projects : [''];
 
+    // Task 6.1: Track success/failure counts across all projects
+    let totalFilesDownloaded = 0;
+    let totalFilesFailed = 0;
+    let successfulProjects = 0;
+    let failedProjects = 0;
+
     for (const [index, projectName] of projects.entries()) {
       const isFirstProject = index === 0;
 
@@ -525,8 +531,14 @@ export async function executeAddCommand(argv: string[]): Promise<ExecutionResult
               fileCount: fileMetadataList.length,
             });
           }
+
+          // Task 6.1: Increment success counters for this project
+          successfulProjects++;
+          totalFilesDownloaded += filesWritten;
+          totalFilesFailed += fetchResult.failed.length;
         } catch (error) {
-          // Metadata save failure is critical - return error
+          // Metadata save failure is critical for this project
+          // Task 6.1: Log error but continue processing other projects
           const errorResult = errorHandler.handle(
             new Error('Failed to update metadata'),
             {
@@ -536,39 +548,42 @@ export async function executeAddCommand(argv: string[]): Promise<ExecutionResult
           );
           logger.logError(errorResult);
 
-          return {
-            success: false,
-            filesDownloaded: filesWritten,
-            filesFailed: fetchResult.failed.length,
-            exitCode: errorResult.exitCode,
-          };
+          // Increment failure counter
+          failedProjects++;
+          totalFilesFailed += fetchResult.success.length;
         }
       } catch (error) {
         // Handle project-specific errors
+        // Task 6.1: Log error but continue processing other projects (partial failure tolerance)
         const errorResult = errorHandler.handle(error, {
           project: projectName,
           details: error instanceof Error ? error.message : String(error),
         });
         logger.logError(errorResult);
 
-        // For now, return failure on first error (will handle partial success in later tasks)
-        return {
-          success: false,
-          filesDownloaded: 0,
-          filesFailed: 0,
-          exitCode: errorResult.exitCode,
-        };
+        // Increment failure counter
+        failedProjects++;
       }
     }
 
-    // All projects processed successfully
-    // Return success with file counts
-    // TODO: Track total counts across all projects for multi-project support
+    // Task 6.1: Return aggregated results across all projects
+    // Success if at least one project succeeded
+    const hasAnySuccess = successfulProjects > 0;
+
+    if (args.verbose) {
+      logger.info('All projects processed', {
+        successfulProjects,
+        failedProjects,
+        totalFilesDownloaded,
+        totalFilesFailed,
+      });
+    }
+
     return {
-      success: true,
-      filesDownloaded: 0, // Will be updated in Task 6.1 for multi-project tracking
-      filesFailed: 0,
-      exitCode: 0,
+      success: hasAnySuccess,
+      filesDownloaded: totalFilesDownloaded,
+      filesFailed: totalFilesFailed,
+      exitCode: hasAnySuccess ? 0 : 1,
     };
   } catch (error) {
     // Handle unexpected errors
