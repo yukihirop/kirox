@@ -44,8 +44,8 @@
   - 各サブコマンドの固有オプション（-p, --project等）をリスト化
   - _Requirements: 3.2, 3.3 (サブコマンドとオプションの補完候補)_
 
-- [ ] 4. Bashシェル用の補完スクリプトテンプレートを実装する
-- [ ] 4.1 BashTemplateを実装する
+- [x] 4. Bashシェル用の補完スクリプトテンプレートを実装する
+- [x] 4.1 BashTemplateを実装する
   - Bash補完の構文に従ったスクリプトテンプレートを作成
   - CompletionMetadataからサブコマンドとオプションを注入
   - `kirox`コマンド用のcompspec（complete -F）を定義
