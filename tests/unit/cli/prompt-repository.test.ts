@@ -172,4 +172,141 @@ describe('promptRepository', () => {
       expect(result).toBe('owner/repo');
     });
   });
+
+  /**
+   * Task 7.2: 既存メタデータからのリポジトリ提案機能
+   *
+   * Requirements: 2.2
+   * WHEN インタラクティブモードのリポジトリプロンプト
+   * THEN Kirox CLIは既存メタデータからデフォルト値（最後に使用したリポジトリ）を提案するべきである
+   */
+  describe('Task 7.2: メタデータからのリポジトリ提案', () => {
+    it('メタデータが提供された場合、最後のリポジトリをデフォルト値として提案する', async () => {
+      const metadata = {
+        version: '1.0',
+        projects: [
+          {
+            repository: 'owner/repo1',
+            projectName: 'proj1',
+            fetchedAt: '2024-01-01T00:00:00Z',
+            files: [],
+          },
+          {
+            repository: 'owner/repo2',
+            projectName: 'proj2',
+            fetchedAt: '2024-01-02T00:00:00Z',
+            files: [],
+          },
+        ],
+      };
+
+      mockInput.mockResolvedValue('owner/repo2');
+
+      await promptRepository('', metadata);
+
+      // Should call input with default value set to the last repository
+      expect(mockInput).toHaveBeenCalledWith(
+        expect.objectContaining({
+          message: 'Enter GitHub repository (owner/repo or owner/repo#branch)',
+          default: 'owner/repo2',
+        })
+      );
+    });
+
+    it('メタデータが空の場合、デフォルト値なしでプロンプトを表示', async () => {
+      const metadata = {
+        version: '1.0',
+        projects: [],
+      };
+
+      mockInput.mockResolvedValue('owner/repo');
+
+      await promptRepository('', metadata);
+
+      // Should call input without default value
+      expect(mockInput).toHaveBeenCalledWith(
+        expect.objectContaining({
+          message: 'Enter GitHub repository (owner/repo or owner/repo#branch)',
+        })
+      );
+
+      // Verify default is not set
+      const callArgs = mockInput.mock.calls[0][0];
+      expect(callArgs).not.toHaveProperty('default');
+    });
+
+    it('メタデータが提供されていない場合、デフォルト値なしでプロンプトを表示', async () => {
+      mockInput.mockResolvedValue('owner/repo');
+
+      await promptRepository('');
+
+      // Should call input without default value
+      expect(mockInput).toHaveBeenCalledWith(
+        expect.objectContaining({
+          message: 'Enter GitHub repository (owner/repo or owner/repo#branch)',
+        })
+      );
+
+      // Verify default is not set
+      const callArgs = mockInput.mock.calls[0][0];
+      expect(callArgs).not.toHaveProperty('default');
+    });
+
+    it('リポジトリが既に指定されている場合、メタデータに関係なくそのまま返す', async () => {
+      const metadata = {
+        version: '1.0',
+        projects: [
+          {
+            repository: 'owner/repo-old',
+            projectName: 'proj',
+            fetchedAt: '2024-01-01T00:00:00Z',
+            files: [],
+          },
+        ],
+      };
+
+      const result = await promptRepository('owner/repo-new', metadata);
+
+      // Should return provided value without prompting
+      expect(result).toBe('owner/repo-new');
+      expect(mockInput).not.toHaveBeenCalled();
+    });
+
+    it('メタデータから重複を排除して最後のリポジトリを提案', async () => {
+      const metadata = {
+        version: '1.0',
+        projects: [
+          {
+            repository: 'owner/repo1',
+            projectName: 'proj1',
+            fetchedAt: '2024-01-01T00:00:00Z',
+            files: [],
+          },
+          {
+            repository: 'owner/repo1',
+            projectName: 'proj2',
+            fetchedAt: '2024-01-02T00:00:00Z',
+            files: [],
+          },
+          {
+            repository: 'owner/repo3',
+            projectName: 'proj3',
+            fetchedAt: '2024-01-03T00:00:00Z',
+            files: [],
+          },
+        ],
+      };
+
+      mockInput.mockResolvedValue('owner/repo3');
+
+      await promptRepository('', metadata);
+
+      // Should suggest the last repository (owner/repo3)
+      expect(mockInput).toHaveBeenCalledWith(
+        expect.objectContaining({
+          default: 'owner/repo3',
+        })
+      );
+    });
+  });
 });
