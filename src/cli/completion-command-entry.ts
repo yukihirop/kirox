@@ -3,15 +3,12 @@
  *
  * Main execution logic for the 'completion' subcommand
  * Task 1.3: CompletionEntry (execution entry point) implementation
+ * Task 2.2: Validation error handling with ShellValidator integration
  */
 
 import { parseArguments } from './parser.js';
+import { validateShellType, getSupportedShells } from './completion/shell-validator.js';
 import type { ExecutionResult } from './types.js';
-
-/**
- * Supported shell types for completion script generation
- */
-const SUPPORTED_SHELLS = ['bash', 'zsh', 'fish', 'powershell', 'elvish'] as const;
 
 /**
  * Execute completion command with provided arguments
@@ -39,22 +36,17 @@ export async function executeCompletionCommand(argv: string[]): Promise<Executio
     // Step 2: Extract shell type
     const shellType = parsed.shellType || '';
 
-    // Step 3: Validate shell type
-    if (!shellType) {
-      // Missing shell argument
-      printShellError('Shell type is required.');
+    // Step 3: Validate shell type using ShellValidator (task 2.1)
+    const validationResult = validateShellType(shellType);
+
+    if (!validationResult.valid) {
+      // Validation failed - output error to stderr
+      console.error(validationResult.error);
       return createErrorResult();
     }
 
-    // Normalize shell type to lowercase for validation
-    const normalizedShell = shellType.toLowerCase();
-
-    // Check if shell is supported
-    if (!SUPPORTED_SHELLS.includes(normalizedShell as typeof SUPPORTED_SHELLS[number])) {
-      // Unsupported shell
-      printShellError(`Unsupported shell '${shellType}'.`);
-      return createErrorResult();
-    }
+    // Validation succeeded - use normalized shell
+    const normalizedShell = validationResult.normalizedShell!;
 
     // Step 4: Generate completion script (placeholder for now)
     // Future task 3.1 will implement actual script generation
@@ -82,16 +74,6 @@ export async function executeCompletionCommand(argv: string[]): Promise<Executio
       exitCode: 1,
     };
   }
-}
-
-/**
- * Print shell-related error message to stderr
- *
- * @param message - Error message
- */
-function printShellError(message: string): void {
-  console.error(`Error: ${message}`);
-  console.error(`Supported shells: ${SUPPORTED_SHELLS.join(', ')}`);
 }
 
 /**
