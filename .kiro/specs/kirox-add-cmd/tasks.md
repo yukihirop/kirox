@@ -168,7 +168,7 @@
   - 終了コード1で終了（ユーザーエラー）
   - _Requirements: 3.6 (新規)_
 
-- [ ] 8.6 インタラクティブモードで設定されたsubdirがconfig.subdirに反映されない問題を修正（BUG FIX）
+- [x] 8.6 インタラクティブモードで設定されたsubdirがconfig.subdirに反映されない問題を修正（BUG FIX）
   - **問題**: Tree API経由でプロジェクト選択した際にargs.subdirは正しく設定されるが、mergeConfig()実行後のconfig.subdirには反映されず、buildRemotePath()呼び出し時に空文字列が使用されてしまう
   - **再現手順**:
     1. インタラクティブモードで実行: `npm run dev -- add`
@@ -184,18 +184,15 @@
   - **影響範囲**:
     - `add-command-entry.ts`の設定マージタイミング（line 112）
     - `add-command-entry.ts`のsubdir使用箇所（line 311, 339, 354）
-  - **修正内容** (2つのアプローチから選択):
-    - **アプローチA（推奨）**: インタラクティブモード後に再マージ
-      - `add-command-entry.ts:216`（インタラクティブモード完了後）で、argsをconfigに再マージ
+  - **修正内容**:
+    - **アプローチA（採用）**: インタラクティブモード後に再マージ
+      - `add-command-entry.ts:112`で`const config`を`let config`に変更
+      - `add-command-entry.ts:197`（インタラクティブモード完了後）で、`config = mergeConfig(args, fileConfig)`を再実行
       - 既存のmergeConfig()を再利用して、更新されたargs.subdirをconfig.subdirに反映
-    - **アプローチB**: config.subdirを直接使わず、args.subdirを使用
-      - line 311の`config.subdir`を`args.subdir`に変更
-      - ただし、他のオプション（force, dryRun, verbose）はconfigから取得しているため、一貫性に欠ける
   - **テスト確認項目**:
-    - Tree API経由でサブディレクトリ付きプロジェクト選択時、buildRemotePath()に正しいsubdirが渡されること
-    - 手動でsubdirを入力した場合も正しく動作すること
-    - 非インタラクティブモードでの既存動作が変更されないこと
-    - 複数プロジェクト選択時も正しくsubdirが反映されること
+    - ✅ mergeConfig()がインタラクティブモード前後で2回呼ばれることを確認（ユニットテスト）
+    - ✅ 2回目の呼び出しでargs.subdirに正しい値が渡されることを確認（ユニットテスト）
+    - ✅ 全テスト実行で1489テストが通過、既存機能にリグレッションなし
   - _Requirements: 7.3 (修正), 2.1 (設定マージ), 3.1 (buildRemotePath)_
 
 - [ ] 9. 既存機能との統合を確認

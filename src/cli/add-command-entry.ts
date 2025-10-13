@@ -109,7 +109,7 @@ export async function executeAddCommand(argv: string[]): Promise<ExecutionResult
     // Load config file (if specified) and merge with CLI arguments
     // CLI arguments take precedence over file config
     const fileConfig = await loadConfig(args.config);
-    const config = mergeConfig(args, fileConfig);
+    let config = mergeConfig(args, fileConfig);
 
     // Log execution start if verbose mode is enabled
     if (args.verbose) {
@@ -191,10 +191,16 @@ export async function executeAddCommand(argv: string[]): Promise<ExecutionResult
         args.output = completedArgs.output;
         args.subdir = completedArgs.subdir;
 
+        // Task 8.6: Re-merge config after interactive mode to reflect updated args.subdir
+        // Interactive mode may have set args.subdir via Tree API, so we need to merge again
+        // to ensure config.subdir includes the value from interactive mode
+        config = mergeConfig(args, fileConfig);
+
         if (args.verbose) {
           logger.info('Interactive prompts completed', {
             repository: args.repository,
             projects: args.projects,
+            subdir: args.subdir, // Log subdir for debugging
           });
         }
       } catch (error) {

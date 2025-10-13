@@ -111,6 +111,11 @@ vi.mock('@/tracking/hash-calculator.js', () => ({
   calculateFileHash: vi.fn(async () => 'default-hash'),
 }));
 
+vi.mock('@/cli/interactive-prompt.js', () => ({
+  shouldEnterInteractiveMode: vi.fn(() => false),
+  promptMissingArguments: vi.fn(async (args) => args),
+}));
+
 describe('executeAddCommand', () => {
   beforeEach(async () => {
     // Clear all mock call history between tests
@@ -2827,6 +2832,106 @@ describe('executeAddCommand', () => {
         const shouldEnter = shouldEnterInteractiveMode(mockArgs);
         expect(shouldEnter).toBe(false); // Complete arguments should skip interactive mode
       });
+    });
+  });
+
+  describe('Task 8.6: Interactive mode subdir configuration merge', () => {
+    it('should re-merge config after interactive mode to reflect updated args.subdir', async () => {
+      // Task 8.6: Test that mergeConfig is called twice when interactive mode is used
+      // 1st call: before interactive mode
+      // 2nd call: after interactive mode (to reflect updated args.subdir)
+      const { loadConfig } = await import('@/config/loader.js');
+      const { mergeConfig } = await import('@/config/merger.js');
+      const { loadMetadata } = await import('@/tracking/metadata-manager.js');
+      const { fetchDirectoryContents } = await import('@/github/fetcher.js');
+      const { fetchFilesInParallel } = await import('@/github/parallel-fetcher.js');
+      const { writeFile } = await import('@/filesystem/writer.js');
+      const { calculateFileHash } = await import('@/tracking/hash-calculator.js');
+      const { upsertProject } = await import('@/tracking/metadata-manager.js');
+      const { shouldEnterInteractiveMode, promptMissingArguments } = await import('@/cli/interactive-prompt.js');
+
+      // Mock loadConfig to return file config with no subdir
+      vi.mocked(loadConfig).mockResolvedValue({});
+
+      // Mock loadMetadata to return existing metadata
+      vi.mocked(loadMetadata).mockResolvedValue({
+        version: '1.0',
+        projects: [],
+      });
+
+      // Mock interactive mode
+      vi.mocked(shouldEnterInteractiveMode).mockReturnValue(true);
+      vi.mocked(promptMissingArguments).mockResolvedValue({
+        repository: 'owner/repo',
+        projects: ['test-project'],
+        subdir: 'lib/a', // Tree API sets subdir
+        output: '.',
+        force: false,
+        dryRun: false,
+        verbose: false,
+        track: false,
+        checkUpdates: false,
+        update: false,
+      });
+
+      // Track mergeConfig calls
+      const mergeConfigSpy = vi.mocked(mergeConfig);
+      mergeConfigSpy.mockImplementation((args, fileConfig) => ({
+        ...args,
+        ...fileConfig,
+        subdir: args.subdir || fileConfig?.subdir,
+        force: args.force,
+        dryRun: args.dryRun,
+        verbose: args.verbose,
+      }));
+
+      // Mock GitHub and file operations to allow execution to complete
+      vi.mocked(fetchDirectoryContents).mockResolvedValue([
+        {
+          name: 'file1.md',
+          path: 'lib/a/.kiro/specs/test-project/file1.md',
+          type: 'file',
+          sha: 'sha123',
+          size: 100,
+        },
+      ]);
+
+      vi.mocked(fetchFilesInParallel).mockResolvedValue({
+        success: [
+          {
+            path: 'lib/a/.kiro/specs/test-project/file1.md',
+            content: 'test content',
+            sha: 'sha123',
+            size: 100,
+          },
+        ],
+        failed: [],
+      });
+
+      vi.mocked(writeFile).mockResolvedValue({
+        written: true,
+        skipped: false,
+        filePath: 'test-file.md',
+        size: 100,
+      });
+
+      vi.mocked(calculateFileHash).mockResolvedValue('local-hash-123');
+      vi.mocked(upsertProject).mockResolvedValue(undefined);
+
+      // Execute with minimal args to trigger interactive mode
+      const argv = ['node', 'kirox', 'add'];
+      await executeAddCommand(argv);
+
+      // Verify mergeConfig was called exactly twice:
+      // 1. Before interactive mode (initial merge)
+      // 2. After interactive mode (re-merge with updated args.subdir)
+      expect(mergeConfigSpy).toHaveBeenCalledTimes(2);
+
+      // Verify the second call includes the subdir from interactive mode
+      const secondCall = mergeConfigSpy.mock.calls[1];
+      expect(secondCall).toBeDefined();
+      const [argsInSecondCall] = secondCall!;
+      expect(argsInSecondCall.subdir).toBe('lib/a');
     });
   });
 });
