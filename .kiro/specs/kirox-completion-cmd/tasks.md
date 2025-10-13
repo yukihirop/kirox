@@ -93,7 +93,7 @@
   - _Requirements: 3.1 (構文エラーなく実行)_
 
 - [ ] 8. Elvishシェル用の補完スクリプトテンプレートを実装する
-- [ ] 8.1 ElvishTemplateを実装する
+- [x] 8.1 ElvishTemplateを実装する
   - Elvish補完の構文（edit:completion:arg-completer形式）に従ったスクリプトテンプレートを作成
   - サブコマンドとオプションをElvishの補完関数に変換
   - コマンドコンテキストに応じた補完候補を返すロジックを実装
