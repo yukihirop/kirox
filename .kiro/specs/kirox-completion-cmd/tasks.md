@@ -1,7 +1,7 @@
 # Implementation Plan
 
 - [ ] 1. CLI層にcompletion機能の基盤を構築する
-- [ ] 1.1 エントリポイントでcompletionサブコマンドを検出してルーティングする
+- [x] 1.1 エントリポイントでcompletionサブコマンドを検出してルーティングする
   - `src/index.ts`でサブコマンド検出ロジックに`completion`を追加
   - 既存の`add`サブコマンドと同様のパターンでルーティング
   - _Requirements: 5.1 (Commanderのサブコマンド構造に従う)_
