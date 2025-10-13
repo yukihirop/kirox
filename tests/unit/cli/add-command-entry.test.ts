@@ -1936,4 +1936,196 @@ describe('executeAddCommand', () => {
       expect(timestamp <= afterTimestamp).toBe(true);
     });
   });
+
+  describe('Atomic metadata write and success summary (Task 5.2)', () => {
+    it('should display success summary message after successful metadata update', async () => {
+      const { loadMetadata } = await import('@/tracking/metadata-manager.js');
+      const { fetchDirectoryContents } = await import('@/github/fetcher.js');
+      const { fetchFilesInParallel } = await import('@/github/parallel-fetcher.js');
+      const { writeFile } = await import('@/filesystem/writer.js');
+      const { upsertProject } = await import('@/tracking/metadata-manager.js');
+      const { calculateFileHash } = await import('@/tracking/hash-calculator.js');
+      const { Logger } = await import('@/reporting/logger.js');
+
+      const mockLogger = {
+        info: vi.fn(),
+        warn: vi.fn(),
+        error: vi.fn(),
+        logError: vi.fn(),
+      };
+      vi.mocked(Logger).mockReturnValue(mockLogger as any);
+
+      vi.mocked(loadMetadata).mockResolvedValue({
+        version: '1.0',
+        projects: [],
+      });
+
+      vi.mocked(fetchDirectoryContents)
+        .mockResolvedValueOnce([
+          { name: 'spec.json', path: '.kiro/specs/test-project/spec.json', type: 'file', sha: 'abc123', size: 100 },
+          { name: 'requirements.md', path: '.kiro/specs/test-project/requirements.md', type: 'file', sha: 'def456', size: 200 },
+          { name: 'design.md', path: '.kiro/specs/test-project/design.md', type: 'file', sha: 'ghi789', size: 300 },
+        ] as any)
+        .mockRejectedValueOnce(new Error('Steering directory not found'));
+
+      vi.mocked(fetchFilesInParallel).mockResolvedValue({
+        success: [
+          { path: '.kiro/specs/test-project/spec.json', content: '{}', size: 100, sha: 'abc123' },
+          { path: '.kiro/specs/test-project/requirements.md', content: '# Requirements', size: 200, sha: 'def456' },
+          { path: '.kiro/specs/test-project/design.md', content: '# Design', size: 300, sha: 'ghi789' },
+        ],
+        failed: [],
+      });
+
+      vi.mocked(writeFile).mockResolvedValue({
+        written: true,
+        skipped: false,
+        filePath: './.kiro/specs/test-project/spec.json',
+        size: 100,
+      });
+
+      vi.mocked(calculateFileHash).mockResolvedValue('local-hash-123');
+
+      const argv = ['node', 'kirox', 'add', 'owner/repo', '-p', 'test-project'];
+      const result = await executeAddCommand(argv);
+
+      // Should display success summary message
+      expect(mockLogger.info).toHaveBeenCalledWith(
+        expect.stringMatching(/successfully added|project added|metadata updated/i),
+        expect.objectContaining({
+          project: 'test-project',
+          fileCount: 3,
+        })
+      );
+
+      expect(result.success).toBe(true);
+      expect(result.exitCode).toBe(0);
+    });
+
+    it('should NOT display success summary when metadata update fails', async () => {
+      const { loadMetadata } = await import('@/tracking/metadata-manager.js');
+      const { fetchDirectoryContents } = await import('@/github/fetcher.js');
+      const { fetchFilesInParallel } = await import('@/github/parallel-fetcher.js');
+      const { writeFile } = await import('@/filesystem/writer.js');
+      const { upsertProject } = await import('@/tracking/metadata-manager.js');
+      const { calculateFileHash } = await import('@/tracking/hash-calculator.js');
+      const { Logger } = await import('@/reporting/logger.js');
+
+      const mockLogger = {
+        info: vi.fn(),
+        warn: vi.fn(),
+        error: vi.fn(),
+        logError: vi.fn(),
+      };
+      vi.mocked(Logger).mockReturnValue(mockLogger as any);
+
+      vi.mocked(loadMetadata).mockResolvedValue({
+        version: '1.0',
+        projects: [],
+      });
+
+      vi.mocked(fetchDirectoryContents)
+        .mockResolvedValueOnce([
+          { name: 'spec.json', path: '.kiro/specs/test-project/spec.json', type: 'file', sha: 'abc123', size: 100 },
+        ] as any)
+        .mockRejectedValueOnce(new Error('Steering directory not found'));
+
+      vi.mocked(fetchFilesInParallel).mockResolvedValue({
+        success: [
+          { path: '.kiro/specs/test-project/spec.json', content: '{}', size: 100, sha: 'abc123' },
+        ],
+        failed: [],
+      });
+
+      vi.mocked(writeFile).mockResolvedValue({
+        written: true,
+        skipped: false,
+        filePath: './.kiro/specs/test-project/spec.json',
+        size: 100,
+      });
+
+      vi.mocked(calculateFileHash).mockResolvedValue('local-hash-123');
+
+      // Mock upsertProject to throw error (metadata write failure)
+      vi.mocked(upsertProject).mockRejectedValue(new Error('Failed to write metadata'));
+
+      const argv = ['node', 'kirox', 'add', 'owner/repo', '-p', 'test-project'];
+      const result = await executeAddCommand(argv);
+
+      // Should NOT display success summary when metadata update fails
+      const successMessages = mockLogger.info.mock.calls.filter(call =>
+        typeof call[0] === 'string' && /successfully added|project added|metadata updated/i.test(call[0])
+      );
+      expect(successMessages).toHaveLength(0);
+
+      expect(result.success).toBe(false);
+      expect(result.exitCode).toBeGreaterThan(0);
+    });
+
+    it('should display file count in success summary message', async () => {
+      const { loadMetadata, upsertProject } = await import('@/tracking/metadata-manager.js');
+      const { fetchDirectoryContents } = await import('@/github/fetcher.js');
+      const { fetchFilesInParallel } = await import('@/github/parallel-fetcher.js');
+      const { writeFile } = await import('@/filesystem/writer.js');
+      const { calculateFileHash } = await import('@/tracking/hash-calculator.js');
+      const { Logger } = await import('@/reporting/logger.js');
+
+      const mockLogger = {
+        info: vi.fn(),
+        warn: vi.fn(),
+        error: vi.fn(),
+        logError: vi.fn(),
+      };
+      vi.mocked(Logger).mockReturnValue(mockLogger as any);
+
+      vi.mocked(loadMetadata).mockResolvedValue({
+        version: '1.0',
+        projects: [],
+      });
+
+      vi.mocked(fetchDirectoryContents)
+        .mockResolvedValueOnce([
+          { name: 'file1.md', path: '.kiro/specs/test-project/file1.md', type: 'file', sha: 'sha1', size: 100 },
+          { name: 'file2.md', path: '.kiro/specs/test-project/file2.md', type: 'file', sha: 'sha2', size: 200 },
+          { name: 'file3.md', path: '.kiro/specs/test-project/file3.md', type: 'file', sha: 'sha3', size: 300 },
+          { name: 'file4.md', path: '.kiro/specs/test-project/file4.md', type: 'file', sha: 'sha4', size: 400 },
+          { name: 'file5.md', path: '.kiro/specs/test-project/file5.md', type: 'file', sha: 'sha5', size: 500 },
+        ] as any)
+        .mockRejectedValueOnce(new Error('Steering directory not found'));
+
+      vi.mocked(fetchFilesInParallel).mockResolvedValue({
+        success: [
+          { path: '.kiro/specs/test-project/file1.md', content: 'content1', size: 100, sha: 'sha1' },
+          { path: '.kiro/specs/test-project/file2.md', content: 'content2', size: 200, sha: 'sha2' },
+          { path: '.kiro/specs/test-project/file3.md', content: 'content3', size: 300, sha: 'sha3' },
+          { path: '.kiro/specs/test-project/file4.md', content: 'content4', size: 400, sha: 'sha4' },
+          { path: '.kiro/specs/test-project/file5.md', content: 'content5', size: 500, sha: 'sha5' },
+        ],
+        failed: [],
+      });
+
+      vi.mocked(writeFile).mockResolvedValue({
+        written: true,
+        skipped: false,
+        filePath: 'test-file.md',
+        size: 100,
+      });
+
+      vi.mocked(calculateFileHash).mockResolvedValue('local-hash-123');
+
+      // IMPORTANT: Mock upsertProject to resolve successfully
+      vi.mocked(upsertProject).mockResolvedValue(undefined);
+
+      const argv = ['node', 'kirox', 'add', 'owner/repo', '-p', 'test-project'];
+      await executeAddCommand(argv);
+
+      // Should display file count (5 files) in success message
+      expect(mockLogger.info).toHaveBeenCalledWith(
+        expect.anything(),
+        expect.objectContaining({
+          fileCount: 5,
+        })
+      );
+    });
+  });
 });

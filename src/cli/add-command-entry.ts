@@ -511,6 +511,14 @@ export async function executeAddCommand(argv: string[]): Promise<ExecutionResult
         try {
           await upsertProject(projectMetadata, metadataPath);
 
+          // Task 5.2: Display success summary message (non-verbose, user-facing)
+          // Always show this message after successful metadata update
+          logger.info(`Project '${projectName}' successfully added with ${fileMetadataList.length} file(s)`, {
+            project: projectName,
+            fileCount: fileMetadataList.length,
+          });
+
+          // Verbose log with additional details
           if (args.verbose) {
             logger.info('Metadata updated successfully', {
               project: projectName,
