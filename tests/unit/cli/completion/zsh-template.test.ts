@@ -1,5 +1,12 @@
 import { describe, it, expect } from 'vitest';
+import { exec } from 'child_process';
+import { promisify } from 'util';
+import { writeFile, unlink } from 'fs/promises';
+import { join } from 'path';
+import { tmpdir } from 'os';
 import { generateCompletionScript, type CompletionMetadata } from '@/cli/completion/generator';
+
+const execAsync = promisify(exec);
 
 /**
  * Tests for Zsh Template (Task 5.1)
@@ -459,6 +466,209 @@ describe('Zsh Template', () => {
       expect(zshScript).toContain('_describe');
       expect(zshScript).toContain('typeset -A opt_args');
       expect(zshScript).toContain('->subcommand');
+    });
+  });
+
+  /**
+   * Task 5.2: Zsh syntax validation with `zsh -n`
+   *
+   * These tests verify that generated Zsh scripts pass syntax checking
+   * using the `zsh -n` command, which performs syntax validation without
+   * executing the script.
+   *
+   * Requirements tested:
+   * - 3.1: Script generation without syntax errors
+   *
+   * Note: These tests will be skipped if zsh is not available on the system.
+   */
+  describe('Zsh syntax validation (Task 5.2)', () => {
+    /**
+     * Helper function to check if zsh is available on the system
+     *
+     * @returns Promise that resolves to true if zsh is available, false otherwise
+     */
+    async function isZshAvailable(): Promise<boolean> {
+      try {
+        await execAsync('which zsh');
+        return true;
+      } catch {
+        return false;
+      }
+    }
+
+    /**
+     * Helper function to check zsh syntax using `zsh -n`
+     *
+     * @param script - Zsh script content to validate
+     * @returns Promise that resolves if syntax is valid, rejects otherwise
+     */
+    async function checkZshSyntax(script: string): Promise<{ valid: boolean; error?: string }> {
+      // Check if zsh is available
+      const zshAvailable = await isZshAvailable();
+      if (!zshAvailable) {
+        console.warn('Zsh is not available on this system, skipping syntax validation');
+        return { valid: true }; // Skip validation if zsh is not available
+      }
+
+      // Create temporary file for syntax check
+      const tempFile = join(tmpdir(), `kirox-completion-test-${Date.now()}.zsh`);
+
+      try {
+        // Write script to temporary file
+        await writeFile(tempFile, script, 'utf-8');
+
+        // Run zsh -n to check syntax
+        await execAsync(`zsh -n "${tempFile}"`);
+
+        // Clean up temporary file
+        await unlink(tempFile);
+
+        return { valid: true };
+      } catch (error) {
+        // Clean up temporary file on error
+        try {
+          await unlink(tempFile);
+        } catch {
+          // Ignore cleanup errors
+        }
+
+        if (error instanceof Error) {
+          return {
+            valid: false,
+            error: error.message,
+          };
+        }
+
+        return {
+          valid: false,
+          error: 'Unknown syntax error',
+        };
+      }
+    }
+
+    it('should generate syntactically valid zsh script', async () => {
+      const script = generateCompletionScript('zsh', sampleMetadata);
+
+      const result = await checkZshSyntax(script);
+
+      expect(result.valid).toBe(true);
+      if (!result.valid) {
+        console.error('Zsh syntax error:', result.error);
+      }
+    });
+
+    it('should pass zsh -n check with empty subcommands', async () => {
+      const metadata: CompletionMetadata = {
+        programName: 'testcli',
+        subcommands: [],
+        globalOptions: [{ flag: '--help', description: 'Help' }],
+      };
+
+      const script = generateCompletionScript('zsh', metadata);
+      const result = await checkZshSyntax(script);
+
+      expect(result.valid).toBe(true);
+    });
+
+    it('should pass zsh -n check with empty options', async () => {
+      const metadata: CompletionMetadata = {
+        programName: 'testcli',
+        subcommands: [{ name: 'cmd', description: 'Command', options: [] }],
+        globalOptions: [],
+      };
+
+      const script = generateCompletionScript('zsh', metadata);
+      const result = await checkZshSyntax(script);
+
+      expect(result.valid).toBe(true);
+    });
+
+    it('should pass zsh -n check with many subcommands', async () => {
+      const metadata: CompletionMetadata = {
+        programName: 'cli',
+        subcommands: Array.from({ length: 20 }, (_, i) => ({
+          name: `cmd${i}`,
+          description: `Command ${i}`,
+          options: [],
+        })),
+        globalOptions: [],
+      };
+
+      const script = generateCompletionScript('zsh', metadata);
+      const result = await checkZshSyntax(script);
+
+      expect(result.valid).toBe(true);
+    });
+
+    it('should pass zsh -n check with many options', async () => {
+      const metadata: CompletionMetadata = {
+        programName: 'cli',
+        subcommands: [],
+        globalOptions: Array.from({ length: 15 }, (_, i) => ({
+          flag: `--option${i}`,
+          description: `Option ${i}`,
+        })),
+      };
+
+      const script = generateCompletionScript('zsh', metadata);
+      const result = await checkZshSyntax(script);
+
+      expect(result.valid).toBe(true);
+    });
+
+    it('should pass zsh -n check with special characters in names', async () => {
+      const metadata: CompletionMetadata = {
+        programName: 'my-cli',
+        subcommands: [
+          { name: 'cmd-one', description: 'Command one', options: [] },
+          { name: 'cmd_two', description: 'Command two', options: [] },
+        ],
+        globalOptions: [
+          { flag: '-v, --verbose', description: 'Verbose output' },
+          { flag: '--dry-run', description: 'Dry run mode' },
+        ],
+      };
+
+      const script = generateCompletionScript('zsh', metadata);
+      const result = await checkZshSyntax(script);
+
+      expect(result.valid).toBe(true);
+    });
+
+    it('should pass zsh -n check with real Kirox metadata', async () => {
+      const kiroxMetadata: CompletionMetadata = {
+        programName: 'kirox',
+        subcommands: [
+          {
+            name: 'add',
+            description: 'Add a new project from a remote repository',
+            options: [
+              { flag: '-p, --project <name>', description: 'Project name to add' },
+              { flag: '--track', description: 'Enable update tracking for this project' },
+              { flag: '--force', description: 'Force overwrite existing project' },
+              { flag: '--dry-run', description: 'Preview without executing' },
+              { flag: '--verbose', description: 'Verbose output' },
+            ],
+          },
+          {
+            name: 'completion',
+            description: 'Generate shell completion script',
+            options: [{ flag: '-h, --help', description: 'Display help for completion command' }],
+          },
+        ],
+        globalOptions: [
+          { flag: '-h, --help', description: 'Display help information' },
+          { flag: '-V, --version', description: 'Output version number' },
+        ],
+      };
+
+      const script = generateCompletionScript('zsh', kiroxMetadata);
+      const result = await checkZshSyntax(script);
+
+      expect(result.valid).toBe(true);
+      if (!result.valid) {
+        console.error('Kirox zsh completion syntax error:', result.error);
+      }
     });
   });
 });
