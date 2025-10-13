@@ -7,9 +7,18 @@
  */
 
 import { execute } from './cli/entry.js';
+import { executeAddCommand } from './cli/add-command-entry.js';
 
-// Execute main CLI logic
-execute(process.argv)
+// Detect if 'add' subcommand is present
+const isAddCommand = process.argv.includes('add') && process.argv.indexOf('add') >= 2;
+
+// Route to appropriate command handler
+const commandPromise = isAddCommand
+  ? executeAddCommand(process.argv)
+  : execute(process.argv);
+
+// Execute command and handle result
+commandPromise
   .then((result) => {
     process.exit(result.exitCode);
   })
