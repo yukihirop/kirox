@@ -19,7 +19,7 @@
   - _Requirements: 1.1, 5.3 (実行フローとエラーハンドリング)_
 
 - [ ] 2. シェル名のバリデーション機能を実装する
-- [ ] 2.1 ShellValidatorを実装する
+- [x] 2.1 ShellValidatorを実装する
   - サポート対象シェルのリスト（bash, zsh, fish, powershell, elvish）を定義
   - シェル名の大文字小文字を正規化（Bash → bash）
   - 未サポートのシェル名を検出してエラーを返す
