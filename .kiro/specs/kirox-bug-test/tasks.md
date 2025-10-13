@@ -109,7 +109,7 @@
   - _Requirements: 4.1, 4.2, 4.3, 4.4_
 
 - [ ] 6. 単体テストのクリーンアップ問題を修正
-- [ ] 6.1 add-command-entry.test.tsのテスト独立性を確保
+- [x] 6.1 add-command-entry.test.tsのテスト独立性を確保
   - 問題分析: Task 8.6のテストで設定された`subdir: 'lib/a'`が次のTask 8.7テストに影響
   - 失敗テスト: "should fetch steering files on first add execution"
   - 期待パス: `.kiro/specs/test-project`

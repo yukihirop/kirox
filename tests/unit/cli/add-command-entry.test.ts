@@ -2966,12 +2966,27 @@ describe('executeAddCommand', () => {
 
   describe('Task 8.7: Skip existing steering files to avoid duplicate fetching', () => {
     beforeEach(async () => {
+      // Ensure no state leaks from previous tests (e.g., Task 8.6 subdir override)
+      vi.clearAllMocks();
+      vi.unstubAllGlobals();
+
       // Mock validator for Task 8.7 tests - these tests use valid arguments
       const { validateInput } = await import('@/cli/validator.js');
       vi.mocked(validateInput).mockReturnValue({
         valid: true,
         errors: [],
       });
+
+      // Reset mergeConfig to a pass-through that does NOT carry over subdir
+      const { mergeConfig } = await import('@/config/merger.js');
+      vi.mocked(mergeConfig).mockImplementation((args: any, fileConfig: any) => ({
+        ...args,
+        ...fileConfig,
+        subdir: undefined,
+        force: args.force,
+        dryRun: args.dryRun,
+        verbose: args.verbose,
+      }));
     });
 
     it('should fetch steering files on first add execution', async () => {
