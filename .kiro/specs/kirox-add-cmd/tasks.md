@@ -130,7 +130,7 @@
   - 部分的成功として処理を継続
   - _Requirements: 6.1_
 
-- [ ] 8.2 GitHub APIレート制限ハンドリングを実装
+- [x] 8.2 GitHub APIレート制限ハンドリングを実装
   - レート制限エラーをキャッチ
   - 「GitHub API rate limit exceeded. Please wait {minutes} minutes.」というメッセージを表示
   - レート制限リセット時刻を計算して表示

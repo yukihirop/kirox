@@ -633,5 +633,209 @@ describe('ParallelFileFetcher', () => {
         expect(results.failed[0].error).toBe('Repository not found');
       });
     });
+
+    // Task 8.2: Rate limit error handling tests
+    describe('Rate Limit Error Handling', () => {
+      it('should detect and format rate limit errors (status 429)', async () => {
+        const rateLimitError = Object.assign(
+          new Error('API rate limit exceeded'),
+          {
+            status: 429,
+            response: {
+              headers: {
+                'x-ratelimit-reset': String(Math.floor(Date.now() / 1000) + 3600), // Reset in 1 hour
+              },
+            },
+          }
+        );
+
+        const mockClient = {
+          rest: {
+            repos: {
+              getContent: vi.fn().mockRejectedValue(rateLimitError),
+            },
+          },
+        } as unknown as Octokit;
+
+        const filePaths = ['file1.md'];
+
+        const results = await fetchFilesInParallel(
+          mockClient,
+          'owner',
+          'repo',
+          filePaths,
+          5
+        );
+
+        expect(results.success).toHaveLength(0);
+        expect(results.failed).toHaveLength(1);
+        expect(results.failed[0].error).toContain('GitHub API rate limit exceeded');
+        expect(results.failed[0].error).toMatch(/Please wait \d+ minutes/);
+      });
+
+      it('should calculate correct wait time from x-ratelimit-reset header', async () => {
+        // Set reset time to 30 minutes from now
+        const resetTime = Math.floor(Date.now() / 1000) + 1800; // 30 minutes
+        const rateLimitError = Object.assign(
+          new Error('API rate limit exceeded'),
+          {
+            status: 429,
+            response: {
+              headers: {
+                'x-ratelimit-reset': String(resetTime),
+              },
+            },
+          }
+        );
+
+        const mockClient = {
+          rest: {
+            repos: {
+              getContent: vi.fn().mockRejectedValue(rateLimitError),
+            },
+          },
+        } as unknown as Octokit;
+
+        const filePaths = ['file1.md'];
+
+        const results = await fetchFilesInParallel(
+          mockClient,
+          'owner',
+          'repo',
+          filePaths,
+          5
+        );
+
+        expect(results.success).toHaveLength(0);
+        expect(results.failed).toHaveLength(1);
+        // Should show approximately 30 minutes (allow ±1 minute for test execution time)
+        expect(results.failed[0].error).toMatch(/Please wait (29|30|31) minutes/);
+      });
+
+      it('should handle rate limit error without reset header', async () => {
+        const rateLimitError = Object.assign(
+          new Error('API rate limit exceeded'),
+          {
+            status: 429,
+            response: {
+              headers: {},
+            },
+          }
+        );
+
+        const mockClient = {
+          rest: {
+            repos: {
+              getContent: vi.fn().mockRejectedValue(rateLimitError),
+            },
+          },
+        } as unknown as Octokit;
+
+        const filePaths = ['file1.md'];
+
+        const results = await fetchFilesInParallel(
+          mockClient,
+          'owner',
+          'repo',
+          filePaths,
+          5
+        );
+
+        expect(results.success).toHaveLength(0);
+        expect(results.failed).toHaveLength(1);
+        expect(results.failed[0].error).toContain('GitHub API rate limit exceeded');
+        // Should still provide a generic message even without reset time
+        expect(results.failed[0].error).toContain('Please wait');
+      });
+
+      it('should handle partial success with rate limit errors', async () => {
+        const rateLimitError = Object.assign(
+          new Error('API rate limit exceeded'),
+          {
+            status: 429,
+            response: {
+              headers: {
+                'x-ratelimit-reset': String(Math.floor(Date.now() / 1000) + 3600),
+              },
+            },
+          }
+        );
+
+        const mockClient = {
+          rest: {
+            repos: {
+              getContent: vi.fn().mockImplementation((params) => {
+                if (params.path === 'rate-limit.md') {
+                  return Promise.reject(rateLimitError);
+                }
+                return Promise.resolve({
+                  data: {
+                    type: 'file',
+                    name: params.path,
+                    path: params.path,
+                    content: Buffer.from(`Content of ${params.path}`, 'utf-8').toString('base64'),
+                    encoding: 'base64',
+                    size: 20,
+                    sha: 'abc123',
+                  },
+                });
+              }),
+            },
+          },
+        } as unknown as Octokit;
+
+        const filePaths = ['file1.md', 'rate-limit.md', 'file2.md'];
+
+        const results = await fetchFilesInParallel(
+          mockClient,
+          'owner',
+          'repo',
+          filePaths,
+          5
+        );
+
+        // Should continue processing other files despite rate limit error
+        expect(results.success).toHaveLength(2);
+        expect(results.failed).toHaveLength(1);
+        expect(results.failed[0].path).toBe('rate-limit.md');
+        expect(results.failed[0].error).toContain('GitHub API rate limit exceeded');
+      });
+
+      it('should distinguish rate limit errors from other 403 errors', async () => {
+        const forbiddenError = Object.assign(
+          new Error('Forbidden'),
+          {
+            status: 403,
+            response: {
+              headers: {},
+            },
+          }
+        );
+
+        const mockClient = {
+          rest: {
+            repos: {
+              getContent: vi.fn().mockRejectedValue(forbiddenError),
+            },
+          },
+        } as unknown as Octokit;
+
+        const filePaths = ['file1.md'];
+
+        const results = await fetchFilesInParallel(
+          mockClient,
+          'owner',
+          'repo',
+          filePaths,
+          5
+        );
+
+        expect(results.success).toHaveLength(0);
+        expect(results.failed).toHaveLength(1);
+        // Should NOT contain rate limit message for non-429 errors
+        expect(results.failed[0].error).not.toContain('rate limit');
+        expect(results.failed[0].error).toBe('Forbidden');
+      });
+    });
   });
 });
