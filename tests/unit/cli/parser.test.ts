@@ -369,12 +369,12 @@ describe('ArgumentParser', () => {
       expect(result.projects).toEqual([]);
     });
 
-    it('should always set track to true for add subcommand', () => {
+    it('should default track to false for add subcommand (requires explicit --track)', () => {
       const argv = ['node', 'kirox', 'add', 'owner/repo', '-p', 'new-project'];
       const result = parseArguments(argv);
 
       expect(result.subcommand).toBe('add');
-      expect(result.track).toBe(true);
+      expect(result.track).toBe(false);
     });
 
     it('should set checkUpdates and update to false for add subcommand', () => {
