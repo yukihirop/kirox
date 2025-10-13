@@ -2388,4 +2388,199 @@ describe('executeAddCommand', () => {
       );
     });
   });
+
+  describe('Project summary display (Task 6.2)', () => {
+    it('should call reportProjectSummary for each project when multiple projects', async () => {
+      const { loadMetadata } = await import('@/tracking/metadata-manager.js');
+      const { fetchDirectoryContents } = await import('@/github/fetcher.js');
+      const { fetchFilesInParallel } = await import('@/github/parallel-fetcher.js');
+      const { writeFile } = await import('@/filesystem/writer.js');
+      const { upsertProject } = await import('@/tracking/metadata-manager.js');
+      const { calculateFileHash } = await import('@/tracking/hash-calculator.js');
+      const { ProgressReporter } = await import('@/reporting/progress-reporter.js');
+
+      const mockReporter = {
+        reportProjectStart: vi.fn(),
+        reportProgress: vi.fn(),
+        reportSuccess: vi.fn(),
+        reportError: vi.fn(),
+        reportProjectSummary: vi.fn(),
+        reportOverallSummary: vi.fn(),
+      };
+      vi.mocked(ProgressReporter).mockReturnValue(mockReporter as any);
+
+      vi.mocked(loadMetadata).mockResolvedValue({
+        version: '1.0',
+        projects: [],
+      });
+
+      vi.mocked(fetchDirectoryContents)
+        .mockResolvedValueOnce([
+          { name: 'spec.json', path: '.kiro/specs/proj1/spec.json', type: 'file', sha: 'sha1', size: 100 },
+        ] as any)
+        .mockRejectedValueOnce(new Error('Steering directory not found'))
+        .mockResolvedValueOnce([
+          { name: 'spec.json', path: '.kiro/specs/proj2/spec.json', type: 'file', sha: 'sha2', size: 200 },
+        ] as any)
+        .mockRejectedValueOnce(new Error('Steering directory not found'));
+
+      vi.mocked(fetchFilesInParallel)
+        .mockResolvedValueOnce({
+          success: [
+            { path: '.kiro/specs/proj1/spec.json', content: '{}', size: 100, sha: 'sha1' },
+          ],
+          failed: [],
+        })
+        .mockResolvedValueOnce({
+          success: [
+            { path: '.kiro/specs/proj2/spec.json', content: '{}', size: 200, sha: 'sha2' },
+          ],
+          failed: [],
+        });
+
+      vi.mocked(writeFile).mockResolvedValue({
+        written: true,
+        filePath: 'test-file.md',
+        size: 100,
+      });
+
+      vi.mocked(calculateFileHash).mockResolvedValue('local-hash-123');
+      vi.mocked(upsertProject).mockResolvedValue(undefined);
+
+      const argv = ['node', 'kirox', 'add', 'owner/repo', '-p', 'proj1,proj2'];
+      await executeAddCommand(argv);
+
+      // Should call reportProjectSummary for each project
+      expect(mockReporter.reportProjectSummary).toHaveBeenCalledWith('proj1', 1, 0);
+      expect(mockReporter.reportProjectSummary).toHaveBeenCalledWith('proj2', 1, 0);
+      expect(mockReporter.reportProjectSummary).toHaveBeenCalledTimes(2);
+    });
+
+    it('should call reportOverallSummary after all projects complete for multi-project', async () => {
+      const { loadMetadata } = await import('@/tracking/metadata-manager.js');
+      const { fetchDirectoryContents } = await import('@/github/fetcher.js');
+      const { fetchFilesInParallel } = await import('@/github/parallel-fetcher.js');
+      const { writeFile } = await import('@/filesystem/writer.js');
+      const { upsertProject } = await import('@/tracking/metadata-manager.js');
+      const { calculateFileHash } = await import('@/tracking/hash-calculator.js');
+      const { ProgressReporter } = await import('@/reporting/progress-reporter.js');
+
+      const mockReporter = {
+        reportProjectStart: vi.fn(),
+        reportProgress: vi.fn(),
+        reportSuccess: vi.fn(),
+        reportError: vi.fn(),
+        reportProjectSummary: vi.fn(),
+        reportOverallSummary: vi.fn(),
+      };
+      vi.mocked(ProgressReporter).mockReturnValue(mockReporter as any);
+
+      vi.mocked(loadMetadata).mockResolvedValue({
+        version: '1.0',
+        projects: [],
+      });
+
+      vi.mocked(fetchDirectoryContents)
+        .mockResolvedValueOnce([
+          { name: 'spec.json', path: '.kiro/specs/proj1/spec.json', type: 'file', sha: 'sha1', size: 100 },
+          { name: 'design.md', path: '.kiro/specs/proj1/design.md', type: 'file', sha: 'sha1b', size: 150 },
+          { name: 'tasks.md', path: '.kiro/specs/proj1/tasks.md', type: 'file', sha: 'sha1c', size: 200 },
+        ] as any)
+        .mockRejectedValueOnce(new Error('Steering directory not found'))
+        .mockResolvedValueOnce([
+          { name: 'spec.json', path: '.kiro/specs/proj2/spec.json', type: 'file', sha: 'sha2', size: 200 },
+        ] as any)
+        .mockRejectedValueOnce(new Error('Steering directory not found'));
+
+      vi.mocked(fetchFilesInParallel)
+        .mockResolvedValueOnce({
+          success: [
+            { path: '.kiro/specs/proj1/spec.json', content: '{}', size: 100, sha: 'sha1' },
+            { path: '.kiro/specs/proj1/design.md', content: '# Design', size: 150, sha: 'sha1b' },
+          ],
+          failed: [
+            { path: '.kiro/specs/proj1/tasks.md', error: new Error('Failed to fetch') },
+          ],
+        })
+        .mockResolvedValueOnce({
+          success: [
+            { path: '.kiro/specs/proj2/spec.json', content: '{}', size: 200, sha: 'sha2' },
+          ],
+          failed: [],
+        });
+
+      vi.mocked(writeFile).mockResolvedValue({
+        written: true,
+        filePath: 'test-file.md',
+        size: 100,
+      });
+
+      vi.mocked(calculateFileHash).mockResolvedValue('local-hash-123');
+      vi.mocked(upsertProject).mockResolvedValue(undefined);
+
+      const argv = ['node', 'kirox', 'add', 'owner/repo', '-p', 'proj1,proj2'];
+      await executeAddCommand(argv);
+
+      // Should call reportOverallSummary with:
+      // - totalProjects: 2
+      // - totalDownloaded: 3 (2 from proj1 + 1 from proj2)
+      // - totalFailed: 1 (1 from proj1)
+      expect(mockReporter.reportOverallSummary).toHaveBeenCalledWith(2, 3, 1);
+      expect(mockReporter.reportOverallSummary).toHaveBeenCalledTimes(1);
+    });
+
+    it('should NOT call summary methods for single project operation', async () => {
+      const { loadMetadata } = await import('@/tracking/metadata-manager.js');
+      const { fetchDirectoryContents } = await import('@/github/fetcher.js');
+      const { fetchFilesInParallel } = await import('@/github/parallel-fetcher.js');
+      const { writeFile } = await import('@/filesystem/writer.js');
+      const { upsertProject } = await import('@/tracking/metadata-manager.js');
+      const { calculateFileHash } = await import('@/tracking/hash-calculator.js');
+      const { ProgressReporter } = await import('@/reporting/progress-reporter.js');
+
+      const mockReporter = {
+        reportProjectStart: vi.fn(),
+        reportProgress: vi.fn(),
+        reportSuccess: vi.fn(),
+        reportError: vi.fn(),
+        reportProjectSummary: vi.fn(),
+        reportOverallSummary: vi.fn(),
+      };
+      vi.mocked(ProgressReporter).mockReturnValue(mockReporter as any);
+
+      vi.mocked(loadMetadata).mockResolvedValue({
+        version: '1.0',
+        projects: [],
+      });
+
+      vi.mocked(fetchDirectoryContents)
+        .mockResolvedValueOnce([
+          { name: 'spec.json', path: '.kiro/specs/proj1/spec.json', type: 'file', sha: 'sha1', size: 100 },
+        ] as any)
+        .mockRejectedValueOnce(new Error('Steering directory not found'));
+
+      vi.mocked(fetchFilesInParallel).mockResolvedValue({
+        success: [
+          { path: '.kiro/specs/proj1/spec.json', content: '{}', size: 100, sha: 'sha1' },
+        ],
+        failed: [],
+      });
+
+      vi.mocked(writeFile).mockResolvedValue({
+        written: true,
+        filePath: 'test-file.md',
+        size: 100,
+      });
+
+      vi.mocked(calculateFileHash).mockResolvedValue('local-hash-123');
+      vi.mocked(upsertProject).mockResolvedValue(undefined);
+
+      const argv = ['node', 'kirox', 'add', 'owner/repo', '-p', 'single-project'];
+      await executeAddCommand(argv);
+
+      // Should NOT call summary methods for single project
+      expect(mockReporter.reportProjectSummary).not.toHaveBeenCalled();
+      expect(mockReporter.reportOverallSummary).not.toHaveBeenCalled();
+    });
+  });
 });

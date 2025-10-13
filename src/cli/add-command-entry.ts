@@ -444,7 +444,7 @@ export async function executeAddCommand(argv: string[]): Promise<ExecutionResult
           });
         }
 
-        // If any write errors occurred, handle them
+        // If any write errors occurred, handle them but continue with other projects (Task 6.1)
         if (writeErrors.length > 0) {
           const errorResult = errorHandler.handle(
             new Error(`Failed to write ${writeErrors.length} file(s)`),
@@ -455,13 +455,10 @@ export async function executeAddCommand(argv: string[]): Promise<ExecutionResult
           );
           logger.logError(errorResult);
 
-          // Return failure with write error details
-          return {
-            success: false,
-            filesDownloaded: fetchResult.success.length - writeErrors.length,
-            filesFailed: fetchResult.failed.length + writeErrors.length,
-            exitCode: errorResult.exitCode,
-          };
+          // Task 6.1: Increment failure counter and continue to next project
+          failedProjects++;
+          totalFilesFailed += fetchResult.failed.length + writeErrors.length;
+          continue; // Skip metadata update for this project and move to next
         }
 
         // Step 13: Update metadata (Task 5.1)
@@ -534,8 +531,13 @@ export async function executeAddCommand(argv: string[]): Promise<ExecutionResult
 
           // Task 6.1: Increment success counters for this project
           successfulProjects++;
-          totalFilesDownloaded += filesWritten;
+          totalFilesDownloaded += fetchResult.success.length;
           totalFilesFailed += fetchResult.failed.length;
+
+          // Task 6.2: Display project summary for multi-project operations
+          if (projects.length > 1) {
+            reporter.reportProjectSummary(projectName, fetchResult.success.length, fetchResult.failed.length);
+          }
         } catch (error) {
           // Metadata save failure is critical for this project
           // Task 6.1: Log error but continue processing other projects
@@ -577,6 +579,12 @@ export async function executeAddCommand(argv: string[]): Promise<ExecutionResult
         totalFilesDownloaded,
         totalFilesFailed,
       });
+    }
+
+    // Task 6.2: Display overall summary for multi-project operations
+    if (projects.length > 1) {
+      const totalProjects = successfulProjects + failedProjects;
+      reporter.reportOverallSummary(totalProjects, totalFilesDownloaded, totalFilesFailed);
     }
 
     return {
