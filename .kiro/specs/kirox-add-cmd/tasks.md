@@ -422,11 +422,34 @@
   - mainコマンドとの干渉がないことをテスト
   - _Requirements: Testing Strategy - Unit Tests_
 
-- [ ] 11.2 重複プロジェクト検出ロジックのテストを実装
+- [x] 11.2 重複プロジェクト検出ロジックのテストを実装
   - 重複プロジェクトが正確に検出されることをテスト
   - サブディレクトリが異なる同名プロジェクトが別として扱われることをテスト
   - --forceオプションによる上書き動作をテスト
-  - _Requirements: Testing Strategy - Unit Tests_
+  - **実装完了**: `tests/unit/cli/add-duplicate-detection.test.ts`を作成（13テスト全て通過 ✅）
+  - **テスト内容**:
+    - Requirement 3.2: 重複プロジェクト検出の基本動作（5テスト）
+      - 同じリポジトリ + プロジェクト名 + サブディレクトリ → 重複として検出
+      - 異なるサブディレクトリ → 別プロジェクトとして扱う
+      - 空のsubdir vs undefined → 重複として扱う
+      - 異なるプロジェクト名 → 重複ではない
+      - 異なるリポジトリ → 重複ではない
+    - Requirement 3.3: --forceオプションの動作（3テスト）
+      - --forceありで重複プロジェクトを上書き可能
+      - --forceありでverboseログ出力
+      - --forceなしで重複をスキップして警告表示
+    - Requirement 3.4: 複数プロジェクトの重複検出（2テスト）
+      - 一部重複時の処理
+      - 全て重複時の処理
+    - Edge cases and validation（3テスト）
+      - 新規メタデータ時の重複チェックスキップ
+      - 大文字小文字の区別
+      - ブランチが異なる場合の扱い（owner/repo#feature vs owner/repo → 別リポジトリ）
+  - **修正内容**:
+    - `logger.warn()`は`console.log`を使用するため、テストで`console.log`のモックをチェック
+    - ブランチ情報は`repository`フィールドに含まれるため、ブランチが異なれば別リポジトリとして扱われる
+    - 空の`subdir`はメタデータでは完全に省略（undefined）され、`subdir: ''`とは保存されない
+  - _Requirements: Testing Strategy - Unit Tests, Requirements 3.2, 3.3, 3.4_
 
 - [ ] 11.3 メタデータ存在チェックのテストを実装
   - メタデータファイル不存在時のエラーメッセージをテスト
