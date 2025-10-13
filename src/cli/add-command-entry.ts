@@ -14,14 +14,15 @@ import { ErrorHandler } from '../reporting/error-handler.js';
 import { ProgressReporter } from '../reporting/progress-reporter.js';
 import { loadConfig } from '../config/loader.js';
 import { mergeConfig } from '../config/merger.js';
-import { loadMetadata } from '../tracking/metadata-manager.js';
+import { loadMetadata, upsertProject } from '../tracking/metadata-manager.js';
 import { MetadataError, MetadataErrorType } from '../tracking/types.js';
 import { parseRepositoryPath, fetchDirectoryContents } from '../github/fetcher.js';
 import { fetchFilesInParallel } from '../github/parallel-fetcher.js';
 import { buildRemotePath, resolveOutputPath } from '../filesystem/path-utils.js';
 import { writeFile } from '../filesystem/writer.js';
+import { calculateFileHash } from '../tracking/hash-calculator.js';
 import type { ExecutionResult } from './types.js';
-import type { Metadata } from '../tracking/types.js';
+import type { Metadata, ProjectMetadata, FileMetadata } from '../tracking/types.js';
 import type { ContentItem } from '../github/fetcher.js';
 
 /**
@@ -457,7 +458,83 @@ export async function executeAddCommand(argv: string[]): Promise<ExecutionResult
           };
         }
 
-        // TODO: Step 13: Update metadata (Task 5.1, 5.2)
+        // Step 13: Update metadata (Task 5.1)
+        // Create FileMetadata array by calculating local hashes for written files
+        const fileMetadataList: FileMetadata[] = [];
+        const currentTimestamp = new Date().toISOString();
+
+        for (const file of fetchResult.success) {
+          const localPath = resolveOutputPath(args.output, file.path);
+
+          try {
+            // Calculate local hash for the written file
+            const localHash = await calculateFileHash(localPath);
+
+            // Create FileMetadata entry
+            const fileMetadata: FileMetadata = {
+              path: file.path,
+              sha: file.sha,
+              localHash,
+              size: file.size,
+              fetchedAt: currentTimestamp,
+            };
+
+            fileMetadataList.push(fileMetadata);
+
+            if (args.verbose) {
+              logger.info('Calculated file hash', {
+                path: file.path,
+                localHash: localHash.substring(0, 8) + '...',
+              });
+            }
+          } catch (error) {
+            // If hash calculation fails, log warning but continue
+            // This shouldn't happen for files we just wrote, but handle gracefully
+            const errorMessage = error instanceof Error ? error.message : String(error);
+            logger.warn('Failed to calculate file hash', {
+              path: file.path,
+              error: errorMessage,
+            });
+          }
+        }
+
+        // Create ProjectMetadata
+        const projectMetadata: ProjectMetadata = {
+          repository: args.repository,
+          projectName,
+          ...(config.subdir && { subdir: config.subdir }),
+          fetchedAt: currentTimestamp,
+          files: fileMetadataList,
+        };
+
+        // Save ProjectMetadata to metadata file using upsertProject
+        try {
+          await upsertProject(projectMetadata, metadataPath);
+
+          if (args.verbose) {
+            logger.info('Metadata updated successfully', {
+              project: projectName,
+              fileCount: fileMetadataList.length,
+            });
+          }
+        } catch (error) {
+          // Metadata save failure is critical - return error
+          const errorResult = errorHandler.handle(
+            new Error('Failed to update metadata'),
+            {
+              project: projectName,
+              details: error instanceof Error ? error.message : String(error),
+            }
+          );
+          logger.logError(errorResult);
+
+          return {
+            success: false,
+            filesDownloaded: filesWritten,
+            filesFailed: fetchResult.failed.length,
+            exitCode: errorResult.exitCode,
+          };
+        }
       } catch (error) {
         // Handle project-specific errors
         const errorResult = errorHandler.handle(error, {
@@ -476,11 +553,12 @@ export async function executeAddCommand(argv: string[]): Promise<ExecutionResult
       }
     }
 
-    // Temporary success return for Task 3.1 completion
-    // This will be replaced with actual file fetching and writing in subsequent tasks
+    // All projects processed successfully
+    // Return success with file counts
+    // TODO: Track total counts across all projects for multi-project support
     return {
       success: true,
-      filesDownloaded: 0,
+      filesDownloaded: 0, // Will be updated in Task 6.1 for multi-project tracking
       filesFailed: 0,
       exitCode: 0,
     };

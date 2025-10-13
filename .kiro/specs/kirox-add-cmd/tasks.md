@@ -69,7 +69,7 @@
   - _Requirements: 5.1, 5.2, 5.6_
 
 - [ ] 5. メタデータ更新ロジックを実装
-- [ ] 5.1 プロジェクトメタデータの作成と保存
+- [x] 5.1 プロジェクトメタデータの作成と保存
   - upsertProject()で新規ProjectMetadataを既存メタデータに追加
   - 各ファイルのSHA、localHash、size、fetchedAtを記録
   - calculateFileHash()でローカルファイルのハッシュを計算
