@@ -361,8 +361,27 @@ export async function executeAddCommand(argv: string[]): Promise<ExecutionResult
         let filesSkipped = 0;
         const writeErrors: Array<{ path: string; error: string }> = [];
 
-        for (const file of fetchResult.success) {
+        // Calculate total file count for progress reporting
+        const totalFiles = fetchResult.success.length;
+
+        // Determine project name for multi-project progress display
+        // Only include project name prefix if multiple projects are being processed
+        const displayProjectName = projects.length > 1 ? projectName : undefined;
+
+        for (const [fileIndex, file] of fetchResult.success.entries()) {
+          const currentFileNumber = fileIndex + 1;
+
           try {
+            // Task 4.2: Report progress before writing each file
+            // Format: [1/5] file.md を取得中...
+            // With project prefix for multi-project: [proj1] [1/5] file.md を取得中...
+            reporter.reportProgress(
+              currentFileNumber,
+              totalFiles,
+              file.path,
+              displayProjectName
+            );
+
             // Convert remote path to local path
             const localPath = resolveOutputPath(mergedConfig.output, file.path);
 
@@ -379,6 +398,9 @@ export async function executeAddCommand(argv: string[]): Promise<ExecutionResult
 
             if (writeResult.written) {
               filesWritten++;
+
+              // Task 4.2: Report success for written file
+              reporter.reportSuccess(`Saved: ${file.path}`);
             } else if (writeResult.skipped) {
               filesSkipped++;
               if (args.verbose && writeResult.reason) {
@@ -396,6 +418,9 @@ export async function executeAddCommand(argv: string[]): Promise<ExecutionResult
               error: errorMessage,
             });
 
+            // Task 4.2: Report error for failed write
+            // Use logger.error (existing pattern) instead of reporter.reportError
+            // to maintain consistency with current error handling
             logger.error('Failed to write file', {
               path: file.path,
               error: errorMessage,
