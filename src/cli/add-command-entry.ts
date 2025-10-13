@@ -411,13 +411,50 @@ export async function executeAddCommand(argv: string[]): Promise<ExecutionResult
         const specPath = buildRemotePath(subdir, projectName, 'specs');
 
         // Fetch spec directory (required)
-        const specContents = await fetchDirectoryContents(
-          octokit,
-          owner,
-          repo,
-          specPath,
-          effectiveBranch
-        );
+        // Task 8.5: Handle 404 errors for .kiro folder not found
+        let specContents: ContentItem[];
+        try {
+          specContents = await fetchDirectoryContents(
+            octokit,
+            owner,
+            repo,
+            specPath,
+            effectiveBranch
+          );
+        } catch (error) {
+          // Task 8.5: Check if error is 404 (Not Found)
+          if (error && typeof error === 'object' && 'status' in error && error.status === 404) {
+            // User-friendly error message for .kiro folder not found
+            const branchInfo = effectiveBranch ? ` on branch "${effectiveBranch}"` : '';
+            const subdirInfo = subdir ? ` in subdirectory "${subdir}"` : '';
+
+            console.error(
+              `The .kiro folder was not found in repository "${args.repository}"${branchInfo}${subdirInfo}.`
+            );
+            console.error('');
+            console.error('Please check:');
+            console.error(`  - Repository: ${owner}/${repo}`);
+            if (effectiveBranch) {
+              console.error(`  - Branch: ${effectiveBranch}`);
+            }
+            if (subdir) {
+              console.error(`  - Subdirectory: ${subdir}`);
+            }
+            console.error('');
+            console.error('Ensure the .kiro folder exists at the specified location.');
+
+            // Return with exit code 1 (user error)
+            return {
+              success: false,
+              filesDownloaded: 0,
+              filesFailed: 0,
+              exitCode: 1,
+            };
+          }
+
+          // Re-throw other errors
+          throw error;
+        }
 
         // Fetch steering directory only for first project (to avoid duplication)
         // Task 3.1 Requirement 4.4: Avoid steering file duplication

@@ -160,7 +160,7 @@
   - 既存メタデータの整合性を保護
   - _Requirements: 6.5_
 
-- [ ] 8.5 .kiroフォルダ不在エラーハンドリングを実装
+- [x] 8.5 .kiroフォルダ不在エラーハンドリングを実装
   - fetchDirectoryContents()で404エラーをキャッチ
   - 「.kiro folder not found」エラー時に明確なメッセージを表示
   - 「The .kiro folder was not found in the specified repository, branch, and subdirectory.」というユーザーフレンドリーなメッセージに変換
