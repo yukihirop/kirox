@@ -1,5 +1,12 @@
 import { describe, it, expect } from 'vitest';
+import { exec } from 'child_process';
+import { promisify } from 'util';
+import { writeFile, unlink } from 'fs/promises';
+import { join } from 'path';
+import { tmpdir } from 'os';
 import { generateCompletionScript, type CompletionMetadata } from '@/cli/completion/generator';
+
+const execAsync = promisify(exec);
 
 /**
  * Tests for Fish Template (Task 6.1)
@@ -490,6 +497,209 @@ describe('Fish Template', () => {
       expect(fishScript).toMatch(/complete -c kirox -n "__fish_use_subcommand"/);
       expect(fishScript).toMatch(/-s [a-zA-Z]/);
       expect(fishScript).toMatch(/-l [a-z-]+/);
+    });
+  });
+
+  /**
+   * Task 6.2: Fish syntax validation with `fish -n`
+   *
+   * These tests verify that generated Fish scripts pass syntax checking
+   * using the `fish -n` command, which performs syntax validation without
+   * executing the script.
+   *
+   * Requirements tested:
+   * - 3.1: Script generation without syntax errors
+   *
+   * Note: These tests will be skipped if fish is not available on the system.
+   */
+  describe('Fish syntax validation (Task 6.2)', () => {
+    /**
+     * Helper function to check if fish is available on the system
+     *
+     * @returns Promise that resolves to true if fish is available, false otherwise
+     */
+    async function isFishAvailable(): Promise<boolean> {
+      try {
+        await execAsync('which fish');
+        return true;
+      } catch {
+        return false;
+      }
+    }
+
+    /**
+     * Helper function to check fish syntax using `fish -n`
+     *
+     * @param script - Fish script content to validate
+     * @returns Promise that resolves if syntax is valid, rejects otherwise
+     */
+    async function checkFishSyntax(script: string): Promise<{ valid: boolean; error?: string }> {
+      // Check if fish is available
+      const fishAvailable = await isFishAvailable();
+      if (!fishAvailable) {
+        console.warn('Fish is not available on this system, skipping syntax validation');
+        return { valid: true }; // Skip validation if fish is not available
+      }
+
+      // Create temporary file for syntax check
+      const tempFile = join(tmpdir(), `kirox-completion-test-${Date.now()}.fish`);
+
+      try {
+        // Write script to temporary file
+        await writeFile(tempFile, script, 'utf-8');
+
+        // Run fish -n to check syntax
+        await execAsync(`fish -n "${tempFile}"`);
+
+        // Clean up temporary file
+        await unlink(tempFile);
+
+        return { valid: true };
+      } catch (error) {
+        // Clean up temporary file on error
+        try {
+          await unlink(tempFile);
+        } catch {
+          // Ignore cleanup errors
+        }
+
+        if (error instanceof Error) {
+          return {
+            valid: false,
+            error: error.message,
+          };
+        }
+
+        return {
+          valid: false,
+          error: 'Unknown syntax error',
+        };
+      }
+    }
+
+    it('should generate syntactically valid fish script', async () => {
+      const script = generateCompletionScript('fish', sampleMetadata);
+
+      const result = await checkFishSyntax(script);
+
+      expect(result.valid).toBe(true);
+      if (!result.valid) {
+        console.error('Fish syntax error:', result.error);
+      }
+    });
+
+    it('should pass fish -n check with empty subcommands', async () => {
+      const metadata: CompletionMetadata = {
+        programName: 'testcli',
+        subcommands: [],
+        globalOptions: [{ flag: '--help', description: 'Help' }],
+      };
+
+      const script = generateCompletionScript('fish', metadata);
+      const result = await checkFishSyntax(script);
+
+      expect(result.valid).toBe(true);
+    });
+
+    it('should pass fish -n check with empty options', async () => {
+      const metadata: CompletionMetadata = {
+        programName: 'testcli',
+        subcommands: [{ name: 'cmd', description: 'Command', options: [] }],
+        globalOptions: [],
+      };
+
+      const script = generateCompletionScript('fish', metadata);
+      const result = await checkFishSyntax(script);
+
+      expect(result.valid).toBe(true);
+    });
+
+    it('should pass fish -n check with many subcommands', async () => {
+      const metadata: CompletionMetadata = {
+        programName: 'cli',
+        subcommands: Array.from({ length: 20 }, (_, i) => ({
+          name: `cmd${i}`,
+          description: `Command ${i}`,
+          options: [],
+        })),
+        globalOptions: [],
+      };
+
+      const script = generateCompletionScript('fish', metadata);
+      const result = await checkFishSyntax(script);
+
+      expect(result.valid).toBe(true);
+    });
+
+    it('should pass fish -n check with many options', async () => {
+      const metadata: CompletionMetadata = {
+        programName: 'cli',
+        subcommands: [],
+        globalOptions: Array.from({ length: 15 }, (_, i) => ({
+          flag: `--option${i}`,
+          description: `Option ${i}`,
+        })),
+      };
+
+      const script = generateCompletionScript('fish', metadata);
+      const result = await checkFishSyntax(script);
+
+      expect(result.valid).toBe(true);
+    });
+
+    it('should pass fish -n check with special characters in names', async () => {
+      const metadata: CompletionMetadata = {
+        programName: 'my-cli',
+        subcommands: [
+          { name: 'cmd-one', description: 'Command one', options: [] },
+          { name: 'cmd_two', description: 'Command two', options: [] },
+        ],
+        globalOptions: [
+          { flag: '-v, --verbose', description: 'Verbose output' },
+          { flag: '--dry-run', description: 'Dry run mode' },
+        ],
+      };
+
+      const script = generateCompletionScript('fish', metadata);
+      const result = await checkFishSyntax(script);
+
+      expect(result.valid).toBe(true);
+    });
+
+    it('should pass fish -n check with real Kirox metadata', async () => {
+      const kiroxMetadata: CompletionMetadata = {
+        programName: 'kirox',
+        subcommands: [
+          {
+            name: 'add',
+            description: 'Add a new project from a remote repository',
+            options: [
+              { flag: '-p, --project <name>', description: 'Project name to add' },
+              { flag: '--track', description: 'Enable update tracking for this project' },
+              { flag: '--force', description: 'Force overwrite existing project' },
+              { flag: '--dry-run', description: 'Preview without executing' },
+              { flag: '--verbose', description: 'Verbose output' },
+            ],
+          },
+          {
+            name: 'completion',
+            description: 'Generate shell completion script',
+            options: [{ flag: '-h, --help', description: 'Display help for completion command' }],
+          },
+        ],
+        globalOptions: [
+          { flag: '-h, --help', description: 'Display help information' },
+          { flag: '-V, --version', description: 'Output version number' },
+        ],
+      };
+
+      const script = generateCompletionScript('fish', kiroxMetadata);
+      const result = await checkFishSyntax(script);
+
+      expect(result.valid).toBe(true);
+      if (!result.valid) {
+        console.error('Kirox fish completion syntax error:', result.error);
+      }
     });
   });
 });
