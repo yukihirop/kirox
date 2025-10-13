@@ -71,9 +71,39 @@
   - CI/CDパイプラインで単体テストが安定して成功することを確認
   - _Requirements: 4.1, 4.2, 4.3, 4.4_
 
+- [ ] 5. 統合テストの修正（GitHub API、Tree API関連）
+- [ ] 5.1 project-suggestion-github-api.test.tsの修正（12個のテスト）
+  - 実際のテストリポジトリからプロジェクト一覧取得テスト（2個）に--trackフラグを追加
+  - ブランチ指定でのプロジェクト一覧取得テスト（2個）に--trackフラグを追加
+  - サブディレクトリ指定でのプロジェクト一覧取得テスト（2個）に--trackフラグを追加
+  - エラーリカバリーフローのテスト（4個）に--trackフラグを追加
+  - GitHub API制約への対応テスト（2個）に--trackフラグを追加
+  - テスト実行で12個のテストが成功することを確認
+  - _Requirements: 4.1, 4.2_
+
+- [ ] 5.2 tree-api-project-scan.test.tsの修正（4個のテスト + タイムアウト対応）
+  - 既存機能との互換性テスト（2個）に--trackフラグを追加
+    - `should skip Tree API when subdirectory is already specified`
+    - `should skip Tree API in non-TTY environment`
+  - Tree APIフォールバックシナリオテスト（2個）に--trackフラグを追加
+    - `should fallback to existing workflow when Tree API fails`
+    - `should fallback when Tree API returns 0 projects`
+  - タイムアウトエラーの調査と対応（testTimeout設定の確認）
+  - テスト実行で4個のテストが成功することを確認
+  - _Requirements: 4.1, 4.2_
+
+- [ ] 5.3 統合テスト全体の最終検証
+  - `npm test tests/integration/`を実行し全統合テストが成功することを確認
+  - 失敗テスト数が0であることを確認
+  - タイムアウトエラーが解消されていることを確認
+  - 統合テストの実行時間が許容範囲内であることを確認
+  - _Requirements: 4.1, 4.2, 4.3, 4.4_
+
 ## Implementation Notes
 
 - 各タスクは独立して実行可能ですが、順次実行することを推奨します
 - テスト修正後は必ず該当テストファイルを実行して成功を確認してください
-- 統合テストの失敗（16個）は本タスクの対象外です（GitHub API、Tree API関連）
+- Task 1-4で単体テストの30個を修正完了（残り1個は別問題）
+- Task 5で統合テストの16個（実際は18個）を修正予定（GitHub API、Tree API関連）
 - 実装コードは一切変更しません（テストコードのみ修正）
+- 統合テストは実際のGitHub APIを呼び出すため、認証情報やネットワーク環境に注意
