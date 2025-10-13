@@ -253,6 +253,7 @@ describe('Add Command Duplicate Project Detection (Task 11.2)', () => {
         'owner2/repo',
         '-p',
         'test-project',
+        '--track',
       ]);
 
       // Should NOT be treated as duplicate (different repository)

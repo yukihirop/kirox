@@ -119,7 +119,7 @@
   - テスト実行で1個のテストが成功することを確認
   - _Requirements: 4.1, 4.3 (テストの独立性)_
 
-- [ ] 6.2 PowerShell completionテストのCI失敗を修正
+- [x] 6.2 PowerShell completionテストのCI失敗を修正
   - 問題分析: Ubuntuランナー上で`pwsh -Command`に渡すスクリプトのクォート解釈差異により構文検証が失敗（CIログ参照）。`validatePowerShellSyntax`が`execSync('pwsh -Command "..."')`で失敗している
   - 解決策A: テスト内ヘルパー`validatePowerShellSyntax`を、一時ファイルへスクリプトを書き出し`pwsh -NoProfile -NonInteractive -File <temp.ps1>`で構文検証する方式に変更（シェルのクォート依存を排除）
   - 解決策B: 代替として、CI環境(`process.env.CI==="true"`)ではPowerShell構文検証をスキップし、生成文字列の基本的検証のみに留める
@@ -130,6 +130,21 @@
   - 対応: `src/cli/parser.ts`の各パーサーで`process.env.NODE_ENV==='test'`時に`program.exitOverride()`を適用
   - 成功確認: `tests/e2e/options.test.ts`の`--help`関連テストがグリーン
   - _Requirements: 4.1, 4.3_
+
+- [ ] 6.4 add-duplicate-detection.test.ts Requirement 3.2の失敗を修正
+  - 問題分析: 「should not detect duplicate for different repositories」が失敗（`result.success` が `false`）。異なる`repository`同士でも重複扱いになっている
+  - 想定原因:
+    - 当該テストケースのargvに`'--track'`未指定で、メタデータ更新が行われず期待ロジックと乖離
+    - もしくは前テストのモック状態（`loadMetadata`/`upsertProject`）やメタデータ内容が残存し、異なる`repository`でも一致扱いされている
+  - 対応方針:
+    - 当該テストのargvに`'--track'`を明示的に付与（他の重複検出系と整合）
+    - `beforeEach`で`vi.clearAllMocks()`と`vi.unstubAllGlobals()`を実施し、`loadMetadata`/`mergeConfig`/`upsertProject`のデフォルトモックを再適用
+    - メタデータモックで`projects`内に比較対象の`repository`が明確に異なる値になるよう設定（例: `owner/repoA` vs `owner/repoB`）
+    - 比較キーは`repository`+`projectName`+`subdir`である前提に基づき、期待値が実装に整合するか確認（必要なら説明コメント更新）
+  - 成功基準:
+    - `npm test tests/unit/cli/add-duplicate-detection.test.ts`が成功
+    - 全体テスト（unit/integration/e2e）が成功
+  - _Requirements: 2.1, 2.3, 5.3, 4.1, 4.3_
 
 ## Implementation Notes
 
