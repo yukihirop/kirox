@@ -8,14 +8,29 @@
 
 import { execute } from './cli/entry.js';
 import { executeAddCommand } from './cli/add-command-entry.js';
+import { executeCompletionCommand } from './cli/completion-command-entry.js';
 
-// Detect if 'add' subcommand is present
+/**
+ * Subcommand Detection
+ *
+ * Detect subcommands in process.argv and route to appropriate command handler.
+ * Subcommands must appear at index >= 2 (after 'node' and script path).
+ *
+ * Priority order (first match wins):
+ * 1. 'add' -> executeAddCommand
+ * 2. 'completion' -> executeCompletionCommand
+ * 3. default -> execute (main command)
+ */
 const isAddCommand = process.argv.includes('add') && process.argv.indexOf('add') >= 2;
+const isCompletionCommand =
+  process.argv.includes('completion') && process.argv.indexOf('completion') >= 2;
 
-// Route to appropriate command handler
+// Route to appropriate command handler based on subcommand detection
 const commandPromise = isAddCommand
   ? executeAddCommand(process.argv)
-  : execute(process.argv);
+  : isCompletionCommand
+    ? executeCompletionCommand(process.argv)
+    : execute(process.argv);
 
 // Execute command and handle result
 commandPromise
