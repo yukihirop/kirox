@@ -4,10 +4,12 @@
  * Main execution logic for the 'completion' subcommand
  * Task 1.3: CompletionEntry (execution entry point) implementation
  * Task 2.2: Validation error handling with ShellValidator integration
+ * Task 3.1: Generator integration for actual script generation
  */
 
 import { parseArguments } from './parser.js';
-import { validateShellType, getSupportedShells } from './completion/shell-validator.js';
+import { validateShellType } from './completion/shell-validator.js';
+import { generateCompletionScript, type CompletionMetadata } from './completion/generator.js';
 import type { ExecutionResult } from './types.js';
 
 /**
@@ -48,11 +50,13 @@ export async function executeCompletionCommand(argv: string[]): Promise<Executio
     // Validation succeeded - use normalized shell
     const normalizedShell = validationResult.normalizedShell!;
 
-    // Step 4: Generate completion script (placeholder for now)
-    // Future task 3.1 will implement actual script generation
-    const completionScript = generatePlaceholderScript(normalizedShell);
+    // Step 4: Build completion metadata
+    const metadata = buildKiroxMetadata();
 
-    // Step 5: Output to stdout
+    // Step 5: Generate completion script using Generator (task 3.1)
+    const completionScript = generateCompletionScript(normalizedShell, metadata);
+
+    // Step 6: Output to stdout
     console.log(completionScript);
 
     return {
@@ -91,18 +95,42 @@ function createErrorResult(): ExecutionResult {
 }
 
 /**
- * Generate placeholder completion script
+ * Build Kirox CLI completion metadata
  *
- * This is a temporary implementation until task 3.1 (Generator) is completed.
+ * Constructs metadata containing all Kirox subcommands and their options.
+ * This metadata is used by the Generator to create shell-specific completion scripts.
  *
- * @param shell - Shell type (normalized to lowercase)
- * @returns Placeholder completion script
+ * @returns CompletionMetadata for Kirox CLI
+ *
+ * Task 3.2: Build completion candidate metadata (partial implementation)
+ * Full implementation will be completed in task 3.2
  */
-function generatePlaceholderScript(shell: string): string {
-  return `# Kirox completion script for ${shell}
-# This is a placeholder until Generator (task 3.1) is implemented
-# TODO: Replace with actual completion script generation
-
-echo "Completion script for ${shell} - coming soon!"
-`;
+function buildKiroxMetadata(): CompletionMetadata {
+  return {
+    programName: 'kirox',
+    subcommands: [
+      {
+        name: 'add',
+        description: 'Add a new project from a remote repository',
+        options: [
+          { flag: '-p, --project <name>', description: 'Project name to add' },
+          { flag: '--track', description: 'Enable update tracking for this project' },
+          { flag: '--force', description: 'Force overwrite existing project' },
+          { flag: '--dry-run', description: 'Preview without executing' },
+          { flag: '--verbose', description: 'Verbose output' },
+        ],
+      },
+      {
+        name: 'completion',
+        description: 'Generate shell completion script',
+        options: [
+          { flag: '-h, --help', description: 'Display help for completion command' },
+        ],
+      },
+    ],
+    globalOptions: [
+      { flag: '-h, --help', description: 'Display help information' },
+      { flag: '-V, --version', description: 'Output version number' },
+    ],
+  };
 }
