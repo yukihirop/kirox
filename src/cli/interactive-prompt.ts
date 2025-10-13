@@ -303,11 +303,13 @@ export async function confirmExecution(args: ParsedArguments): Promise<boolean> 
  * Task 4.2: promptProject関数呼び出し時に追加パラメータを渡す
  * Task 5.3: プロンプト実行順序の修正（subdirをprojectの前に移動）
  * Task 4.1: Tree API検索の統合とフォールバック分岐の実装
+ * Task 7.2: メタデータからのリポジトリ提案機能（addコマンド用）
  *
  * @param args - Partially parsed arguments (may have missing required fields)
  * @param configFile - Configuration file values for defaults
  * @param logger - Logger instance for suggestion feature (optional)
  * @param verbose - Enable verbose logging for suggestion feature (optional)
+ * @param metadata - Optional metadata for repository suggestion (add command)
  * @returns Completed ParsedArguments with all required fields filled
  * @throws Error if user cancels the confirmation prompt
  */
@@ -315,13 +317,15 @@ export async function promptMissingArguments(
   args: ParsedArguments,
   configFile?: KiroxConfig,
   logger?: Logger,
-  verbose?: boolean
+  verbose?: boolean,
+  metadata?: Metadata
 ): Promise<ParsedArguments> {
   // Create a copy to avoid mutating the input
   const completedArgs = { ...args };
 
   // 1. Prompt for repository if missing
-  completedArgs.repository = await promptRepository(completedArgs.repository);
+  // Task 7.2: Pass metadata to promptRepository for repository suggestion
+  completedArgs.repository = await promptRepository(completedArgs.repository, metadata);
 
   // 2. Initialize GitHub client for project suggestion feature (if logger is provided)
   // This allows both Tree API search and promptProject to use GitHub API

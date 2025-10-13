@@ -22,7 +22,7 @@ import { fetchFilesInParallel } from '../github/parallel-fetcher.js';
 import { buildRemotePath, resolveOutputPath } from '../filesystem/path-utils.js';
 import { writeFile } from '../filesystem/writer.js';
 import { calculateFileHash } from '../tracking/hash-calculator.js';
-import { shouldEnterInteractiveMode } from './interactive-prompt.js';
+import { shouldEnterInteractiveMode, promptMissingArguments } from './interactive-prompt.js';
 import type { ExecutionResult } from './types.js';
 import type { Metadata, ProjectMetadata, FileMetadata } from '../tracking/types.js';
 import type { ContentItem } from '../github/fetcher.js';
@@ -120,45 +120,8 @@ export async function executeAddCommand(argv: string[]): Promise<ExecutionResult
       });
     }
 
-    // Step 4.5: Check if interactive mode should be entered (Task 7.1)
-    // This check happens BEFORE validation to allow interactive prompts
-    // to collect missing repository or project information
-    //
-    // shouldEnterInteractiveMode returns true if:
-    // - Repository or project name is missing, AND
-    // - Process is running in TTY environment, AND
-    // - --check-updates and --update options are NOT specified
-    if (shouldEnterInteractiveMode(args)) {
-      // TODO: Task 7.2, 7.3, 7.4 - Implement interactive prompts
-      // For now, we continue to validation which will fail and provide
-      // a helpful error message. Once Tasks 7.2-7.4 are implemented,
-      // this will trigger the interactive prompt flow instead.
-      if (args.verbose) {
-        logger.info('Interactive mode conditions met, but interactive prompts not yet implemented', {
-          repository: args.repository,
-          projects: args.projects,
-        });
-      }
-    }
-
-    // Step 5: Validate input
-    // Check that repository and project names are valid
-    // This catches user errors before expensive API calls
-    const validation = validateInput(args);
-    if (!validation.valid) {
-      logger.error('Validation failed', { errors: validation.errors });
-
-      return {
-        success: false,
-        filesDownloaded: 0,
-        filesFailed: 0,
-        exitCode: 1, // User error
-      };
-    }
-
-    // Step 6: Check metadata existence (Task 2.2)
-    // Verify .kirox-meta.json exists before proceeding
-    // The add command requires existing metadata to add projects to
+    // Step 4.5: Load metadata BEFORE interactive mode (Task 7.2, 7.3)
+    // Metadata is required for add command and is used to suggest repository in interactive mode
     // This check happens early to provide fast feedback to the user
     const metadataPath = getMetadataPath(args.output);
 
@@ -191,6 +154,71 @@ export async function executeAddCommand(argv: string[]): Promise<ExecutionResult
       // Re-throw other metadata errors (e.g., INVALID_FORMAT, INVALID_SCHEMA)
       // These will be caught by the outer catch block and handled generically
       throw error;
+    }
+
+    // Step 4.6: Check if interactive mode should be entered (Task 7.1)
+    // This check happens BEFORE validation to allow interactive prompts
+    // to collect missing repository or project information
+    //
+    // shouldEnterInteractiveMode returns true if:
+    // - Repository or project name is missing, AND
+    // - Process is running in TTY environment, AND
+    // - --check-updates and --update options are NOT specified
+    if (shouldEnterInteractiveMode(args)) {
+      // Task 7.2, 7.3, 7.4: Call promptMissingArguments with metadata
+      // This enables repository suggestion from metadata and Tree API project suggestion
+      try {
+        const completedArgs = await promptMissingArguments(
+          args,
+          fileConfig,
+          logger,
+          args.verbose,
+          metadata // Task 7.2: Pass metadata for repository suggestion
+        );
+
+        // Update args with completed values from interactive prompts
+        args.repository = completedArgs.repository;
+        args.projects = completedArgs.projects;
+        args.output = completedArgs.output;
+        args.subdir = completedArgs.subdir;
+
+        if (args.verbose) {
+          logger.info('Interactive prompts completed', {
+            repository: args.repository,
+            projects: args.projects,
+          });
+        }
+      } catch (error) {
+        // Handle interactive mode cancellation or errors
+        if (error instanceof Error && error.message === 'Operation cancelled') {
+          // User cancelled - this is not an error condition
+          console.log('Operation cancelled');
+          return {
+            success: false,
+            filesDownloaded: 0,
+            filesFailed: 0,
+            exitCode: 0, // User intentionally cancelled
+          };
+        }
+
+        // Re-throw other errors
+        throw error;
+      }
+    }
+
+    // Step 5: Validate input
+    // Check that repository and project names are valid
+    // This catches user errors before expensive API calls
+    const validation = validateInput(args);
+    if (!validation.valid) {
+      logger.error('Validation failed', { errors: validation.errors });
+
+      return {
+        success: false,
+        filesDownloaded: 0,
+        filesFailed: 0,
+        exitCode: 1, // User error
+      };
     }
 
     // Step 7: Detect duplicate projects (Task 2.3)
