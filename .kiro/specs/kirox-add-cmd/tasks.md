@@ -155,7 +155,7 @@
 
 - [ ] 8.4 Ctrl+C中断ハンドリングを実装
   - プロセスシグナルをキャッチ
-  - 「操作が中断されました」と表示
+  - 「Operation was interrupted.」と表示
   - 部分的に追加されたメタデータのロールバック処理
   - 既存メタデータの整合性を保護
   - _Requirements: 6.5_
@@ -163,7 +163,7 @@
 - [ ] 8.5 .kiroフォルダ不在エラーハンドリングを実装
   - fetchDirectoryContents()で404エラーをキャッチ
   - 「.kiro folder not found」エラー時に明確なメッセージを表示
-  - 「指定されたリポジトリ・ブランチ・サブディレクトリに.kiroフォルダが存在しません」というユーザーフレンドリーなメッセージに変換
+  - 「The .kiro folder was not found in the specified repository, branch, and subdirectory.」というユーザーフレンドリーなメッセージに変換
   - リポジトリ、ブランチ、サブディレクトリの確認を促すガイダンスを表示
   - 終了コード1で終了（ユーザーエラー）
   - _Requirements: 3.6 (新規)_
