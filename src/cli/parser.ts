@@ -47,26 +47,26 @@ function parseAddCommand(argv: string[]): ParsedArguments {
     .option('--verbose', 'Verbose logging', false)
     .option('--config <path>', 'Custom config file path')
     .addHelpText('after', `
-Examples:
-  # Add new project to existing metadata
-  $ npx kirox add owner/repo -p new-project
+${chalk.bold.blue('Examples:')}
+  ${chalk.dim('# Add new project to existing metadata')}
+  ${chalk.cyan('$')} ${chalk.green('npx kirox add')} ${chalk.cyan('owner/repo')} ${chalk.cyan('-p')} new-project
 
-  # Add multiple projects at once
-  $ npx kirox add owner/repo -p proj1,proj2,proj3
+  ${chalk.dim('# Add multiple projects at once')}
+  ${chalk.cyan('$')} ${chalk.green('npx kirox add')} ${chalk.cyan('owner/repo')} ${chalk.cyan('-p')} proj1,proj2,proj3
 
-  # Add project from specific branch
-  $ npx kirox add owner/repo#feature -p new-project
+  ${chalk.dim('# Add project from specific branch')}
+  ${chalk.cyan('$')} ${chalk.green('npx kirox add')} ${chalk.cyan('owner/repo#feature')} ${chalk.cyan('-p')} new-project
 
-  # Add project with subdirectory
-  $ npx kirox add owner/repo --subdir packages/api -p new-project
+  ${chalk.dim('# Add project with subdirectory')}
+  ${chalk.cyan('$')} ${chalk.green('npx kirox add')} ${chalk.cyan('owner/repo')} ${chalk.cyan('--subdir')} packages/api ${chalk.cyan('-p')} new-project
 
-  # Force overwrite existing project
-  $ npx kirox add owner/repo -p existing-project --force
+  ${chalk.dim('# Force overwrite existing project')}
+  ${chalk.cyan('$')} ${chalk.green('npx kirox add')} ${chalk.cyan('owner/repo')} ${chalk.cyan('-p')} existing-project ${chalk.cyan('--force')}
 
-  # Interactive mode (no arguments)
-  $ npx kirox add
+  ${chalk.dim('# Interactive mode (no arguments)')}
+  ${chalk.cyan('$')} ${chalk.green('npx kirox add')}
 
-Note:
+${chalk.bold.yellow('Note:')}
   The 'add' command requires existing metadata file (.kirox-meta.json).
   Run regular fetch command first if metadata doesn't exist.
 `)
