@@ -18,17 +18,144 @@ import * as fetcher from '@/github/fetcher.js';
 import * as parallelFetcher from '@/github/parallel-fetcher.js';
 import { MetadataError, MetadataErrorType } from '@/tracking/types.js';
 
+// Mock required modules
+vi.mock('@/cli/validator.js', () => ({
+  validateInput: vi.fn(() => ({
+    valid: true,
+    errors: [],
+  })),
+}));
+
+vi.mock('@/cli/interactive-prompt.js', () => ({
+  shouldEnterInteractiveMode: vi.fn(() => false),
+  promptMissingArguments: vi.fn(async (args) => args),
+}));
+
+vi.mock('@/config/loader.js', () => ({
+  loadConfig: vi.fn(async () => ({})),
+}));
+
+vi.mock('@/config/merger.js', () => ({
+  mergeConfig: vi.fn((args) => args),
+}));
+
+vi.mock('@/filesystem/writer.js', () => ({
+  writeFile: vi.fn(async () => ({
+    written: true,
+    skipped: false,
+    filePath: 'test-file.md',
+    size: 100,
+  })),
+}));
+
+vi.mock('@/tracking/hash-calculator.js', () => ({
+  calculateFileHash: vi.fn(async () => 'default-hash'),
+}));
+
+vi.mock('@/filesystem/path-utils.js', () => ({
+  buildRemotePath: vi.fn((subdir: string, projectName: string, type: string) => {
+    return subdir ? `${subdir}/.kiro/${type}/${projectName}` : `.kiro/${type}/${projectName}`;
+  }),
+  resolveOutputPath: vi.fn((output: string, filePath: string) => `${output}/${filePath}`),
+}));
+
+vi.mock('@/reporting/logger.js', () => ({
+  Logger: vi.fn(() => ({
+    info: vi.fn(),
+    warn: vi.fn(),
+    error: vi.fn(),
+    logError: vi.fn(),
+  })),
+}));
+
+vi.mock('@/reporting/error-handler.js', () => ({
+  ErrorHandler: vi.fn(() => ({
+    handle: vi.fn(() => ({
+      type: 'GENERIC_ERROR',
+      message: 'Error occurred',
+      exitCode: 1,
+    })),
+  })),
+}));
+
+vi.mock('@/reporting/progress-reporter.js', () => ({
+  ProgressReporter: vi.fn(() => ({
+    reportStart: vi.fn(),
+    reportProgress: vi.fn(),
+    reportSuccess: vi.fn(),
+    reportError: vi.fn(),
+    reportSummary: vi.fn(),
+    reportVerbose: vi.fn(),
+    reportProjectSummary: vi.fn(),
+    reportOverallSummary: vi.fn(),
+    reportPartialFailureSummary: vi.fn(),
+    reportProjectError: vi.fn(),
+  })),
+}));
+
+vi.mock('@/tracking/metadata-manager.js', () => ({
+  loadMetadata: vi.fn(async () => ({
+    version: '1.0',
+    projects: [],
+  })),
+  upsertProject: vi.fn(async () => {}),
+  upsertFile: vi.fn(async () => {}),
+}));
+
+vi.mock('@/github/fetcher.js', () => ({
+  parseRepositoryPath: vi.fn((repo: string) => {
+    const parts = repo.split('#');
+    return {
+      owner: 'owner',
+      repo: 'repo',
+      branch: parts[1] || undefined,
+    };
+  }),
+  fetchDirectoryContents: vi.fn(async () => []),
+  fetchDefaultBranch: vi.fn(async () => 'main'),
+  fetchBranches: vi.fn(async () => ['main', 'develop']),
+}));
+
+vi.mock('@/github/parallel-fetcher.js', () => ({
+  fetchFilesInParallel: vi.fn(async () => ({
+    success: [],
+    failed: [],
+  })),
+}));
+
+vi.mock('octokit', () => ({
+  Octokit: vi.fn(() => ({
+    rest: {
+      repos: {
+        getContent: vi.fn(),
+      },
+    },
+  })),
+}));
+
 describe('Add Command Metadata Existence Check (Task 11.3)', () => {
-  beforeEach(() => {
+  beforeEach(async () => {
+    // Clear all mock call history between tests
+    vi.clearAllMocks();
+
     // Mock console methods
     vi.spyOn(console, 'log').mockImplementation(() => {});
     vi.spyOn(console, 'error').mockImplementation(() => {});
 
-    // Mock metadata save
-    vi.spyOn(metadataManager, 'upsertProject').mockResolvedValue();
+    // Reset mocks to their default behavior
+    const { loadMetadata, upsertProject } = await import('@/tracking/metadata-manager.js');
+    const { fetchDirectoryContents } = await import('@/github/fetcher.js');
+    const { fetchFilesInParallel } = await import('@/github/parallel-fetcher.js');
 
-    // Mock GitHub fetcher with basic success response
-    vi.spyOn(fetcher, 'fetchDirectoryContents').mockResolvedValue([
+    // Set default behaviors for mocks
+    vi.mocked(loadMetadata).mockResolvedValue({
+      version: '1.0',
+      projects: [],
+    });
+
+    vi.mocked(upsertProject).mockResolvedValue();
+
+    vi.mocked(fetchDirectoryContents).mockResolvedValue([
       {
         name: 'requirements.md',
         path: '.kiro/specs/test-project/requirements.md',
@@ -37,7 +164,8 @@ describe('Add Command Metadata Existence Check (Task 11.3)', () => {
         size: 100,
       },
     ]);
-    vi.spyOn(parallelFetcher, 'fetchFilesInParallel').mockResolvedValue({
+
+    vi.mocked(fetchFilesInParallel).mockResolvedValue({
       success: [
         {
           path: '.kiro/specs/test-project/requirements.md',
@@ -56,13 +184,15 @@ describe('Add Command Metadata Existence Check (Task 11.3)', () => {
 
   describe('Requirement 2.2: Metadata existence check', () => {
     it('should detect when metadata file does not exist', async () => {
+      const { loadMetadata } = await import('@/tracking/metadata-manager.js');
+
       // Mock loadMetadata to throw NOT_FOUND error
       const notFoundError = new MetadataError(
         'Metadata file not found',
         MetadataErrorType.NOT_FOUND,
         { path: '.kiro/.kirox-meta.json' }
       );
-      vi.spyOn(metadataManager, 'loadMetadata').mockRejectedValue(notFoundError);
+      vi.mocked(loadMetadata).mockRejectedValue(notFoundError);
 
       const result = await executeAddCommand([
         'node',
@@ -74,15 +204,17 @@ describe('Add Command Metadata Existence Check (Task 11.3)', () => {
       ]);
 
       // Verify loadMetadata was called (existence check performed)
-      expect(metadataManager.loadMetadata).toHaveBeenCalled();
+      expect(loadMetadata).toHaveBeenCalled();
 
       // Verify command succeeded despite missing metadata
       expect(result.success).toBe(true);
     });
 
     it('should succeed when metadata file exists', async () => {
+      const { loadMetadata } = await import('@/tracking/metadata-manager.js');
+
       // Mock loadMetadata to return existing metadata
-      vi.spyOn(metadataManager, 'loadMetadata').mockResolvedValue({
+      vi.mocked(loadMetadata).mockResolvedValue({
         version: '1.0',
         projects: [],
       });
@@ -97,7 +229,7 @@ describe('Add Command Metadata Existence Check (Task 11.3)', () => {
       ]);
 
       // Verify loadMetadata was called
-      expect(metadataManager.loadMetadata).toHaveBeenCalled();
+      expect(loadMetadata).toHaveBeenCalled();
 
       // Verify command succeeded
       expect(result.success).toBe(true);
