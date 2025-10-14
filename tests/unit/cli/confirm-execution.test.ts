@@ -30,6 +30,7 @@ describe('confirmExecution', () => {
     track: false,
     checkUpdates: false,
     update: false,
+    steering: false,
   });
 
   beforeEach(async () => {
@@ -232,6 +233,81 @@ describe('confirmExecution', () => {
       expect(mockConsoleLog).toHaveBeenCalledWith(
         expect.stringContaining('my-api, my-web, my-mobile')
       );
+    });
+  });
+
+  // Task 3.4: Steering mode - Confirmation prompt display
+  describe('--steering モード - 確認プロンプト表示', () => {
+    it('--steering モード時、「Mode: Steering only」を表示する（Requirement 5.2）', async () => {
+      mockConfirm.mockResolvedValue(true);
+      const args = createValidArgs();
+      args.steering = true;
+      args.projects = []; // Projects may be empty in steering mode
+
+      await confirmExecution(args);
+
+      // Should display "Mode: Steering only" instead of project names
+      expect(mockConsoleLog).toHaveBeenCalledWith(
+        expect.stringContaining('Mode: Steering only')
+      );
+    });
+
+    it('--steering モード時、リポジトリ、出力ディレクトリを表示する（Requirement 5.1）', async () => {
+      mockConfirm.mockResolvedValue(true);
+      const args = createValidArgs();
+      args.steering = true;
+      args.projects = [];
+      args.repository = 'owner/repo';
+      args.output = './output';
+
+      await confirmExecution(args);
+
+      // Should display repository and output
+      expect(mockConsoleLog).toHaveBeenCalledWith(
+        expect.stringContaining('owner/repo')
+      );
+      expect(mockConsoleLog).toHaveBeenCalledWith(
+        expect.stringContaining('./output')
+      );
+    });
+
+    it('--steering モード時、サブディレクトリが指定されている場合は表示する（Requirement 5.1）', async () => {
+      mockConfirm.mockResolvedValue(true);
+      const args = createValidArgs();
+      args.steering = true;
+      args.projects = [];
+      args.subdir = 'packages/core';
+
+      await confirmExecution(args);
+
+      // Should display subdirectory
+      expect(mockConsoleLog).toHaveBeenCalledWith(
+        expect.stringContaining('packages/core')
+      );
+    });
+
+    it('通常モード時、プロジェクト名を表示する（Requirement 5.3: 後方互換性）', async () => {
+      mockConfirm.mockResolvedValue(true);
+      const args = createValidArgs();
+      args.steering = false;
+      args.projects = ['my-project'];
+
+      await confirmExecution(args);
+
+      // Should display project name
+      expect(mockConsoleLog).toHaveBeenCalledWith(
+        expect.stringContaining('my-project')
+      );
+
+      // Should NOT display "Mode: Steering only"
+      const calls = mockConsoleLog.mock.calls;
+      const hasSteering = calls.some(
+        (call) =>
+          call.length > 0 &&
+          typeof call[0] === 'string' &&
+          call[0].includes('Mode: Steering only')
+      );
+      expect(hasSteering).toBe(false);
     });
   });
 });

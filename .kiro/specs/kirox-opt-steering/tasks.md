@@ -26,7 +26,7 @@
   - 複数のオプションが同時に指定された場合、明確なエラーメッセージを表示
   - _Requirements: 6.4_
 
-- [ ] 3. インタラクティブモードの更新
+- [x] 3. インタラクティブモードの更新
 - [x] 3.1 Tree APIスキャンのスキップロジックを実装
   - `promptMissingArguments`関数内の`shouldAttemptTreeAPI`条件式に`!completedArgs.steering`を追加
   - `--steering`モード時にTree APIによるプロジェクトスキャンをスキップ
@@ -43,7 +43,7 @@
   - 空文字列入力時はルートディレクトリを取得対象とする
   - _Requirements: 4.1, 4.2, 4.3, 4.4_
 
-- [ ] 3.4 確認プロンプトの表示内容を更新
+- [x] 3.4 確認プロンプトの表示内容を更新
   - `confirmExecution`関数内で`--steering`モード時の表示を変更
   - プロジェクトフィールドの代わりに「Mode: Steering only」を表示
   - 通常モード時の既存表示を完全に維持

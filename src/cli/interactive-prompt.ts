@@ -266,6 +266,8 @@ export async function promptSubdir(configFile?: KiroxConfig): Promise<string | u
  * Shows a summary of the configuration (repository, project, output, subdir)
  * and prompts user to confirm execution.
  *
+ * Task 3.4: In --steering mode, display "Mode: Steering only" instead of project names
+ *
  * @param args - Parsed command-line arguments
  * @returns true if user confirms, false otherwise
  */
@@ -276,13 +278,20 @@ export async function confirmExecution(args: ParsedArguments): Promise<boolean> 
   // Display repository
   console.log(chalk.cyan('  Repository: ') + chalk.green(args.repository));
 
-  // Display project name(s)
-  console.log(chalk.cyan('  Project: ') + chalk.green(args.projects.join(', ')));
+  // Task 3.4: Display "Mode: Steering only" in steering mode, or project names in normal mode
+  // Requirement 5.2: Display "Mode: Steering only" in steering mode
+  // Requirement 5.3: Display project names in normal mode (backward compatibility)
+  if (args.steering) {
+    console.log(chalk.cyan('  Mode: ') + chalk.yellow('Steering only'));
+  } else {
+    console.log(chalk.cyan('  Project: ') + chalk.green(args.projects.join(', ')));
+  }
 
   // Display output directory
   console.log(chalk.cyan('  Output: ') + chalk.green(args.output));
 
   // Display subdirectory if specified
+  // Requirement 5.1: Display subdirectory if specified (both steering and normal mode)
   if (args.subdir) {
     console.log(chalk.cyan('  Subdirectory: ') + chalk.green(args.subdir));
   }
