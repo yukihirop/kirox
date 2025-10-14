@@ -507,9 +507,14 @@ export async function promptMissingArguments(
   }
 
   // 5. Prompt for project if missing (and Tree API did not provide it)
+  // Task 3.2: Skip in --steering mode (Requirement 3.4)
   // Pass additional parameters for project suggestion feature
   // Convert projects array back to string for prompting, then parse result
-  if (!treeApiSuccess && (!completedArgs.projects || completedArgs.projects.length === 0)) {
+  if (
+    !treeApiSuccess &&
+    !completedArgs.steering && // Skip in --steering mode (Task 3.2: Requirement 3.4)
+    (!completedArgs.projects || completedArgs.projects.length === 0)
+  ) {
     const projectString = await promptProject(
       completedArgs.projects.join(', '),
       completedArgs.repository,

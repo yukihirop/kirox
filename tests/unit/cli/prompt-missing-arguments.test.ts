@@ -328,8 +328,7 @@ describe('promptMissingArguments', () => {
       mockInput
         .mockResolvedValueOnce('owner/repo')
         .mockResolvedValueOnce('') // subdir prompt (should be displayed)
-        .mockResolvedValueOnce('my-project') // project prompt (Task 3.2 will skip this)
-        .mockResolvedValueOnce('.'); // output prompt
+        .mockResolvedValueOnce('.'); // output prompt (NO project prompt in Task 3.2)
 
       mockConfirm.mockResolvedValue(true);
 
@@ -378,6 +377,79 @@ describe('promptMissingArguments', () => {
       expect(mockConsoleLog).toHaveBeenCalledWith(
         expect.stringContaining('Scanning repository')
       );
+    });
+  });
+
+  // Task 3.2: Steering mode - Project prompt skip tests
+  describe('--steering モード - プロジェクトプロンプトスキップ', () => {
+    it('--steering モード時、プロジェクトプロンプトをスキップする（Requirement 3.4）', async () => {
+      mockInput
+        .mockResolvedValueOnce('owner/repo') // repository prompt
+        .mockResolvedValueOnce('') // subdir prompt
+        .mockResolvedValueOnce('.'); // output prompt (NO project prompt)
+
+      mockConfirm.mockResolvedValue(true);
+
+      const args = createValidArgs({
+        steering: true,
+        projects: [], // steering mode allows empty projects
+      });
+
+      const result = await promptMissingArguments(args);
+
+      // Should only call 3 input prompts (repository, subdir, output)
+      expect(mockInput).toHaveBeenCalledTimes(3);
+
+      // Projects should remain empty
+      expect(result.projects).toEqual([]);
+      expect(result.steering).toBe(true);
+    });
+
+    it('--steering モード時、プロジェクトが既に指定されている場合もプロンプトをスキップする', async () => {
+      mockInput
+        .mockResolvedValueOnce('owner/repo') // repository prompt
+        .mockResolvedValueOnce('') // subdir prompt
+        .mockResolvedValueOnce('.'); // output prompt (NO project prompt)
+
+      mockConfirm.mockResolvedValue(true);
+
+      const args = createValidArgs({
+        steering: true,
+        projects: ['my-project'], // Pre-specified project (should be ignored in steering mode)
+      });
+
+      const result = await promptMissingArguments(args);
+
+      // Should only call 3 input prompts (repository, subdir, output)
+      expect(mockInput).toHaveBeenCalledTimes(3);
+
+      // Projects should be preserved (not modified)
+      expect(result.projects).toEqual(['my-project']);
+      expect(result.steering).toBe(true);
+    });
+
+    it('通常モード時、プロジェクトプロンプトは引き続き表示される（Requirement 3.5: 後方互換性）', async () => {
+      mockInput
+        .mockResolvedValueOnce('owner/repo') // repository prompt
+        .mockResolvedValueOnce('') // subdir prompt
+        .mockResolvedValueOnce('my-project') // project prompt (should be displayed)
+        .mockResolvedValueOnce('.'); // output prompt
+
+      mockConfirm.mockResolvedValue(true);
+
+      const args = createValidArgs({
+        steering: false, // normal mode
+        projects: [],
+      });
+
+      const result = await promptMissingArguments(args);
+
+      // Should call 4 input prompts (repository, subdir, project, output)
+      expect(mockInput).toHaveBeenCalledTimes(4);
+
+      // Project should be prompted and set
+      expect(result.projects).toEqual(['my-project']);
+      expect(result.steering).toBe(false);
     });
   });
 });
