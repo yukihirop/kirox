@@ -247,6 +247,27 @@
   - `tests/unit/cli/interactive-prompt-steering-subdir.test.ts`の既存テストが引き続きパスすることを確認
   - 全体のテストスイート（2012+ tests）が合格することを確認
 
+- [x] 11. バグ修正: (root)の重複表示問題
+- [x] 11.1 `sortDirectoryLocations`関数の修正
+  - **問題**: `src/cli/searchable-subdir-prompt.ts`の`sortDirectoryLocations`関数で、`directories`配列に既にルート(`path: ''`)が含まれている場合に、さらにルートオプションを追加してしまい、`(root)`が重複表示される
+  - **原因**: 41行目で無条件にルートオプション`{ path: '', displayName: '(root)', sha: '' }`を追加している
+  - **修正方針**: ルートオプションを追加する前に、`directories`配列にルート(`path: ''`)が既に含まれているかチェックし、含まれていない場合のみ追加する
+  - **実装**:
+    ```typescript
+    // Add root directory option only if not already present
+    const hasRoot = directories.some((dir) => dir.path === '');
+    const allDirectories: Array<{
+      path: string;
+      displayName: string;
+      sha: string;
+    }> = hasRoot
+      ? directories
+      : [{ path: '', displayName: '(root)', sha: '' }, ...directories];
+    ```
+  - **テスト**: `tests/unit/cli/searchable-subdir-prompt.test.ts`に既存のルートを含む配列をテストするケースを追加
+  - **影響範囲**: `src/cli/searchable-subdir-prompt.ts`の30-54行目
+  - **優先度**: 高（ユーザー体験に直接影響）
+
 ## 要件カバレッジサマリー
 
 全要件が以下のタスクでカバーされています:

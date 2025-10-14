@@ -267,4 +267,65 @@ describe('SubdirectoryPromptService (Task 9.2)', () => {
       expect(result.subdir).toBe('src-v2');
     });
   });
+
+  describe('Bug fix: Root duplication (Task 11.1)', () => {
+    it('should not duplicate root option when directories already contains root', async () => {
+      // Arrange: directories array already contains root (path: '')
+      const directories: DirectoryLocation[] = [
+        { path: '', displayName: '(root)', sha: '' },
+        { path: 'lib/a', displayName: 'lib/a', sha: 'sha1' },
+        { path: 'lib/sample', displayName: 'lib/sample', sha: 'sha2' },
+      ];
+
+      (searchableCheckbox as ReturnType<typeof vi.fn>).mockResolvedValueOnce(['lib/a']);
+
+      // Act
+      await promptSubdirSelection(directories);
+
+      // Assert: choices should have exactly one root option
+      const callArgs = (searchableCheckbox as ReturnType<typeof vi.fn>).mock.calls[0][0];
+      const choices = callArgs.choices;
+
+      // Count how many times "(root)" appears
+      const rootCount = choices.filter((choice: any) => choice.value === '(root)').length;
+      expect(rootCount).toBe(1);
+
+      // Verify total choices count (should be 3, not 4)
+      expect(choices.length).toBe(3);
+
+      // Verify order: root first, then alphabetically
+      expect(choices[0].value).toBe('(root)');
+      expect(choices[1].value).toBe('lib/a');
+      expect(choices[2].value).toBe('lib/sample');
+    });
+
+    it('should add root option when directories does not contain root', async () => {
+      // Arrange: directories array does NOT contain root
+      const directories: DirectoryLocation[] = [
+        { path: 'lib/a', displayName: 'lib/a', sha: 'sha1' },
+        { path: 'lib/sample', displayName: 'lib/sample', sha: 'sha2' },
+      ];
+
+      (searchableCheckbox as ReturnType<typeof vi.fn>).mockResolvedValueOnce(['lib/a']);
+
+      // Act
+      await promptSubdirSelection(directories);
+
+      // Assert: choices should have exactly one root option added
+      const callArgs = (searchableCheckbox as ReturnType<typeof vi.fn>).mock.calls[0][0];
+      const choices = callArgs.choices;
+
+      // Count how many times "(root)" appears
+      const rootCount = choices.filter((choice: any) => choice.value === '(root)').length;
+      expect(rootCount).toBe(1);
+
+      // Verify total choices count (should be 3: root + 2 dirs)
+      expect(choices.length).toBe(3);
+
+      // Verify order: root first, then alphabetically
+      expect(choices[0].value).toBe('(root)');
+      expect(choices[1].value).toBe('lib/a');
+      expect(choices[2].value).toBe('lib/sample');
+    });
+  });
 });

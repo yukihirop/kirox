@@ -32,15 +32,15 @@ function sortDirectoryLocations(directories: DirectoryLocation[]): Array<{
   displayName: string;
   sha: string;
 }> {
-  // Add root directory option
+  // Add root directory option only if not already present (Task 11.1)
+  const hasRoot = directories.some((dir) => dir.path === '');
   const allDirectories: Array<{
     path: string;
     displayName: string;
     sha: string;
-  }> = [
-    { path: '', displayName: '(root)', sha: '' },
-    ...directories,
-  ];
+  }> = hasRoot
+    ? directories
+    : [{ path: '', displayName: '(root)', sha: '' }, ...directories];
 
   // Sort: root first, then alphabetically
   return [...allDirectories].sort((a, b) => {
