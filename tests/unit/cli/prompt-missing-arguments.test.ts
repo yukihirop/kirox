@@ -34,6 +34,7 @@ describe('promptMissingArguments', () => {
     track: false,
     checkUpdates: false,
     update: false,
+    steering: false,
     ...overrides,
   });
 
@@ -310,6 +311,73 @@ describe('promptMissingArguments', () => {
       // Should skip output prompt (Task 5.3: only 3 prompts)
       expect(mockInput).toHaveBeenCalledTimes(3);
       expect(result.output).toBe('./custom');
+    });
+  });
+
+  // Task 3.1: Steering mode - Tree API skip tests
+  describe('--steering モード - Tree API スキップ', () => {
+    it('--steering モード時、Tree API スキャンをスキップする（logger/client が利用可能でも）', async () => {
+      // Mock logger and client
+      const mockLogger = {
+        info: vi.fn(),
+        warn: vi.fn(),
+        error: vi.fn(),
+        verbose: vi.fn(),
+      };
+
+      mockInput
+        .mockResolvedValueOnce('owner/repo')
+        .mockResolvedValueOnce('') // subdir prompt (should be displayed)
+        .mockResolvedValueOnce('my-project') // project prompt (Task 3.2 will skip this)
+        .mockResolvedValueOnce('.'); // output prompt
+
+      mockConfirm.mockResolvedValue(true);
+
+      const args = createValidArgs({
+        steering: true,
+        projects: [], // steering mode allows empty projects
+      });
+
+      // Pass logger to enable Tree API capability
+      const result = await promptMissingArguments(args, undefined, mockLogger);
+
+      // Should NOT call Tree API (no "Scanning repository" log message)
+      expect(mockConsoleLog).not.toHaveBeenCalledWith(
+        expect.stringContaining('Scanning repository')
+      );
+
+      expect(result.steering).toBe(true);
+    });
+
+    it('通常モード時、Tree API スキャンは引き続き実行される（後方互換性）', async () => {
+      // Mock logger and client - will cause prompts to fail, but we only check Tree API attempt
+      const mockLogger = {
+        info: vi.fn(),
+        warn: vi.fn(),
+        error: vi.fn(),
+        verbose: vi.fn(),
+      };
+
+      mockInput
+        .mockResolvedValueOnce('owner/repo')
+        .mockResolvedValueOnce('') // subdir prompt
+        .mockResolvedValueOnce('my-project') // project prompt (fallback after Tree API fails)
+        .mockResolvedValueOnce('.'); // output prompt
+
+      mockConfirm.mockResolvedValue(true);
+
+      const args = createValidArgs({
+        steering: false, // normal mode
+        projects: [],
+      });
+
+      // Pass logger to enable Tree API capability
+      await promptMissingArguments(args, undefined, mockLogger);
+
+      // In normal mode, Tree API should be attempted (log message should be shown)
+      expect(mockConsoleLog).toHaveBeenCalledWith(
+        expect.stringContaining('Scanning repository')
+      );
     });
   });
 });

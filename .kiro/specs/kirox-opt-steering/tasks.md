@@ -27,7 +27,7 @@
   - _Requirements: 6.4_
 
 - [ ] 3. インタラクティブモードの更新
-- [ ] 3.1 Tree APIスキャンのスキップロジックを実装
+- [x] 3.1 Tree APIスキャンのスキップロジックを実装
   - `promptMissingArguments`関数内の`shouldAttemptTreeAPI`条件式に`!completedArgs.steering`を追加
   - `--steering`モード時にTree APIによるプロジェクトスキャンをスキップ
   - _Requirements: 3.3_

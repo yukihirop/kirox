@@ -436,12 +436,14 @@ export async function promptMissingArguments(
   // - Projects are already specified
   // - Subdirectory is already specified (Requirement 6.1: non-interactive mode)
   // - Non-TTY environment (Requirement 6.4)
+  // - Steering mode is enabled (Task 3.1: Requirement 3.3)
   let treeApiSuccess = false;
   const shouldAttemptTreeAPI =
     logger &&
     client &&
     (!completedArgs.projects || completedArgs.projects.length === 0) &&
     !completedArgs.subdir && // Skip if subdirectory already specified (Requirement 6.1)
+    !completedArgs.steering && // Skip in --steering mode (Task 3.1: Requirement 3.3)
     process.stdin.isTTY !== false; // Skip in non-TTY environment (Requirement 6.4), treat undefined as TTY
 
   if (shouldAttemptTreeAPI && client) {
