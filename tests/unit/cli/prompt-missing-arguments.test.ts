@@ -380,6 +380,98 @@ describe('promptMissingArguments', () => {
     });
   });
 
+  // Task 3.3: Steering mode - Subdirectory prompt display control
+  describe('--steering モード - サブディレクトリプロンプト表示制御', () => {
+    it('--steering モード時、サブディレクトリが未指定の場合にプロンプトを表示する（Requirement 4.1）', async () => {
+      mockInput
+        .mockResolvedValueOnce('owner/repo') // repository prompt
+        .mockResolvedValueOnce('lib/src') // subdir prompt (should be displayed)
+        .mockResolvedValueOnce('.'); // output prompt
+
+      mockConfirm.mockResolvedValue(true);
+
+      const args = createValidArgs({
+        steering: true,
+        projects: [],
+        subdir: undefined, // Subdirectory not specified
+      });
+
+      const result = await promptMissingArguments(args);
+
+      // Should call 3 input prompts (repository, subdir, output)
+      expect(mockInput).toHaveBeenCalledTimes(3);
+
+      // Subdirectory should be set from prompt
+      expect(result.subdir).toBe('lib/src');
+      expect(result.steering).toBe(true);
+    });
+
+    it('--steering モード時、サブディレクトリ入力プロンプトで空文字列が入力された場合、undefinedになる（Requirement 4.2）', async () => {
+      mockInput
+        .mockResolvedValueOnce('owner/repo') // repository prompt
+        .mockResolvedValueOnce('') // subdir prompt (empty string)
+        .mockResolvedValueOnce('.'); // output prompt
+
+      mockConfirm.mockResolvedValue(true);
+
+      const args = createValidArgs({
+        steering: true,
+        projects: [],
+        subdir: undefined,
+      });
+
+      const result = await promptMissingArguments(args);
+
+      // Subdirectory should be undefined (empty string becomes undefined)
+      expect(result.subdir).toBeUndefined();
+      expect(result.steering).toBe(true);
+    });
+
+    it('--steering モード時、サブディレクトリが既に指定されている場合はプロンプトをスキップする（Requirement 4.4）', async () => {
+      mockInput
+        .mockResolvedValueOnce('owner/repo') // repository prompt
+        .mockResolvedValueOnce('.'); // output prompt (NO subdir prompt)
+
+      mockConfirm.mockResolvedValue(true);
+
+      const args = createValidArgs({
+        steering: true,
+        projects: [],
+        subdir: 'packages/api', // Already specified
+      });
+
+      const result = await promptMissingArguments(args);
+
+      // Should only call 2 input prompts (repository, output)
+      expect(mockInput).toHaveBeenCalledTimes(2);
+
+      // Subdirectory should remain as specified
+      expect(result.subdir).toBe('packages/api');
+      expect(result.steering).toBe(true);
+    });
+
+    it('--steering モード時、有効なサブディレクトリパスが入力された場合、そのまま設定される（Requirement 4.3）', async () => {
+      mockInput
+        .mockResolvedValueOnce('owner/repo') // repository prompt
+        .mockResolvedValueOnce('packages/core') // subdir prompt (valid path)
+        .mockResolvedValueOnce('.'); // output prompt
+
+      mockConfirm.mockResolvedValue(true);
+
+      const args = createValidArgs({
+        steering: true,
+        projects: [],
+        subdir: undefined,
+      });
+
+      const result = await promptMissingArguments(args);
+
+      // Subdirectory should be set from prompt
+      expect(result.subdir).toBe('packages/core');
+      expect(result.steering).toBe(true);
+    });
+  });
+
   // Task 3.2: Steering mode - Project prompt skip tests
   describe('--steering モード - プロジェクトプロンプトスキップ', () => {
     it('--steering モード時、プロジェクトプロンプトをスキップする（Requirement 3.4）', async () => {

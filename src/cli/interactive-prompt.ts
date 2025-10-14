@@ -496,14 +496,17 @@ export async function promptMissingArguments(
   }
 
   // 4. Prompt for subdirectory if Tree API did not succeed (Requirement 3.2: Fallback)
+  // Task 3.3: Subdirectory prompt display control (Requirement 4.1, 4.2, 4.3, 4.4)
+  // In --steering mode, subdirectory prompt is displayed if not already specified
   // Skip if:
   // - Tree API succeeded (subdirectory already auto-extracted)
-  // - Subdirectory is already specified
+  // - Subdirectory is already specified (Requirement 4.4)
   if (!treeApiSuccess && !completedArgs.subdir) {
-    const subdir = await promptSubdir(configFile);
+    const subdir = await promptSubdir(configFile); // Requirement 4.1: Display prompt in steering mode
     if (subdir) {
-      completedArgs.subdir = subdir;
+      completedArgs.subdir = subdir; // Requirement 4.3: Set valid path
     }
+    // Requirement 4.2: Empty string becomes undefined (handled by promptSubdir lines 256-258)
   }
 
   // 5. Prompt for project if missing (and Tree API did not provide it)
