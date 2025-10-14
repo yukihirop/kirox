@@ -3,7 +3,7 @@
 ## 実装計画
 
 - [ ] 1. 型定義とCLI引数パーサーの更新
-- [ ] 1.1 型定義に`steering`フラグを追加
+- [x] 1.1 型定義に`steering`フラグを追加
   - `ParsedArguments`インターフェースに`steering: boolean`フィールドを追加
   - 型の一貫性を確保し、既存の型定義と整合性を保つ
   - _Requirements: 1.1_

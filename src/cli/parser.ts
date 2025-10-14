@@ -130,6 +130,7 @@ ${chalk.bold.blue('Installation:')}
     track: false,
     checkUpdates: false,
     update: false,
+    steering: false,
   };
 }
 
@@ -215,6 +216,7 @@ ${chalk.bold.yellow('Note:')}
     checkUpdates: false,
     update: false,
     subdir: options.subdir,
+    steering: false,
   };
 }
 
@@ -329,5 +331,6 @@ ${chalk.bold.yellow('Note:')}
     checkUpdates: options.checkUpdates,
     update: options.update,
     subdir: options.subdir,
+    steering: false,
   };
 }
