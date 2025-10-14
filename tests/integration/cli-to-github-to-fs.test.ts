@@ -1962,6 +1962,275 @@ describe('CLI to GitHub to FileSystem Integration', () => {
     });
   });
 
+  // Task 5.3: Backward compatibility verification
+  describe('Backward compatibility - Normal mode without --steering (Task 5.3)', () => {
+    it('should maintain existing behavior: fetch both specs and steering directories (Requirement 1.4, NFR-2)', async () => {
+      // Mock Octokit responses for normal mode (without --steering)
+      const mockOctokit = {
+        rest: {
+          repos: {
+            getContent: vi.fn()
+              .mockResolvedValueOnce({
+                // Mock .kiro/specs/test-project directory listing
+                data: [
+                  {
+                    name: 'requirements.md',
+                    path: '.kiro/specs/test-project/requirements.md',
+                    type: 'file',
+                    sha: 'spec-sha-001',
+                    size: 500,
+                  },
+                ],
+              })
+              .mockResolvedValueOnce({
+                // Mock .kiro/steering directory listing
+                data: [
+                  {
+                    name: 'product.md',
+                    path: '.kiro/steering/product.md',
+                    type: 'file',
+                    sha: 'steering-sha-002',
+                    size: 300,
+                  },
+                ],
+              })
+              .mockResolvedValueOnce({
+                // Mock requirements.md file content
+                data: {
+                  type: 'file',
+                  encoding: 'base64',
+                  content: Buffer.from('# Requirements', 'utf-8').toString('base64'),
+                  size: 500,
+                  path: '.kiro/specs/test-project/requirements.md',
+                  sha: 'spec-sha-001',
+                },
+              })
+              .mockResolvedValueOnce({
+                // Mock product.md file content
+                data: {
+                  type: 'file',
+                  encoding: 'base64',
+                  content: Buffer.from('# Product Guide', 'utf-8').toString('base64'),
+                  size: 300,
+                  path: '.kiro/steering/product.md',
+                  sha: 'steering-sha-002',
+                },
+              }),
+          },
+          rateLimit: {
+            get: vi.fn().mockResolvedValue({
+              data: {
+                rate: {
+                  remaining: 5000,
+                  limit: 5000,
+                  reset: Date.now() / 1000 + 3600,
+                },
+              },
+            }),
+          },
+        },
+      };
+
+      vi.mocked(Octokit).mockImplementation(() => mockOctokit as any);
+
+      // Execute CLI command without --steering (normal mode)
+      const argv = [
+        'node',
+        'kirox',
+        'owner/repo',
+        '-p',
+        'test-project',
+        '-o',
+        testOutputDir,
+        '--force',
+      ];
+
+      const result = await execute(argv);
+
+      // Verify execution succeeded
+      expect(result.success).toBe(true);
+      expect(result.filesDownloaded).toBe(2);
+      expect(result.filesFailed).toBe(0);
+
+      // Verify BOTH specs and steering directories were fetched (backward compatibility)
+      const getContentCalls = mockOctokit.rest.repos.getContent.mock.calls;
+
+      // Verify specs directory was fetched
+      const specsCalls = getContentCalls.filter((call) =>
+        call[0].path === '.kiro/specs/test-project'
+      );
+      expect(specsCalls.length).toBe(1);
+
+      // Verify steering directory was fetched
+      const steeringCalls = getContentCalls.filter((call) =>
+        call[0].path === '.kiro/steering'
+      );
+      expect(steeringCalls.length).toBe(1);
+
+      // Verify both files were written to filesystem
+      const requirementsMdPath = path.join(testOutputDir, '.kiro/specs/test-project/requirements.md');
+      const productMdPath = path.join(testOutputDir, '.kiro/steering/product.md');
+
+      const requirementsMdContent = await fs.readFile(requirementsMdPath, 'utf-8');
+      const productMdContent = await fs.readFile(productMdPath, 'utf-8');
+
+      expect(requirementsMdContent).toBe('# Requirements');
+      expect(productMdContent).toBe('# Product Guide');
+    });
+
+    it('should maintain existing project validation: require project argument in normal mode (Requirement 3.5, NFR-2)', async () => {
+      // Mock Octokit (won't be called due to validation error)
+      const mockOctokit = {
+        rest: {
+          repos: {
+            getContent: vi.fn(),
+          },
+          rateLimit: {
+            get: vi.fn().mockResolvedValue({
+              data: {
+                rate: {
+                  remaining: 5000,
+                  limit: 5000,
+                  reset: Date.now() / 1000 + 3600,
+                },
+              },
+            }),
+          },
+        },
+      };
+
+      vi.mocked(Octokit).mockImplementation(() => mockOctokit as any);
+
+      // Execute CLI command without --steering AND without -p (should fail validation)
+      const argv = [
+        'node',
+        'kirox',
+        'owner/repo',
+        '-o',
+        testOutputDir,
+        '--force',
+      ];
+
+      const result = await execute(argv);
+
+      // Verify execution failed due to validation error (backward compatibility)
+      expect(result.success).toBe(false);
+      expect(result.exitCode).toBe(1);
+      expect(result.filesDownloaded).toBe(0);
+
+      // Verify GitHub API was NOT called (validation failed before API call)
+      expect(mockOctokit.rest.repos.getContent).not.toHaveBeenCalled();
+    });
+
+    it('should maintain existing behavior with all options: --track, --verbose, --force (Requirement 6.5, NFR-2)', async () => {
+      // Mock Octokit responses for normal mode with all options
+      const mockOctokit = {
+        rest: {
+          repos: {
+            getContent: vi.fn()
+              .mockResolvedValueOnce({
+                // Mock .kiro/specs/test-project directory listing
+                data: [
+                  {
+                    name: 'design.md',
+                    path: '.kiro/specs/test-project/design.md',
+                    type: 'file',
+                    sha: 'design-sha',
+                    size: 400,
+                  },
+                ],
+              })
+              .mockResolvedValueOnce({
+                // Mock .kiro/steering directory listing
+                data: [
+                  {
+                    name: 'tech.md',
+                    path: '.kiro/steering/tech.md',
+                    type: 'file',
+                    sha: 'tech-sha',
+                    size: 350,
+                  },
+                ],
+              })
+              .mockResolvedValueOnce({
+                // Mock design.md file content
+                data: {
+                  type: 'file',
+                  encoding: 'base64',
+                  content: Buffer.from('# Design Document', 'utf-8').toString('base64'),
+                  size: 400,
+                  path: '.kiro/specs/test-project/design.md',
+                  sha: 'design-sha',
+                },
+              })
+              .mockResolvedValueOnce({
+                // Mock tech.md file content
+                data: {
+                  type: 'file',
+                  encoding: 'base64',
+                  content: Buffer.from('# Tech Stack', 'utf-8').toString('base64'),
+                  size: 350,
+                  path: '.kiro/steering/tech.md',
+                  sha: 'tech-sha',
+                },
+              }),
+          },
+          rateLimit: {
+            get: vi.fn().mockResolvedValue({
+              data: {
+                rate: {
+                  remaining: 5000,
+                  limit: 5000,
+                  reset: Date.now() / 1000 + 3600,
+                },
+              },
+            }),
+          },
+        },
+      };
+
+      vi.mocked(Octokit).mockImplementation(() => mockOctokit as any);
+
+      // Execute CLI command with --track, --verbose, --force (without --steering)
+      const argv = [
+        'node',
+        'kirox',
+        'owner/repo',
+        '-p',
+        'test-project',
+        '-o',
+        testOutputDir,
+        '--track',
+        '--verbose',
+        '--force',
+      ];
+
+      const result = await execute(argv);
+
+      // Verify execution succeeded
+      expect(result.success).toBe(true);
+      expect(result.filesDownloaded).toBe(2);
+
+      // Verify metadata was created (--track option)
+      const metadataPath = path.join(testOutputDir, '.kiro', '.kirox-meta.json');
+      const metadataExists = await fs
+        .access(metadataPath)
+        .then(() => true)
+        .catch(() => false);
+      expect(metadataExists).toBe(true);
+
+      // Verify files were written
+      const designMdPath = path.join(testOutputDir, '.kiro/specs/test-project/design.md');
+      const techMdPath = path.join(testOutputDir, '.kiro/steering/tech.md');
+
+      const designMdContent = await fs.readFile(designMdPath, 'utf-8');
+      const techMdContent = await fs.readFile(techMdPath, 'utf-8');
+
+      expect(designMdContent).toBe('# Design Document');
+      expect(techMdContent).toBe('# Tech Stack');
+    });
+  });
+
   // Task 5.2: Metadata tracking integration with --steering mode
   describe('--steering mode - Metadata tracking integration (Task 5.2)', () => {
     it('should record steering file tracking information in metadata when using --steering + --track (Requirement 6.3)', async () => {
