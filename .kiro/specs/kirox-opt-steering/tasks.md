@@ -149,7 +149,7 @@
   - _Requirements: 7.3, 7.4, NFR-2_
 
 - [ ] 9. ステアリングモードのUI改善（拡張機能）
-- [ ] 9.1 TreeBasedDirectoryScannerコンポーネントの実装
+- [x] 9.1 TreeBasedDirectoryScannerコンポーネントの実装
   - `src/github/tree-based-dir-scanner.ts`を作成
   - GitHub Tree APIを使用してリポジトリ内のディレクトリ構造を取得する`scanDirectoriesAcrossRepo`メソッドを実装
   - ディレクトリのみをフィルタリング（`type === 'tree'`）
