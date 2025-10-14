@@ -72,4 +72,40 @@ describe('CLI Help Message (task 13.1)', () => {
       expect(parserSource).toContain('Interactive Mode:');
     });
   });
+
+  // Task 6.1: --steering option help message tests (Requirements 1.1, 8.1, 8.2)
+  describe('--steering option help text (Task 6.1)', () => {
+    it('should have --steering option definition with description', () => {
+      // Verify: --steering option is defined in the parser
+      const hasSteeringOption = /\.option\([^)]*--steering[^)]*\)/.test(parserSource);
+      expect(hasSteeringOption).toBe(true);
+    });
+
+    it('should have description "Fetch only .kiro/steering directory (skip project specs)" for --steering option', () => {
+      // Verify: Description text is accurate (Requirement 8.3)
+      expect(parserSource).toContain('Fetch only .kiro/steering directory (skip project specs)');
+    });
+
+    it('should have example of --steering in non-interactive mode', () => {
+      // Verify: Help contains example with --steering flag (Requirement 8.5)
+      // Should have pattern like: owner/repo --steering
+      const hasSteeringExample = /owner\/repo\s+--steering/.test(parserSource);
+      expect(hasSteeringExample).toBe(true);
+    });
+
+    it('should have example of --steering with --subdir option', () => {
+      // Verify: Help contains example with --steering + --subdir (Requirement 8.5)
+      // Should have pattern like: --subdir packages/api --steering
+      const hasSteeringSubdirExample = /--subdir\s+[^\s]+\s+--steering/.test(parserSource);
+      expect(hasSteeringSubdirExample).toBe(true);
+    });
+
+    it('should set default value to false for --steering option', () => {
+      // Verify: Default value is false (Requirement 1.1)
+      // Look for the option definition with default value
+      // Pattern: .option('--steering', '...', false) or .option("--steering", "...", false)
+      const hasDefaultFalse = parserSource.includes("'--steering', 'Fetch only .kiro/steering directory (skip project specs)', false");
+      expect(hasDefaultFalse).toBe(true);
+    });
+  });
 });
