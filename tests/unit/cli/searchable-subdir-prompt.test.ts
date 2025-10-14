@@ -213,7 +213,7 @@ describe('SubdirectoryPromptService (Task 9.2)', () => {
 
       // Assert
       const callArgs = (searchableCheckbox as ReturnType<typeof vi.fn>).mock.calls[0][0];
-      expect(callArgs.message).toContain('Select subdirectory');
+      expect(callArgs.message).toContain('📁 Select subdirectory');
       expect(callArgs.message).toContain('type to filter');
       expect(callArgs.message).toContain('space to select');
       expect(callArgs.message).toContain('enter to confirm');

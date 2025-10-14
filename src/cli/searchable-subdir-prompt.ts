@@ -39,8 +39,8 @@ function sortDirectoryLocations(directories: DirectoryLocation[]): Array<{
     displayName: string;
     sha: string;
   }> = hasRoot
-    ? directories
-    : [{ path: '', displayName: '(root)', sha: '' }, ...directories];
+      ? directories
+      : [{ path: '', displayName: '(root)', sha: '' }, ...directories];
 
   // Sort: root first, then alphabetically
   return [...allDirectories].sort((a, b) => {
@@ -96,7 +96,7 @@ export async function promptSubdirSelection(
 
   // Call searchable checkbox with validation (Requirement 9.2, 9.4)
   const selectedDisplayNames = await searchableCheckbox<string>({
-    message: chalk.bold.cyan('Select subdirectory') +
+    message: chalk.bold.cyan('📁 Select subdirectory') +
       chalk.dim(' (type to filter, space to select, enter to confirm)'), // Requirement 9.5
     choices,
     // Validation: Exactly one selection required (Requirement 9.6)

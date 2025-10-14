@@ -15,7 +15,7 @@ vi.mock('@inquirer/prompts', () => ({
 }));
 
 // Mock console.log to capture output
-const mockConsoleLog = vi.spyOn(console, 'log').mockImplementation(() => {});
+const mockConsoleLog = vi.spyOn(console, 'log').mockImplementation(() => { });
 
 describe('confirmExecution', () => {
   let mockConfirm: ReturnType<typeof vi.fn>;
@@ -72,7 +72,7 @@ describe('confirmExecution', () => {
 
       expect(mockConfirm).toHaveBeenCalledWith(
         expect.objectContaining({
-          message: 'Execute with this configuration?',
+          message: '❓ Execute with this configuration?',
         })
       );
     });

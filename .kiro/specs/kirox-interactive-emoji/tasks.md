@@ -7,58 +7,58 @@
 ## 実装タスク
 
 - [ ] 1. インタラクティブプロンプトメッセージに絵文字を追加する
-- [ ] 1.1 リポジトリ入力プロンプトに📦絵文字を追加する
+- [x] 1.1 リポジトリ入力プロンプトに📦絵文字を追加する
   - `interactive-prompt.ts`の`promptRepository`関数のメッセージ文字列を更新する
   - メッセージ形式を「📦 Enter GitHub repository (owner/repo or owner/repo#branch)」に変更する
   - デフォルトリポジトリ提案時も絵文字が正しく表示されることを確認する
   - 既存のバリデーションロジックは一切変更しない
   - _要件: 1.1, 1.2, 1.3_
 
-- [ ] 1.2 プロジェクト名入力プロンプトに📋絵文字を追加する
+- [x] 1.2 プロジェクト名入力プロンプトに📋絵文字を追加する
   - `interactive-prompt.ts`の`promptProject`関数のメッセージ文字列を更新する
   - メッセージ形式を「📋 Enter project name (comma-separated for multiple projects)」に変更する
   - 既存のバリデーションロジックは一切変更しない
   - _要件: 4.1, 4.2_
 
-- [ ] 1.3 出力ディレクトリ入力プロンプトに📂絵文字を追加する
+- [x] 1.3 出力ディレクトリ入力プロンプトに📂絵文字を追加する
   - `interactive-prompt.ts`の`promptOutput`関数のメッセージ文字列を更新する
   - メッセージ形式を「📂 Enter output directory (default: [value])」に変更する
   - デフォルト値の表示形式は既存のまま維持する
   - _要件: 5.1, 5.2_
 
-- [ ] 1.4 サブディレクトリ入力プロンプトに📁絵文字を追加する
+- [x] 1.4 サブディレクトリ入力プロンプトに📁絵文字を追加する
   - `interactive-prompt.ts`の`promptSubdir`関数のメッセージ文字列を更新する
   - メッセージ形式を「📁 Enter subdirectory in GitHub repository (optional)」に変更する
   - デフォルト値が提供される場合も絵文字が正しく表示されることを確認する
   - _要件: 7.1, 7.2, 7.3_
 
-- [ ] 1.5 実行確認プロンプトに❓絵文字を追加する
+- [x] 1.5 実行確認プロンプトに❓絵文字を追加する
   - `interactive-prompt.ts`の`confirmExecution`関数のメッセージ文字列を更新する
   - メッセージ形式を「❓ Execute with this configuration?」に変更する
   - 既存の確認ロジックは一切変更しない
   - _要件: 8.1, 8.2_
 
 - [ ] 2. 選択UIプロンプトメッセージに絵文字を追加する
-- [ ] 2.1 ブランチ選択プロンプトに🌿絵文字を追加する
+- [x] 2.1 ブランチ選択プロンプトに🌿絵文字を追加する
   - `branch-prompt.ts`の`promptBranch`関数のメッセージ文字列を更新する
   - メッセージ形式を「🌿 Select branch (type to filter, space to select, enter to confirm)」に変更する
   - 検索可能チェックボックスUIの動作は一切変更しない
   - _要件: 2.1, 2.2_
 
-- [ ] 2.2 プロジェクト選択プロンプトに📋絵文字を追加する
+- [x] 2.2 プロジェクト選択プロンプトに📋絵文字を追加する
   - `searchable-project-prompt.ts`の`promptProjectSelection`関数のメッセージ文字列を更新する
   - メッセージ形式を「📋 Select projects (type to filter, space to select, enter to confirm)」に変更する
   - 検索可能チェックボックスUIの動作は一切変更しない
   - _要件: 3.1, 3.2_
 
-- [ ] 2.3 サブディレクトリ選択プロンプトに📁絵文字を追加する
+- [x] 2.3 サブディレクトリ選択プロンプトに📁絵文字を追加する
   - `searchable-subdir-prompt.ts`の`promptSubdirSelection`関数のメッセージ文字列を更新する
   - メッセージ形式を「📁 Select subdirectory (type to filter, space to select, enter to confirm)」に変更する
   - 検索可能チェックボックスUIの動作は一切変更しない
   - _要件: 6.1, 6.2_
 
 - [ ] 3. ファイルシステム層プロンプトメッセージに絵文字を追加する
-- [ ] 3.1 ファイル上書き確認プロンプトに⚠️絵文字を追加する
+- [x] 3.1 ファイル上書き確認プロンプトに⚠️絵文字を追加する
   - `filesystem/prompt.ts`の`confirm`関数のメッセージ表示を更新する
   - メッセージ形式を「⚠️ [ファイル名] already exists. Overwrite? (y/N):」に変更する
   - readlineモジュールを使用した既存の確認ロジックは一切変更しない

@@ -575,7 +575,7 @@ describe('ProjectSuggester', () => {
       // Assert
       expect(mockCheckbox).toHaveBeenCalledWith(
         expect.objectContaining({
-          message: 'Select projects (Space to select, Enter to confirm)',
+          message: '📋 Select projects (Space to select, Enter to confirm)',
           pageSize: 10,
           loop: true,
         })
@@ -676,7 +676,7 @@ describe('ProjectSuggester', () => {
         .mockResolvedValueOnce([])
         .mockResolvedValueOnce(['project-a']);
 
-      const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+      const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => { });
 
       // Act
       const { promptMultipleProjectsWithValidation } = await import('@/cli/project-suggester.js');
@@ -702,7 +702,7 @@ describe('ProjectSuggester', () => {
         .mockResolvedValueOnce([])
         .mockResolvedValueOnce(['project-b']);
 
-      const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+      const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => { });
 
       // Act
       const { promptMultipleProjectsWithValidation } = await import('@/cli/project-suggester.js');
@@ -721,7 +721,7 @@ describe('ProjectSuggester', () => {
       const projects = ['project-a', 'project-b', 'project-c'];
       mockCheckbox.mockResolvedValue(['project-a', 'project-c']);
 
-      const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+      const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => { });
 
       // Act
       const { promptMultipleProjectsWithValidation } = await import('@/cli/project-suggester.js');

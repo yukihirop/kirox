@@ -168,7 +168,7 @@ describe('promptBranch', () => {
       const callArgs = vi.mocked(searchableCheckbox).mock.calls[0][0];
 
       // Check that message contains key text (Chalk styling may be present)
-      expect(callArgs.message).toContain('Select branch');
+      expect(callArgs.message).toContain('🌿 Select branch');
       expect(callArgs.message).toContain('type to filter');
       expect(callArgs.message).toContain('space to select');
       expect(callArgs.message).toContain('enter to confirm');

@@ -38,7 +38,7 @@ describe('Interactive Mode Multi-Project Support', () => {
       await promptProject('');
 
       expect(mockInput).toHaveBeenCalledWith({
-        message: 'Enter project name (comma-separated for multiple projects)',
+        message: '📋 Enter project name (comma-separated for multiple projects)',
         validate: expect.any(Function),
       });
     });

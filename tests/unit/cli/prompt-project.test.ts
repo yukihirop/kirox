@@ -83,7 +83,7 @@ describe('promptProject', () => {
 
       expect(mockInput).toHaveBeenCalledWith(
         expect.objectContaining({
-          message: 'Enter project name (comma-separated for multiple projects)',
+          message: '📋 Enter project name (comma-separated for multiple projects)',
         })
       );
     });
@@ -443,7 +443,7 @@ describe('promptProject', () => {
       });
 
       it('エラーメッセージが存在する場合、コンソールに表示する', async () => {
-        const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+        const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => { });
         mockSuggestProjects.mockResolvedValue({
           projects: [],
           success: false,

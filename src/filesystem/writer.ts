@@ -126,7 +126,7 @@ export async function writeFile(
 
   // If file exists and we should prompt (and not force), ask user
   if (fileExists && shouldPrompt && !force) {
-    const shouldOverwrite = await confirm(`File '${filePath}' already exists. Overwrite?`);
+    const shouldOverwrite = await confirm(`⚠️ File '${filePath}' already exists. Overwrite?`);
 
     if (!shouldOverwrite) {
       return {

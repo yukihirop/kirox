@@ -63,7 +63,7 @@ export async function promptBranch(
 
   // Call searchable checkbox with single-selection validation
   const selectedBranches = await searchableCheckbox<string>({
-    message: chalk.bold.cyan('Select branch') +
+    message: chalk.bold.cyan('🌿 Select branch') +
       chalk.dim(' (type to filter, space to select, enter to confirm)'),
     choices,
     // Validation: Exactly one selection or zero selections (use default)

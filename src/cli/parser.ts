@@ -248,10 +248,10 @@ ${chalk.bold.blue('Interactive Mode:')}
   through entering repository, project name, and other options step-by-step.
 
   ${chalk.green('$ npx kirox')}
-  ${chalk.cyan('?')} Enter GitHub repository (owner/repo or owner/repo#branch): owner/repo
-  ${chalk.cyan('?')} Enter project name: my-project
-  ${chalk.cyan('?')} Enter output directory: .
-  ${chalk.cyan('?')} Enter subdirectory in GitHub repository (optional):
+  ${chalk.cyan('?')} 📦 Enter GitHub repository (owner/repo or owner/repo#branch): owner/repo
+  ${chalk.cyan('?')} 📋 Enter project name: my-project
+  ${chalk.cyan('?')} 📂 Enter output directory: .
+  ${chalk.cyan('?')} 📁 Enter subdirectory in GitHub repository (optional):
   ${chalk.green('✓')} Configuration confirmed
 
 ${chalk.bold.blue('Examples:')}
