@@ -6,8 +6,25 @@
 
 import { Command } from 'commander';
 import chalk from 'chalk';
+import figlet from 'figlet';
 import type { ParsedArguments } from './types.js';
 import { parseProjects } from './project-name-parser.js';
+
+/**
+ * Generate ASCII art for kirox logo
+ */
+function generateKiroxAsciiArt(): string {
+  try {
+    return figlet.textSync('kirox', {
+      font: 'ANSI Shadow',
+      horizontalLayout: 'default',
+      verticalLayout: 'default'
+    });
+  } catch (error) {
+    // Fallback to simple text if figlet fails
+    return 'kirox\n';
+  }
+}
 
 /**
  * Parse command-line arguments
@@ -242,6 +259,7 @@ function parseMainCommand(argv: string[]): ParsedArguments {
     .option('--check-updates', 'Check for updates to tracked files', false)
     .option('--update', 'Apply updates to tracked files', false)
     .option('--steering', 'Fetch only .kiro/steering directory (skip project specs)', false)
+    .addHelpText('before', `${chalk.cyan(generateKiroxAsciiArt())}\n`)
     .addHelpText('after', `
 ${chalk.bold.blue('Interactive Mode:')}
   When run without arguments, kirox enters interactive mode and guides you
