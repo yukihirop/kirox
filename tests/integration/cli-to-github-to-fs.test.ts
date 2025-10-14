@@ -1150,6 +1150,192 @@ describe('CLI to GitHub to FileSystem Integration', () => {
     });
   });
 
+  // Task 4.3: Error handling for missing steering directory
+  describe('--steering mode - Missing steering directory error handling (Task 4.3)', () => {
+    it('should throw error when steering directory not found in --steering mode (Requirement 7.1)', async () => {
+      // Mock Octokit to reject steering directory fetch (404 error)
+      const mockOctokit = {
+        rest: {
+          repos: {
+            getContent: vi.fn()
+              .mockRejectedValueOnce({
+                status: 404,
+                message: 'Not Found',
+              }),
+          },
+          rateLimit: {
+            get: vi.fn().mockResolvedValue({
+              data: {
+                rate: {
+                  remaining: 5000,
+                  limit: 5000,
+                  reset: Date.now() / 1000 + 3600,
+                },
+              },
+            }),
+          },
+        },
+      };
+
+      vi.mocked(Octokit).mockImplementation(() => mockOctokit as any);
+
+      // Execute CLI command with --steering
+      const argv = [
+        'node',
+        'kirox',
+        'owner/repo',
+        '-o',
+        testOutputDir,
+        '--steering',
+        '--force',
+      ];
+
+      const result = await execute(argv);
+
+      // Verify execution failed
+      expect(result.success).toBe(false);
+      expect(result.exitCode).toBe(1);
+      expect(result.filesDownloaded).toBe(0);
+
+      // Verify getContent was called for steering directory
+      expect(mockOctokit.rest.repos.getContent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          owner: 'owner',
+          repo: 'repo',
+          path: '.kiro/steering',
+        })
+      );
+    });
+
+    it('should throw error with subdirectory path when steering directory not found in --steering mode (Requirement 7.2)', async () => {
+      // Mock Octokit to reject steering directory fetch in subdirectory
+      const mockOctokit = {
+        rest: {
+          repos: {
+            getContent: vi.fn()
+              .mockRejectedValueOnce({
+                status: 404,
+                message: 'Not Found',
+              }),
+          },
+          rateLimit: {
+            get: vi.fn().mockResolvedValue({
+              data: {
+                rate: {
+                  remaining: 5000,
+                  limit: 5000,
+                  reset: Date.now() / 1000 + 3600,
+                },
+              },
+            }),
+          },
+        },
+      };
+
+      vi.mocked(Octokit).mockImplementation(() => mockOctokit as any);
+
+      // Execute CLI command with --steering and --subdir
+      const argv = [
+        'node',
+        'kirox',
+        'owner/repo',
+        '--subdir',
+        'packages/api',
+        '-o',
+        testOutputDir,
+        '--steering',
+        '--force',
+      ];
+
+      const result = await execute(argv);
+
+      // Verify execution failed
+      expect(result.success).toBe(false);
+      expect(result.exitCode).toBe(1);
+
+      // Verify getContent was called with correct subdirectory path
+      expect(mockOctokit.rest.repos.getContent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          owner: 'owner',
+          repo: 'repo',
+          path: 'packages/api/.kiro/steering',
+        })
+      );
+    });
+
+    it('should maintain warning-only behavior in normal mode when steering directory not found (Requirement 7.1 - backward compatibility)', async () => {
+      // Mock Octokit for normal mode with missing steering directory
+      const mockOctokit = {
+        rest: {
+          repos: {
+            getContent: vi.fn()
+              .mockResolvedValueOnce({
+                // Mock .kiro/specs/test-project directory listing
+                data: [
+                  {
+                    name: 'spec.json',
+                    path: '.kiro/specs/test-project/spec.json',
+                    type: 'file',
+                    sha: 'spec123',
+                    size: 100,
+                  },
+                ],
+              })
+              .mockRejectedValueOnce({
+                // Steering directory not found
+                status: 404,
+                message: 'Not Found',
+              })
+              .mockResolvedValueOnce({
+                // Mock spec.json file content
+                data: {
+                  type: 'file',
+                  encoding: 'base64',
+                  content: Buffer.from('{"test": "data"}', 'utf-8').toString('base64'),
+                  size: 100,
+                  path: '.kiro/specs/test-project/spec.json',
+                  sha: 'spec123',
+                },
+              }),
+          },
+          rateLimit: {
+            get: vi.fn().mockResolvedValue({
+              data: {
+                rate: {
+                  remaining: 5000,
+                  limit: 5000,
+                  reset: Date.now() / 1000 + 3600,
+                },
+              },
+            }),
+          },
+        },
+      };
+
+      vi.mocked(Octokit).mockImplementation(() => mockOctokit as any);
+
+      // Execute CLI command without --steering (normal mode)
+      const argv = [
+        'node',
+        'kirox',
+        'owner/repo',
+        '-p',
+        'test-project',
+        '-o',
+        testOutputDir,
+        '--force',
+      ];
+
+      const result = await execute(argv);
+
+      // Verify execution succeeded (warning only, no error)
+      expect(result.success).toBe(true);
+      expect(result.filesDownloaded).toBe(1);
+      expect(result.filesFailed).toBe(0);
+      expect(result.exitCode).toBe(0);
+    });
+  });
+
   // Task 4.1: Project loop control logic for --steering mode
   describe('--steering mode - Project loop control (Task 4.1)', () => {
     it('should execute project loop only once in --steering mode (Requirement 1.2)', async () => {
