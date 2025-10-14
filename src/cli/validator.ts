@@ -33,12 +33,13 @@ const CONTROL_CHARS_PATTERN = /[\x00-\x1F\x7F]/;
 export function validateInput(args: ParsedArguments): ValidationResult {
   const errors: ValidationError[] = [];
 
-  // Check mutual exclusivity of --track, --check-updates, and --update
-  const exclusiveOptions = [args.track, args.checkUpdates, args.update];
+  // Check mutual exclusivity of --steering, --track, --check-updates, and --update
+  const exclusiveOptions = [args.steering, args.track, args.checkUpdates, args.update];
   const activeOptionsCount = exclusiveOptions.filter(Boolean).length;
 
   if (activeOptionsCount > 1) {
     const activeNames: string[] = [];
+    if (args.steering) activeNames.push('--steering');
     if (args.track) activeNames.push('--track');
     if (args.checkUpdates) activeNames.push('--check-updates');
     if (args.update) activeNames.push('--update');

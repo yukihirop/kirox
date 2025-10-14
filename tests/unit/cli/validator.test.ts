@@ -478,6 +478,103 @@ describe('InputValidator', () => {
     });
   });
 
+  // Task 2.2: Steering mode mutual exclusivity tests
+  describe('validateInput - Steering mode mutual exclusivity', () => {
+    const createValidArgs = (): ParsedArguments => ({
+      repository: 'owner/repo',
+      projects: ['my-project'],
+      output: '.',
+      force: false,
+      dryRun: false,
+      verbose: false,
+      track: false,
+      checkUpdates: false,
+      update: false,
+      steering: false,
+    });
+
+    it('should reject --steering and --check-updates together', () => {
+      const args = createValidArgs();
+      args.steering = true;
+      args.checkUpdates = true;
+      args.projects = []; // steering mode allows empty projects
+      const result = validateInput(args);
+
+      expect(result.valid).toBe(false);
+      expect(result.errors).toHaveLength(1);
+      expect(result.errors[0]?.field).toBe('options');
+      expect(result.errors[0]?.message).toContain('--steering');
+      expect(result.errors[0]?.message).toContain('--check-updates');
+    });
+
+    it('should reject --steering and --update together', () => {
+      const args = createValidArgs();
+      args.steering = true;
+      args.update = true;
+      args.projects = []; // steering mode allows empty projects
+      const result = validateInput(args);
+
+      expect(result.valid).toBe(false);
+      expect(result.errors).toHaveLength(1);
+      expect(result.errors[0]?.field).toBe('options');
+      expect(result.errors[0]?.message).toContain('--steering');
+      expect(result.errors[0]?.message).toContain('--update');
+    });
+
+    it('should reject --steering, --check-updates, and --update together', () => {
+      const args = createValidArgs();
+      args.steering = true;
+      args.checkUpdates = true;
+      args.update = true;
+      args.projects = [];
+      const result = validateInput(args);
+
+      expect(result.valid).toBe(false);
+      expect(result.errors).toHaveLength(1);
+      expect(result.errors[0]?.field).toBe('options');
+      expect(result.errors[0]?.message).toContain('mutually exclusive');
+    });
+
+    it('should reject --steering and --track together', () => {
+      const args = createValidArgs();
+      args.steering = true;
+      args.track = true;
+      args.projects = [];
+      const result = validateInput(args);
+
+      expect(result.valid).toBe(false);
+      expect(result.errors).toHaveLength(1);
+      expect(result.errors[0]?.field).toBe('options');
+      expect(result.errors[0]?.message).toContain('--steering');
+      expect(result.errors[0]?.message).toContain('--track');
+    });
+
+    it('should allow --steering without conflicting options', () => {
+      const args = createValidArgs();
+      args.steering = true;
+      args.repository = 'owner/repo';
+      args.projects = [];
+      const result = validateInput(args);
+
+      expect(result.valid).toBe(true);
+      expect(result.errors).toHaveLength(0);
+    });
+
+    it('should allow --steering with --force, --dry-run, --verbose', () => {
+      const args = createValidArgs();
+      args.steering = true;
+      args.repository = 'owner/repo';
+      args.projects = [];
+      args.force = true;
+      args.dryRun = true;
+      args.verbose = true;
+      const result = validateInput(args);
+
+      expect(result.valid).toBe(true);
+      expect(result.errors).toHaveLength(0);
+    });
+  });
+
   // Task 2.1: Steering mode validation tests
   describe('validateInput - Steering mode validation', () => {
     const createValidArgs = (): ParsedArguments => ({
