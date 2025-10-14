@@ -187,6 +187,46 @@ describe('ArgumentParser', () => {
       expect(result.subdir).toBe('apps/frontend');
       expect(result.verbose).toBe(true);
     });
+
+    // Task 1.2: Test --steering option
+    it('should parse --steering flag', () => {
+      const argv = ['node', 'kirox', 'owner/repo', '--steering'];
+      const result = parseArguments(argv);
+
+      expect(result.steering).toBe(true);
+    });
+
+    it('should default steering to false when not specified', () => {
+      const argv = ['node', 'kirox', 'owner/repo', '-p', 'project'];
+      const result = parseArguments(argv);
+
+      expect(result.steering).toBe(false);
+    });
+
+    it('should parse --steering with other options', () => {
+      const argv = ['node', 'kirox', 'owner/repo', '--steering', '--verbose', '--force'];
+      const result = parseArguments(argv);
+
+      expect(result.steering).toBe(true);
+      expect(result.verbose).toBe(true);
+      expect(result.force).toBe(true);
+    });
+
+    it('should parse --steering with subdir option', () => {
+      const argv = ['node', 'kirox', 'owner/repo', '--steering', '--subdir', 'packages/api'];
+      const result = parseArguments(argv);
+
+      expect(result.steering).toBe(true);
+      expect(result.subdir).toBe('packages/api');
+    });
+
+    it('should allow empty projects with --steering', () => {
+      const argv = ['node', 'kirox', 'owner/repo', '--steering'];
+      const result = parseArguments(argv);
+
+      expect(result.steering).toBe(true);
+      expect(result.projects).toEqual([]);
+    });
   });
 
   describe('help message', () => {

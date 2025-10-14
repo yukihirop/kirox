@@ -8,7 +8,7 @@
   - 型の一貫性を確保し、既存の型定義と整合性を保つ
   - _Requirements: 1.1_
 
-- [ ] 1.2 CLI引数パーサーに`--steering`オプションを追加
+- [x] 1.2 CLI引数パーサーに`--steering`オプションを追加
   - Commander.jsを使用して`--steering`オプションを定義（デフォルト値: false）
   - ヘルプメッセージに説明文「Fetch only .kiro/steering directory (skip project specs)」を追加
   - 使用例をヘルプメッセージに追加（インタラクティブモード、非インタラクティブモード、サブディレクトリ指定）
