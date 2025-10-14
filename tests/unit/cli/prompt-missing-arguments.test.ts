@@ -316,7 +316,11 @@ describe('promptMissingArguments', () => {
 
   // Task 3.1: Steering mode - Tree API skip tests
   describe('--steering モード - Tree API スキップ', () => {
-    it('--steering モード時、Tree API スキャンをスキップする（logger/client が利用可能でも）', async () => {
+    it('--steering モード時、プロジェクトTree APIスキャンをスキップする（logger/client が利用可能でも）', async () => {
+      // NOTE: Task 9.3でディレクトリTree APIスキャンが追加されました
+      // このテストは、プロジェクト用のTree API（scanProjectsAcrossSubdirs）が
+      // --steeringモード時にスキップされることを確認します
+
       // Mock logger and client
       const mockLogger = {
         info: vi.fn(),
@@ -327,7 +331,7 @@ describe('promptMissingArguments', () => {
 
       mockInput
         .mockResolvedValueOnce('owner/repo')
-        .mockResolvedValueOnce('') // subdir prompt (should be displayed)
+        .mockResolvedValueOnce('') // subdir prompt (fallback after directory Tree API fails)
         .mockResolvedValueOnce('.'); // output prompt (NO project prompt in Task 3.2)
 
       mockConfirm.mockResolvedValue(true);
@@ -340,9 +344,10 @@ describe('promptMissingArguments', () => {
       // Pass logger to enable Tree API capability
       const result = await promptMissingArguments(args, undefined, mockLogger);
 
-      // Should NOT call Tree API (no "Scanning repository" log message)
+      // Task 9.3: --steering mode now uses directory Tree API ("Scanning repository for subdirectories")
+      // But it should NOT call project Tree API ("Scanning repository for projects")
       expect(mockConsoleLog).not.toHaveBeenCalledWith(
-        expect.stringContaining('Scanning repository')
+        expect.stringContaining('Scanning repository for projects')
       );
 
       expect(result.steering).toBe(true);

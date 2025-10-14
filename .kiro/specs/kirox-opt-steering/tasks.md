@@ -165,7 +165,7 @@
   - 既存の`searchable-project-prompt.ts`パターンを参考にUXを統一
   - _Requirements: 9.2, 9.3, 9.4, 9.5, 9.6_
 
-- [ ] 9.3 インタラクティブプロンプトの統合
+- [x] 9.3 インタラクティブプロンプトの統合
   - `src/cli/interactive-prompt.ts`の`promptMissingArguments`関数を更新
   - `--steering`モード時、サブディレクトリが未指定の場合に以下のロジックを実装:
     1. TreeBasedDirectoryScannerを呼び出してディレクトリ一覧を取得
