@@ -4,7 +4,7 @@ import { defineConfig } from 'tsup';
 export default defineConfig({
   entry: ['src/index.ts'],
   outDir: 'dist',
-  format: ['esm'],
+  format: ['cjs'],
   platform: 'node',
   target: 'node18',
   sourcemap: false,
@@ -14,6 +14,7 @@ export default defineConfig({
   // Bundle dependencies from node_modules so that octokit and its plugins are included
   skipNodeModulesBundle: false,
   dts: false,
+  outExtension: ({ format }) => ({ js: format === 'cjs' ? '.cjs' : '.js' }),
   // No custom esbuild plugins; avoid transforming node_modules
   external: [],
   // Resolve TS path aliases via manual mapping if needed in the future.
