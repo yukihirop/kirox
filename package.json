@@ -37,7 +37,7 @@
     "specification",
     "cc-sdd"
   ],
-  "author": "",
+  "author": "yukihirop",
   "license": "MIT",
   "engines": {
     "node": ">=18.0.0"
