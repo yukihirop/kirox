@@ -300,7 +300,7 @@ export async function confirmExecution(args: ParsedArguments): Promise<boolean> 
 
   // Show confirmation prompt with default: false
   return await confirm({
-    message: chalk.bold.yellow('❓ Execute with this configuration?'),
+    message: chalk.bold.yellow('🏃‍♂️ Execute with this configuration?'),
     default: false,
   });
 }
