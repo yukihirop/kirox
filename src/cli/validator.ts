@@ -33,20 +33,39 @@ const CONTROL_CHARS_PATTERN = /[\x00-\x1F\x7F]/;
 export function validateInput(args: ParsedArguments): ValidationResult {
   const errors: ValidationError[] = [];
 
-  // Check mutual exclusivity of --steering, --track, --check-updates, and --update
-  const exclusiveOptions = [args.steering, args.track, args.checkUpdates, args.update];
-  const activeOptionsCount = exclusiveOptions.filter(Boolean).length;
+  // Check mutual exclusivity of mode options
+  // Note: --steering + --track is allowed (Requirement 6.3), but other combinations are mutually exclusive
+  // Task 2.2: Update mutual exclusivity validation for --steering mode
 
-  if (activeOptionsCount > 1) {
-    const activeNames: string[] = [];
-    if (args.steering) activeNames.push('--steering');
-    if (args.track) activeNames.push('--track');
+  // Check if --steering is combined with --check-updates or --update (Requirement 6.4)
+  if (args.steering && (args.checkUpdates || args.update)) {
+    const activeNames: string[] = ['--steering'];
     if (args.checkUpdates) activeNames.push('--check-updates');
     if (args.update) activeNames.push('--update');
 
     errors.push({
       field: 'options',
       message: `Options ${activeNames.join(', ')} are mutually exclusive. Use only one at a time.`,
+    });
+  }
+
+  // Check if --track is combined with --check-updates or --update
+  if (args.track && (args.checkUpdates || args.update)) {
+    const activeNames: string[] = ['--track'];
+    if (args.checkUpdates) activeNames.push('--check-updates');
+    if (args.update) activeNames.push('--update');
+
+    errors.push({
+      field: 'options',
+      message: `Options ${activeNames.join(', ')} are mutually exclusive. Use only one at a time.`,
+    });
+  }
+
+  // Check if --check-updates and --update are used together
+  if (args.checkUpdates && args.update) {
+    errors.push({
+      field: 'options',
+      message: `Options --check-updates, --update are mutually exclusive. Use only one at a time.`,
     });
   }
 

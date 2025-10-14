@@ -1961,4 +1961,244 @@ describe('CLI to GitHub to FileSystem Integration', () => {
       expect(techMdContent).toBe('# Tech from packages/api');
     });
   });
+
+  // Task 5.2: Metadata tracking integration with --steering mode
+  describe('--steering mode - Metadata tracking integration (Task 5.2)', () => {
+    it('should record steering file tracking information in metadata when using --steering + --track (Requirement 6.3)', async () => {
+      // Mock Octokit responses for --steering mode with --track
+      const mockOctokit = {
+        rest: {
+          repos: {
+            getContent: vi.fn()
+              .mockResolvedValueOnce({
+                // Mock .kiro/steering directory listing
+                data: [
+                  {
+                    name: 'product.md',
+                    path: '.kiro/steering/product.md',
+                    type: 'file',
+                    sha: 'steering-sha-123',
+                    size: 250,
+                  },
+                  {
+                    name: 'tech.md',
+                    path: '.kiro/steering/tech.md',
+                    type: 'file',
+                    sha: 'steering-sha-456',
+                    size: 300,
+                  },
+                ],
+              })
+              .mockResolvedValueOnce({
+                // Mock product.md file content
+                data: {
+                  type: 'file',
+                  encoding: 'base64',
+                  content: Buffer.from('# Product Steering', 'utf-8').toString('base64'),
+                  size: 250,
+                  path: '.kiro/steering/product.md',
+                  sha: 'steering-sha-123',
+                },
+              })
+              .mockResolvedValueOnce({
+                // Mock tech.md file content
+                data: {
+                  type: 'file',
+                  encoding: 'base64',
+                  content: Buffer.from('# Tech Steering', 'utf-8').toString('base64'),
+                  size: 300,
+                  path: '.kiro/steering/tech.md',
+                  sha: 'steering-sha-456',
+                },
+              }),
+          },
+          rateLimit: {
+            get: vi.fn().mockResolvedValue({
+              data: {
+                rate: {
+                  remaining: 5000,
+                  limit: 5000,
+                  reset: Date.now() / 1000 + 3600,
+                },
+              },
+            }),
+          },
+        },
+      };
+
+      vi.mocked(Octokit).mockImplementation(() => mockOctokit as any);
+
+      // Execute CLI command with --steering and --track
+      const argv = [
+        'node',
+        'kirox',
+        'owner/repo',
+        '-o',
+        testOutputDir,
+        '--steering',
+        '--track',
+        '--force',
+      ];
+
+      const result = await execute(argv);
+
+      // Verify execution succeeded
+      expect(result.success).toBe(true);
+      expect(result.filesDownloaded).toBe(2);
+      expect(result.filesFailed).toBe(0);
+
+      // Verify metadata file exists
+      const metadataPath = path.join(testOutputDir, '.kiro', '.kirox-meta.json');
+      const metadataExists = await fs
+        .access(metadataPath)
+        .then(() => true)
+        .catch(() => false);
+      expect(metadataExists).toBe(true);
+
+      // Load and verify metadata structure
+      const metadataContent = await fs.readFile(metadataPath, 'utf-8');
+      const metadata = JSON.parse(metadataContent);
+
+      // Verify metadata version
+      expect(metadata.version).toBe('1.0');
+      expect(metadata.projects).toBeDefined();
+      expect(Array.isArray(metadata.projects)).toBe(true);
+      expect(metadata.projects).toHaveLength(1);
+
+      // Verify project metadata (--steering mode uses empty string as project name)
+      const project = metadata.projects[0];
+      expect(project.repository).toBe('owner/repo');
+      expect(project.projectName).toBe(''); // Empty string for steering-only mode
+      expect(project.fetchedAt).toBeDefined();
+      expect(typeof project.fetchedAt).toBe('string');
+
+      // Verify steering file tracking information
+      expect(project.files).toBeDefined();
+      expect(Array.isArray(project.files)).toBe(true);
+      expect(project.files).toHaveLength(2);
+
+      // Verify product.md metadata
+      const productFile = project.files.find((f: any) => f.path === '.kiro/steering/product.md');
+      expect(productFile).toBeDefined();
+      expect(productFile.sha).toBe('steering-sha-123');
+      expect(productFile.size).toBe(250);
+      expect(productFile.localHash).toBeDefined();
+      expect(typeof productFile.localHash).toBe('string');
+      expect(productFile.fetchedAt).toBeDefined();
+      expect(typeof productFile.fetchedAt).toBe('string');
+
+      // Verify tech.md metadata
+      const techFile = project.files.find((f: any) => f.path === '.kiro/steering/tech.md');
+      expect(techFile).toBeDefined();
+      expect(techFile.sha).toBe('steering-sha-456');
+      expect(techFile.size).toBe(300);
+      expect(techFile.localHash).toBeDefined();
+      expect(typeof techFile.localHash).toBe('string');
+      expect(techFile.fetchedAt).toBeDefined();
+      expect(typeof techFile.fetchedAt).toBe('string');
+
+      // Verify steering files were written
+      const productMdPath = path.join(testOutputDir, '.kiro/steering/product.md');
+      const techMdPath = path.join(testOutputDir, '.kiro/steering/tech.md');
+
+      const productMdContent = await fs.readFile(productMdPath, 'utf-8');
+      const techMdContent = await fs.readFile(techMdPath, 'utf-8');
+
+      expect(productMdContent).toBe('# Product Steering');
+      expect(techMdContent).toBe('# Tech Steering');
+    });
+
+    it('should record steering file metadata with subdirectory information when using --steering + --track + --subdir (Requirement 6.3)', async () => {
+      // Mock Octokit responses for --steering mode with --track and --subdir
+      const mockOctokit = {
+        rest: {
+          repos: {
+            getContent: vi.fn()
+              .mockResolvedValueOnce({
+                // Mock packages/core/.kiro/steering directory listing
+                data: [
+                  {
+                    name: 'structure.md',
+                    path: 'packages/core/.kiro/steering/structure.md',
+                    type: 'file',
+                    sha: 'subdir-sha-789',
+                    size: 400,
+                  },
+                ],
+              })
+              .mockResolvedValueOnce({
+                // Mock structure.md file content
+                data: {
+                  type: 'file',
+                  encoding: 'base64',
+                  content: Buffer.from('# Structure from packages/core', 'utf-8').toString('base64'),
+                  size: 400,
+                  path: 'packages/core/.kiro/steering/structure.md',
+                  sha: 'subdir-sha-789',
+                },
+              }),
+          },
+          rateLimit: {
+            get: vi.fn().mockResolvedValue({
+              data: {
+                rate: {
+                  remaining: 5000,
+                  limit: 5000,
+                  reset: Date.now() / 1000 + 3600,
+                },
+              },
+            }),
+          },
+        },
+      };
+
+      vi.mocked(Octokit).mockImplementation(() => mockOctokit as any);
+
+      // Execute CLI command with --steering, --track, and --subdir
+      const argv = [
+        'node',
+        'kirox',
+        'owner/repo',
+        '--subdir',
+        'packages/core',
+        '-o',
+        testOutputDir,
+        '--steering',
+        '--track',
+        '--force',
+      ];
+
+      const result = await execute(argv);
+
+      // Verify execution succeeded
+      expect(result.success).toBe(true);
+      expect(result.filesDownloaded).toBe(1);
+
+      // Load and verify metadata
+      const metadataPath = path.join(testOutputDir, '.kiro', '.kirox-meta.json');
+      const metadataContent = await fs.readFile(metadataPath, 'utf-8');
+      const metadata = JSON.parse(metadataContent);
+
+      expect(metadata.projects).toHaveLength(1);
+
+      // Verify project metadata includes subdirectory information
+      const project = metadata.projects[0];
+      expect(project.repository).toBe('owner/repo');
+      expect(project.projectName).toBe('');
+      expect(project.subdir).toBe('packages/core'); // Subdirectory information recorded
+      expect(project.files).toHaveLength(1);
+
+      // Verify steering file metadata
+      // Note: When using --subdir, the metadata stores the full remote path (with subdirectory prefix)
+      const structureFile = project.files[0];
+      expect(structureFile.path).toBe('packages/core/.kiro/steering/structure.md');
+      expect(structureFile.sha).toBe('subdir-sha-789');
+      expect(structureFile.size).toBe(400);
+
+      // Verify steering file was written
+      const structureMdPath = path.join(testOutputDir, '.kiro/steering/structure.md');
+      const structureMdContent = await fs.readFile(structureMdPath, 'utf-8');
+      expect(structureMdContent).toBe('# Structure from packages/core');
+    });
+  });
 });

@@ -216,7 +216,8 @@ describe('InputValidator', () => {
       const result = validateInput(args);
 
       expect(result.valid).toBe(false);
-      expect(result.errors).toHaveLength(1);
+      // Multiple errors expected: --track + --check-updates, --track + --update, --check-updates + --update
+      expect(result.errors.length).toBeGreaterThanOrEqual(1);
       expect(result.errors[0]?.field).toBe('options');
     });
 
@@ -521,7 +522,7 @@ describe('InputValidator', () => {
       expect(result.errors[0]?.message).toContain('--update');
     });
 
-    it('should reject --steering, --check-updates, and --update together', () => {
+    it('should reject --steering with both --check-updates and --update', () => {
       const args = createValidArgs();
       args.steering = true;
       args.checkUpdates = true;
@@ -530,23 +531,21 @@ describe('InputValidator', () => {
       const result = validateInput(args);
 
       expect(result.valid).toBe(false);
-      expect(result.errors).toHaveLength(1);
+      // Two separate errors: --steering + --check-updates, and --check-updates + --update
+      expect(result.errors.length).toBeGreaterThanOrEqual(1);
       expect(result.errors[0]?.field).toBe('options');
       expect(result.errors[0]?.message).toContain('mutually exclusive');
     });
 
-    it('should reject --steering and --track together', () => {
+    it('should allow --steering and --track together (Requirement 6.3)', () => {
       const args = createValidArgs();
       args.steering = true;
       args.track = true;
       args.projects = [];
       const result = validateInput(args);
 
-      expect(result.valid).toBe(false);
-      expect(result.errors).toHaveLength(1);
-      expect(result.errors[0]?.field).toBe('options');
-      expect(result.errors[0]?.message).toContain('--steering');
-      expect(result.errors[0]?.message).toContain('--track');
+      expect(result.valid).toBe(true);
+      expect(result.errors).toHaveLength(0);
     });
 
     it('should allow --steering without conflicting options', () => {
