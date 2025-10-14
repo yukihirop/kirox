@@ -9,6 +9,9 @@
 import { describe, it, expect } from 'vitest';
 import { execSync } from 'child_process';
 import { generateCompletionScript, type CompletionMetadata } from '@/cli/completion/generator.js';
+import * as fs from 'fs';
+import * as path from 'path';
+import * as os from 'os';
 
 describe('PowerShell Template Generation', () => {
   describe('Basic Script Structure', () => {
@@ -535,12 +538,6 @@ describe('PowerShell Template Generation', () => {
         console.warn('PowerShell is not available on this system, skipping syntax validation');
         return;
       }
-
-      // In CI, avoid shell quoting pitfalls by writing to a temporary .ps1 file
-      // and invoking PowerShell with -File.
-      const os = require('os');
-      const path = require('path');
-      const fs = require('fs');
 
       // Wrap the provided script with a parse-only try/catch block
       const wrapped = `try {\n  [scriptblock]::Create(@'\n${script}\n'@) | Out-Null\n  exit 0\n} catch {\n  Write-Error $_.Exception.Message\n  exit 1\n}`;

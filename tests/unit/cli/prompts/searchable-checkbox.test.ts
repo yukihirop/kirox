@@ -7,6 +7,7 @@
 
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import searchableCheckbox, { filterChoices } from '../../../../src/cli/prompts/searchable-checkbox.js';
+import { Separator } from '@inquirer/core';
 
 describe('SearchableCheckbox Custom Prompt (Task 2.1)', () => {
   beforeEach(() => {
@@ -434,8 +435,6 @@ describe('SearchableCheckbox Custom Prompt (Task 2.1)', () => {
       });
 
       it('should handle choices array with only separators', () => {
-        const { Separator } = require('@inquirer/core');
-
         const config = {
           message: 'Select items:',
           choices: [new Separator('--- Section 1 ---'), new Separator('--- Section 2 ---')],
