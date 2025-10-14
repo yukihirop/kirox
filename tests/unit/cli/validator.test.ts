@@ -478,6 +478,112 @@ describe('InputValidator', () => {
     });
   });
 
+  // Task 2.1: Steering mode validation tests
+  describe('validateInput - Steering mode validation', () => {
+    const createValidArgs = (): ParsedArguments => ({
+      repository: 'owner/repo',
+      projects: ['my-project'],
+      output: '.',
+      force: false,
+      dryRun: false,
+      verbose: false,
+      track: false,
+      checkUpdates: false,
+      update: false,
+      steering: false,
+    });
+
+    it('should allow --steering mode without project argument', () => {
+      const args = createValidArgs();
+      args.steering = true;
+      args.projects = [];
+      const result = validateInput(args);
+
+      expect(result.valid).toBe(true);
+      expect(result.errors).toHaveLength(0);
+    });
+
+    it('should allow --steering mode with valid repository and no project', () => {
+      const args = createValidArgs();
+      args.steering = true;
+      args.repository = 'owner/repo';
+      args.projects = [];
+      const result = validateInput(args);
+
+      expect(result.valid).toBe(true);
+      expect(result.errors).toHaveLength(0);
+    });
+
+    it('should allow --steering mode with branch specification and no project', () => {
+      const args = createValidArgs();
+      args.steering = true;
+      args.repository = 'owner/repo#develop';
+      args.projects = [];
+      const result = validateInput(args);
+
+      expect(result.valid).toBe(true);
+      expect(result.errors).toHaveLength(0);
+    });
+
+    it('should allow --steering mode with subdirectory and no project', () => {
+      const args = createValidArgs();
+      args.steering = true;
+      args.repository = 'owner/repo';
+      args.subdir = 'packages/api';
+      args.projects = [];
+      const result = validateInput(args);
+
+      expect(result.valid).toBe(true);
+      expect(result.errors).toHaveLength(0);
+    });
+
+    it('should require repository in --steering mode', () => {
+      const args = createValidArgs();
+      args.steering = true;
+      args.repository = '';
+      args.projects = [];
+      const result = validateInput(args);
+
+      expect(result.valid).toBe(false);
+      expect(result.errors).toHaveLength(1);
+      expect(result.errors[0]?.field).toBe('repository');
+    });
+
+    it('should require repository/project in normal mode (backward compatibility)', () => {
+      const args = createValidArgs();
+      args.steering = false;
+      args.repository = '';
+      args.projects = [];
+      const result = validateInput(args);
+
+      expect(result.valid).toBe(false);
+      expect(result.errors.some((e) => e.field === 'repository')).toBe(true);
+    });
+
+    it('should validate repository format in --steering mode', () => {
+      const args = createValidArgs();
+      args.steering = true;
+      args.repository = 'invalid-repo';
+      args.projects = [];
+      const result = validateInput(args);
+
+      expect(result.valid).toBe(false);
+      expect(result.errors[0]?.field).toBe('repository');
+    });
+
+    it('should validate subdirectory in --steering mode', () => {
+      const args = createValidArgs();
+      args.steering = true;
+      args.repository = 'owner/repo';
+      args.subdir = '../malicious';
+      args.projects = [];
+      const result = validateInput(args);
+
+      expect(result.valid).toBe(false);
+      expect(result.errors[0]?.field).toBe('subdir');
+    });
+  });
+
   // Task 4.3: Branch name validation tests
   describe('validateBranchName', () => {
     it('should accept valid branch name', () => {

@@ -49,10 +49,12 @@ export function validateInput(args: ParsedArguments): ValidationResult {
     });
   }
 
-  // For --check-updates and --update, repository and project are optional
-  const requiresRepositoryAndProject = !args.checkUpdates && !args.update;
+  // For --check-updates and --update, repository and project are both optional
+  // For --steering mode, repository is required but project is optional
+  const requiresRepository = !args.checkUpdates && !args.update;
+  const requiresProject = requiresRepository && !args.steering;
 
-  if (requiresRepositoryAndProject) {
+  if (requiresRepository) {
     // Validate repository format using individual validation function
     if (args.repository) {
       errors.push(...validateRepositoryFormat(args.repository));
@@ -62,7 +64,9 @@ export function validateInput(args: ParsedArguments): ValidationResult {
         message: 'Repository must be in format "owner/repo" (e.g., "facebook/react")',
       });
     }
+  }
 
+  if (requiresProject) {
     // Validate project name(s) using individual validation function
     // For backward compatibility, check if projects array is empty
     if (args.projects.length > 0) {
