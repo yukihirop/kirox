@@ -189,10 +189,12 @@ export default function searchableCheckbox<Value>(
     (config, done) => {
     // Initialize theme
     const theme = makeTheme<SearchableCheckboxTheme>(checkboxTheme, config.theme);
-    const prefix = usePrefix({ theme });
 
     // State: Prompt status
     const [status, setStatus] = useState<'idle' | 'done'>('idle');
+
+    // Use prefix with status parameter for dynamic completion indicator
+    const prefix = usePrefix({ status, theme });
 
     // State: Search text for filtering
     const [searchText, setSearchText] = useState<string>('');
