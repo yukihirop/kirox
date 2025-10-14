@@ -157,7 +157,7 @@
   - Truncated警告メッセージを表示（Tree APIが切り捨てられた場合）
   - _Requirements: 9.1, 9.7_
 
-- [ ] 9.2 SubdirectoryPromptServiceコンポーネントの実装
+- [x] 9.2 SubdirectoryPromptServiceコンポーネントの実装
   - `src/cli/searchable-subdir-prompt.ts`を作成
   - 検索可能なチェックボックスUI（inquirer-ts-checkbox-plus-prompt）を使用してディレクトリ一覧を表示する`promptSubdirSelection`メソッドを実装
   - ルートディレクトリ選択オプション（"(root)" → 空文字列）を選択肢に含める
