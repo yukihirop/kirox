@@ -98,7 +98,7 @@ export async function promptRepository(currentValue: string, metadata?: Metadata
   // Display interactive prompt with validation
   // If defaultRepository is defined, include it in the input options
   return await input({
-    message: chalk.bold.cyan('Enter GitHub repository (owner/repo or owner/repo#branch)') +
+    message: chalk.bold.cyan('📦 Enter GitHub repository (owner/repo or owner/repo#branch)') +
       (defaultRepository ? chalk.dim(` (default: ${defaultRepository})`) : ''),
     ...(defaultRepository && { default: defaultRepository }),
     validate: (value: string) => {
@@ -204,7 +204,7 @@ export async function promptProject(
   // Manual input mode (fallback or when preconditions not met)
   // Display interactive prompt with validation
   return await input({
-    message: chalk.bold.cyan('Enter project name') +
+    message: chalk.bold.cyan('📋 Enter project name') +
       chalk.dim(' (comma-separated for multiple projects)'),
     validate: (value: string) => {
       const errors = validateProjectName(value);
@@ -229,7 +229,7 @@ export async function promptProject(
 export async function promptOutput(configFile?: KiroxConfig): Promise<string> {
   const defaultValue = configFile?.outputDirectory || '.';
   return await input({
-    message: chalk.bold.cyan('Enter output directory') +
+    message: chalk.bold.cyan('📂 Enter output directory') +
       chalk.dim(` (default: ${defaultValue})`),
     default: defaultValue,
   });
@@ -248,7 +248,7 @@ export async function promptOutput(configFile?: KiroxConfig): Promise<string> {
 export async function promptSubdir(configFile?: KiroxConfig): Promise<string | undefined> {
   const defaultValue = configFile?.subdir || '';
   const value = await input({
-    message: chalk.bold.cyan('Enter subdirectory in GitHub repository') +
+    message: chalk.bold.cyan('📁 Enter subdirectory in GitHub repository') +
       chalk.dim(' (optional)') +
       (defaultValue ? chalk.dim(` (default: ${defaultValue})`) : ''),
     default: defaultValue,
@@ -300,7 +300,7 @@ export async function confirmExecution(args: ParsedArguments): Promise<boolean> 
 
   // Show confirmation prompt with default: false
   return await confirm({
-    message: chalk.bold.yellow('Execute with this configuration?'),
+    message: chalk.bold.yellow('🚀 Execute with this configuration?'),
     default: false,
   });
 }

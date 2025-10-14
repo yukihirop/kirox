@@ -126,7 +126,7 @@ describe('Interactive Mode Config File Integration', () => {
 
       expect(result).toBeUndefined();
       expect(mockInput).toHaveBeenCalledWith({
-        message: 'Enter subdirectory in GitHub repository (optional)',
+        message: '📁 Enter subdirectory in GitHub repository (optional)',
         default: '',
       });
     });
@@ -138,7 +138,7 @@ describe('Interactive Mode Config File Integration', () => {
 
       expect(result).toBeUndefined();
       expect(mockInput).toHaveBeenCalledWith({
-        message: 'Enter subdirectory in GitHub repository (optional)',
+        message: '📁 Enter subdirectory in GitHub repository (optional)',
         default: '',
       });
     });

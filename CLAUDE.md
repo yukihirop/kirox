@@ -31,6 +31,7 @@ Kiro-style Spec Driven Development implementation using claude code slash comman
 - `kirox-completion-cmd`: Shell completion command to output completion scripts for bash, zsh, fish, powershell, and elvish
 - `kirox-bug-test`: Fix failing npm run test by correcting test code (assuming implementation code is correct)
 - `kirox-opt-steering`: Add --steering option to fetch only .kiro/steering directory; skip project specification in non-interactive mode and project suggestion in interactive mode
+- `kirox-interactive-emoji`: Add emoji prefixes to interactive mode prompts to improve visual appeal and user experience
 - Use `/kiro:spec-status [feature-name]` to check progress
 
 ## Development Guidelines

@@ -148,7 +148,7 @@ export async function promptMultipleProjects(projects: string[]): Promise<string
   const choices = buildMultipleProjectChoices(projects);
 
   const selected = await checkbox({
-    message: 'Select projects (Space to select, Enter to confirm)',
+    message: '📋 Select projects (Space to select, Enter to confirm)',
     choices,
     pageSize: 10,
     loop: true,
@@ -169,7 +169,7 @@ export async function promptMultipleProjects(projects: string[]): Promise<string
 export async function promptMultipleProjectsWithValidation(
   projects: string[]
 ): Promise<string[]> {
-   
+
   while (true) {
     const selected = await promptMultipleProjects(projects);
 

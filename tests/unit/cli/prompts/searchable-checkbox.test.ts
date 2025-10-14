@@ -25,7 +25,7 @@ describe('SearchableCheckbox Custom Prompt (Task 2.1)', () => {
       // Requirement: SearchableCheckboxConfig interface must accept message and choices
 
       const config = {
-        message: 'Select projects (type to filter):',
+        message: '📋 Select projects (type to filter):',
         choices: ['project-a', 'project-b', 'project-c'],
       };
 

@@ -88,7 +88,7 @@ export async function promptProjectSelection(
 
   // Call searchable checkbox with validation
   const selectedDisplayNames = await searchableCheckbox<string>({
-    message: chalk.bold.cyan('Select projects') +
+    message: chalk.bold.cyan('📋 Select projects') +
       chalk.dim(' (type to filter, space to select, enter to confirm)'),
     choices,
     // Validation: At least one selection + same subdirectory constraint
