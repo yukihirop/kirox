@@ -5,7 +5,7 @@
   "type": "module",
   "main": "./dist/index.js",
   "bin": {
-    "kirox": "./dist/index.js"
+    "kirox": "dist/index.js"
   },
   "scripts": {
     "dev": "tsx src/index.ts",
