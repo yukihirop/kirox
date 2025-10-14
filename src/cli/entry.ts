@@ -149,7 +149,11 @@ export async function execute(argv: string[]): Promise<ExecutionResult> {
     let successfulProjects = 0; // Track successful projects (task 9.2)
     const failedProjectsList: string[] = []; // Track failed projects (task 9.3)
     const successfulProjectsList: string[] = []; // Track successful projects (task 9.3)
-    const projects = args.projects.length > 0 ? args.projects : [''];
+
+    // Task 4.1: Project loop control for --steering mode
+    // In --steering mode, execute project loop only once with empty string project name
+    // In normal mode, maintain existing project loop logic
+    const projects = args.steering ? [''] : (args.projects.length > 0 ? args.projects : ['']);
 
     // Report start
     // Use multi-project display if multiple projects, otherwise use single-project display
@@ -173,22 +177,40 @@ export async function execute(argv: string[]): Promise<ExecutionResult> {
           ...(effectiveBranch && { branch: effectiveBranch }),
         });
 
-        const specPath = buildRemotePath(subdir, projectName, 'specs');
-
-        // Fetch spec directory (required)
-        const specContents = await fetchDirectoryContents(octokit, owner, repo, specPath, effectiveBranch);
-
-        // Fetch steering directory only for first project (to avoid duplication)
+        // Task 4.1: Conditional directory fetching based on --steering mode
+        let specContents: ContentItem[] = [];
         let steeringContents: ContentItem[] = [];
-        if (isFirstProject) {
+
+        if (args.steering) {
+          // In --steering mode: only fetch .kiro/steering directory
           const steeringPath = buildRemotePath(subdir, '', 'steering');
           try {
             steeringContents = await fetchDirectoryContents(octokit, owner, repo, steeringPath, effectiveBranch);
           } catch (_error) {
             if (args.verbose) {
-              logger.warn('Steering directory not found, skipping', {
+              logger.warn('Steering directory not found', {
                 path: steeringPath,
               });
+            }
+          }
+        } else {
+          // In normal mode: fetch both specs and steering directories
+          const specPath = buildRemotePath(subdir, projectName, 'specs');
+
+          // Fetch spec directory (required)
+          specContents = await fetchDirectoryContents(octokit, owner, repo, specPath, effectiveBranch);
+
+          // Fetch steering directory only for first project (to avoid duplication)
+          if (isFirstProject) {
+            const steeringPath = buildRemotePath(subdir, '', 'steering');
+            try {
+              steeringContents = await fetchDirectoryContents(octokit, owner, repo, steeringPath, effectiveBranch);
+            } catch (_error) {
+              if (args.verbose) {
+                logger.warn('Steering directory not found, skipping', {
+                  path: steeringPath,
+                });
+              }
             }
           }
         }
