@@ -216,7 +216,7 @@
   - _Requirements: 9.8, 9.9, NFR-2_
 
 - [ ] 10. ステアリングディレクトリフィルタリング改善（UX改善）
-- [ ] 10.1 `.kiro/steering`親ディレクトリ抽出ロジックの実装
+- [x] 10.1 `.kiro/steering`親ディレクトリ抽出ロジックの実装
   - `src/github/tree-based-dir-scanner.ts`の`scanDirectoriesAcrossRepo`関数を更新
   - Tree APIから取得したディレクトリ一覧から`.kiro/steering`ディレクトリを検出
   - `.kiro/steering`が存在する親ディレクトリのパスを抽出

@@ -78,10 +78,16 @@ describe('TreeBasedDirectoryScanner (Task 9.1)', () => {
           sha: 'tree-sha-abc123',
           tree: [
             { path: 'src', type: 'tree', sha: 'sha1' },
-            { path: 'src/cli', type: 'tree', sha: 'sha2' },
-            { path: 'src/github', type: 'tree', sha: 'sha3' },
-            { path: 'README.md', type: 'blob', sha: 'sha4' }, // File (should be filtered out)
-            { path: 'package.json', type: 'blob', sha: 'sha5' }, // File (should be filtered out)
+            { path: 'src/.kiro', type: 'tree', sha: 'sha2' },
+            { path: 'src/.kiro/steering', type: 'tree', sha: 'sha3' },
+            { path: 'lib', type: 'tree', sha: 'sha4' },
+            { path: 'lib/.kiro', type: 'tree', sha: 'sha5' },
+            { path: 'lib/.kiro/steering', type: 'tree', sha: 'sha6' },
+            { path: 'docs', type: 'tree', sha: 'sha7' },
+            { path: 'docs/.kiro', type: 'tree', sha: 'sha8' },
+            { path: 'docs/.kiro/steering', type: 'tree', sha: 'sha9' },
+            { path: 'README.md', type: 'blob', sha: 'sha10' }, // File (should be filtered out)
+            { path: 'package.json', type: 'blob', sha: 'sha11' }, // File (should be filtered out)
           ],
           truncated: false,
         },
@@ -97,13 +103,13 @@ describe('TreeBasedDirectoryScanner (Task 9.1)', () => {
       // Act
       const result: DirectoryScanResult = await scanDirectoriesAcrossRepo(options);
 
-      // Assert
+      // Assert: Should return parent directories where .kiro/steering exists
       expect(result.success).toBe(true);
       expect(result.directories).toHaveLength(3);
       expect(result.directories).toEqual([
-        { path: 'src', displayName: 'src', sha: 'sha1' },
-        { path: 'src/cli', displayName: 'src/cli', sha: 'sha2' },
-        { path: 'src/github', displayName: 'src/github', sha: 'sha3' },
+        { path: 'src', displayName: 'src', sha: '' },
+        { path: 'lib', displayName: 'lib', sha: '' },
+        { path: 'docs', displayName: 'docs', sha: '' },
       ]);
       expect(result.truncated).toBe(false);
       expect(result.errorMessage).toBeUndefined();
@@ -129,9 +135,13 @@ describe('TreeBasedDirectoryScanner (Task 9.1)', () => {
           sha: 'tree-sha-abc123',
           tree: [
             { path: 'dir1', type: 'tree', sha: 'sha1' },
-            { path: 'file1.txt', type: 'blob', sha: 'sha2' },
-            { path: 'dir2', type: 'tree', sha: 'sha3' },
-            { path: 'file2.md', type: 'blob', sha: 'sha4' },
+            { path: 'dir1/.kiro', type: 'tree', sha: 'sha2' },
+            { path: 'dir1/.kiro/steering', type: 'tree', sha: 'sha3' },
+            { path: 'file1.txt', type: 'blob', sha: 'sha4' }, // File (should be filtered out)
+            { path: 'dir2', type: 'tree', sha: 'sha5' },
+            { path: 'dir2/.kiro', type: 'tree', sha: 'sha6' },
+            { path: 'dir2/.kiro/steering', type: 'tree', sha: 'sha7' },
+            { path: 'file2.md', type: 'blob', sha: 'sha8' }, // File (should be filtered out)
           ],
           truncated: false,
         },
@@ -147,12 +157,12 @@ describe('TreeBasedDirectoryScanner (Task 9.1)', () => {
       // Act
       const result = await scanDirectoriesAcrossRepo(options);
 
-      // Assert
+      // Assert: Should return parent directories where .kiro/steering exists, files should be filtered out
       expect(result.success).toBe(true);
       expect(result.directories).toHaveLength(2);
       expect(result.directories).toEqual([
-        { path: 'dir1', displayName: 'dir1', sha: 'sha1' },
-        { path: 'dir2', displayName: 'dir2', sha: 'sha3' },
+        { path: 'dir1', displayName: 'dir1', sha: '' },
+        { path: 'dir2', displayName: 'dir2', sha: '' },
       ]);
     });
 
@@ -421,6 +431,243 @@ describe('TreeBasedDirectoryScanner (Task 9.1)', () => {
 
       // Assert
       expect(mockLogger.verbose).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('.kiro/steering parent directory extraction (Task 10.1)', () => {
+    it('should extract parent directories where .kiro/steering exists', async () => {
+      // Arrange
+      mockOctokit.rest.repos.getBranch.mockResolvedValueOnce({
+        data: {
+          commit: {
+            sha: 'branch-commit-sha',
+            commit: {
+              tree: {
+                sha: 'tree-sha-abc123',
+              },
+            },
+          },
+        },
+      });
+
+      mockOctokit.rest.git.getTree.mockResolvedValueOnce({
+        data: {
+          sha: 'tree-sha-abc123',
+          tree: [
+            { path: 'lib', type: 'tree', sha: 'sha1' },
+            { path: 'lib/a', type: 'tree', sha: 'sha2' },
+            { path: 'lib/a/.kiro', type: 'tree', sha: 'sha3' },
+            { path: 'lib/a/.kiro/steering', type: 'tree', sha: 'sha4' },
+            { path: 'lib/sample', type: 'tree', sha: 'sha5' },
+            { path: 'lib/sample/.kiro', type: 'tree', sha: 'sha6' },
+            { path: 'lib/sample/.kiro/steering', type: 'tree', sha: 'sha7' },
+            { path: 'src', type: 'tree', sha: 'sha8' },
+          ],
+          truncated: false,
+        },
+      });
+
+      const options: DirectoryScanOptions = {
+        repository,
+        client: mockOctokit as Octokit,
+        logger: mockLogger,
+        verbose: false,
+      };
+
+      // Act
+      const result = await scanDirectoriesAcrossRepo(options);
+
+      // Assert: Should return only parent directories where .kiro/steering exists
+      expect(result.success).toBe(true);
+      expect(result.directories).toHaveLength(2);
+      expect(result.directories).toEqual([
+        { path: 'lib/a', displayName: 'lib/a', sha: '' },
+        { path: 'lib/sample', displayName: 'lib/sample', sha: '' },
+      ]);
+    });
+
+    it('should return root directory when .kiro/steering exists at root', async () => {
+      // Arrange
+      mockOctokit.rest.repos.getBranch.mockResolvedValueOnce({
+        data: {
+          commit: {
+            sha: 'branch-commit-sha',
+            commit: {
+              tree: {
+                sha: 'tree-sha-abc123',
+              },
+            },
+          },
+        },
+      });
+
+      mockOctokit.rest.git.getTree.mockResolvedValueOnce({
+        data: {
+          sha: 'tree-sha-abc123',
+          tree: [
+            { path: '.kiro', type: 'tree', sha: 'sha1' },
+            { path: '.kiro/steering', type: 'tree', sha: 'sha2' },
+            { path: 'src', type: 'tree', sha: 'sha3' },
+          ],
+          truncated: false,
+        },
+      });
+
+      const options: DirectoryScanOptions = {
+        repository,
+        client: mockOctokit as Octokit,
+        logger: mockLogger,
+        verbose: false,
+      };
+
+      // Act
+      const result = await scanDirectoriesAcrossRepo(options);
+
+      // Assert: Should return empty string for root
+      expect(result.success).toBe(true);
+      expect(result.directories).toHaveLength(1);
+      expect(result.directories).toEqual([
+        { path: '', displayName: '(root)', sha: '' },
+      ]);
+    });
+
+    it('should return empty array when no .kiro/steering exists', async () => {
+      // Arrange
+      mockOctokit.rest.repos.getBranch.mockResolvedValueOnce({
+        data: {
+          commit: {
+            sha: 'branch-commit-sha',
+            commit: {
+              tree: {
+                sha: 'tree-sha-abc123',
+              },
+            },
+          },
+        },
+      });
+
+      mockOctokit.rest.git.getTree.mockResolvedValueOnce({
+        data: {
+          sha: 'tree-sha-abc123',
+          tree: [
+            { path: 'src', type: 'tree', sha: 'sha1' },
+            { path: 'lib', type: 'tree', sha: 'sha2' },
+            { path: 'README.md', type: 'blob', sha: 'sha3' },
+          ],
+          truncated: false,
+        },
+      });
+
+      const options: DirectoryScanOptions = {
+        repository,
+        client: mockOctokit as Octokit,
+        logger: mockLogger,
+        verbose: false,
+      };
+
+      // Act
+      const result = await scanDirectoriesAcrossRepo(options);
+
+      // Assert: Should return empty array
+      expect(result.success).toBe(true);
+      expect(result.directories).toEqual([]);
+    });
+
+    it('should remove duplicate parent directories', async () => {
+      // Arrange
+      mockOctokit.rest.repos.getBranch.mockResolvedValueOnce({
+        data: {
+          commit: {
+            sha: 'branch-commit-sha',
+            commit: {
+              tree: {
+                sha: 'tree-sha-abc123',
+              },
+            },
+          },
+        },
+      });
+
+      mockOctokit.rest.git.getTree.mockResolvedValueOnce({
+        data: {
+          sha: 'tree-sha-abc123',
+          tree: [
+            { path: 'lib/a', type: 'tree', sha: 'sha1' },
+            { path: 'lib/a/.kiro', type: 'tree', sha: 'sha2' },
+            { path: 'lib/a/.kiro/steering', type: 'tree', sha: 'sha3' },
+            { path: 'lib/a/.kiro/specs', type: 'tree', sha: 'sha4' },
+            { path: 'lib/a/.kiro/specs/project1', type: 'tree', sha: 'sha5' },
+          ],
+          truncated: false,
+        },
+      });
+
+      const options: DirectoryScanOptions = {
+        repository,
+        client: mockOctokit as Octokit,
+        logger: mockLogger,
+        verbose: false,
+      };
+
+      // Act
+      const result = await scanDirectoriesAcrossRepo(options);
+
+      // Assert: Should return only one entry for lib/a (no duplicates)
+      expect(result.success).toBe(true);
+      expect(result.directories).toHaveLength(1);
+      expect(result.directories).toEqual([
+        { path: 'lib/a', displayName: 'lib/a', sha: '' },
+      ]);
+    });
+
+    it('should handle nested directory structures correctly', async () => {
+      // Arrange
+      mockOctokit.rest.repos.getBranch.mockResolvedValueOnce({
+        data: {
+          commit: {
+            sha: 'branch-commit-sha',
+            commit: {
+              tree: {
+                sha: 'tree-sha-abc123',
+              },
+            },
+          },
+        },
+      });
+
+      mockOctokit.rest.git.getTree.mockResolvedValueOnce({
+        data: {
+          sha: 'tree-sha-abc123',
+          tree: [
+            { path: 'packages', type: 'tree', sha: 'sha1' },
+            { path: 'packages/api', type: 'tree', sha: 'sha2' },
+            { path: 'packages/api/.kiro', type: 'tree', sha: 'sha3' },
+            { path: 'packages/api/.kiro/steering', type: 'tree', sha: 'sha4' },
+            { path: 'packages/web', type: 'tree', sha: 'sha5' },
+            { path: 'packages/web/.kiro', type: 'tree', sha: 'sha6' },
+            { path: 'packages/web/.kiro/steering', type: 'tree', sha: 'sha7' },
+          ],
+          truncated: false,
+        },
+      });
+
+      const options: DirectoryScanOptions = {
+        repository,
+        client: mockOctokit as Octokit,
+        logger: mockLogger,
+        verbose: false,
+      };
+
+      // Act
+      const result = await scanDirectoriesAcrossRepo(options);
+
+      // Assert: Should return both packages/api and packages/web
+      expect(result.success).toBe(true);
+      expect(result.directories).toHaveLength(2);
+      expect(result.directories).toEqual([
+        { path: 'packages/api', displayName: 'packages/api', sha: '' },
+        { path: 'packages/web', displayName: 'packages/web', sha: '' },
+      ]);
     });
   });
 });

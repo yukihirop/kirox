@@ -51,20 +51,38 @@ export interface DirectoryScanOptions {
 }
 
 /**
+ * Extract parent directory path from .kiro/steering path
+ *
+ * Examples:
+ * - "lib/a/.kiro/steering" → "lib/a"
+ * - ".kiro/steering" → "" (root)
+ *
+ * @param steeringPath - Full path to .kiro/steering directory
+ * @returns Parent directory path (empty string for root)
+ */
+function extractParentDirectory(steeringPath: string): string {
+  if (steeringPath === '.kiro/steering') {
+    return ''; // Root directory
+  }
+  return steeringPath.replace(/\/.kiro\/steering$/, '');
+}
+
+/**
  * Scan repository for directories using GitHub Tree API
  *
  * This function performs a recursive tree scan to discover all directories
- * across the entire repository.
+ * containing .kiro/steering directories.
  *
  * Process:
  * 1. Get tree SHA from branch commit (via getTreeSha)
  * 2. Call Tree API with recursive=1 to get full repository tree
- * 3. Filter tree entries to keep only directories (type === 'tree')
- * 4. Map to DirectoryLocation objects
- * 5. Detect and propagate truncated flag from Tree API
+ * 3. Filter tree entries to find .kiro/steering directories
+ * 4. Extract parent directories where .kiro/steering exists
+ * 5. Remove duplicates and map to DirectoryLocation objects
+ * 6. Detect and propagate truncated flag from Tree API
  *
  * @param options - Scan options including repository, client, logger, verbose
- * @returns DirectoryScanResult with directories list, success status, and truncated flag
+ * @returns DirectoryScanResult with parent directories list, success status, and truncated flag
  */
 export async function scanDirectoriesAcrossRepo(
   options: DirectoryScanOptions
@@ -98,21 +116,29 @@ export async function scanDirectoriesAcrossRepo(
       recursive: '1',
     });
 
-    // Step 3: Filter tree entries to keep only directories (type === 'tree')
+    // Step 3: Filter tree entries to find .kiro/steering directories
     if (verbose) {
       logger.verbose(`Parsing tree response (${treeResponse.data.tree.length} entries)`);
     }
 
-    const directories: DirectoryLocation[] = treeResponse.data.tree
-      .filter((item) => item.type === 'tree')
-      .map((item) => ({
-        path: item.path!,
-        displayName: item.path!,
-        sha: item.sha!,
-      }));
+    // Find all .kiro/steering directories
+    const steeringDirs = treeResponse.data.tree
+      .filter((item) => item.type === 'tree' && item.path?.endsWith('.kiro/steering'));
+
+    // Extract parent directories where .kiro/steering exists (remove duplicates with Set)
+    const parentPaths = new Set(
+      steeringDirs.map((item) => extractParentDirectory(item.path!))
+    );
+
+    // Convert to DirectoryLocation array
+    const directories: DirectoryLocation[] = Array.from(parentPaths).map((path) => ({
+      path,
+      displayName: path === '' ? '(root)' : path,
+      sha: '', // SHA not needed for parent directories
+    }));
 
     if (verbose) {
-      logger.verbose(`Found ${directories.length} directories`);
+      logger.verbose(`Found ${directories.length} directories with .kiro/steering`);
     }
 
     // Step 4: Detect and propagate truncated flag
