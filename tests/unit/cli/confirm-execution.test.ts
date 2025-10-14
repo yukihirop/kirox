@@ -72,7 +72,7 @@ describe('confirmExecution', () => {
 
       expect(mockConfirm).toHaveBeenCalledWith(
         expect.objectContaining({
-          message: '🏃‍♂️ Execute with this configuration?',
+          message: '🚀 Execute with this configuration?',
         })
       );
     });
