@@ -1,5 +1,5 @@
 import { defineConfig } from 'tsup';
-import { tsconfigPathsPlugin } from 'esbuild-plugin-tsconfig-paths';
+// Removed tsconfig-paths plugin because it attempted to transform node_modules and crashed
 
 export default defineConfig({
   entry: ['src/index.ts'],
@@ -11,17 +11,11 @@ export default defineConfig({
   clean: true,
   minify: true,
   splitting: false,
-  skipNodeModulesBundle: true,
+  // Bundle dependencies from node_modules so that octokit and its plugins are included
+  skipNodeModulesBundle: false,
   dts: false,
-  // Keep external runtime deps unbundled (safer for CLI + ESM resolution)
-  external: [
-    'octokit',
-    'commander',
-    'chalk',
-    'figlet',
-    '@inquirer/prompts',
-  ],
-  esbuildPlugins: [tsconfigPathsPlugin({ filter: /\.[tj]sx?$/ })],
+  // No custom esbuild plugins; avoid transforming node_modules
+  external: [],
   // Resolve TS path aliases via manual mapping if needed in the future.
   // esbuild does not honor tsconfig paths automatically; current source uses
   // '@/...' imports which are only within the project and will be bundled.
