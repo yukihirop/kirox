@@ -186,7 +186,7 @@ export async function execute(argv: string[]): Promise<ExecutionResult> {
           const steeringPath = buildRemotePath(subdir, '', 'steering');
           try {
             steeringContents = await fetchDirectoryContents(octokit, owner, repo, steeringPath, effectiveBranch);
-          } catch (error) {
+          } catch (_error) {
             // Task 4.3: In --steering mode, throw error when steering directory is not found
             // Include repository path and subdirectory path in error message (Requirement 7.2)
             const pathInfo = subdir ? `${args.repository}/${subdir}` : args.repository;
