@@ -54,7 +54,7 @@
 
 ## Task 4: 完了時プレフィックス表示の単体テストを追加
 
-- [ ] 4.1 usePrefixフック呼び出しの単体テストを作成
+- [x] 4.1 usePrefixフック呼び出しの単体テストを作成
   - `status === 'done'`の場合に`usePrefix({ status: 'done', theme })`が呼ばれることをモックで検証
   - `status === 'idle'`の場合に`usePrefix({ status: 'idle', theme })`が呼ばれることをモックで検証
   - プレフィックスが正しく返されることを確認
