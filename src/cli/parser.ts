@@ -20,7 +20,7 @@ function generateKiroxAsciiArt(): string {
       horizontalLayout: 'default',
       verticalLayout: 'default'
     });
-  } catch (error) {
+  } catch (_error) {
     // Fallback to simple text if figlet fails
     return 'kirox\n';
   }
