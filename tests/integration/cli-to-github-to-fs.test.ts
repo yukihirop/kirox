@@ -1150,6 +1150,132 @@ describe('CLI to GitHub to FileSystem Integration', () => {
     });
   });
 
+  // Task 4.4: Empty directory handling
+  describe('--steering mode - Empty directory handling (Task 4.4)', () => {
+    it('should display info message and exit with code 0 when steering directory is empty (Requirement 7.5)', async () => {
+      // Mock Octokit to return empty steering directory
+      const mockOctokit = {
+        rest: {
+          repos: {
+            getContent: vi.fn()
+              .mockResolvedValueOnce({
+                // Mock empty .kiro/steering directory
+                data: [],
+              }),
+          },
+          rateLimit: {
+            get: vi.fn().mockResolvedValue({
+              data: {
+                rate: {
+                  remaining: 5000,
+                  limit: 5000,
+                  reset: Date.now() / 1000 + 3600,
+                },
+              },
+            }),
+          },
+        },
+      };
+
+      vi.mocked(Octokit).mockImplementation(() => mockOctokit as any);
+
+      // Capture console output
+      const consoleLogs: string[] = [];
+      const originalLog = console.log;
+      console.log = vi.fn((...args) => {
+        consoleLogs.push(args.join(' '));
+      });
+
+      // Execute CLI command with --steering
+      const argv = [
+        'node',
+        'kirox',
+        'owner/repo',
+        '-o',
+        testOutputDir,
+        '--steering',
+        '--force',
+      ];
+
+      const result = await execute(argv);
+
+      // Restore console.log
+      console.log = originalLog;
+
+      // Verify execution succeeded with info message
+      expect(result.success).toBe(true);
+      expect(result.exitCode).toBe(0);
+      expect(result.filesDownloaded).toBe(0);
+      expect(result.filesFailed).toBe(0);
+
+      // Verify info message was displayed
+      const output = consoleLogs.join('\n');
+      expect(output).toMatch(/No files found in \.kiro\/steering/i);
+    });
+
+    it('should display info message with subdirectory path when empty in --steering mode (Requirement 7.5)', async () => {
+      // Mock Octokit to return empty steering directory in subdirectory
+      const mockOctokit = {
+        rest: {
+          repos: {
+            getContent: vi.fn()
+              .mockResolvedValueOnce({
+                // Mock empty packages/api/.kiro/steering directory
+                data: [],
+              }),
+          },
+          rateLimit: {
+            get: vi.fn().mockResolvedValue({
+              data: {
+                rate: {
+                  remaining: 5000,
+                  limit: 5000,
+                  reset: Date.now() / 1000 + 3600,
+                },
+              },
+            }),
+          },
+        },
+      };
+
+      vi.mocked(Octokit).mockImplementation(() => mockOctokit as any);
+
+      // Capture console output
+      const consoleLogs: string[] = [];
+      const originalLog = console.log;
+      console.log = vi.fn((...args) => {
+        consoleLogs.push(args.join(' '));
+      });
+
+      // Execute CLI command with --steering and --subdir
+      const argv = [
+        'node',
+        'kirox',
+        'owner/repo',
+        '--subdir',
+        'packages/api',
+        '-o',
+        testOutputDir,
+        '--steering',
+        '--force',
+      ];
+
+      const result = await execute(argv);
+
+      // Restore console.log
+      console.log = originalLog;
+
+      // Verify execution succeeded with info message
+      expect(result.success).toBe(true);
+      expect(result.exitCode).toBe(0);
+      expect(result.filesDownloaded).toBe(0);
+
+      // Verify info message includes subdirectory path
+      const output = consoleLogs.join('\n');
+      expect(output).toMatch(/No files found in \.kiro\/steering/i);
+    });
+  });
+
   // Task 4.3: Error handling for missing steering directory
   describe('--steering mode - Missing steering directory error handling (Task 4.3)', () => {
     it('should throw error when steering directory not found in --steering mode (Requirement 7.1)', async () => {

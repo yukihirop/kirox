@@ -228,6 +228,20 @@ export async function execute(argv: string[]): Promise<ExecutionResult> {
           });
         }
 
+        // Task 4.4: Empty directory handling for --steering mode
+        // When steering directory is empty, display info message and exit with code 0 (Requirement 7.5)
+        if (args.steering && allFiles.length === 0) {
+          const pathInfo = subdir ? ` in subdirectory ${subdir}` : '';
+          reporter.reportVerbose(`No files found in .kiro/steering${pathInfo}`);
+          logger.info('No files found in .kiro/steering', {
+            repository: args.repository,
+            ...(subdir && { subdir }),
+          });
+
+          // Continue to the summary reporting (exit code 0, no files downloaded/failed)
+          // This is considered a successful operation (business logic perspective)
+        }
+
         // Step 5.2: Fetch all file contents in parallel
         logger.info('Fetching file contents', { count: allFiles.length });
 
