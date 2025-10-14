@@ -1,5 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { parseArguments } from '@/cli/parser';
+import * as fs from 'fs';
+import * as path from 'path';
 
 describe('ArgumentParser', () => {
   describe('parseArguments', () => {
@@ -440,9 +442,6 @@ describe('ArgumentParser', () => {
   // Task 10.3: Help text English-only verification
   describe('Help text language policy', () => {
     it('should not contain Japanese characters in help sections', () => {
-      const fs = require('fs');
-      const path = require('path');
-
       // Read the parser source to verify help text has no Japanese
       const parserSource = fs.readFileSync(
         path.join(__dirname, '../../../src/cli/parser.ts'),
@@ -462,9 +461,6 @@ describe('ArgumentParser', () => {
     });
 
     it('should use English-only text for examples and notes', () => {
-      const fs = require('fs');
-      const path = require('path');
-
       const parserSource = fs.readFileSync(
         path.join(__dirname, '../../../src/cli/parser.ts'),
         'utf-8'

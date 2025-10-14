@@ -3,13 +3,22 @@
   "version": "0.1.0",
   "description": "CLI tool to fetch Kiro specification and steering files from remote GitHub repositories",
   "type": "module",
-  "main": "./dist/index.js",
+  "main": ".dist/index.js",
   "bin": {
-    "kirox": "./dist/index.js"
+    "kirox": "dist/index.js"
   },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/yukihirop/kirox.git"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
   "scripts": {
     "dev": "tsx src/index.ts",
-    "build": "tsc",
+    "build": "tsup",
     "type-check": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
@@ -26,25 +35,30 @@
     "specification",
     "cc-sdd"
   ],
-  "author": "",
+  "author": "yukihirop",
   "license": "MIT",
   "engines": {
     "node": ">=18.0.0"
   },
   "dependencies": {
-    "@inquirer/prompts": "^7.8.6",
-    "@types/figlet": "^1.7.0",
-    "chalk": "^5.3.0",
-    "commander": "^12.1.0",
-    "figlet": "^1.9.3",
-    "octokit": "^4.0.2"
+    "@inquirer/prompts": "7.8.6",
+    "chalk": "5.3.0",
+    "cli-width": "4.1.0",
+    "commander": "12.1.0",
+    "figlet": "1.9.3",
+    "mute-stream": "2.0.0",
+    "octokit": "4.0.2",
+    "yoctocolors-cjs": "2.1.3"
   },
   "devDependencies": {
     "@eslint/js": "^9.37.0",
+    "@types/figlet": "^1.7.0",
     "@types/node": "^20.17.10",
     "@vitest/coverage-v8": "^2.1.8",
+    "esbuild-plugin-tsconfig-paths": "^1.0.1",
     "eslint": "^9.17.0",
     "prettier": "^3.4.2",
+    "tsup": "^8.5.0",
     "tsx": "^4.19.2",
     "typescript": "^5.7.2",
     "typescript-eslint": "^8.46.0",
