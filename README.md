@@ -43,10 +43,10 @@ CLI tool to fetch Kiro specification and steering files from remote GitHub repos
 ```bash
 npx kirox
 
-✔ Enter GitHub repository (owner/repo or owner/repo#branch) yukihirop/eg-kanban
+✔ 📦 Enter GitHub repository (owner/repo or owner/repo#branch) yukihirop/eg-kanban
 
 Fetching branches...
-? Select branch (type to filter, enter to confirm): (Search: "test")
+? 🌿 Select branch (type to filter, enter to confirm): (Search: "test")
 ❯◉ main (default)
  ◯ develop
  ◯ test
