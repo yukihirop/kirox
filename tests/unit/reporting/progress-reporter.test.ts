@@ -921,7 +921,7 @@ describe('ProgressReporter', () => {
         /\[.*\]\s*\[1\/10\]/.test(String(msg))
       );
       const hasCorrectFormat = allCalls.some((msg) =>
-        /\[1\/10\]\s*Fetching/.test(String(msg))
+        /\[1\/10\]\s*📥\s*Fetching/.test(String(msg))
       );
 
       expect(hasProjectPrefix).toBe(false);
