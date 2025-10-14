@@ -24,6 +24,10 @@ CLI tool to fetch Kiro specification and steering files from remote GitHub repos
   - Works in both interactive and non-interactive modes
   - Duplicate detection with `--force` option to overwrite
   - Optional metadata tracking with `--track` flag
+- 🔧 **Shell Completion** - Generate completion scripts for popular shells
+  - Supports bash, zsh, fish, PowerShell, and Elvish
+  - Tab completion for commands, subcommands, and options
+  - Easy installation with `kirox completion` command
 - 📦 Fetch Kiro specification and steering files from any GitHub repository
 - 🌿 Branch/tag specification support (`owner/repo#branch`)
 - 📁 Subdirectory support for monorepo structures
@@ -305,12 +309,13 @@ npx kirox owner/repo#develop -s packages/api -p project -o ./output --verbose --
 
 ### Commands
 
-Kirox provides two main commands:
+Kirox provides the following commands:
 
 - **`npx kirox [repository] [options]`** - Main command for initial fetch or starting fresh
 - **`npx kirox add [repository] [options]`** - Add new projects to existing metadata incrementally
+- **`npx kirox completion [shell]`** - Generate shell completion scripts for enhanced CLI experience
 
-Use `kirox --help` or `kirox add --help` for detailed command information.
+Use `kirox --help`, `kirox add --help`, or `kirox completion --help` for detailed command information.
 
 ## Add Command
 
@@ -391,6 +396,95 @@ npx kirox add owner/repo -p project --track --verbose
 # Force overwrite with custom output directory
 npx kirox add owner/repo -p project --force -o ./custom-dir
 ```
+
+## Completion Command
+
+The `completion` command generates shell completion scripts to enhance your CLI experience with tab completion for commands, options, and arguments.
+
+### Supported Shells
+
+Kirox supports completion scripts for the following shells:
+- **bash** - Bourne Again Shell
+- **zsh** - Z Shell
+- **fish** - Friendly Interactive Shell
+- **powershell** - PowerShell
+- **elvish** - Elvish Shell
+
+### Usage
+
+```bash
+# Generate completion script for your shell
+npx kirox completion [shell]
+```
+
+### Installation Examples
+
+#### Bash
+
+```bash
+# Generate and save completion script
+npx kirox completion bash > ~/.kirox-completion.bash
+
+# Add to your .bashrc
+echo "source ~/.kirox-completion.bash" >> ~/.bashrc
+
+# Reload your shell
+source ~/.bashrc
+```
+
+#### Zsh
+
+```bash
+# Generate and save completion script
+npx kirox completion zsh > ~/.kirox-completion.zsh
+
+# Add to your .zshrc
+echo "source ~/.kirox-completion.zsh" >> ~/.zshrc
+
+# Reload your shell
+source ~/.zshrc
+```
+
+#### Fish
+
+```bash
+# Generate and save completion script
+npx kirox completion fish > ~/.config/fish/completions/kirox.fish
+
+# Fish automatically loads completions from this directory
+```
+
+#### PowerShell
+
+```powershell
+# Generate and save completion script
+npx kirox completion powershell > ~/kirox-completion.ps1
+
+# Add to your PowerShell profile
+echo ". ~/kirox-completion.ps1" >> $PROFILE
+
+# Reload your profile
+. $PROFILE
+```
+
+#### Elvish
+
+```bash
+# Generate and save completion script
+npx kirox completion elvish > ~/.elvish/lib/kirox-completion.elv
+
+# Add to your rc.elv
+echo "use ./kirox-completion" >> ~/.elvish/rc.elv
+
+# Restart your shell
+```
+
+### Benefits
+
+- **Tab Completion**: Press Tab to autocomplete commands, subcommands, and options
+- **Option Discovery**: See available options without checking documentation
+- **Faster Workflow**: Reduce typing and avoid typos
+- **Command Hints**: Get inline help while typing commands
 
 ## Options
 
