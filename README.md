@@ -16,6 +16,10 @@ CLI tool to fetch Kiro specification and steering files from remote GitHub repos
   - 🎯 **Searchable Selection UI** - Type to filter branches and projects with real-time search
   - 📂 **Multi-Project Support** - Select multiple projects at once with space key
   - ⚡ **Intelligent Subdirectory Detection** - No need to manually specify subdirectory paths
+- 🎯 **Steering Mode** - Fetch only steering documents without project specs (`--steering`)
+  - 📂 **Subdirectory Selection** - Interactive UI to select subdirectories with `.kiro/steering`
+  - 🔍 **Searchable Subdirectory List** - Type to filter subdirectories with real-time search
+  - 🎯 **Flexible Targeting** - Fetch steering files from root or any subdirectory
 - ➕ **Add Command** - Incrementally add new projects to existing metadata without re-fetching everything
   - Works in both interactive and non-interactive modes
   - Duplicate detection with `--force` option to overwrite
@@ -231,6 +235,49 @@ npx kirox yukihirop/eg-kanban -p simple-kanban-board -o ./my-project
 
 Files will be saved to `./my-project/.kiro/`
 
+### Steering Mode
+
+Fetch only steering documents without project specifications using the `--steering` flag:
+
+```bash
+# Fetch steering files from repository root
+npx kirox owner/repo --steering
+
+# Fetch steering files from specific subdirectory
+npx kirox owner/repo --steering --subdir packages/api
+
+# Fetch steering files from specific branch
+npx kirox owner/repo#develop --steering
+```
+
+**Interactive Mode** (`npx kirox --steering`):
+
+When you run steering mode interactively:
+1. **Repository**: Enter GitHub repository
+2. **Branch Selection** (if not specified): Choose branch with searchable UI
+3. **Subdirectory Selection**:
+   - Automatically scans repository for directories containing `.kiro/steering`
+   - Displays searchable list with "(root)" option
+   - Type to filter subdirectories (e.g., "lib/" to show lib subdirectories)
+   - Select one subdirectory or root
+4. **Output**: Choose output directory
+5. **Confirmation**: Review configuration with "Mode: Steering only"
+
+**What it fetches:**
+- Only `.kiro/steering/**` files (product.md, tech.md, structure.md, etc.)
+- Skips `.kiro/specs/<project>/**` files entirely
+
+**Benefits:**
+- 🎯 **Focused Fetching**: Get only project-wide steering documents
+- 📂 **Smart Discovery**: Auto-detect subdirectories with `.kiro/steering`
+- 🔍 **Quick Selection**: Searchable UI for subdirectory paths
+- 🚀 **Faster**: Skip project spec files when you only need steering docs
+
+**Mutual Exclusivity:**
+The `--steering` flag cannot be combined with:
+- `--check-updates`: Update tracking is project-specific
+- `--update`: Update operations require project specification
+
 ### Advanced Usage
 
 ```bash
@@ -349,12 +396,13 @@ npx kirox add owner/repo -p project --force -o ./custom-dir
 
 | Option | Alias | Description | Default |
 |--------|-------|-------------|---------|
-| `--project <name>` | `-p` | Project name(s) to fetch - supports comma-separated multiple projects (required) | - |
+| `--project <name>` | `-p` | Project name(s) to fetch - supports comma-separated multiple projects (required, except in `--steering` mode) | - |
 | `--output <path>` | `-o` | Output directory | `.` (current directory) |
 | `--subdir <path>` | `-s` | Subdirectory path containing .kiro folder | - |
+| `--steering` | - | Fetch only `.kiro/steering` directory (skip project specs) | `false` |
 | `--track` | - | Track fetched files for update detection (creates `.kirox-meta.json`) | `false` |
-| `--check-updates` | - | Check for updates to previously tracked files (requires prior `--track` usage) | `false` |
-| `--update` | - | Update tracked files that have changed remotely (requires prior `--track` usage) | `false` |
+| `--check-updates` | - | Check for updates to previously tracked files (requires prior `--track` usage, cannot be used with `--steering`) | `false` |
+| `--update` | - | Update tracked files that have changed remotely (requires prior `--track` usage, cannot be used with `--steering`) | `false` |
 | `--force` | - | Force overwrite without confirmation | `false` |
 | `--dry-run` | - | Preview mode (no actual writes) | `false` |
 | `--verbose` | - | Verbose logging | `false` |
@@ -388,6 +436,7 @@ npx kirox owner/private-repo -p project
 
 Kirox fetches the following directory structures:
 
+**Normal Mode** (default):
 ```
 .kiro/
 ├── specs/
@@ -402,9 +451,24 @@ Kirox fetches the following directory structures:
     └── structure.md
 ```
 
+**Steering Mode** (`--steering` flag):
+```
+.kiro/
+└── steering/
+    ├── product.md
+    ├── tech.md
+    ├── structure.md
+    └── ... (other steering documents)
+```
+
 These `.kiro` files are created using [Claude Code Spec-Driven Development (cc-sdd)](https://github.com/gotalab/cc-sdd), which provides:
 - **Specifications** (`specs/`): Requirements, design documents, and implementation tasks for individual features
 - **Steering Documents** (`steering/`): Project-wide rules, context, and guidelines for AI-assisted development
+
+**When to use `--steering` mode:**
+- You only need project-wide steering documents (product.md, tech.md, structure.md, etc.)
+- You want to fetch steering files from multiple subdirectories without fetching project specs
+- You're setting up shared steering documents across team members
 
 Learn more about creating `.kiro` files: https://github.com/gotalab/cc-sdd
 
@@ -492,6 +556,30 @@ npx kirox owner/monorepo#feature/new-api -s services/auth -p auth-service
 ```bash
 npx kirox yukihirop/eg-kanban -p simple-kanban-board --dry-run --verbose
 # Shows what would be fetched without writing files
+```
+
+### Fetch Only Steering Files
+
+Use `--steering` flag to fetch only steering documents:
+
+```bash
+# Fetch steering files from repository root (interactive mode)
+npx kirox owner/repo --steering
+
+# Fetch steering files from repository root (non-interactive mode)
+npx kirox owner/repo --steering --subdir ""
+
+# Fetch steering files from specific subdirectory
+npx kirox owner/repo --steering --subdir packages/api
+# Files saved from packages/api/.kiro/steering/
+
+# Fetch steering files from specific branch
+npx kirox owner/repo#develop --steering
+# Files saved from develop branch, .kiro/steering/ only
+
+# Combine with other options
+npx kirox owner/repo#main --steering --subdir lib/sample -o ./my-steering --verbose
+# Files saved to ./my-steering/.kiro/steering/
 ```
 
 ### Update Tracking

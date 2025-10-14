@@ -33,13 +33,13 @@ const CONTROL_CHARS_PATTERN = /[\x00-\x1F\x7F]/;
 export function validateInput(args: ParsedArguments): ValidationResult {
   const errors: ValidationError[] = [];
 
-  // Check mutual exclusivity of --track, --check-updates, and --update
-  const exclusiveOptions = [args.track, args.checkUpdates, args.update];
-  const activeOptionsCount = exclusiveOptions.filter(Boolean).length;
+  // Check mutual exclusivity of mode options
+  // Note: --steering + --track is allowed (Requirement 6.3), but other combinations are mutually exclusive
+  // Task 2.2: Update mutual exclusivity validation for --steering mode
 
-  if (activeOptionsCount > 1) {
-    const activeNames: string[] = [];
-    if (args.track) activeNames.push('--track');
+  // Check if --steering is combined with --check-updates or --update (Requirement 6.4)
+  if (args.steering && (args.checkUpdates || args.update)) {
+    const activeNames: string[] = ['--steering'];
     if (args.checkUpdates) activeNames.push('--check-updates');
     if (args.update) activeNames.push('--update');
 
@@ -49,10 +49,32 @@ export function validateInput(args: ParsedArguments): ValidationResult {
     });
   }
 
-  // For --check-updates and --update, repository and project are optional
-  const requiresRepositoryAndProject = !args.checkUpdates && !args.update;
+  // Check if --track is combined with --check-updates or --update
+  if (args.track && (args.checkUpdates || args.update)) {
+    const activeNames: string[] = ['--track'];
+    if (args.checkUpdates) activeNames.push('--check-updates');
+    if (args.update) activeNames.push('--update');
 
-  if (requiresRepositoryAndProject) {
+    errors.push({
+      field: 'options',
+      message: `Options ${activeNames.join(', ')} are mutually exclusive. Use only one at a time.`,
+    });
+  }
+
+  // Check if --check-updates and --update are used together
+  if (args.checkUpdates && args.update) {
+    errors.push({
+      field: 'options',
+      message: `Options --check-updates, --update are mutually exclusive. Use only one at a time.`,
+    });
+  }
+
+  // For --check-updates and --update, repository and project are both optional
+  // For --steering mode, repository is required but project is optional
+  const requiresRepository = !args.checkUpdates && !args.update;
+  const requiresProject = requiresRepository && !args.steering;
+
+  if (requiresRepository) {
     // Validate repository format using individual validation function
     if (args.repository) {
       errors.push(...validateRepositoryFormat(args.repository));
@@ -62,7 +84,9 @@ export function validateInput(args: ParsedArguments): ValidationResult {
         message: 'Repository must be in format "owner/repo" (e.g., "facebook/react")',
       });
     }
+  }
 
+  if (requiresProject) {
     // Validate project name(s) using individual validation function
     // For backward compatibility, check if projects array is empty
     if (args.projects.length > 0) {

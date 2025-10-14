@@ -32,6 +32,8 @@ export interface ParsedArguments {
   subdir?: string;
   /** Shell type for completion command (bash, zsh, fish, powershell, elvish) */
   shellType?: string;
+  /** Fetch only .kiro/steering directory (skip project specs) */
+  steering: boolean;
 }
 
 /**

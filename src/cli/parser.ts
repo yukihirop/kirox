@@ -130,6 +130,7 @@ ${chalk.bold.blue('Installation:')}
     track: false,
     checkUpdates: false,
     update: false,
+    steering: false,
   };
 }
 
@@ -215,6 +216,7 @@ ${chalk.bold.yellow('Note:')}
     checkUpdates: false,
     update: false,
     subdir: options.subdir,
+    steering: false,
   };
 }
 
@@ -239,6 +241,7 @@ function parseMainCommand(argv: string[]): ParsedArguments {
     .option('--track', 'Track fetched files for update detection', false)
     .option('--check-updates', 'Check for updates to tracked files', false)
     .option('--update', 'Apply updates to tracked files', false)
+    .option('--steering', 'Fetch only .kiro/steering directory (skip project specs)', false)
     .addHelpText('after', `
 ${chalk.bold.blue('Interactive Mode:')}
   When run without arguments, kirox enters interactive mode and guides you
@@ -264,6 +267,10 @@ ${chalk.bold.blue('Examples:')}
   ${chalk.dim('# Multiple projects (comma-separated)')}
   ${chalk.green('$ npx kirox owner/repo -p proj1,proj2,proj3')}
   ${chalk.green('$ npx kirox owner/repo --subdir packages -p api-spec,web-spec')}
+
+  ${chalk.dim('# Fetch only steering directory')}
+  ${chalk.green('$ npx kirox owner/repo --steering')}
+  ${chalk.green('$ npx kirox owner/repo --subdir packages/api --steering')}
 
 ${chalk.bold.blue('Commands:')}
   ${chalk.cyan('add')}        Add new projects to existing metadata
@@ -298,6 +305,7 @@ ${chalk.bold.yellow('Note:')}
     track: boolean;
     checkUpdates: boolean;
     update: boolean;
+    steering: boolean;
   }>();
 
   // For --check-updates and --update, repository and project are optional
@@ -329,5 +337,6 @@ ${chalk.bold.yellow('Note:')}
     checkUpdates: options.checkUpdates,
     update: options.update,
     subdir: options.subdir,
+    steering: options.steering,
   };
 }

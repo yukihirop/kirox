@@ -28,6 +28,8 @@ import { parseRepositoryPath, fetchBranches, fetchDefaultBranch } from '../githu
 import { scanProjectsAcrossSubdirs } from '../github/tree-based-project-scanner.js';
 import { promptProjectSelection } from './searchable-project-prompt.js';
 import { promptBranch } from './branch-prompt.js';
+import { scanDirectoriesAcrossRepo } from '../github/tree-based-dir-scanner.js';
+import { promptSubdirSelection } from './searchable-subdir-prompt.js';
 
 /**
  * Determine if interactive mode should be entered
@@ -266,6 +268,8 @@ export async function promptSubdir(configFile?: KiroxConfig): Promise<string | u
  * Shows a summary of the configuration (repository, project, output, subdir)
  * and prompts user to confirm execution.
  *
+ * Task 3.4: In --steering mode, display "Mode: Steering only" instead of project names
+ *
  * @param args - Parsed command-line arguments
  * @returns true if user confirms, false otherwise
  */
@@ -276,13 +280,20 @@ export async function confirmExecution(args: ParsedArguments): Promise<boolean> 
   // Display repository
   console.log(chalk.cyan('  Repository: ') + chalk.green(args.repository));
 
-  // Display project name(s)
-  console.log(chalk.cyan('  Project: ') + chalk.green(args.projects.join(', ')));
+  // Task 3.4: Display "Mode: Steering only" in steering mode, or project names in normal mode
+  // Requirement 5.2: Display "Mode: Steering only" in steering mode
+  // Requirement 5.3: Display project names in normal mode (backward compatibility)
+  if (args.steering) {
+    console.log(chalk.cyan('  Mode: ') + chalk.yellow('Steering only'));
+  } else {
+    console.log(chalk.cyan('  Project: ') + chalk.green(args.projects.join(', ')));
+  }
 
   // Display output directory
   console.log(chalk.cyan('  Output: ') + chalk.green(args.output));
 
   // Display subdirectory if specified
+  // Requirement 5.1: Display subdirectory if specified (both steering and normal mode)
   if (args.subdir) {
     console.log(chalk.cyan('  Subdirectory: ') + chalk.green(args.subdir));
   }
@@ -436,12 +447,14 @@ export async function promptMissingArguments(
   // - Projects are already specified
   // - Subdirectory is already specified (Requirement 6.1: non-interactive mode)
   // - Non-TTY environment (Requirement 6.4)
+  // - Steering mode is enabled (Task 3.1: Requirement 3.3)
   let treeApiSuccess = false;
   const shouldAttemptTreeAPI =
     logger &&
     client &&
     (!completedArgs.projects || completedArgs.projects.length === 0) &&
     !completedArgs.subdir && // Skip if subdirectory already specified (Requirement 6.1)
+    !completedArgs.steering && // Skip in --steering mode (Task 3.1: Requirement 3.3)
     process.stdin.isTTY !== false; // Skip in non-TTY environment (Requirement 6.4), treat undefined as TTY
 
   if (shouldAttemptTreeAPI && client) {
@@ -493,21 +506,99 @@ export async function promptMissingArguments(
     }
   }
 
-  // 4. Prompt for subdirectory if Tree API did not succeed (Requirement 3.2: Fallback)
-  // Skip if:
-  // - Tree API succeeded (subdirectory already auto-extracted)
-  // - Subdirectory is already specified
-  if (!treeApiSuccess && !completedArgs.subdir) {
-    const subdir = await promptSubdir(configFile);
-    if (subdir) {
-      completedArgs.subdir = subdir;
+  // 4. Task 9.3: --steering mode subdirectory selection with Tree API
+  // In --steering mode, attempt Tree API scan for subdirectory selection UI
+  // Requirements: 9.1, 9.7, 9.8, 9.9
+  let steeringSubdirSuccess = false;
+
+  // Task 9.3: Attempt Tree API subdirectory scan in --steering mode
+  // Requirements 9.8, 9.9: Scan only when:
+  // - --steering flag is enabled
+  // - --subdir is not already specified (backward compatibility)
+  // - Logger and client are available
+  const shouldAttemptSteeringSubdirScan =
+    completedArgs.steering && // --steering mode only
+    !completedArgs.subdir && // Skip if subdirectory already specified
+    logger &&
+    client;
+
+  if (shouldAttemptSteeringSubdirScan && client) {
+    try {
+      // Display loading message
+      console.log(chalk.cyan('\nScanning repository for subdirectories...'));
+
+      // Parse repository reference
+      const repositoryRef = parseRepositoryPath(completedArgs.repository);
+
+      // Call Tree API to scan directories across repository (Requirement 9.1)
+      const scanResult = await scanDirectoriesAcrossRepo({
+        repository: repositoryRef,
+        client,
+        logger,
+        verbose: verbose || false,
+      });
+
+      // Check if Tree API succeeded (Requirement 9.7: Success path)
+      if (scanResult.success) {
+        // Display truncated warning if applicable
+        if (scanResult.truncated && verbose) {
+          console.log(chalk.yellow('⚠️  Large repository: Some directories may not be shown'));
+          console.log(chalk.dim('   (GitHub API response was truncated)\n'));
+        }
+
+        // Prompt user to select subdirectory using searchable UI (Requirement 9.8)
+        const selectionResult = await promptSubdirSelection(scanResult.directories);
+
+        // Set subdirectory (empty string for root is valid)
+        completedArgs.subdir = selectionResult.subdir;
+
+        // Mark subdirectory selection as successful
+        steeringSubdirSuccess = true;
+      } else {
+        // Requirement 9.7: Fallback on Tree API failure
+        // Display error message if available
+        if (scanResult.errorMessage) {
+          console.error(chalk.red(`\n✗ ${scanResult.errorMessage}`));
+          console.error(chalk.yellow('Falling back to text input...\n'));
+        }
+        // Fall through to text input prompt
+      }
+    } catch (error) {
+      // Requirement 9.7: Exception handling
+      // Log error if verbose mode is enabled
+      if (verbose && logger) {
+        logger.verbose('Tree API subdirectory scan failed, falling back to text input', {
+          error: error instanceof Error ? error.message : String(error),
+        });
+      }
+      // Fall through to text input prompt
     }
   }
 
+  // 4b. Prompt for subdirectory if Tree API did not succeed (Requirement 3.2: Fallback)
+  // Task 3.3: Subdirectory prompt display control (Requirement 4.1, 4.2, 4.3, 4.4)
+  // In --steering mode, subdirectory prompt is displayed if not already specified
+  // Skip if:
+  // - Tree API succeeded (subdirectory already selected via UI in --steering mode)
+  // - Project Tree API succeeded (subdirectory already auto-extracted in normal mode)
+  // - Subdirectory is already specified (Requirement 4.4)
+  if (!steeringSubdirSuccess && !treeApiSuccess && !completedArgs.subdir) {
+    const subdir = await promptSubdir(configFile); // Requirement 4.1: Display prompt in steering mode
+    if (subdir) {
+      completedArgs.subdir = subdir; // Requirement 4.3: Set valid path
+    }
+    // Requirement 4.2: Empty string becomes undefined (handled by promptSubdir lines 256-258)
+  }
+
   // 5. Prompt for project if missing (and Tree API did not provide it)
+  // Task 3.2: Skip in --steering mode (Requirement 3.4)
   // Pass additional parameters for project suggestion feature
   // Convert projects array back to string for prompting, then parse result
-  if (!treeApiSuccess && (!completedArgs.projects || completedArgs.projects.length === 0)) {
+  if (
+    !treeApiSuccess &&
+    !completedArgs.steering && // Skip in --steering mode (Task 3.2: Requirement 3.4)
+    (!completedArgs.projects || completedArgs.projects.length === 0)
+  ) {
     const projectString = await promptProject(
       completedArgs.projects.join(', '),
       completedArgs.repository,

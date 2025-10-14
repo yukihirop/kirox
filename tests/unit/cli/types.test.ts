@@ -123,12 +123,68 @@ describe('CLI Types', () => {
         track: true,
         checkUpdates: false,
         update: false,
+        steering: false,
       };
 
       expect(args.projects).toEqual(['proj1', 'proj2']);
       expect(args.repository).toBe('owner/repo#branch');
       expect(args.subdir).toBe('packages');
       expect(args.output).toBe('./output');
+      expect(args.steering).toBe(false);
+    });
+
+    // Task 1.1: Test steering flag
+    it('should have steering field as boolean', () => {
+      const args: ParsedArguments = {
+        repository: 'owner/repo',
+        projects: [],
+        output: '.',
+        force: false,
+        dryRun: false,
+        verbose: false,
+        track: false,
+        checkUpdates: false,
+        update: false,
+        steering: true,
+      };
+
+      expect(args.steering).toBe(true);
+      expect(typeof args.steering).toBe('boolean');
+    });
+
+    it('should default steering to false', () => {
+      const args: ParsedArguments = {
+        repository: 'owner/repo',
+        projects: ['project'],
+        output: '.',
+        force: false,
+        dryRun: false,
+        verbose: false,
+        track: false,
+        checkUpdates: false,
+        update: false,
+        steering: false,
+      };
+
+      expect(args.steering).toBe(false);
+    });
+
+    it('should support steering mode with empty projects array', () => {
+      const args: ParsedArguments = {
+        repository: 'owner/repo',
+        projects: [],
+        output: '.',
+        force: false,
+        dryRun: false,
+        verbose: false,
+        track: false,
+        checkUpdates: false,
+        update: false,
+        steering: true,
+      };
+
+      expect(args.steering).toBe(true);
+      expect(args.projects).toEqual([]);
     });
   });
 

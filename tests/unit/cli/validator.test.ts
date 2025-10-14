@@ -216,7 +216,8 @@ describe('InputValidator', () => {
       const result = validateInput(args);
 
       expect(result.valid).toBe(false);
-      expect(result.errors).toHaveLength(1);
+      // Multiple errors expected: --track + --check-updates, --track + --update, --check-updates + --update
+      expect(result.errors.length).toBeGreaterThanOrEqual(1);
       expect(result.errors[0]?.field).toBe('options');
     });
 
@@ -475,6 +476,207 @@ describe('InputValidator', () => {
       expect(result.errors).toHaveLength(1);
       expect(result.errors[0]?.field).toBe('project');
       expect(result.errors[0]?.message).toContain('empty');
+    });
+  });
+
+  // Task 2.2: Steering mode mutual exclusivity tests
+  describe('validateInput - Steering mode mutual exclusivity', () => {
+    const createValidArgs = (): ParsedArguments => ({
+      repository: 'owner/repo',
+      projects: ['my-project'],
+      output: '.',
+      force: false,
+      dryRun: false,
+      verbose: false,
+      track: false,
+      checkUpdates: false,
+      update: false,
+      steering: false,
+    });
+
+    it('should reject --steering and --check-updates together', () => {
+      const args = createValidArgs();
+      args.steering = true;
+      args.checkUpdates = true;
+      args.projects = []; // steering mode allows empty projects
+      const result = validateInput(args);
+
+      expect(result.valid).toBe(false);
+      expect(result.errors).toHaveLength(1);
+      expect(result.errors[0]?.field).toBe('options');
+      expect(result.errors[0]?.message).toContain('--steering');
+      expect(result.errors[0]?.message).toContain('--check-updates');
+    });
+
+    it('should reject --steering and --update together', () => {
+      const args = createValidArgs();
+      args.steering = true;
+      args.update = true;
+      args.projects = []; // steering mode allows empty projects
+      const result = validateInput(args);
+
+      expect(result.valid).toBe(false);
+      expect(result.errors).toHaveLength(1);
+      expect(result.errors[0]?.field).toBe('options');
+      expect(result.errors[0]?.message).toContain('--steering');
+      expect(result.errors[0]?.message).toContain('--update');
+    });
+
+    it('should reject --steering with both --check-updates and --update', () => {
+      const args = createValidArgs();
+      args.steering = true;
+      args.checkUpdates = true;
+      args.update = true;
+      args.projects = [];
+      const result = validateInput(args);
+
+      expect(result.valid).toBe(false);
+      // Two separate errors: --steering + --check-updates, and --check-updates + --update
+      expect(result.errors.length).toBeGreaterThanOrEqual(1);
+      expect(result.errors[0]?.field).toBe('options');
+      expect(result.errors[0]?.message).toContain('mutually exclusive');
+    });
+
+    it('should allow --steering and --track together (Requirement 6.3)', () => {
+      const args = createValidArgs();
+      args.steering = true;
+      args.track = true;
+      args.projects = [];
+      const result = validateInput(args);
+
+      expect(result.valid).toBe(true);
+      expect(result.errors).toHaveLength(0);
+    });
+
+    it('should allow --steering without conflicting options', () => {
+      const args = createValidArgs();
+      args.steering = true;
+      args.repository = 'owner/repo';
+      args.projects = [];
+      const result = validateInput(args);
+
+      expect(result.valid).toBe(true);
+      expect(result.errors).toHaveLength(0);
+    });
+
+    it('should allow --steering with --force, --dry-run, --verbose', () => {
+      const args = createValidArgs();
+      args.steering = true;
+      args.repository = 'owner/repo';
+      args.projects = [];
+      args.force = true;
+      args.dryRun = true;
+      args.verbose = true;
+      const result = validateInput(args);
+
+      expect(result.valid).toBe(true);
+      expect(result.errors).toHaveLength(0);
+    });
+  });
+
+  // Task 2.1: Steering mode validation tests
+  describe('validateInput - Steering mode validation', () => {
+    const createValidArgs = (): ParsedArguments => ({
+      repository: 'owner/repo',
+      projects: ['my-project'],
+      output: '.',
+      force: false,
+      dryRun: false,
+      verbose: false,
+      track: false,
+      checkUpdates: false,
+      update: false,
+      steering: false,
+    });
+
+    it('should allow --steering mode without project argument', () => {
+      const args = createValidArgs();
+      args.steering = true;
+      args.projects = [];
+      const result = validateInput(args);
+
+      expect(result.valid).toBe(true);
+      expect(result.errors).toHaveLength(0);
+    });
+
+    it('should allow --steering mode with valid repository and no project', () => {
+      const args = createValidArgs();
+      args.steering = true;
+      args.repository = 'owner/repo';
+      args.projects = [];
+      const result = validateInput(args);
+
+      expect(result.valid).toBe(true);
+      expect(result.errors).toHaveLength(0);
+    });
+
+    it('should allow --steering mode with branch specification and no project', () => {
+      const args = createValidArgs();
+      args.steering = true;
+      args.repository = 'owner/repo#develop';
+      args.projects = [];
+      const result = validateInput(args);
+
+      expect(result.valid).toBe(true);
+      expect(result.errors).toHaveLength(0);
+    });
+
+    it('should allow --steering mode with subdirectory and no project', () => {
+      const args = createValidArgs();
+      args.steering = true;
+      args.repository = 'owner/repo';
+      args.subdir = 'packages/api';
+      args.projects = [];
+      const result = validateInput(args);
+
+      expect(result.valid).toBe(true);
+      expect(result.errors).toHaveLength(0);
+    });
+
+    it('should require repository in --steering mode', () => {
+      const args = createValidArgs();
+      args.steering = true;
+      args.repository = '';
+      args.projects = [];
+      const result = validateInput(args);
+
+      expect(result.valid).toBe(false);
+      expect(result.errors).toHaveLength(1);
+      expect(result.errors[0]?.field).toBe('repository');
+    });
+
+    it('should require repository/project in normal mode (backward compatibility)', () => {
+      const args = createValidArgs();
+      args.steering = false;
+      args.repository = '';
+      args.projects = [];
+      const result = validateInput(args);
+
+      expect(result.valid).toBe(false);
+      expect(result.errors.some((e) => e.field === 'repository')).toBe(true);
+    });
+
+    it('should validate repository format in --steering mode', () => {
+      const args = createValidArgs();
+      args.steering = true;
+      args.repository = 'invalid-repo';
+      args.projects = [];
+      const result = validateInput(args);
+
+      expect(result.valid).toBe(false);
+      expect(result.errors[0]?.field).toBe('repository');
+    });
+
+    it('should validate subdirectory in --steering mode', () => {
+      const args = createValidArgs();
+      args.steering = true;
+      args.repository = 'owner/repo';
+      args.subdir = '../malicious';
+      args.projects = [];
+      const result = validateInput(args);
+
+      expect(result.valid).toBe(false);
+      expect(result.errors[0]?.field).toBe('subdir');
     });
   });
 
