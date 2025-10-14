@@ -215,6 +215,38 @@
   - 通常モード（`--steering`なし）の既存動作が維持されることを確認
   - _Requirements: 9.8, 9.9, NFR-2_
 
+- [ ] 10. ステアリングディレクトリフィルタリング改善（UX改善）
+- [ ] 10.1 `.kiro/steering`親ディレクトリ抽出ロジックの実装
+  - `src/github/tree-based-dir-scanner.ts`の`scanDirectoriesAcrossRepo`関数を更新
+  - Tree APIから取得したディレクトリ一覧から`.kiro/steering`ディレクトリを検出
+  - `.kiro/steering`が存在する親ディレクトリのパスを抽出
+    - 例: `lib/a/.kiro/steering` → 親ディレクトリは `lib/a`
+    - 例: `.kiro/steering` (ルート直下) → 親ディレクトリは `''` (空文字列、ルートを示す)
+  - 重複する親ディレクトリを排除（Set使用）
+  - ルート直下に`.kiro/steering`がある場合は"(root)"として表示
+  - `.kiro/steering`が存在しない場合は空配列を返す
+  - _UX Goal: ユーザーは`.kiro`や`.kiro/steering`自体ではなく、意味のあるプロジェクトディレクトリ（`lib/a`, `lib/sample`など）のみを選択できる_
+
+- [ ] 10.2 単体テストの作成
+  - `tests/unit/github/tree-based-dir-scanner.test.ts`に追加テストを作成
+    - `.kiro/steering`が複数のサブディレクトリに存在する場合、全ての親ディレクトリが抽出されることをテスト
+    - `.kiro/steering`がルート直下にある場合、空文字列（ルート）が返されることをテスト
+    - `.kiro/steering`が存在しない場合、空配列が返されることをテスト
+    - ネストされたディレクトリ構造でも正しく親ディレクトリが抽出されることをテスト
+      - 例: `lib/a/.kiro/steering`, `lib/a/.kiro/specs`, `lib/sample/.kiro/steering` → [`lib/a`, `lib/sample`]
+    - 重複する親ディレクトリが排除されることをテスト
+
+- [ ] 10.3 統合テストの更新
+  - `tests/integration/interactive-steering-subdir.test.ts`を更新
+    - サブディレクトリ選択UIに`.kiro/steering`の親ディレクトリのみが表示されることをテスト
+    - `.kiro`や`.kiro/steering`自体が選択肢に含まれないことをテスト
+    - 選択した親ディレクトリが正しく`--subdir`パラメータとして渡されることをテスト
+
+- [ ] 10.4 既存テストの検証
+  - `tests/unit/cli/searchable-subdir-prompt.test.ts`の既存テストが引き続きパスすることを確認
+  - `tests/unit/cli/interactive-prompt-steering-subdir.test.ts`の既存テストが引き続きパスすることを確認
+  - 全体のテストスイート（2012+ tests）が合格することを確認
+
 ## 要件カバレッジサマリー
 
 全要件が以下のタスクでカバーされています:
@@ -239,5 +271,9 @@
 - タスク9は独立した拡張機能（ユーザーフィードバックに基づく改善）
   - Task 9.1-9.3は順次実装が必要（依存関係あり）
   - Task 9.4-9.7は並行実装可能（テストタスク）
+- タスク10はUX改善タスク（Task 9完了後に実施）
+  - Task 10.1: `tree-based-dir-scanner.ts`のロジック更新（`.kiro/steering`親ディレクトリ抽出）
+  - Task 10.2-10.4: テストの作成と検証
+  - 目的: ユーザーに意味のあるディレクトリ（`lib/a`, `lib/sample`）のみを表示し、`.kiro`や`.kiro/steering`自体は非表示にする
 - 各タスク完了後、`npm test`を実行して既存テストの合格を確認
 - `--verbose`オプションを使用して詳細ログを確認しながら実装を進める
