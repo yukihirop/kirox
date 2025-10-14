@@ -13,10 +13,6 @@ export default defineConfig({
   splitting: false,
   skipNodeModulesBundle: true,
   dts: false,
-  // Ensure CLI shebang is present at the top of the output
-  banner: {
-    js: '#!/usr/bin/env node',
-  },
   // Keep external runtime deps unbundled (safer for CLI + ESM resolution)
   external: [
     'octokit',
