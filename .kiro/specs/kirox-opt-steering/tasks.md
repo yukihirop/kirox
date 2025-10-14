@@ -149,14 +149,71 @@
   - _Requirements: 7.3, 7.4, NFR-2_
 
 - [ ] 9. ステアリングモードのUI改善（拡張機能）
-- [ ] 9.1 サブディレクトリ選択UI(searchable-checkbox)のインタラクティブ化
-  - `--steering`モード時、サブディレクトリ選択をテキスト入力から選択UIに変更
-  - GitHub Tree APIを使用してリポジトリ内のディレクトリ一覧を取得
-  - 検索可能なチェックボックスUIを実装（プロジェクト選択と同様のUX）
-  - 空文字列入力（ルート選択）オプションを選択肢として提供
-  - `--subdir` CLI引数指定時はTree APIスキャンをスキップ（後方互換性）
-  - 通常モード（非`--steering`モード）の動作は変更しない
-  - _Note: ユーザーフィードバックに基づく機能改善_
+- [ ] 9.1 TreeBasedDirectoryScannerコンポーネントの実装
+  - `src/github/tree-based-dir-scanner.ts`を作成
+  - GitHub Tree APIを使用してリポジトリ内のディレクトリ構造を取得する`scanDirectoriesAcrossRepo`メソッドを実装
+  - ディレクトリのみをフィルタリング（`type === 'tree'`）
+  - レート制限エラー、ネットワークエラーを適切にハンドリング
+  - Truncated警告メッセージを表示（Tree APIが切り捨てられた場合）
+  - _Requirements: 9.1, 9.7_
+
+- [ ] 9.2 SubdirectoryPromptServiceコンポーネントの実装
+  - `src/cli/searchable-subdir-prompt.ts`を作成
+  - 検索可能なチェックボックスUI（inquirer-ts-checkbox-plus-prompt）を使用してディレクトリ一覧を表示する`promptSubdirSelection`メソッドを実装
+  - ルートディレクトリ選択オプション（"(root)" → 空文字列）を選択肢に含める
+  - リアルタイム検索フィルタリング機能を実装
+  - 既存の`searchable-project-prompt.ts`パターンを参考にUXを統一
+  - _Requirements: 9.2, 9.3, 9.4, 9.5, 9.6_
+
+- [ ] 9.3 インタラクティブプロンプトの統合
+  - `src/cli/interactive-prompt.ts`の`promptMissingArguments`関数を更新
+  - `--steering`モード時、サブディレクトリが未指定の場合に以下のロジックを実装:
+    1. TreeBasedDirectoryScannerを呼び出してディレクトリ一覧を取得
+    2. 取得成功時: SubdirectoryPromptServiceを呼び出して選択UIを表示
+    3. 取得失敗時: 既存のテキスト入力プロンプトにフォールバック（Requirement 4）
+  - `--subdir` CLI引数が既に指定されている場合はTree APIスキャンをスキップ（後方互換性）
+  - 通常モード（`--steering`なし）の動作は変更しない
+  - _Requirements: 9.1, 9.7, 9.8, 9.9_
+
+- [ ] 9.4 単体テストの作成
+  - `tests/unit/github/tree-based-dir-scanner.test.ts`を作成
+    - Tree APIからディレクトリ一覧を正常に取得できることをテスト
+    - ディレクトリのみがフィルタリングされることをテスト（ファイルは除外）
+    - truncated警告メッセージが正しく表示されることをテスト
+    - レート制限エラー、ネットワークエラーが適切にハンドリングされることをテスト
+  - `tests/unit/cli/searchable-subdir-prompt.test.ts`を作成
+    - 検索可能なチェックボックスUIが正しく表示されることをテスト
+    - ルートディレクトリ選択オプションが選択肢に含まれることをテスト
+    - ユーザー選択が正しく返されることをテスト（空文字列の場合も含む）
+  - `tests/unit/cli/interactive-prompt.test.ts`に追加
+    - `--steering`モード時、サブディレクトリが未指定の場合にTree APIスキャンが実行されることをテスト
+    - Tree API成功時に選択UIが表示されることをテスト
+    - Tree API失敗時にテキスト入力プロンプトにフォールバックすることをテスト
+    - `--subdir`が指定されている場合にTree APIスキャンがスキップされることをテスト
+    - 通常モードでは既存のサブディレクトリプロンプト動作が維持されることをテスト
+  - _Requirements: 9.1-9.9_
+
+- [ ] 9.5 統合テストの作成
+  - `tests/integration/interactive-subdir-selection.test.ts`を作成
+    - インタラクティブモード + `--steering`でサブディレクトリ選択UIが表示されることを統合テスト
+    - Tree API → SubdirectoryPromptService → インタラクティブプロンプトの統合フローをテスト
+    - ルートディレクトリ選択時に空文字列が正しく処理されることをテスト
+    - サブディレクトリ選択時に指定パスが正しく処理されることをテスト
+  - _Requirements: 9.1-9.9_
+
+- [ ] 9.6 E2Eテストの作成
+  - `tests/e2e/steering-subdir-selection.test.ts`を作成
+    - インタラクティブモード + `--steering`でサブディレクトリ選択UIから実際のファイル取得までのE2Eテスト
+    - Tree API失敗時のフォールバック動作をE2Eテスト
+    - `--subdir`指定時にTree APIスキャンがスキップされることをE2Eテスト
+    - 通常モードでは既存動作が維持されることをE2Eテスト
+  - _Requirements: 9.1-9.9_
+
+- [ ] 9.7 後方互換性検証
+  - 既存のテストスイート（1971 tests）が全て合格することを確認
+  - `--subdir`オプション指定時の既存動作が維持されることを確認
+  - 通常モード（`--steering`なし）の既存動作が維持されることを確認
+  - _Requirements: 9.8, 9.9, NFR-2_
 
 ## 要件カバレッジサマリー
 
@@ -170,13 +227,17 @@
 - **Requirement 6 (6.1-6.5)**: Tasks 2.2, 5.1, 5.2, 5.3, 6.2, 7.2, 8.2, 8.4
 - **Requirement 7 (7.1-7.5)**: Tasks 4.3, 4.4, 8.3, 8.4
 - **Requirement 8 (8.1-8.5)**: Tasks 1.2, 6.1
+- **Requirement 9 (9.1-9.9)**: Tasks 9.1, 9.2, 9.3, 9.4, 9.5, 9.6, 9.7
 - **NFR-1 (パフォーマンス)**: Tasks 3.1, 8.4
-- **NFR-2 (後方互換性)**: Tasks 5.3, 8.4
+- **NFR-2 (後方互換性)**: Tasks 5.3, 8.4, 9.7
 - **NFR-3 (保守性)**: 全タスクで既存アーキテクチャを尊重
 
 ## 実装ノート
 
 - タスク1-4は順次実装が必要（依存関係あり）
 - タスク5-8は並行実装可能（テストタスク）
+- タスク9は独立した拡張機能（ユーザーフィードバックに基づく改善）
+  - Task 9.1-9.3は順次実装が必要（依存関係あり）
+  - Task 9.4-9.7は並行実装可能（テストタスク）
 - 各タスク完了後、`npm test`を実行して既存テストの合格を確認
 - `--verbose`オプションを使用して詳細ログを確認しながら実装を進める

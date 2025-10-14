@@ -181,6 +181,7 @@ const steeringContents = await fetchDirectoryContents(octokit, owner, repo, stee
 | 6.1-6.5 | 既存機能との整合性 | `validator.ts`, `entry.ts` | `validateInput()`, `execute()` | Architecture diagram |
 | 7.1-7.5 | エラーハンドリングと境界条件 | `entry.ts`, `ErrorHandler` | `execute()`, `errorHandler.handle()` | - |
 | 8.1-8.5 | ヘルプメッセージとドキュメンテーション | `parser.ts` | `parseMainCommand()` | - |
+| 9.1-9.9 | インタラクティブサブディレクトリ選択UI | `interactive-prompt.ts`, `searchable-subdir-prompt.ts`, `tree-based-dir-scanner.ts` | `promptSubdirSelection()`, `scanDirectoriesAcrossRepo()` | Subdirectory Selection Flow |
 
 ## コンポーネントとインターフェース
 
@@ -451,6 +452,258 @@ interface ExecutionResult {
 
 **統合戦略**: 既存の`execute`関数を拡張し、最小限の条件分岐を追加することで、既存の全てのエラーハンドリング、進捗表示、メタデータトラッキングを再利用
 
+#### SubdirectoryPromptService (`src/cli/searchable-subdir-prompt.ts`) - 新規コンポーネント
+
+**責任と境界**
+- **主要責任**: `--steering`モード時に、GitHub Tree APIでスキャンしたディレクトリ一覧を検索可能なUIで表示し、ユーザーがサブディレクトリを選択できるようにする (Requirement 9)
+- **ドメイン境界**: CLI層
+- **データ所有権**: ディレクトリ選択UIの状態とユーザー選択
+- **トランザクション境界**: なし（ユーザーインタラクション）
+
+**依存関係**
+- **インバウンド**: `interactive-prompt.ts`の`promptMissingArguments`から呼び出される
+- **アウトバウンド**: `searchable-checkbox.js` (既存のカスタムプロンプト), GitHub Tree Scanner
+- **外部**: なし
+
+**外部依存関係の調査**
+既存の`searchable-project-prompt.ts`と同じパターンを踏襲:
+- **`searchable-checkbox.js`**: 既存のカスタムプロンプトを再利用（プロジェクト選択で実証済み）
+- **機能**: リアルタイム検索フィルタリング、スペースで選択、エンターで確認
+- **実装**: `kirox-searchable-checkbox-upgrade`で実装済みのUIパターンをディレクトリ選択に適用
+
+**契約定義**
+
+**Service Interface**:
+```typescript
+interface SubdirectoryPromptService {
+  promptSubdirSelection(
+    directories: DirectoryLocation[]
+  ): Promise<SubdirSelectionResult>;
+}
+
+interface DirectoryLocation {
+  /** ディレクトリパス（空文字列はルート） */
+  path: string;
+  /** 表示名（"(root)" または "path/to/dir"） */
+  displayName: string;
+  /** Tree APIから取得したsha */
+  sha: string;
+}
+
+interface SubdirSelectionResult {
+  /** 選択されたサブディレクトリパス（空文字列の場合はルート） */
+  subdir: string;
+}
+```
+
+**主要機能**:
+1. **ディレクトリ一覧のソート** (Requirement 9.3):
+   ```typescript
+   // ルートディレクトリを先頭に、その後はアルファベット順
+   function sortDirectoryLocations(directories: DirectoryLocation[]): DirectoryLocation[] {
+     return [...directories].sort((a, b) => {
+       if (a.path === '' && b.path !== '') return -1;
+       if (a.path !== '' && b.path === '') return 1;
+       return a.path.localeCompare(b.path);
+     });
+   }
+   ```
+
+2. **検索可能なチェックボックスUIの表示** (Requirement 9.2, 9.4, 9.5):
+   ```typescript
+   const selectedDisplayNames = await searchableCheckbox<string>({
+     message: chalk.bold.cyan('Select subdirectory') +
+       chalk.dim(' (type to filter, space to select, enter to confirm)'),
+     choices: sortedDirs.map(dir => ({
+       value: dir.displayName,
+       name: dir.displayName,
+     })),
+     validate: (selectedChoices) => {
+       if (selectedChoices.length === 0) {
+         return chalk.red('Please select a subdirectory');
+       }
+       if (selectedChoices.length > 1) {
+         return chalk.red('Please select only one subdirectory');
+       }
+       return true;
+     },
+     pageSize: 10,
+     loop: true,
+   });
+   ```
+
+3. **ルートディレクトリオプションの提供** (Requirement 9.3):
+   ```typescript
+   // ディレクトリリストに常にルートオプションを含める
+   const allDirectories: DirectoryLocation[] = [
+     { path: '', displayName: '(root)', sha: '' },
+     ...scannedDirectories
+   ];
+   ```
+
+**事前条件**:
+- GitHub Tree APIでディレクトリ構造が取得済みであること
+- `directories`配列が空でないこと（少なくともルートオプションを含む）
+
+**事後条件**:
+- ユーザーが1つのディレクトリを選択した場合、`SubdirSelectionResult`が返される
+- ルートが選択された場合、`subdir`は空文字列
+
+**不変条件**: ユーザーは常に1つのディレクトリのみを選択できる（複数選択不可）
+
+**統合戦略**:
+- 既存の`searchable-project-prompt.ts`のパターンを踏襲し、ディレクトリ選択用に特化
+- プロジェクト選択と同じUXを提供することで、ユーザーの学習コストを削減
+
+### GitHub統合層
+
+#### TreeBasedDirectoryScanner (`src/github/tree-based-dir-scanner.ts`) - 新規コンポーネント
+
+**責任と境界**
+- **主要責任**: GitHub Tree APIを使用してリポジトリ内のディレクトリ構造をスキャンし、全ディレクトリの一覧を取得する (Requirement 9.1)
+- **ドメイン境界**: GitHub統合層
+- **データ所有権**: Tree APIレスポンスとディレクトリメタデータ
+- **トランザクション境界**: なし（読み取り専用）
+
+**依存関係**
+- **インバウンド**: `interactive-prompt.ts`から呼び出される
+- **アウトバウンド**: Octokit (GitHub API)
+- **外部**: GitHub REST API v3 (Tree API)
+
+**外部依存関係の調査**
+GitHub Tree APIの仕様を調査:
+- **API Endpoint**: `GET /repos/{owner}/{repo}/git/trees/{tree_sha}?recursive=1`
+- **レート制限**: 認証済み: 5000回/時間、未認証: 60回/時間
+- **再帰取得制限**: 最大100,000エントリまで（`truncated: true`フラグで切り捨て検出）
+- **レスポンス**: `tree`配列に`path`, `type`, `sha`を含むオブジェクト
+- **ディレクトリ判定**: `type === 'tree'`でディレクトリを識別
+
+**参考**: 既存の`tree-based-project-scanner.ts`と同様のアプローチを使用
+
+**契約定義**
+
+**Service Interface**:
+```typescript
+interface TreeBasedDirectoryScanner {
+  scanDirectoriesAcrossRepo(options: DirectoryScanOptions): Promise<DirectoryScanResult>;
+}
+
+interface DirectoryScanOptions {
+  /** リポジトリ参照（owner, repo, branch） */
+  repository: RepositoryRef;
+  /** GitHub Octokitクライアント */
+  client: Octokit;
+  /** Loggerインスタンス */
+  logger: Logger;
+  /** Verboseモード */
+  verbose: boolean;
+}
+
+interface DirectoryScanResult {
+  /** スキャン成功フラグ */
+  success: boolean;
+  /** 見つかったディレクトリ一覧 */
+  directories: DirectoryLocation[];
+  /** Tree APIレスポンスが切り捨てられたか */
+  truncated: boolean;
+  /** エラー発生時のメッセージ */
+  errorMessage?: string;
+}
+```
+
+**主要機能**:
+1. **Tree APIでディレクトリ構造を取得** (Requirement 9.1):
+   ```typescript
+   const treeResponse = await client.rest.git.getTree({
+     owner: repository.owner,
+     repo: repository.repo,
+     tree_sha: effectiveBranch,
+     recursive: 'true',
+   });
+
+   // type === 'tree'のエントリのみを抽出
+   const directories = treeResponse.data.tree
+     .filter(item => item.type === 'tree')
+     .map(item => ({
+       path: item.path!,
+       displayName: item.path!,
+       sha: item.sha!,
+     }));
+   ```
+
+2. **切り捨て検出と警告** (Requirement 9.1):
+   ```typescript
+   const truncated = treeResponse.data.truncated || false;
+   if (truncated && verbose) {
+     logger.warn('Repository is very large, some directories may not be shown');
+   }
+   ```
+
+3. **エラーハンドリングとフォールバック** (Requirement 9.7):
+   ```typescript
+   try {
+     // Tree API呼び出し
+   } catch (error) {
+     logger.warn('Failed to scan directories via Tree API', { error });
+     return {
+       success: false,
+       directories: [],
+       truncated: false,
+       errorMessage: 'Failed to fetch directory structure from GitHub',
+     };
+   }
+   ```
+
+**事前条件**:
+- Octokitクライアントが初期化済みであること
+- リポジトリがアクセス可能であること（権限チェックは呼び出し側で実施）
+
+**事後条件**:
+- `success: true`の場合、`directories`配列にディレクトリ一覧が含まれる
+- `success: false`の場合、`errorMessage`にエラー理由が含まれる
+
+**不変条件**: レスポンスが切り捨てられた場合でも、取得できたディレクトリは全て返す
+
+**統合戦略**:
+- 既存の`tree-based-project-scanner.ts`のパターンを踏襲
+- プロジェクトスキャンとディレクトリスキャンで共通のTree API呼び出しロジックを再利用可能
+
+## システムフロー
+
+### Requirement 9: サブディレクトリ選択フロー（--steeringモード専用）
+
+```mermaid
+graph TB
+    A[Interactive Mode Start] --> B{--steering flag?}
+    B -->|No| C[Existing Flow: Text Input]
+    B -->|Yes| D{--subdir already specified?}
+    D -->|Yes| E[Skip Directory Selection]
+    D -->|No| F[Call Tree API Scanner]
+    F --> G{Tree API Success?}
+    G -->|No| H[Fallback: Text Input Prompt]
+    G -->|Yes| I[Display Searchable Checkbox UI]
+    I --> J[User Selects Directory]
+    J --> K{Root selected?}
+    K -->|Yes| L[Set subdir = empty string]
+    K -->|No| M[Set subdir = selected path]
+    L --> N[Continue to Confirmation]
+    M --> N
+    H --> N
+    E --> N
+    C --> N
+```
+
+このフローは、Requirement 9の全ての受け入れ基準（9.1〜9.9）を満たします:
+- **9.1**: Tree APIでディレクトリ構造を取得
+- **9.2**: 検索可能なチェックボックスUIを表示
+- **9.3**: ルートディレクトリオプションを含める
+- **9.4**: リアルタイム検索フィルタリング
+- **9.5**: プロジェクト選択UIと同様のUX
+- **9.6**: 選択されたディレクトリパスを使用
+- **9.7**: Tree API失敗時はテキスト入力にフォールバック
+- **9.8**: `--subdir`指定時はスキップ
+- **9.9**: 通常モードでは既存動作を維持
+
 ## エラーハンドリング
 
 ### エラー戦略
@@ -519,6 +772,19 @@ interface ExecutionResult {
 - `--steering`モード時、サブディレクトリプロンプトが表示されること
 - `--steering`モード時、確認プロンプトに「Mode: Steering only」が表示されること
 
+**`searchable-subdir-prompt.test.ts` (新規)** - Requirement 9:
+- ディレクトリ一覧が正しくソートされること（ルートが先頭、その後アルファベット順）
+- 検索可能なチェックボックスUIが表示されること
+- ルートディレクトリオプションが選択肢に含まれること
+- ユーザーが1つのディレクトリのみを選択できること（バリデーション）
+- 選択されたディレクトリパスが正しく返されること
+
+**`tree-based-dir-scanner.test.ts` (新規)** - Requirement 9:
+- Tree APIでディレクトリ構造を取得できること
+- `type === 'tree'`のエントリのみが抽出されること
+- 切り捨て検出（`truncated: true`）が正しく処理されること
+- Tree API失敗時にエラーメッセージが返されること
+
 ### 統合テスト
 
 **`cli-to-github.test.ts`**:
@@ -538,6 +804,15 @@ interface ExecutionResult {
 - `--steering` + `--force`: 既存ファイルの上書き確認がスキップされる
 - `--steering` + `--dry-run`: ファイルが実際に書き込まれない
 - `--steering` + `--verbose`: 詳細ログが出力される
+
+**`steering-mode-subdir-selection.test.ts` (新規)** - Requirement 9:
+- インタラクティブモード + `--steering`（`--subdir`なし）: Tree APIスキャン → ディレクトリ選択UIが表示される
+- ディレクトリ選択UI: ルートオプションを含むディレクトリ一覧が表示される
+- ディレクトリ選択UI: 検索フィルタリングが機能する
+- ディレクトリ選択UI: ユーザーが選択したディレクトリが`subdir`として設定される
+- Tree API失敗時: テキスト入力プロンプトにフォールバックする
+- `--subdir`指定時: Tree APIスキャンとディレクトリ選択UIがスキップされる
+- 通常モード（`--steering`なし）: 既存のサブディレクトリプロンプト動作が維持される
 
 **`error-scenarios.test.ts` (追加)**:
 - `--steering` + `--check-updates`: バリデーションエラーが発生し、exit code 1で終了

@@ -88,6 +88,20 @@
 4. WHERE ヘルプメッセージ内 THE Kiroxシステム SHALL インタラクティブモードの例として「npx kirox --steering」を含める
 5. WHERE ヘルプメッセージ内 THE Kiroxシステム SHALL 非インタラクティブモードの例として「npx kirox owner/repo --steering」「npx kirox owner/repo --subdir packages/api --steering」を含める
 
+### Requirement 9: インタラクティブサブディレクトリ選択UI（--steeringモード専用）
+**Objective:** 開発者として、インタラクティブモードで`--steering`オプションを使用する際に、サブディレクトリをテキスト入力ではなく検索可能な選択UIで選びたい。これにより、リポジトリ内の利用可能なサブディレクトリを視覚的に確認しながら効率的に選択できる。
+
+#### Acceptance Criteria
+1. WHEN インタラクティブモードで`--steering`オプションが指定されている AND サブディレクトリ引数(`-s, --subdir`)が指定されていない THEN Kiroxシステム SHALL GitHub Tree APIを使用してリポジトリ内のディレクトリ構造を取得する
+2. WHEN ディレクトリ構造の取得に成功した THEN Kiroxシステム SHALL 検索可能なチェックボックスUIでディレクトリ一覧を表示する
+3. WHEN ディレクトリ選択UIが表示された THEN Kiroxシステム SHALL ルートディレクトリ選択オプション（空文字列相当）を選択肢に含める
+4. WHEN ディレクトリ選択UIが表示された THEN Kiroxシステム SHALL ユーザーが入力した検索文字列でディレクトリ一覧をリアルタイムフィルタリングする
+5. WHEN ディレクトリ選択UIが表示された THEN Kiroxシステム SHALL プロジェクト選択UIと同様のUX（検索、スペースで選択、エンターで確認）を提供する
+6. WHEN ユーザーがディレクトリを選択した THEN Kiroxシステム SHALL 選択されたディレクトリパスをサブディレクトリ引数として使用する
+7. WHEN Tree APIでのディレクトリ取得に失敗した THEN Kiroxシステム SHALL Requirement 4のテキスト入力プロンプトにフォールバックする
+8. WHEN サブディレクトリ引数(`-s, --subdir`)が既に指定されている THEN Kiroxシステム SHALL Tree APIスキャンとディレクトリ選択UIをスキップする（後方互換性）
+9. WHEN 通常モード（`--steering`なし）の場合 THEN Kiroxシステム SHALL 既存のサブディレクトリプロンプト動作を維持する（この機能は--steeringモード専用）
+
 ## Non-Functional Requirements
 
 ### NFR-1: パフォーマンス
