@@ -22,8 +22,10 @@ export default defineConfig({
     'chalk',
     'figlet',
     '@inquirer/prompts',
+    // workaround: "error":"Dynamic require of \"tty\" is not supported"
     'yoctocolors-cjs',
-    'mute-stream'
+    'mute-stream',
+    'cli-width'
   ],
   // Resolve TS path aliases via manual mapping if needed in the future.
   // esbuild does not honor tsconfig paths automatically; current source uses
