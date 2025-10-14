@@ -2,13 +2,13 @@
 
 ## Task 1: searchableCheckboxプロンプトの完了時プレフィックス表示を修正
 
-- [ ] 1.1 usePrefixフックにstatusパラメータを追加
+- [x] 1.1 usePrefixフックにstatusパラメータを追加
   - searchableCheckboxのレンダリング関数内で`usePrefix({ theme })`を`usePrefix({ status, theme })`に変更
   - 既存の`status`状態変数(useState)を活用
   - プレフィックスがstatusに基づいて動的に変化することを確認
   - _Requirements: 4.1, 4.2_
 
-- [ ] 1.2 完了時のレンダリングロジックを検証
+- [x] 1.2 完了時のレンダリングロジックを検証
   - `status === 'done'`分岐で返される文字列フォーマットを確認
   - プレフィックス、メッセージ、選択結果の表示順序が正しいことを検証
   - チェックマークがemoji(🌿、📋、📁)の前に表示されることを確認
