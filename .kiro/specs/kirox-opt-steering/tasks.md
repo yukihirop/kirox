@@ -227,7 +227,7 @@
   - `.kiro/steering`が存在しない場合は空配列を返す
   - _UX Goal: ユーザーは`.kiro`や`.kiro/steering`自体ではなく、意味のあるプロジェクトディレクトリ（`lib/a`, `lib/sample`など）のみを選択できる_
 
-- [ ] 10.2 単体テストの作成
+- [x] 10.2 単体テストの作成
   - `tests/unit/github/tree-based-dir-scanner.test.ts`に追加テストを作成
     - `.kiro/steering`が複数のサブディレクトリに存在する場合、全ての親ディレクトリが抽出されることをテスト
     - `.kiro/steering`がルート直下にある場合、空文字列（ルート）が返されることをテスト
