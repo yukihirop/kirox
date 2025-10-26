@@ -3,31 +3,7 @@
 <p align="center">
 	<img alt="logo" width="196" src="./docs/public/logo.png">
 </p>
-<h1 align="center" class="kirox-logo-text">Kirox</h1>
-
-<style>
-.kirox-logo-text {
-  font-family: sans-serif;
-  font-size: 50px;
-  font-weight: 700;
-
-  /* 文字の背景としてグラデーションを設定 */
-  background: -webkit-linear-gradient(
-    90deg,
-    #6A37CC 20%,
-    #8544FF 60%,
-    #9B6FFF 100%
-  );
-
-  /* 背景をテキストの形にクリップ */
-  -webkit-background-clip: text;
-  background-clip: text;
-
-  /* テキスト自体を透明にして背景グラデーションを表示 */
-  -webkit-text-fill-color: transparent;
-  color: transparent;
-}
-</style>
+<h1 align="center" style="font-family: sans-serif; font-size: 50px; font-weight: 700; background: -webkit-linear-gradient(90deg, #6A37CC 20%, #8544FF 60%, #9B6FFF 100%); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; color: transparent;">Kirox</h1>
 
 [![CI](https://github.com/yukihirop/kirox/actions/workflows/ci.yml/badge.svg)](https://github.com/yukihirop/kirox/actions/workflows/ci.yml)
 [![Release](https://github.com/yukihirop/kirox/actions/workflows/release.yml/badge.svg)](https://github.com/yukihirop/kirox/actions/workflows/release.yml)
