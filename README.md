@@ -3,11 +3,14 @@
 <p align="center">
 	<img alt="logo" width="196" src="./docs/public/logo.png">
 </p>
+
 <h1 align="center" style="font-family: sans-serif; font-size: 50px; font-weight: 700; background: -webkit-linear-gradient(90deg, #6A37CC 20%, #8544FF 60%, #9B6FFF 100%); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; color: transparent;">Kirox</h1>
 
 <p align="center">
-	<a href="https://yukihirop.github.io/kirox/">📚 Documentation</a>
+	<a href="https://yukihirop.github.io/kirox/" target="_blank">📚 Documentation</a>
 </p>
+
+
 [![CI](https://github.com/yukihirop/kirox/actions/workflows/ci.yml/badge.svg)](https://github.com/yukihirop/kirox/actions/workflows/ci.yml)
 [![Release](https://github.com/yukihirop/kirox/actions/workflows/release.yml/badge.svg)](https://github.com/yukihirop/kirox/actions/workflows/release.yml)
 
@@ -33,109 +36,6 @@ CLI tool to fetch Kiro specification and steering files from remote GitHub repos
 <p align="center">
 	<img alt="logo" width="196" src="./docs/public/npx-kirox.png">
 </p>
-
-
-```bash
-npx kirox
-```
-
-Follow the interactive prompts to:
-1. Enter GitHub repository
-2. Select branch (with smart detection)
-3. Select projects (auto-discovered with searchable UI)
-4. Choose output directory
-5. Confirm and execute
-
-### Non-Interactive Mode
-
-```bash
-# Fetch a single project
-npx kirox owner/repo -p project-name
-
-# Fetch multiple projects
-npx kirox owner/repo -p project1,project2
-
-# Fetch from specific branch
-npx kirox owner/repo#branch -p project-name
-
-# Fetch only steering files
-npx kirox owner/repo --steering
-```
-
-## Installation
-
-### Using NPX (Recommended)
-
-No installation needed! Run directly:
-
-```bash
-npx kirox <owner>/<repo> -p <project>
-```
-
-### Global Installation
-
-```bash
-npm install -g kirox
-```
-
-## Basic Usage Examples
-
-```bash
-# Interactive mode
-npx kirox
-
-# Fetch from repository
-npx kirox yukihirop/eg-kanban -p simple-kanban-board
-
-# Fetch from specific branch
-npx kirox owner/repo#develop -p project
-
-# Fetch from subdirectory (monorepo)
-npx kirox owner/repo --subdir packages/api -p project
-
-# Fetch only steering files
-npx kirox owner/repo --steering
-
-# Add new projects incrementally
-npx kirox add owner/repo -p new-project
-
-# Enable update tracking
-npx kirox owner/repo -p project --track
-
-# Check for updates
-npx kirox owner/repo -p project --check-updates
-
-# Update changed files only
-npx kirox owner/repo -p project --update
-```
-
-## Common Options
-
-| Option | Alias | Description |
-|--------|-------|-------------|
-| `--project <name>` | `-p` | Project name(s) to fetch (required except in `--steering` mode) |
-| `--output <path>` | `-o` | Output directory (default: current directory) |
-| `--subdir <path>` | `-s` | Subdirectory path containing .kiro folder |
-| `--steering` | - | Fetch only steering files (skip project specs) |
-| `--track` | - | Track files for update detection (default: `false`) |
-| `--force` | - | Force overwrite without confirmation |
-| `--dry-run` | - | Preview mode (no actual writes) |
-| `--verbose` | - | Verbose logging |
-
-See [CLI Reference](https://yukihirop.github.io/kirox/cli/) for all options.
-
-## Authentication
-
-For private repositories or to avoid rate limits:
-
-```bash
-export GITHUB_TOKEN=your_github_personal_access_token
-npx kirox owner/private-repo -p project
-```
-
-**Rate Limits:**
-- Without token: 60 requests/hour
-- With token: 5,000 requests/hour
 
 ## What it Fetches
 
@@ -174,35 +74,6 @@ npx kirox owner/private-repo -p project
 - [Configuration](https://yukihirop.github.io/kirox/config/) - Configuration file reference
 - [Troubleshooting](https://yukihirop.github.io/kirox/guide/troubleshooting) - Common issues and solutions
 
-## Development
-
-```bash
-# Clone repository
-git clone https://github.com/yukihirop/kirox.git
-cd kirox
-
-# Install dependencies
-npm install
-
-# Run tests
-npm test
-
-# Build
-npm run build
-
-# Type check
-npm run type-check
-
-# Documentation
-npm run docs:dev        # Start docs dev server
-npm run docs:build      # Build docs
-npm run docs:preview    # Preview built docs
-```
-
-### Requirements
-
-- Node.js >= 18.0.0
-- TypeScript 5.x
 
 ## Contributing
 
