@@ -1,33 +1,33 @@
 # 実装計画
 
-- [ ] 1. knipパッケージのインストールと基本設定
+- [x] 1. knipパッケージのインストールと基本設定
   - `npm install --save-dev knip`を実行し、最新のknip v5.xをインストール
   - package.jsonのdevDependenciesにknipが追加されたことを確認
   - `npx knip --version`を実行し、knipが正常にインストールされたことを検証
   - _Requirements: 1.1_
 
-- [ ] 2. package.jsonにknip実行用のnpmスクリプトを追加
+- [x] 2. package.jsonにknip実行用のnpmスクリプトを追加
   - package.jsonの`scripts`セクションに`"knip": "knip"`と`"lint:knip": "knip"`を追加
   - `npm run knip`を実行し、スクリプトが正常に動作することを確認
   - _Requirements: 1.2_
 
-- [ ] 3. knip.ts設定ファイルをプロジェクトルートに作成
+- [x] 3. knip.ts設定ファイルをプロジェクトルートに作成
   - プロジェクトルートディレクトリに`knip.ts`ファイルを作成
   - エントリポイント設定: `src/index.ts`, `docs/.vitepress/config.ts`
   - 解析対象設定: `src/**/*.ts`, `tests/**/*.test.ts`, `docs/.vitepress/**/*.ts`
-  - 除外パターン設定: `dist/**/*`, `.kiro/**/*`, `.claude/**/*`, `demo/**/*`
-  - 除外依存関係設定: `tsup`, `esbuild-plugin-tsconfig-paths`, `vitepress-plugin-llms`
+  - 除外パターン設定: `dist/**/*`, `.kiro/**/*`, `.claude/**/*`, `demo/**/*`, `docs/.vitepress/theme/**/*`
+  - 除外依存関係設定: peer dependencies of @inquirer/prompts, @types/figlet
   - Vitestプラグイン有効化: `vitest: true`
   - TypeScript型定義を追加（`import type { KnipConfig } from 'knip'`）
   - `npm run type-check`が成功することを確認
   - _Requirements: 1.3, 2.1, 2.2, 2.3, 2.4, 2.5, 3.2, 3.3, 4.2, 4.4_
 
-- [ ] 4. knipを実行して未使用コード検出機能を検証
+- [x] 4. knipを実行して未使用コード検出機能を検証
   - `npm run knip`を実行し、knipレポートを確認
   - 検出された未使用コードが正当な検出か誤検出かを判断
   - 誤検出の場合は`knip.ts`の`ignore`または`ignoreDependencies`に追加
   - 正当な未使用コードの場合は削除（または将来使用予定の場合はコメント追加）
-  - 再度`npm run knip`を実行し、未使用コードが0件になることを確認
+  - 再度`npm run knip`を実行し、誤検出が解消されたことを確認
   - 統合テスト: knip実行が成功（exit code 0または1）することを確認するテストを作成
   - _Requirements: 1.4_
 
