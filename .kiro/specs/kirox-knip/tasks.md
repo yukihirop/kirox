@@ -62,3 +62,37 @@
   - CI/CDでの動作を説明（PR作成時の自動実行、未使用コード検出時のCI失敗）
   - CONTRIBUTING.mdをコミット
   - _Requirements: 5.3, 5.4_
+
+## 修正タスク
+
+- [ ] 24. knip警告を解消してクリーンな状態にする
+  - knip実行結果を確認し、検出された未使用エクスポートと設定ヒントに対処
+  - `npm run knip`がエラー・警告なしで成功するようにする
+  - _Requirements: 1.4, 5.1_
+
+- [ ] 24.1. 未使用エクスポートの対処
+  - `src/github/retry.ts:224:23`の`withRetryAndRateLimit`関数を確認
+    - 使用されていない場合: エクスポートを削除（または内部関数に変更）
+    - 将来使用予定の場合: `knip.ts`の`ignoreExportsUsedInFile`に追加
+  - `src/github/types.ts:44:18`の`FetchResult`インターフェースを確認
+    - 使用されていない場合: エクスポートを削除
+    - 公開APIの場合: `knip.ts`に除外設定を追加
+  - `src/reporting/types.ts:16:18`の`Summary`インターフェースを確認
+    - 使用されていない場合: エクスポートを削除
+    - 公開APIの場合: `knip.ts`に除外設定を追加
+  - _Requirements: 1.4, 4.1_
+
+- [ ] 24.2. knip設定の最適化
+  - Configuration hint対処: `knip.ts`の`entry`配列を見直し
+    - `src/index.ts`が重複している場合は冗長なエントリを削除
+  - Configuration hint対処: package.jsonの`main`フィールド確認
+    - `main: ".dist/index.js"`を`main: "dist/index.js"`に修正（ドット除去）
+    - または`main`フィールドを`dist/index.js`に変更
+  - 修正後に`npm run knip`を実行し、Configuration hintsが解消されたことを確認
+  - _Requirements: 1.3, 4.4_
+
+- [ ] 24.3. 最終検証
+  - `npm run type-check && npm run lint && npm run knip && npm test`を実行
+  - すべてのチェックが成功することを確認
+  - knipレポートが空（未使用コード0件）であることを確認
+  - _Requirements: 1.4, 3.1, 5.5_
