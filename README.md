@@ -7,7 +7,7 @@
 <h1 align="center" style="font-family: sans-serif; font-size: 50px; font-weight: 700; background: -webkit-linear-gradient(90deg, #6A37CC 20%, #8544FF 60%, #9B6FFF 100%); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; color: transparent;">Kirox</h1>
 
 <p align="center">
-	<a href="https://yukihirop.github.io/kirox/" target="_blank">📚 Documentation</a>
+	<a href="https://yukihirop.github.io/kirox/" target="_blank">📚 Documentation</a> | <a href="https://yukihirop.github.io/kirox/llms.txt" target="_blank">🤖 llms.txt</a> | <a href="https://yukihirop.github.io/kirox/llms-full.txt" target="_blank">🤖 llms-full.txt</a>
 </p>
 
 

@@ -1,4 +1,6 @@
 import { defineConfig } from 'vitepress';
+import llmstxt, { copyOrDownloadAsMarkdownButtons } from 'vitepress-plugin-llms'
+
 
 // https://vitepress.dev/reference/site-config
 export default defineConfig({
@@ -26,7 +28,10 @@ export default defineConfig({
   ],
 
   markdown: {
-    lineNumbers: true
+    lineNumbers: true,
+    config(md) {
+      md.use(copyOrDownloadAsMarkdownButtons);
+    }
   },
 
   themeConfig: {
@@ -37,7 +42,8 @@ export default defineConfig({
       { text: 'Guide', link: '/guide/' },
       { text: 'CLI Reference', link: '/cli/' },
       { text: 'API', link: '/api/' },
-      { text: 'Config', link: '/config/' }
+      { text: 'Config', link: '/config/' },
+      { text: 'LLMs', link: '/llms/' }
     ],
 
     sidebar: {
@@ -82,6 +88,15 @@ export default defineConfig({
             { text: '.kiroxrc.json', link: '/config/kiroxrc' }
           ]
         }
+      ],
+      '/llms/': [
+        {
+          text: 'LLMs',
+          items: [
+            { text: 'Overview', link: '/llms/' },
+            { text: 'LLMs.txt Details', link: '/llms/llms' }
+          ]
+        }
       ]
     },
 
@@ -100,6 +115,9 @@ export default defineConfig({
 
     outline: {
       level: [2, 3]
-    }
+    },
+  },
+  vite: {
+    plugins: [llmstxt()],
   }
 });
