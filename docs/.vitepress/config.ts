@@ -20,9 +20,9 @@ export default defineConfig({
     ['meta', { property: 'og:type', content: 'website' }],
     ['meta', { property: 'og:locale', content: 'en' }],
     ['meta', { property: 'og:title', content: 'Kirox | Recycle .kiro CLI' }],
-    ['meta', { property: 'og:image', content: 'todo' }],
+    ['meta', { property: 'og:image', content: 'https://yukihirop.github.io/kirox/og-image.png' }],
     ['meta', { property: 'og:site_name', content: 'Kirox' }],
-    ['meta', { property: 'og:url', content: 'todo' }],
+    ['meta', { property: 'og:url', content: 'https://yukihirop.github.io/kirox/' }],
   ],
 
   markdown: {
