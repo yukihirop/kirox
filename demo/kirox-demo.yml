@@ -18,12 +18,12 @@ config:
   # Explicitly set the number of columns
   # or use `auto` to take the current
   # number of columns of your shell
-  cols: 184
-  
+  cols: 90
+
   # Explicitly set the number of rows
   # or use `auto` to take the current
   # number of rows of your shell
-  rows: 49
+  rows: 25
   
   # Amount of times to repeat GIF
   # If value is -1, play once
@@ -38,11 +38,11 @@ config:
   # Delay between frames in ms
   # If the value is `auto` use the actual recording delays
   frameDelay: auto
-  
+
   # Maximum delay between frames in ms
   # Ignored if the `frameDelay` isn't set to `auto`
   # Set to `auto` to prevent limiting the max idle time
-  maxIdleTime: 2000
+  maxIdleTime: 800
   
   # The surrounding frame box
   # The `type` can be null, window, floating, or solid`
@@ -79,10 +79,10 @@ config:
   fontFamily: "Monaco, Lucida Console, Ubuntu Mono, Monospace"
   
   # The size of the font
-  fontSize: 16
-  
+  fontSize: 20
+
   # The height of lines
-  lineHeight: 1
+  lineHeight: 1.3
   
   # The spacing between letters
   letterSpacing: 0
@@ -237,3 +237,5 @@ records:
     content: "[INFO] 2025-10-26T03:32:11 Fetching file contents {\"count\":4}\r\n"
   - delay: 310
     content: "\e[36m[simple-kanban-board-b] [1/4] \U0001F4E5 Fetching .kiro/specs/simple-kanban-board-b/spec.json...\e[39m\r\n\e[32m✓ Saved: .kiro/specs/simple-kanban-board-b/spec.json\e[39m\r\n\e[36m[simple-kanban-board-b] [2/4] \U0001F4E5 Fetching .kiro/specs/simple-kanban-board-b/requirements.md...\e[39m\r\n\e[32m✓ Saved: .kiro/specs/simple-kanban-board-b/requirements.md\e[39m\r\n\e[36m[simple-kanban-board-b] [3/4] \U0001F4E5 Fetching .kiro/specs/simple-kanban-board-b/design.md...\e[39m\r\n\e[32m✓ Saved: .kiro/specs/simple-kanban-board-b/design.md\e[39m\r\n\e[36m[simple-kanban-board-b] [4/4] \U0001F4E5 Fetching .kiro/specs/simple-kanban-board-b/tasks.md...\e[39m\r\n\e[32m✓ Saved: .kiro/specs/simple-kanban-board-b/tasks.md\e[39m\r\n\e[36m[simple-kanban-board-b] Completed: 4 files succeeded, 0 files failed\e[39m\r\n\r\nSummary:\r\n\e[36m  Fetched from: lib/a\e[39m\r\n\e[36m  Source: (branch: test)\e[39m\r\n\e[32m  12 files succeeded\e[39m\r\n\e[31m  0 files failed\e[39m\r\n\e[36m\e[39m\r\n\e[36m=== Overall Summary ===\e[39m\r\n\e[36mProjects: 2\e[39m\r\n\e[36mTotal files: 12\e[39m\r\n\e[36mSucceeded: 12 files\e[39m\r\n\e[36mFailed: 0 files\e[39m\r\n[INFO] 2025-10-26T03:32:12 Execution completed {\"filesDownloaded\":12,\"filesFailed\":0,\"total\":12}\r\n\e[1G\e[0K⠙\e[1G\e[0K\e[?2004hMac:kirox yukihirop$ "
+  - delay: 5000
+    content: "\e[?2004hMac:kirox yukihirop$ "
