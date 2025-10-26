@@ -1,248 +1,248 @@
 ---
-title: add コマンド
-description: プロジェクトを追加するサブコマンド
+title: add Command
+description: Subcommand to add projects
 ---
 
-# add コマンド
+# add Command
 
-既存のローカルプロジェクトに新しいプロジェクトを追加します。
+Adds new projects to existing local projects.
 
-## 構文
+## Syntax
 
 ```bash
 npx kirox add [<owner/repo>[#branch]] [options]
 ```
 
-## 概要
+## Overview
 
-`add`サブコマンドは、既存の`.kiro/`ディレクトリに新しいプロジェクトを追加します。メインコマンド（`kirox`）との違いは、既存のステアリングファイルを保持する点です。
+The `add` subcommand adds new projects to an existing `.kiro/` directory. The difference from the main command (`kirox`) is that it preserves existing steering files.
 
-**主な違い**:
-- **`kirox`**: ステアリングファイルも含めてすべて取得
-- **`add`**: 指定したプロジェクトのみを追加し、ステアリングは既存のものを保持
+**Key Differences**:
+- **`kirox`**: Fetches everything including steering files
+- **`add`**: Adds only specified projects and preserves existing steering
 
-## 引数
+## Arguments
 
 ### `<owner/repo>[#branch]`
 
-GitHubリポジトリを指定します（オプション）。
+Specify a GitHub repository (optional).
 
-**形式**:
-- `owner/repo`: リポジトリのみ指定（デフォルトブランチを使用）
-- `owner/repo#branch`: ブランチも指定
+**Format**:
+- `owner/repo`: Specify repository only (uses default branch)
+- `owner/repo#branch`: Specify branch as well
 
-**例**:
+**Examples**:
 ```bash
 npx kirox add yukihirop/my-project -p new-project
 npx kirox add yukihirop/my-project#develop -p new-project
 ```
 
-**省略時**: インタラクティブモードで対話形式で入力
+**When omitted**: Interactive mode prompts for input
 
-## オプション
+## Options
 
-`add`コマンドは、`kirox`コマンドと同じオプションをサポートします（`--steering`を除く）。
+The `add` command supports the same options as the `kirox` command (except `--steering`).
 
 ### `-p, --project <projects>`
 
-追加するプロジェクト名を指定します（カンマ区切りで複数指定可）。
+Specify project name(s) to add (comma-separated for multiple).
 
-**型**: `string`
+**Type**: `string`
 
-**例**:
+**Examples**:
 ```bash
-# 単一プロジェクトを追加
+# Add single project
 npx kirox add yukihirop/my-project -p new-project
 
-# 複数プロジェクトを追加
+# Add multiple projects
 npx kirox add yukihirop/my-project -p project1,project2
 ```
 
 ### `-f, --force`
 
-既存ファイルを確認なしで上書きします。
+Overwrite existing files without confirmation.
 
-**型**: `boolean`
-**デフォルト**: `false`
+**Type**: `boolean`
+**Default**: `false`
 
-**例**:
+**Example**:
 ```bash
 npx kirox add yukihirop/my-project -p new-project --force
 ```
 
 ### `--dry-run`
 
-ファイル書き込みをシミュレートし、追加するファイルを表示します。
+Simulate file writing and display which files would be added.
 
-**型**: `boolean`
-**デフォルト**: `false`
+**Type**: `boolean`
+**Default**: `false`
 
-**例**:
+**Example**:
 ```bash
 npx kirox add yukihirop/my-project -p new-project --dry-run
 ```
 
 ### `--verbose`
 
-詳細なログを表示します。
+Display detailed logs.
 
-**型**: `boolean`
-**デフォルト**: `false`
+**Type**: `boolean`
+**Default**: `false`
 
-**例**:
+**Example**:
 ```bash
 npx kirox add yukihirop/my-project -p new-project --verbose
 ```
 
 ### `--track`
 
-リモートリポジトリの変更を追跡します。
+Track changes in remote repository.
 
-**型**: `boolean`
-**デフォルト**: `false`
+**Type**: `boolean`
+**Default**: `false`
 
-**例**:
+**Example**:
 ```bash
 npx kirox add yukihirop/my-project -p new-project --track
 ```
 
 ### `--subdirectory <path>`
 
-リポジトリ内のサブディレクトリから`.kiro/`ファイルを取得します。
+Fetch `.kiro/` files from a subdirectory within the repository.
 
-**型**: `string`
+**Type**: `string`
 
-**例**:
+**Example**:
 ```bash
 npx kirox add yukihirop/monorepo -p new-project --subdirectory backend
 ```
 
 ### `-c, --config <path>`
 
-設定ファイルのパスを指定します。
+Specify configuration file path.
 
-**型**: `string`
-**デフォルト**: `.kiroxrc.json`
+**Type**: `string`
+**Default**: `.kiroxrc.json`
 
-**例**:
+**Example**:
 ```bash
 npx kirox add yukihirop/my-project -p new-project --config custom-config.json
 ```
 
 ### `-h, --help`
 
-ヘルプメッセージを表示します。
+Display help message.
 
-**例**:
+**Example**:
 ```bash
 npx kirox add --help
 ```
 
-## インタラクティブモード
+## Interactive Mode
 
-引数とオプションを省略して実行すると、対話形式で設定できます。
+Run without arguments and options to configure interactively.
 
 ```bash
 npx kirox add
 ```
 
-**プロンプト**:
-1. **リポジトリ入力**: `owner/repo`形式で入力
-2. **ブランチ選択**: 利用可能なブランチを検索可能なチェックボックスで選択（オプション）
-3. **サブディレクトリ選択**: 検出されたサブディレクトリから選択（オプション）
-4. **プロジェクト選択**: 利用可能なプロジェクトを検索可能なチェックボックスで選択（複数選択可）
+**Prompts**:
+1. **Repository input**: Enter in `owner/repo` format
+2. **Branch selection**: Select from available branches with searchable checkbox (optional)
+3. **Subdirectory selection**: Select from detected subdirectories (optional)
+4. **Project selection**: Select from available projects with searchable checkbox (multiple selection available)
 
-## 使用例
+## Usage Examples
 
-### 基本的な使い方
+### Basic Usage
 
-既存のローカルプロジェクトに新しいプロジェクトを追加：
+Add new project to existing local project:
 
 ```bash
-# 現在の状態
+# Current state
 .kiro/
 ├── specs/
 │   └── api-spec/
 └── steering/
 
-# 新しいプロジェクトを追加
+# Add new project
 npx kirox add yukihirop/my-project -p web-spec
 
-# 追加後
+# After addition
 .kiro/
 ├── specs/
-│   ├── api-spec/     # 既存
-│   └── web-spec/     # 新規追加
-└── steering/         # 変更なし
+│   ├── api-spec/     # Existing
+│   └── web-spec/     # Newly added
+└── steering/         # Unchanged
 ```
 
-### 複数プロジェクトを追加
+### Add Multiple Projects
 
 ```bash
 npx kirox add yukihirop/my-project -p mobile-spec,infra-spec
 ```
 
-### ブランチ指定で追加
+### Add with Branch Specification
 
 ```bash
 npx kirox add yukihirop/my-project#develop -p new-project
 ```
 
-### サブディレクトリから追加
+### Add from Subdirectory
 
 ```bash
 npx kirox add yukihirop/monorepo -p new-project --subdirectory frontend
 ```
 
-### インタラクティブモードで追加
+### Add in Interactive Mode
 
 ```bash
 $ npx kirox add
 
-? リポジトリを入力: yukihirop/my-project
-? ブランチを選択（検索可能）: main
-? サブディレクトリを選択: (スキップ)
-? プロジェクトを選択（検索可能、複数選択可）:
+? Enter repository: yukihirop/my-project
+? Select branch (searchable): main
+? Select subdirectory: (skip)
+? Select projects (searchable, multiple selection):
   ☑ web-spec
   ☑ mobile-spec
   ☐ infra-spec
 ```
 
-## kiroxコマンドとの比較
+## Comparison with kirox Command
 
-| 特徴 | `kirox` | `kirox add` |
+| Feature | `kirox` | `kirox add` |
 |------|---------|-------------|
-| ステアリング取得 | ✓ | ✗ |
-| プロジェクト追加 | ✓ | ✓ |
-| 既存ステアリング保持 | ✗ | ✓ |
-| 用途 | 初回セットアップ | 追加のプロジェクト取得 |
+| Fetch steering | ✓ | ✗ |
+| Add projects | ✓ | ✓ |
+| Preserve existing steering | ✗ | ✓ |
+| Use case | Initial setup | Fetch additional projects |
 
-## 実行フロー
+## Execution Flow
 
-1. **既存`.kiro/`ディレクトリの確認**: 存在しない場合は警告
-2. **設定読み込み**: `.kiroxrc.json`またはカスタム設定ファイル
-3. **GitHub API認証**: `GITHUB_TOKEN`環境変数（オプション）
-4. **リポジトリ情報取得**: ブランチ、サブディレクトリ、プロジェクト一覧
-5. **プロジェクトファイル取得**: 指定したプロジェクトのみ取得
-6. **ファイル書き込み**: ローカル`.kiro/specs/`に保存
-7. **サマリー表示**: 成功・失敗ファイル数を表示
+1. **Check existing `.kiro/` directory**: Warns if it doesn't exist
+2. **Load configuration**: `.kiroxrc.json` or custom config file
+3. **GitHub API authentication**: `GITHUB_TOKEN` environment variable (optional)
+4. **Fetch repository information**: Branch, subdirectory, project list
+5. **Fetch project files**: Fetch only specified projects
+6. **Write files**: Save to local `.kiro/specs/`
+7. **Display summary**: Show success/failure file counts
 
-::: tip ヒント
-`.kiro/`ディレクトリが存在しない場合は、まず`kirox`コマンドで初回セットアップを行ってください。
+::: tip Tip
+If the `.kiro/` directory doesn't exist, first perform initial setup with the `kirox` command.
 :::
 
-## 終了コード
+## Exit Codes
 
-| コード | 説明 |
+| Code | Description |
 |-------|------|
-| `0` | 成功 |
-| `1` | 引数エラー |
-| `2` | GitHub APIエラー |
-| `3` | ファイルシステムエラー |
-| `4` | 設定エラー |
+| `0` | Success |
+| `1` | Argument error |
+| `2` | GitHub API error |
+| `3` | Filesystem error |
+| `4` | Configuration error |
 
-## 関連ページ
+## Related Pages
 
-- [kirox コマンド](/cli/kirox): メインコマンドの詳細
-- [基本的な使い方](/guide/basic-usage): 基本的なコマンド使用方法
-- [高度な使い方](/guide/advanced-usage): 設定ファイル、ブランチ指定、サブディレクトリ対応
+- [kirox command](/cli/kirox): Details on main command
+- [Basic Usage](/guide/basic-usage): Basic command usage
+- [Advanced Usage](/guide/advanced-usage): Configuration files, branch specification, subdirectory support

@@ -1,49 +1,49 @@
 ---
-title: completion コマンド
-description: シェル補完スクリプト生成コマンド
+title: completion Command
+description: Shell completion script generation command
 ---
 
-# completion コマンド
+# completion Command
 
-シェル補完スクリプトを出力します。bash、zsh、fish、PowerShell、elvishに対応しています。
+Outputs shell completion scripts. Supports bash, zsh, fish, PowerShell, and elvish.
 
-## 構文
+## Syntax
 
 ```bash
 npx kirox completion <shell>
 ```
 
-## 引数
+## Arguments
 
 ### `<shell>`
 
-シェルの種類を指定します（必須）。
+Specify the shell type (required).
 
-**サポートされているシェル**:
+**Supported Shells**:
 - `bash`
 - `zsh`
 - `fish`
 - `powershell`
 - `elvish`
 
-## 使用方法
+## Usage
 
 ### bash
 
 ```bash
-# 補完スクリプトを生成
+# Generate completion script
 npx kirox completion bash > /etc/bash_completion.d/kirox
 
-# または、ユーザーディレクトリに配置
+# Or place in user directory
 npx kirox completion bash > ~/.bash_completion.d/kirox
 
-# 有効化
+# Enable
 source /etc/bash_completion.d/kirox
-# または
+# or
 source ~/.bash_completion.d/kirox
 ```
 
-**永続化**: `.bashrc`に以下を追加
+**Persistence**: Add to `.bashrc`
 ```bash
 if [ -f ~/.bash_completion.d/kirox ]; then
   source ~/.bash_completion.d/kirox
@@ -53,74 +53,74 @@ fi
 ### zsh
 
 ```bash
-# 補完スクリプトを生成
+# Generate completion script
 npx kirox completion zsh > ~/.zsh/completion/_kirox
 
-# compinit前に補完ディレクトリを追加
-# .zshrcに以下を追加
+# Add completion directory to fpath before compinit
+# Add to .zshrc
 fpath=(~/.zsh/completion $fpath)
 autoload -Uz compinit && compinit
 ```
 
-**Oh My Zsh使用時**:
+**With Oh My Zsh**:
 ```bash
-# Oh My Zshのカスタムプラグインディレクトリに配置
+# Place in Oh My Zsh custom plugin directory
 mkdir -p ~/.oh-my-zsh/custom/plugins/kirox
 npx kirox completion zsh > ~/.oh-my-zsh/custom/plugins/kirox/_kirox
 
-# .zshrcのpluginsに追加
+# Add to plugins in .zshrc
 plugins=(... kirox)
 ```
 
 ### fish
 
 ```bash
-# 補完スクリプトを生成
+# Generate completion script
 npx kirox completion fish > ~/.config/fish/completions/kirox.fish
 
-# fishは自動的に補完を読み込みます
-# シェルを再起動するか、以下を実行
+# fish automatically loads completions
+# Restart shell or run
 source ~/.config/fish/completions/kirox.fish
 ```
 
 ### PowerShell
 
 ```bash
-# 補完スクリプトを生成
+# Generate completion script
 npx kirox completion powershell > kirox.ps1
 
-# プロファイルに追加
-# プロファイルパスを確認
+# Add to profile
+# Check profile path
 echo $PROFILE
 
-# プロファイルに補完スクリプトを追加
+# Add completion script to profile
 Add-Content $PROFILE ". path\to\kirox.ps1"
 
-# または、直接プロファイルに書き込む
+# Or write directly to profile
 npx kirox completion powershell >> $PROFILE
 ```
 
 ### elvish
 
 ```bash
-# 補完スクリプトを生成
+# Generate completion script
 npx kirox completion elvish > ~/.elvish/lib/kirox.elv
 
-# rc.elvに以下を追加
+# Add to rc.elv
 use kirox
 ```
 
-## 補完される内容
+## Completion Content
 
-シェル補完により、以下が自動補完されます：
+Shell completion auto-completes the following:
 
-### コマンド
+### Commands
 
 - `kirox`
 - `add`
 - `completion`
 
-### オプション
+### Options
 
 - `--project`, `-p`
 - `--force`, `-f`
@@ -133,7 +133,7 @@ use kirox
 - `--help`, `-h`
 - `--version`, `-V`
 
-### シェル名（completionコマンド）
+### Shell Names (completion command)
 
 - `bash`
 - `zsh`
@@ -141,36 +141,36 @@ use kirox
 - `powershell`
 - `elvish`
 
-## 使用例
+## Usage Examples
 
-### 補完の動作確認
+### Testing Completion
 
-補完が正しく設定されると、以下のように動作します：
+When completion is properly configured, it works as follows:
 
 ```bash
-# コマンド補完
+# Command completion
 $ npx kirox [TAB]
 add        completion
 
-# オプション補完
+# Option completion
 $ npx kirox --[TAB]
 --project      --force        --dry-run
 --verbose      --track        --steering
 --subdirectory --config       --help
 --version
 
-# シェル名補完
+# Shell name completion
 $ npx kirox completion [TAB]
 bash       zsh        fish
 powershell elvish
 ```
 
-## トラブルシューティング
+## Troubleshooting
 
-### 補完が動作しない（bash）
+### Completion Not Working (bash)
 
-**確認事項**:
-1. bash-completionがインストールされているか確認
+**Check**:
+1. Verify bash-completion is installed
 ```bash
 # macOS (Homebrew)
 brew install bash-completion
@@ -179,58 +179,58 @@ brew install bash-completion
 apt-get install bash-completion
 ```
 
-2. bash-completionが有効化されているか確認（`.bashrc`に以下を追加）
+2. Verify bash-completion is enabled (add to `.bashrc`)
 ```bash
 if [ -f /etc/bash_completion ]; then
   . /etc/bash_completion
 fi
 ```
 
-3. シェルを再起動
+3. Restart shell
 ```bash
 exec bash
 ```
 
-### 補完が動作しない（zsh）
+### Completion Not Working (zsh)
 
-**確認事項**:
-1. compinit が実行されているか確認（`.zshrc`に以下を追加）
+**Check**:
+1. Verify compinit is executed (add to `.zshrc`)
 ```bash
 autoload -Uz compinit && compinit
 ```
 
-2. 補完ディレクトリがfpathに含まれているか確認
+2. Verify completion directory is in fpath
 ```bash
 echo $fpath
 ```
 
-3. 補完キャッシュをリセット
+3. Reset completion cache
 ```bash
 rm ~/.zcompdump*
 exec zsh
 ```
 
-### 補完が動作しない（fish）
+### Completion Not Working (fish)
 
-**確認事項**:
-1. 補完ファイルのパスが正しいか確認
+**Check**:
+1. Verify completion file path is correct
 ```bash
 ls ~/.config/fish/completions/kirox.fish
 ```
 
-2. fishを再起動
+2. Restart fish
 ```bash
 exec fish
 ```
 
-## 手動での補完設定
+## Manual Completion Setup
 
-補完スクリプトの自動生成がうまくいかない場合、手動で設定することもできます。
+If automatic completion script generation doesn't work, you can set it up manually.
 
-### bash（手動）
+### bash (manual)
 
 ```bash
-# .bashrcに以下を追加
+# Add to .bashrc
 _kirox_completion() {
   local cur="${COMP_WORDS[COMP_CWORD]}"
   local prev="${COMP_WORDS[COMP_CWORD-1]}"
@@ -250,8 +250,8 @@ _kirox_completion() {
 complete -F _kirox_completion kirox
 ```
 
-## 関連ページ
+## Related Pages
 
-- [kirox コマンド](/cli/kirox): メインコマンドの詳細
-- [add コマンド](/cli/add): addサブコマンドの詳細
-- [はじめに](/guide/getting-started): インストール方法と初期設定
+- [kirox command](/cli/kirox): Details on main command
+- [add command](/cli/add): Details on add subcommand
+- [Getting Started](/guide/getting-started): Installation and initial setup

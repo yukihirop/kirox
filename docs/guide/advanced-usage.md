@@ -1,17 +1,17 @@
 ---
-title: 高度な使い方
-description: Kirox CLIの高度な機能と設定
+title: Advanced Usage
+description: Advanced features and configuration for Kirox CLI
 ---
 
-# 高度な使い方
+# Advanced Usage
 
-Kirox CLIの高度な機能と設定について説明します。
+This guide explains the advanced features and configuration of Kirox CLI.
 
-## 設定ファイル（.kiroxrc.json）
+## Configuration File (.kiroxrc.json)
 
-プロジェクトルートに`.kiroxrc.json`ファイルを配置することで、デフォルト設定をカスタマイズできます。
+You can customize default settings by placing a `.kiroxrc.json` file in your project root.
 
-### 設定ファイルの作成
+### Creating a Configuration File
 
 ```json
 {
@@ -23,130 +23,130 @@ Kirox CLIの高度な機能と設定について説明します。
 }
 ```
 
-### 設定項目
+### Configuration Options
 
-| 項目 | 型 | 説明 |
+| Option | Type | Description |
 |------|------|------|
-| `defaultRepository` | `string` | デフォルトのリポジトリ（`owner/repo`形式） |
-| `defaultProjects` | `string[]` | デフォルトのプロジェクト一覧 |
-| `force` | `boolean` | 上書き確認をスキップ（デフォルト: `false`） |
-| `verbose` | `boolean` | 詳細ログを表示（デフォルト: `false`） |
-| `track` | `boolean` | 更新追跡を有効化（デフォルト: `false`） |
+| `defaultRepository` | `string` | Default repository (`owner/repo` format) |
+| `defaultProjects` | `string[]` | List of default projects |
+| `force` | `boolean` | Skip overwrite confirmation (default: `false`) |
+| `verbose` | `boolean` | Display verbose logs (default: `false`) |
+| `track` | `boolean` | Enable update tracking (default: `false`) |
 
-### 優先順位
+### Priority Order
 
-設定の優先順位は以下の通りです（上が優先）：
+Configuration priority is as follows (higher takes precedence):
 
-1. コマンドラインオプション
-2. `.kiroxrc.json`設定ファイル
-3. 環境変数
-4. デフォルト値
+1. Command-line options
+2. `.kiroxrc.json` configuration file
+3. Environment variables
+4. Default values
 
-## ブランチ指定
+## Branch Specification
 
-リポジトリのブランチを指定してファイルを取得できます。
+You can specify a repository branch to fetch files from.
 
-### ブランチ指定の構文
+### Branch Specification Syntax
 
 ```bash
 npx kirox owner/repo#branch -p project-name
 ```
 
-### 例
+### Examples
 
 ```bash
-# developブランチから取得
+# Fetch from develop branch
 npx kirox yukihirop/my-project#develop -p api-spec
 
-# feature/新機能ブランチから取得
+# Fetch from feature/new-feature branch
 npx kirox yukihirop/my-project#feature/new-feature -p api-spec
 ```
 
-### インタラクティブモードでのブランチ選択
+### Branch Selection in Interactive Mode
 
-インタラクティブモードでは、利用可能なブランチを検索可能なチェックボックスで選択できます：
+In interactive mode, you can select from available branches with a searchable checkbox:
 
 ```bash
 $ npx kirox
 
-? リポジトリを入力: yukihirop/my-project
-? ブランチを選択（検索可能）:
+? Enter repository: yukihirop/my-project
+? Select branch (searchable):
   ❯ ◯ main
     ◯ develop
     ◯ feature/new-feature
 ```
 
-## サブディレクトリ対応
+## Subdirectory Support
 
-リポジトリ内のサブディレクトリから`.kiro`ファイルを取得できます。
+You can fetch `.kiro` files from subdirectories within a repository.
 
-### サブディレクトリの指定
+### Specifying a Subdirectory
 
 ```bash
 npx kirox owner/repo -p project-name --subdirectory path/to/subdir
 ```
 
-### 例
+### Examples
 
 ```bash
-# モノレポ内のbackendディレクトリから取得
+# Fetch from backend directory in monorepo
 npx kirox yukihirop/monorepo -p api-spec --subdirectory backend
 
-# フロントエンドとバックエンドの両方から取得
+# Fetch from both frontend and backend
 npx kirox yukihirop/monorepo -p web-spec --subdirectory frontend
 npx kirox yukihirop/monorepo -p api-spec --subdirectory backend
 ```
 
-### インタラクティブモードでのサブディレクトリ選択
+### Subdirectory Selection in Interactive Mode
 
-インタラクティブモードでは、検出されたサブディレクトリを自動的に提示します：
+In interactive mode, detected subdirectories are automatically suggested:
 
 ```bash
 $ npx kirox
 
-? リポジトリを入力: yukihirop/monorepo
-? サブディレクトリを選択:
+? Enter repository: yukihirop/monorepo
+? Select subdirectory:
   ❯ ◯ backend
     ◯ frontend
     ◯ packages/core
 ```
 
-## 複数プロジェクトの管理
+## Managing Multiple Projects
 
-### addサブコマンド
+### add Subcommand
 
-既存のローカルプロジェクトに新しいプロジェクトを追加します：
+Add new projects to an existing local project:
 
 ```bash
 npx kirox add owner/repo -p new-project
 ```
 
-インタラクティブモードでも使用可能：
+Also available in interactive mode:
 
 ```bash
 npx kirox add
 ```
 
-### プロジェクト提案機能
+### Project Suggestion Feature
 
-インタラクティブモードでは、リポジトリ内の利用可能なプロジェクトを自動検出して提案します：
+In interactive mode, available projects in the repository are automatically detected and suggested:
 
 ```bash
 $ npx kirox
 
-? リポジトリを入力: yukihirop/my-project
-? プロジェクトを選択（検索可能、複数選択可）:
+? Enter repository: yukihirop/my-project
+? Select projects (searchable, multiple selection):
   ❯ ☑ api-spec
     ☑ web-spec
     ☐ mobile-spec
     ☐ infra-spec
 ```
 
-## シェル補完
+## Shell Completion
 
-bash、zsh、fish、PowerShell、elvishでのシェル補完をサポートしています。
+Support for shell completion in bash, zsh, fish, PowerShell, and elvish.
 
-### 補完スクリプトの生成
+### Generating Completion Scripts
 
 ```bash
 # bash
@@ -165,65 +165,65 @@ npx kirox completion powershell > kirox.ps1
 npx kirox completion elvish > ~/.elvish/lib/kirox.elv
 ```
 
-### 補完の有効化
+### Enabling Completion
 
 ```bash
 # bash
 source /etc/bash_completion.d/kirox
 
-# zsh (compinit実行後)
+# zsh (after running compinit)
 source ~/.zsh/completion/_kirox
 
 # fish
-# 自動的に読み込まれます
+# Automatically loaded
 ```
 
-## 環境変数
+## Environment Variables
 
 ### GITHUB_TOKEN
 
-GitHub API認証に使用します：
+Used for GitHub API authentication:
 
 ```bash
 export GITHUB_TOKEN=ghp_your_token_here
 ```
 
-プライベートリポジトリへのアクセスや、レート制限の緩和に必要です。
+Required for accessing private repositories or relaxing rate limits.
 
 ### NODE_ENV
 
-実行環境を指定します：
+Specify the execution environment:
 
 ```bash
-export NODE_ENV=development  # または production、test
+export NODE_ENV=development  # or production, test
 ```
 
 ### DEBUG
 
-デバッグログを有効化します：
+Enable debug logging:
 
 ```bash
 export DEBUG=kirox:*
 npx kirox owner/repo -p project-name
 ```
 
-## パフォーマンス最適化
+## Performance Optimization
 
-### 並列ファイル取得
+### Parallel File Fetching
 
-Kirox CLIは最大5並列でファイルを取得します。これにより、大量のファイル取得時に約80%の時間短縮を実現します。
+Kirox CLI fetches up to 5 files in parallel. This achieves approximately 80% time reduction when fetching large numbers of files.
 
-### レート制限対応
+### Rate Limit Handling
 
-GitHub APIのレート制限を自動的に検出し、適切に対応します：
+Automatically detects and responds to GitHub API rate limits:
 
-- **認証なし**: 60リクエスト/時
-- **認証あり**: 5,000リクエスト/時
+- **Without authentication**: 60 requests/hour
+- **With authentication**: 5,000 requests/hour
 
-大量のファイルを取得する場合は、`GITHUB_TOKEN`を設定することを推奨します。
+When fetching large numbers of files, it is recommended to set `GITHUB_TOKEN`.
 
-## 次のステップ
+## Next Steps
 
-- [トラブルシューティング](/guide/troubleshooting): よくある問題と解決方法
-- [設定リファレンス](/config/kiroxrc): .kiroxrc.jsonの詳細設定
-- [API仕様](/api/): Kirox CLIのAPI仕様
+- [Troubleshooting](/guide/troubleshooting): Common issues and solutions
+- [Configuration Reference](/config/kiroxrc): Detailed .kiroxrc.json configuration
+- [API Specification](/api/): Kirox CLI API specification

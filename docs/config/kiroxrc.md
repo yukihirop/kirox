@@ -1,118 +1,118 @@
 ---
 title: .kiroxrc.json
-description: Kirox CLI設定ファイルのリファレンス
+description: Kirox CLI configuration file reference
 ---
 
 # .kiroxrc.json
 
-Kirox CLIの設定ファイルのリファレンスです。
+Reference for the Kirox CLI configuration file.
 
-## 概要
+## Overview
 
-`.kiroxrc.json`は、Kirox CLIのデフォルト動作を定義する設定ファイルです。プロジェクトルートに配置することで、コマンド実行時の設定を省略できます。
+`.kiroxrc.json` is a configuration file that defines default behavior for Kirox CLI. By placing it in the project root, you can omit settings when executing commands.
 
-## ファイル形式
+## File Format
 
-**形式**: JSON
-**配置場所**: プロジェクトルート
-**ファイル名**: `.kiroxrc.json`
+**Format**: JSON
+**Location**: Project root
+**Filename**: `.kiroxrc.json`
 
-## 設定項目
+## Configuration Options
 
 ### defaultRepository
 
-デフォルトのGitHubリポジトリを指定します。
+Specifies the default GitHub repository.
 
-**型**: `string`
-**形式**: `owner/repo`
-**デフォルト**: なし（未設定）
+**Type**: `string`
+**Format**: `owner/repo`
+**Default**: None (not set)
 
-**例**:
+**Example**:
 ```json
 {
   "defaultRepository": "yukihirop/my-project"
 }
 ```
 
-**動作**: リポジトリ引数を省略した場合に使用されます。
+**Behavior**: Used when the repository argument is omitted.
 
 ```bash
-# defaultRepository設定あり
+# With defaultRepository set
 npx kirox -p api-spec
-# => yukihirop/my-project から api-spec を取得
+# => Fetches api-spec from yukihirop/my-project
 
-# defaultRepository設定なし
+# Without defaultRepository set
 npx kirox -p api-spec
-# => エラー: リポジトリを指定してください
+# => Error: Please specify repository
 ```
 
 ### defaultProjects
 
-デフォルトのプロジェクト一覧を指定します。
+Specifies the default project list.
 
-**型**: `string[]`
-**デフォルト**: なし（未設定）
+**Type**: `string[]`
+**Default**: None (not set)
 
-**例**:
+**Example**:
 ```json
 {
   "defaultProjects": ["api-spec", "web-spec", "mobile-spec"]
 }
 ```
 
-**動作**: `--project`オプションを省略した場合に使用されます。
+**Behavior**: Used when the `--project` option is omitted.
 
 ```bash
-# defaultProjects設定あり
+# With defaultProjects set
 npx kirox yukihirop/my-project
-# => api-spec, web-spec, mobile-spec を取得
+# => Fetches api-spec, web-spec, mobile-spec
 
-# defaultProjects設定なし
+# Without defaultProjects set
 npx kirox yukihirop/my-project
-# => インタラクティブモードでプロジェクト選択
+# => Interactive mode for project selection
 ```
 
 ### force
 
-既存ファイルの上書き確認をスキップします。
+Skips overwrite confirmation for existing files.
 
-**型**: `boolean`
-**デフォルト**: `false`
+**Type**: `boolean`
+**Default**: `false`
 
-**例**:
+**Example**:
 ```json
 {
   "force": true
 }
 ```
 
-**動作**:
-- `true`: 既存ファイルを確認なしで上書き
-- `false`: 既存ファイルがある場合、確認プロンプトを表示
+**Behavior**:
+- `true`: Overwrite existing files without confirmation
+- `false`: Display confirmation prompt if existing files exist
 
-::: warning 注意
-`force: true`は既存ファイルを警告なしで上書きします。本番環境での使用には注意が必要です。
+::: warning Warning
+`force: true` overwrites existing files without warning. Use with caution in production environments.
 :::
 
 ### verbose
 
-詳細ログを表示します。
+Displays detailed logs.
 
-**型**: `boolean`
-**デフォルト**: `false`
+**Type**: `boolean`
+**Default**: `false`
 
-**例**:
+**Example**:
 ```json
 {
   "verbose": true
 }
 ```
 
-**動作**:
-- `true`: 詳細なログを表示
-- `false`: 通常のログのみ表示
+**Behavior**:
+- `true`: Display detailed logs
+- `false`: Display normal logs only
 
-**ログ例**:
+**Log Example**:
 ```
 [DEBUG] Loading config from .kiroxrc.json
 [DEBUG] Fetching repository: yukihirop/my-project
@@ -122,25 +122,25 @@ npx kirox yukihirop/my-project
 
 ### track
 
-更新追跡を有効化します。
+Enables update tracking.
 
-**型**: `boolean`
-**デフォルト**: `false`
+**Type**: `boolean`
+**Default**: `false`
 
-**例**:
+**Example**:
 ```json
 {
   "track": true
 }
 ```
 
-**動作**:
-- `true`: リモートリポジトリの変更を追跡し、変更があったファイルのみを取得
-- `false`: すべてのファイルを毎回取得
+**Behavior**:
+- `true`: Track remote repository changes and fetch only changed files
+- `false`: Fetch all files every time
 
-## 完全な設定例
+## Complete Configuration Examples
 
-### 基本設定
+### Basic Configuration
 
 ```json
 {
@@ -152,9 +152,9 @@ npx kirox yukihirop/my-project
 }
 ```
 
-### チーム開発用設定
+### Team Development Configuration
 
-複数プロジェクトを自動取得し、更新追跡を有効化：
+Automatically fetch multiple projects and enable update tracking:
 
 ```json
 {
@@ -166,9 +166,9 @@ npx kirox yukihirop/my-project
 }
 ```
 
-### CI/CD用設定
+### CI/CD Configuration
 
-強制上書きと詳細ログを有効化：
+Enable force overwrite and detailed logging:
 
 ```json
 {
@@ -180,9 +180,9 @@ npx kirox yukihirop/my-project
 }
 ```
 
-### 個人開発用設定
+### Personal Development Configuration
 
-シンプルな設定で強制上書き：
+Simple configuration with force overwrite:
 
 ```json
 {
@@ -194,39 +194,39 @@ npx kirox yukihirop/my-project
 }
 ```
 
-## 設定の優先順位
+## Configuration Priority
 
-設定は以下の優先順位で適用されます（上が優先）：
+Configuration is applied in the following priority order (higher takes precedence):
 
-1. **コマンドラインオプション**
+1. **Command-line options**
    ```bash
    npx kirox owner/repo -p project --force --verbose
    ```
 
-2. **`.kiroxrc.json`設定ファイル**
+2. **`.kiroxrc.json` configuration file**
    ```json
    { "force": false, "verbose": false }
    ```
 
-3. **環境変数**
+3. **Environment variables**
    ```bash
    export GITHUB_TOKEN=ghp_...
    ```
 
-4. **デフォルト値**
+4. **Default values**
    ```typescript
    { force: false, verbose: false, track: false }
    ```
 
-## カスタム設定ファイル
+## Custom Configuration File
 
-デフォルトの`.kiroxrc.json`以外の設定ファイルを使用する場合：
+To use a configuration file other than the default `.kiroxrc.json`:
 
 ```bash
 npx kirox owner/repo -p project --config custom-config.json
 ```
 
-**カスタム設定ファイルの例** (`team-config.json`):
+**Custom configuration file example** (`team-config.json`):
 ```json
 {
   "defaultRepository": "company/team-repo",
@@ -237,59 +237,59 @@ npx kirox owner/repo -p project --config custom-config.json
 }
 ```
 
-## 設定ファイルの検証
+## Configuration File Validation
 
-設定ファイルの形式が正しいか確認するには、`--verbose`オプションで実行します：
+To verify the configuration file format is correct, run with the `--verbose` option:
 
 ```bash
 npx kirox owner/repo -p project --verbose
 ```
 
-**出力例**:
+**Sample Output**:
 ```
 [DEBUG] Loading config from .kiroxrc.json
 [DEBUG] Config loaded: { defaultRepository: 'yukihirop/my-project', ... }
 ```
 
-## トラブルシューティング
+## Troubleshooting
 
-### 設定ファイルが読み込まれない
+### Configuration File Not Loading
 
-**原因**: ファイル名のスペルミスやJSON形式エラー
+**Cause**: Filename spelling error or JSON format error
 
-**解決方法**:
-1. ファイル名を確認（`.kiroxrc.json`）
-2. JSON形式を検証：
+**Solution**:
+1. Verify filename (`.kiroxrc.json`)
+2. Validate JSON format:
    ```bash
    cat .kiroxrc.json | jq .
    ```
 
-### 設定が反映されない
+### Configuration Not Applied
 
-**原因**: コマンドラインオプションが設定ファイルを上書き
+**Cause**: Command-line options override configuration file
 
-**解決方法**:
-1. コマンドラインオプションを確認
-2. `--verbose`オプションで設定を確認
+**Solution**:
+1. Verify command-line options
+2. Check configuration with `--verbose` option
 
-### JSON構文エラー
+### JSON Syntax Error
 
-**エラーメッセージ**:
+**Error Message**:
 ```
 Error: Invalid JSON in .kiroxrc.json
 ```
 
-**解決方法**:
-1. JSONリンターで検証
-2. コンマ、括弧、引用符を確認
+**Solution**:
+1. Validate with JSON linter
+2. Check commas, brackets, quotes
 
-## ベストプラクティス
+## Best Practices
 
-### チーム開発
+### Team Development
 
-- `.kiroxrc.json`をバージョン管理に含める
-- チーム全体で共通の設定を使用
-- プロジェクト固有の設定を定義
+- Include `.kiroxrc.json` in version control
+- Use common configuration across team
+- Define project-specific settings
 
 ```json
 {
@@ -299,10 +299,10 @@ Error: Invalid JSON in .kiroxrc.json
 }
 ```
 
-### 個人開発
+### Personal Development
 
-- `.kiroxrc.json`を`.gitignore`に追加（個人設定の場合）
-- 頻繁に使用するリポジトリとプロジェクトを設定
+- Add `.kiroxrc.json` to `.gitignore` (for personal settings)
+- Configure frequently used repositories and projects
 
 ```json
 {
@@ -312,10 +312,10 @@ Error: Invalid JSON in .kiroxrc.json
 }
 ```
 
-### CI/CD環境
+### CI/CD Environment
 
-- 強制上書きと詳細ログを有効化
-- 更新追跡は無効化（毎回クリーンな状態で取得）
+- Enable force overwrite and detailed logging
+- Disable update tracking (fetch clean state every time)
 
 ```json
 {
@@ -325,8 +325,8 @@ Error: Invalid JSON in .kiroxrc.json
 }
 ```
 
-## 関連ページ
+## Related Pages
 
-- [設定ガイド](/config/): 設定の概要
-- [高度な使い方](/guide/advanced-usage): 設定ファイルの活用方法
-- [CLI リファレンス](/cli/): コマンドとオプションの詳細
+- [Configuration Guide](/config/): Configuration overview
+- [Advanced Usage](/guide/advanced-usage): How to utilize configuration files
+- [CLI Reference](/cli/): Details on commands and options

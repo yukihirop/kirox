@@ -161,3 +161,54 @@
   - リンク切れ検出スクリプトを追加（将来拡張）
   - プルリクエストテンプレートにドキュメント更新確認項目を追加
   - _Requirements: 6.3, 6.5_
+
+
+## 修正タスク
+
+- [x] 9. VitePressドキュメントの言語を英語に修正
+- [x] 9.1 VitePress設定ファイルの言語設定を英語に変更
+  - docs/.vitepress/config.tsのlang設定を'ja-JP'から'en'に変更
+  - サイトタイトルと説明を英語に変更
+  - ナビゲーションメニュー項目を英語に変更（Guide, CLI Reference, API, Config）
+  - サイドバー項目のテキストを英語に変更
+  - フッターメッセージを英語に変更
+  - _Requirements: 1.2, 2.2_
+
+- [x] 9.2 ホームページとガイドセクションの英語化
+  - docs/index.mdのコンテンツを英語に翻訳
+  - docs/guide/index.mdを英語に翻訳
+  - docs/guide/getting-started.mdを英語に翻訳
+  - docs/guide/basic-usage.mdを英語に翻訳
+  - docs/guide/advanced-usage.mdを英語に翻訳
+  - docs/guide/troubleshooting.mdを英語に翻訳
+  - 各ページのフロントマター（title、description）を英語に変更
+  - _Requirements: 2.1, 2.3_
+
+- [x] 9.3 CLIリファレンスセクションの英語化
+  - docs/cli/index.mdを英語に翻訳
+  - docs/cli/kirox.mdを英語に翻訳
+  - docs/cli/add.mdを英語に翻訳
+  - docs/cli/completion.mdを英語に翻訳
+  - カスタムコンテナ（tip、warning、danger）のテキストを英語に変更
+  - _Requirements: 2.4_
+
+- [x] 9.4 API仕様とConfigセクションの英語化
+  - docs/api/index.mdを英語に翻訳
+  - docs/api/github-fetcher.mdを英語に翻訳
+  - docs/api/filesystem-writer.mdを英語に翻訳
+  - docs/config/index.mdを英語に翻訳
+  - docs/config/kiroxrc.mdを英語に翻訳
+  - _Requirements: 2.5_
+
+- [x] 9.5 README.mdとCONTRIBUTING.mdのドキュメントセクション更新
+  - README.mdのDocumentationセクションを確認（既に英語）
+  - CONTRIBUTING.mdが既に英語であることを確認
+  - 必要に応じて日本語コメントを英語に変更
+  - _Requirements: 6.1_
+
+- [x] 9.6 ビルドとデプロイメントの検証
+  - 英語化後のドキュメントビルドが成功することを確認
+  - リンク切れがないことを確認
+  - sitemap.xmlが正しく生成されることを確認
+  - ローカル開発サーバーで全ページが正しく表示されることを確認
+  - _Requirements: 5.1, 5.2_

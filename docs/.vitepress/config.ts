@@ -5,7 +5,7 @@ export default defineConfig({
   title: 'Kirox',
   description: 'CLI tool to fetch Kiro specification and steering files from remote GitHub repositories',
   base: '/kirox/',
-  lang: 'ja-JP',
+  lang: 'en',
 
   // Sitemap configuration for SEO
   sitemap: {
@@ -27,30 +27,30 @@ export default defineConfig({
     logo: '/logo.png',
 
     nav: [
-      { text: 'ガイド', link: '/guide/' },
-      { text: 'CLI リファレンス', link: '/cli/' },
-      { text: 'API 仕様', link: '/api/' },
-      { text: '設定', link: '/config/' }
+      { text: 'Guide', link: '/guide/' },
+      { text: 'CLI Reference', link: '/cli/' },
+      { text: 'API', link: '/api/' },
+      { text: 'Config', link: '/config/' }
     ],
 
     sidebar: {
       '/guide/': [
         {
-          text: 'ガイド',
+          text: 'Guide',
           items: [
-            { text: '概要', link: '/guide/' },
-            { text: 'はじめに', link: '/guide/getting-started' },
-            { text: '基本的な使い方', link: '/guide/basic-usage' },
-            { text: '高度な使い方', link: '/guide/advanced-usage' },
-            { text: 'トラブルシューティング', link: '/guide/troubleshooting' }
+            { text: 'Overview', link: '/guide/' },
+            { text: 'Getting Started', link: '/guide/getting-started' },
+            { text: 'Basic Usage', link: '/guide/basic-usage' },
+            { text: 'Advanced Usage', link: '/guide/advanced-usage' },
+            { text: 'Troubleshooting', link: '/guide/troubleshooting' }
           ]
         }
       ],
       '/cli/': [
         {
-          text: 'CLI リファレンス',
+          text: 'CLI Reference',
           items: [
-            { text: '概要', link: '/cli/' },
+            { text: 'Overview', link: '/cli/' },
             { text: 'kirox', link: '/cli/kirox' },
             { text: 'add', link: '/cli/add' },
             { text: 'completion', link: '/cli/completion' }
@@ -59,9 +59,9 @@ export default defineConfig({
       ],
       '/api/': [
         {
-          text: 'API 仕様',
+          text: 'API',
           items: [
-            { text: '概要', link: '/api/' },
+            { text: 'Overview', link: '/api/' },
             { text: 'GitHub Fetcher', link: '/api/github-fetcher' },
             { text: 'FileSystem Writer', link: '/api/filesystem-writer' }
           ]
@@ -69,9 +69,9 @@ export default defineConfig({
       ],
       '/config/': [
         {
-          text: '設定',
+          text: 'Config',
           items: [
-            { text: '概要', link: '/config/' },
+            { text: 'Overview', link: '/config/' },
             { text: '.kiroxrc.json', link: '/config/kiroxrc' }
           ]
         }

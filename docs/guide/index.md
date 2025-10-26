@@ -1,34 +1,34 @@
 ---
-title: ガイド
-description: Kirox CLIの使い方ガイド
+title: Guide
+description: User guide for Kirox CLI
 ---
 
-# ガイド
+# Guide
 
-Kirox CLIは、リモートGitHubリポジトリからKiro仕様書とステアリングファイルを取得するnpxコマンドラインツールです。
+Kirox CLI is an npx command-line tool to fetch Kiro specification and steering files from remote GitHub repositories.
 
-## ガイド一覧
+## Guide Index
 
-### [はじめに](/guide/getting-started)
-Kirox CLIのインストール方法と初期設定について説明します。
+### [Getting Started](/guide/getting-started)
+Learn how to install and set up Kirox CLI.
 
-### [基本的な使い方](/guide/basic-usage)
-Kirox CLIの基本的なコマンドとオプションの使い方を学びます。
+### [Basic Usage](/guide/basic-usage)
+Learn the basic commands and options of Kirox CLI.
 
-### [高度な使い方](/guide/advanced-usage)
-設定ファイル、ブランチ指定、サブディレクトリ対応などの高度な機能を活用します。
+### [Advanced Usage](/guide/advanced-usage)
+Utilize advanced features such as configuration files, branch specification, and subdirectory support.
 
-### [トラブルシューティング](/guide/troubleshooting)
-よくある問題とその解決方法を紹介します。
+### [Troubleshooting](/guide/troubleshooting)
+Explore common issues and their solutions.
 
-## 主な特徴
+## Key Features
 
-- **npx即時実行**: グローバルインストール不要
-- **上書き保護**: 既存ファイルの確認プロンプト
-- **進捗可視化**: リアルタイムでファイル取得状況を表示
-- **柔軟な設定**: .kiroxrc.jsonによる動作カスタマイズ
-- **エラーハンドリング**: 明確なエラーメッセージと対応策
+- **Instant execution with npx**: No global installation required
+- **Overwrite protection**: Confirmation prompt for existing files
+- **Progress visualization**: Real-time display of file fetching progress
+- **Flexible configuration**: Customize behavior with .kiroxrc.json
+- **Error handling**: Clear error messages and solutions
 
-## 次のステップ
+## Next Steps
 
-初めての方は[はじめに](/guide/getting-started)から読み始めることをお勧めします。
+For beginners, we recommend starting with [Getting Started](/guide/getting-started).

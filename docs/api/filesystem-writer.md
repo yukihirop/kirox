@@ -1,39 +1,39 @@
 ---
 title: FileSystem Writer API
-description: ファイルシステム操作モジュールのAPI仕様
+description: Filesystem operations module API specification
 ---
 
 # FileSystem Writer API
 
-ローカルファイルシステムにファイルを書き込むモジュールのAPI仕様です。
+API specification for the module that writes files to the local filesystem.
 
-## 概要
+## Overview
 
-FileSystem Writer (`src/filesystem/`)は、ローカルファイルシステムへの書き込みを担当するレイヤーです。
+FileSystem Writer (`src/filesystem/`) is the layer responsible for writing to the local filesystem.
 
-**主要機能**:
-- ローカルファイルシステムへの書き込み
-- ディレクトリの自動作成（`.kiro/specs/`, `.kiro/steering/`）
-- 既存ファイル上書き確認プロンプト
-- --dry-runモードの処理（書き込みスキップ）
+**Key Features**:
+- Writing to local filesystem
+- Automatic directory creation (`.kiro/specs/`, `.kiro/steering/`)
+- Existing file overwrite confirmation prompt
+- --dry-run mode processing (skip writing)
 
-## ディレクトリ構造
+## Directory Structure
 
 ```
 src/filesystem/
-├── writer.ts          # FileWriter: ファイル書き込みメインロジック
-├── prompt.ts          # PromptService: 対話的プロンプト（上書き確認）
-├── path-utils.ts      # パス変換ユーティリティ（リモート→ローカル）
-└── types.ts           # ファイルシステム層の型定義（WriteOptions等）
+├── writer.ts          # FileWriter: Main file writing logic
+├── prompt.ts          # PromptService: Interactive prompts (overwrite confirmation)
+├── path-utils.ts      # Path conversion utilities (remote→local)
+└── types.ts           # Filesystem layer type definitions (WriteOptions, etc.)
 ```
 
-## 主要クラスとインターフェース
+## Main Classes and Interfaces
 
 ### FileWriter
 
-ファイルを書き込むメインクラスです。
+Main class for writing files.
 
-#### コンストラクタ
+#### Constructor
 
 ```typescript
 class FileWriter {
@@ -41,14 +41,14 @@ class FileWriter {
 }
 ```
 
-**パラメータ**:
-- `options`: ライターオプション
+**Parameters**:
+- `options`: Writer options
 
-#### メソッド
+#### Methods
 
 ##### writeFiles()
 
-複数のファイルをローカルファイルシステムに書き込みます。
+Writes multiple files to the local filesystem.
 
 ```typescript
 async writeFiles(
@@ -57,13 +57,13 @@ async writeFiles(
 ): Promise<WriteResult[]>
 ```
 
-**パラメータ**:
-- `files`: 書き込むファイルの配列
-- `options`: 書き込みオプション（オプション）
+**Parameters**:
+- `files`: Array of files to write
+- `options`: Write options (optional)
 
-**戻り値**: `WriteResult[]` - 書き込み結果の配列
+**Return Value**: `WriteResult[]` - Array of write results
 
-**例**:
+**Example**:
 ```typescript
 const writer = new FileWriter({ force: false, dryRun: false });
 const results = await writer.writeFiles([
@@ -74,7 +74,7 @@ const results = await writer.writeFiles([
 
 ##### writeFile()
 
-単一のファイルを書き込みます。
+Writes a single file.
 
 ```typescript
 async writeFile(
@@ -84,29 +84,29 @@ async writeFile(
 ): Promise<WriteResult>
 ```
 
-**パラメータ**:
-- `filePath`: ファイルパス
-- `content`: ファイルコンテンツ
-- `options`: 書き込みオプション（オプション）
+**Parameters**:
+- `filePath`: File path
+- `content`: File content
+- `options`: Write options (optional)
 
-**戻り値**: `WriteResult` - 書き込み結果
+**Return Value**: `WriteResult` - Write result
 
 ##### ensureDirectory()
 
-ディレクトリが存在することを確認し、存在しない場合は作成します。
+Ensures a directory exists, creating it if it doesn't.
 
 ```typescript
 async ensureDirectory(dirPath: string): Promise<void>
 ```
 
-**パラメータ**:
-- `dirPath`: ディレクトリパス
+**Parameters**:
+- `dirPath`: Directory path
 
-## 型定義
+## Type Definitions
 
 ### FileContent
 
-ファイルコンテンツを表します。
+Represents file content.
 
 ```typescript
 interface FileContent {
@@ -116,14 +116,14 @@ interface FileContent {
 }
 ```
 
-**プロパティ**:
-- `path`: ファイルパス
-- `content`: ファイルコンテンツ
-- `mode`: ファイルモード（オプション、デフォルト: `0o644`）
+**Properties**:
+- `path`: File path
+- `content`: File content
+- `mode`: File mode (optional, default: `0o644`)
 
 ### WriteResult
 
-ファイル書き込み結果を表します。
+Represents file write result.
 
 ```typescript
 interface WriteResult {
@@ -135,44 +135,44 @@ interface WriteResult {
 }
 ```
 
-**プロパティ**:
-- `path`: ファイルパス
-- `success`: 書き込み成功フラグ
-- `action`: 実行されたアクション
-  - `created`: 新規作成
-  - `updated`: 上書き更新
-  - `skipped`: スキップ（dry-runまたはユーザーが拒否）
-- `error`: エラーメッセージ（書き込み失敗時）
-- `size`: 書き込んだファイルサイズ（バイト）
+**Properties**:
+- `path`: File path
+- `success`: Write success flag
+- `action`: Executed action
+  - `created`: Newly created
+  - `updated`: Overwritten
+  - `skipped`: Skipped (dry-run or user declined)
+- `error`: Error message (on write failure)
+- `size`: Written file size (bytes)
 
 ### WriterOptions
 
-ライターオプションを表します。
+Represents writer options.
 
 ```typescript
 interface WriterOptions {
-  force?: boolean;      // 上書き確認をスキップ（デフォルト: false）
-  dryRun?: boolean;     // ドライランモード（デフォルト: false）
-  verbose?: boolean;    // 詳細ログ（デフォルト: false）
+  force?: boolean;      // Skip overwrite confirmation (default: false)
+  dryRun?: boolean;     // Dry-run mode (default: false)
+  verbose?: boolean;    // Verbose logging (default: false)
 }
 ```
 
 ### WriteOptions
 
-書き込みオプションを表します（個別ファイル用）。
+Represents write options (for individual files).
 
 ```typescript
 interface WriteOptions {
-  overwrite?: boolean;  // 既存ファイルを上書き
-  skipPrompt?: boolean; // 上書き確認プロンプトをスキップ
+  overwrite?: boolean;  // Overwrite existing file
+  skipPrompt?: boolean; // Skip overwrite confirmation prompt
 }
 ```
 
-## プロンプトサービス
+## Prompt Service
 
 ### PromptService
 
-対話的プロンプトを提供するサービスです。
+Service providing interactive prompts.
 
 ```typescript
 class PromptService {
@@ -183,14 +183,14 @@ class PromptService {
 
 #### confirmOverwrite()
 
-単一ファイルの上書き確認を行います。
+Confirms overwrite for a single file.
 
-**パラメータ**:
-- `filePath`: ファイルパス
+**Parameters**:
+- `filePath`: File path
 
-**戻り値**: `boolean` - `true`: 上書き、`false`: スキップ
+**Return Value**: `boolean` - `true`: Overwrite, `false`: Skip
 
-**例**:
+**Example**:
 ```typescript
 const prompt = new PromptService();
 const shouldOverwrite = await prompt.confirmOverwrite('.kiro/specs/api-spec/requirements.md');
@@ -198,24 +198,24 @@ const shouldOverwrite = await prompt.confirmOverwrite('.kiro/specs/api-spec/requ
 
 #### confirmOverwriteAll()
 
-すべてのファイルに対する上書きアクションを確認します。
+Confirms overwrite action for all files.
 
-**戻り値**: `OverwriteAction`
+**Return Value**: `OverwriteAction`
 
 ```typescript
 type OverwriteAction = 'yes' | 'no' | 'all' | 'none';
 ```
 
-- `yes`: このファイルのみ上書き
-- `no`: このファイルをスキップ
-- `all`: すべて上書き
-- `none`: すべてスキップ
+- `yes`: Overwrite this file only
+- `no`: Skip this file
+- `all`: Overwrite all
+- `none`: Skip all
 
-## パスユーティリティ
+## Path Utilities
 
 ### PathUtils
 
-パス変換ユーティリティを提供します。
+Provides path conversion utilities.
 
 ```typescript
 class PathUtils {
@@ -228,7 +228,7 @@ class PathUtils {
 
 #### normalize()
 
-パスを正規化します。
+Normalizes a path.
 
 ```typescript
 const normalized = PathUtils.normalize('.kiro/specs//api-spec/requirements.md');
@@ -237,18 +237,18 @@ const normalized = PathUtils.normalize('.kiro/specs//api-spec/requirements.md');
 
 #### join()
 
-複数のパスを結合します。
+Joins multiple paths.
 
 ```typescript
 const joined = PathUtils.join('.kiro', 'specs', 'api-spec', 'requirements.md');
 // => '.kiro/specs/api-spec/requirements.md'
 ```
 
-## エラーハンドリング
+## Error Handling
 
 ### FileSystemError
 
-ファイルシステムエラーを表すカスタムエラークラスです。
+Custom error class representing filesystem errors.
 
 ```typescript
 class FileSystemError extends Error {
@@ -262,27 +262,27 @@ class FileSystemError extends Error {
 }
 ```
 
-**エラーコード**:
-- `EACCES`: 権限エラー
-- `ENOENT`: ファイルまたはディレクトリが見つからない
-- `EEXIST`: ファイルが既に存在
-- `ENOSPC`: ディスクスペース不足
+**Error Codes**:
+- `EACCES`: Permission error
+- `ENOENT`: File or directory not found
+- `EEXIST`: File already exists
+- `ENOSPC`: Disk space insufficient
 
-## 使用例
+## Usage Examples
 
-### 基本的な使い方
+### Basic Usage
 
 ```typescript
 import { FileWriter } from './filesystem/writer';
 
-// FileWriterの初期化
+// Initialize FileWriter
 const writer = new FileWriter({
   force: false,
   dryRun: false,
   verbose: true
 });
 
-// ファイルを書き込み
+// Write files
 const results = await writer.writeFiles([
   { path: '.kiro/specs/api-spec/requirements.md', content: '# Requirements' },
   { path: '.kiro/steering/tech.md', content: '# Tech Stack' }
@@ -297,12 +297,12 @@ results.forEach(result => {
 });
 ```
 
-### ドライランモード
+### Dry-Run Mode
 
 ```typescript
 const writer = new FileWriter({
   force: false,
-  dryRun: true,  // ドライランモード
+  dryRun: true,  // Dry-run mode
   verbose: true
 });
 
@@ -310,14 +310,14 @@ const results = await writer.writeFiles([
   { path: '.kiro/specs/api-spec/requirements.md', content: '...' }
 ]);
 
-// 出力例: [DRY RUN] Would create: .kiro/specs/api-spec/requirements.md
+// Sample output: [DRY RUN] Would create: .kiro/specs/api-spec/requirements.md
 ```
 
-### 強制上書き
+### Force Overwrite
 
 ```typescript
 const writer = new FileWriter({
-  force: true,   // 上書き確認をスキップ
+  force: true,   // Skip overwrite confirmation
   dryRun: false,
   verbose: false
 });
@@ -327,60 +327,60 @@ const results = await writer.writeFiles([
 ]);
 ```
 
-### 上書き確認プロンプト
+### Overwrite Confirmation Prompt
 
 ```typescript
 import { PromptService } from './filesystem/prompt';
 
 const prompt = new PromptService();
 
-// 単一ファイルの確認
+// Single file confirmation
 const shouldOverwrite = await prompt.confirmOverwrite('.kiro/specs/api-spec/requirements.md');
 
 if (shouldOverwrite) {
   await writer.writeFile('.kiro/specs/api-spec/requirements.md', content);
 }
 
-// すべてのファイルの確認
+// All files confirmation
 const action = await prompt.confirmOverwriteAll();
 
 switch (action) {
   case 'all':
-    // すべて上書き
+    // Overwrite all
     break;
   case 'none':
-    // すべてスキップ
+    // Skip all
     break;
   case 'yes':
-    // このファイルのみ上書き
+    // Overwrite this file only
     break;
   case 'no':
-    // このファイルをスキップ
+    // Skip this file
     break;
 }
 ```
 
-### ディレクトリの自動作成
+### Automatic Directory Creation
 
 ```typescript
 const writer = new FileWriter({ force: false, dryRun: false });
 
-// ディレクトリが存在しない場合は自動作成
+// Automatically create directory if it doesn't exist
 await writer.ensureDirectory('.kiro/specs/new-project');
 
-// ファイルを書き込み（ディレクトリは自動的に作成される）
+// Write file (directory is automatically created)
 await writer.writeFile('.kiro/specs/new-project/requirements.md', '# Requirements');
 ```
 
-## パフォーマンス
+## Performance
 
-### 書き込み速度
+### Write Speed
 
-- **単一ファイル**: 1ms未満（SSD環境）
-- **大量ファイル**: 100ファイル書き込み時1秒以内
-- **ディレクトリ作成**: 再帰的ディレクトリ作成で10ms以内
+- **Single file**: Less than 1ms (SSD environment)
+- **Large files**: Within 1 second for 100 files
+- **Directory creation**: Within 10ms for recursive directory creation
 
-## 関連ページ
+## Related Pages
 
-- [GitHub Fetcher API](/api/github-fetcher): GitHub連携の詳細
-- [API 仕様](/api/): API仕様の概要
+- [GitHub Fetcher API](/api/github-fetcher): Details on GitHub integration
+- [API Specification](/api/): API specification overview

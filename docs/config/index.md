@@ -1,23 +1,23 @@
 ---
-title: 設定
-description: Kirox CLIの設定ガイド
+title: Configuration
+description: Kirox CLI configuration guide
 ---
 
-# 設定
+# Configuration
 
-Kirox CLIの設定方法について説明します。
+This guide explains how to configure Kirox CLI.
 
-## 設定ファイル
+## Configuration File
 
-Kirox CLIは、プロジェクトルートに配置した`.kiroxrc.json`ファイルで動作をカスタマイズできます。
+Kirox CLI can customize its behavior with a `.kiroxrc.json` file placed in the project root.
 
 ### [.kiroxrc.json](/config/kiroxrc)
 
-プロジェクトのデフォルト設定を定義する設定ファイルです。
+Configuration file that defines project default settings.
 
-**配置場所**: プロジェクトルート
+**Location**: Project root
 
-**例**:
+**Example**:
 ```json
 {
   "defaultRepository": "yukihirop/my-project",
@@ -28,68 +28,68 @@ Kirox CLIは、プロジェクトルートに配置した`.kiroxrc.json`ファ�
 }
 ```
 
-## 設定の優先順位
+## Configuration Priority
 
-設定は以下の優先順位で適用されます（上が優先）：
+Configuration is applied in the following priority order (higher takes precedence):
 
-1. **コマンドラインオプション**: 実行時に指定したオプション
-2. **設定ファイル**: `.kiroxrc.json`の内容
-3. **環境変数**: `GITHUB_TOKEN`など
-4. **デフォルト値**: 組み込みのデフォルト値
+1. **Command-line options**: Options specified at runtime
+2. **Configuration file**: `.kiroxrc.json` contents
+3. **Environment variables**: `GITHUB_TOKEN`, etc.
+4. **Default values**: Built-in default values
 
-## 環境変数
+## Environment Variables
 
 ### GITHUB_TOKEN
 
-GitHub API認証に使用します。
+Used for GitHub API authentication.
 
 ```bash
 export GITHUB_TOKEN=ghp_your_token_here
 ```
 
-**用途**:
-- プライベートリポジトリへのアクセス
-- レート制限の緩和（60 → 5,000リクエスト/時）
+**Purpose**:
+- Access to private repositories
+- Relax rate limits (60 → 5,000 requests/hour)
 
-**取得方法**:
-1. [GitHub Settings → Developer settings → Personal access tokens](https://github.com/settings/tokens)
-2. "Generate new token (classic)"をクリック
-3. 以下のスコープを選択：
-   - `public_repo`: パブリックリポジトリ読み取り
-   - `repo`: プライベートリポジトリ読み取り（必要に応じて）
+**How to Obtain**:
+1. Go to [GitHub Settings → Developer settings → Personal access tokens](https://github.com/settings/tokens)
+2. Click "Generate new token (classic)"
+3. Select the following scopes:
+   - `public_repo`: Read public repositories
+   - `repo`: Read private repositories (if needed)
 
 ### NODE_ENV
 
-実行環境を指定します。
+Specifies the execution environment.
 
 ```bash
-export NODE_ENV=development  # または production、test
+export NODE_ENV=development  # or production, test
 ```
 
-**影響**: ログレベル、エラー詳細度
+**Effects**: Log level, error verbosity
 
 ### DEBUG
 
-デバッグログを有効化します。
+Enables debug logging.
 
 ```bash
 export DEBUG=kirox:*
 npx kirox owner/repo -p project-name
 ```
 
-## カスタム設定ファイル
+## Custom Configuration File
 
-デフォルトの`.kiroxrc.json`以外の設定ファイルを使用する場合は、`--config`オプションで指定します。
+To use a configuration file other than the default `.kiroxrc.json`, specify it with the `--config` option.
 
 ```bash
 npx kirox owner/repo -p project --config custom-config.json
 ```
 
-## 設定例
+## Configuration Examples
 
-### チーム開発の設定
+### Team Development Configuration
 
-チーム全体で共有するリポジトリを設定：
+Configure repository shared across team:
 
 ```json
 {
@@ -100,9 +100,9 @@ npx kirox owner/repo -p project --config custom-config.json
 }
 ```
 
-### 個人開発の設定
+### Personal Development Configuration
 
-個人プロジェクト用の設定：
+Configuration for personal projects:
 
 ```json
 {
@@ -113,9 +113,9 @@ npx kirox owner/repo -p project --config custom-config.json
 }
 ```
 
-### CI/CD環境の設定
+### CI/CD Environment Configuration
 
-CI/CD環境で使用する設定：
+Configuration for CI/CD environments:
 
 ```json
 {
@@ -127,7 +127,7 @@ CI/CD環境で使用する設定：
 }
 ```
 
-## 次のステップ
+## Next Steps
 
-- [.kiroxrc.json リファレンス](/config/kiroxrc): 設定項目の詳細
-- [高度な使い方](/guide/advanced-usage): 設定ファイルの活用方法
+- [.kiroxrc.json Reference](/config/kiroxrc): Details on configuration options
+- [Advanced Usage](/guide/advanced-usage): How to utilize configuration files

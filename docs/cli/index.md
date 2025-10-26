@@ -1,107 +1,107 @@
 ---
-title: CLI リファレンス
-description: Kirox CLIコマンドのリファレンス
+title: CLI Reference
+description: Reference for Kirox CLI commands
 ---
 
-# CLI リファレンス
+# CLI Reference
 
-Kirox CLIの全コマンドとオプションのリファレンスです。
+Reference for all Kirox CLI commands and options.
 
-## コマンド一覧
+## Command List
 
 ### [kirox](/cli/kirox)
-メインコマンド。GitHubリポジトリから`.kiro/`ファイルを取得します。
+Main command. Fetches `.kiro/` files from GitHub repositories.
 
 ```bash
 npx kirox <owner/repo> [options]
 ```
 
 ### [add](/cli/add)
-既存のローカルプロジェクトに新しいプロジェクトを追加します。
+Adds new projects to existing local projects.
 
 ```bash
 npx kirox add <owner/repo> [options]
 ```
 
 ### [completion](/cli/completion)
-シェル補完スクリプトを出力します。
+Outputs shell completion scripts.
 
 ```bash
 npx kirox completion <shell>
 ```
 
-## グローバルオプション
+## Global Options
 
-すべてのコマンドで使用できるオプション：
+Options available for all commands:
 
-| オプション | 短縮形 | 説明 |
+| Option | Short | Description |
 |-----------|--------|------|
-| `--help` | `-h` | ヘルプを表示 |
-| `--version` | `-V` | バージョンを表示 |
+| `--help` | `-h` | Display help |
+| `--version` | `-V` | Display version |
 
-## 共通オプション
+## Common Options
 
-`kirox`と`add`コマンドで使用できるオプション：
+Options available for `kirox` and `add` commands:
 
-| オプション | 短縮形 | 型 | 説明 |
+| Option | Short | Type | Description |
 |-----------|--------|------|------|
-| `--project` | `-p` | `string` | プロジェクト名（カンマ区切りで複数指定可） |
-| `--force` | `-f` | `boolean` | 上書き確認をスキップ |
-| `--dry-run` | | `boolean` | ファイル書き込みをシミュレート |
-| `--verbose` | | `boolean` | 詳細ログを表示 |
-| `--track` | | `boolean` | 更新追跡を有効化 |
-| `--steering` | | `boolean` | ステアリングのみ取得 |
-| `--subdirectory` | | `string` | サブディレクトリパス |
-| `--config` | `-c` | `string` | 設定ファイルパス |
+| `--project` | `-p` | `string` | Project name(s) (comma-separated for multiple) |
+| `--force` | `-f` | `boolean` | Skip overwrite confirmation |
+| `--dry-run` | | `boolean` | Simulate file writing |
+| `--verbose` | | `boolean` | Display detailed logs |
+| `--track` | | `boolean` | Enable update tracking |
+| `--steering` | | `boolean` | Fetch steering only |
+| `--subdirectory` | | `string` | Subdirectory path |
+| `--config` | `-c` | `string` | Configuration file path |
 
-## 実行例
+## Usage Examples
 
-### 基本的な使い方
+### Basic Usage
 
 ```bash
-# 特定のプロジェクトを取得
+# Fetch specific project
 npx kirox yukihirop/my-project -p api-spec
 
-# インタラクティブモード
+# Interactive mode
 npx kirox
 
-# ヘルプを表示
+# Display help
 npx kirox --help
 ```
 
-### オプション指定
+### With Options
 
 ```bash
-# 複数プロジェクトを取得
+# Fetch multiple projects
 npx kirox yukihirop/my-project -p api-spec,web-spec
 
-# ブランチ指定
+# Specify branch
 npx kirox yukihirop/my-project#develop -p api-spec
 
-# 上書き確認なし
+# No confirmation
 npx kirox yukihirop/my-project -p api-spec --force
 
-# ドライラン
+# Dry run
 npx kirox yukihirop/my-project -p api-spec --dry-run
 
-# 詳細ログ
+# Verbose logs
 npx kirox yukihirop/my-project -p api-spec --verbose
 ```
 
-### サブコマンド
+### Subcommands
 
 ```bash
-# プロジェクトを追加
+# Add project
 npx kirox add yukihirop/my-project -p new-project
 
-# シェル補完スクリプト生成
+# Generate shell completion scripts
 npx kirox completion bash > /etc/bash_completion.d/kirox
 npx kirox completion zsh > ~/.zsh/completion/_kirox
 npx kirox completion fish > ~/.config/fish/completions/kirox.fish
 ```
 
-## 次のステップ
+## Next Steps
 
-- [kirox コマンド](/cli/kirox): メインコマンドの詳細
-- [add コマンド](/cli/add): addサブコマンドの詳細
-- [completion コマンド](/cli/completion): completionサブコマンドの詳細
+- [kirox command](/cli/kirox): Details on main command
+- [add command](/cli/add): Details on add subcommand
+- [completion command](/cli/completion): Details on completion subcommand

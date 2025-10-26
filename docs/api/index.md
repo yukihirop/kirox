@@ -1,15 +1,15 @@
 ---
-title: API 仕様
-description: Kirox CLIのAPI仕様
+title: API Specification
+description: Kirox CLI API specification
 ---
 
-# API 仕様
+# API Specification
 
-Kirox CLIの主要モジュールのAPI仕様です。
+API specification for Kirox CLI's major modules.
 
-## アーキテクチャ概要
+## Architecture Overview
 
-Kirox CLIは、Layer-Based Architectureを採用しています：
+Kirox CLI adopts a Layer-Based Architecture:
 
 ```
 CLI Layer (src/cli/)
@@ -21,66 +21,66 @@ File System Layer (src/filesystem/)
 Reporting Layer (src/reporting/)
 ```
 
-## 主要モジュール
+## Major Modules
 
 ### [GitHub Fetcher](/api/github-fetcher)
-GitHubリポジトリからファイルを取得するモジュールです。
+Module for fetching files from GitHub repositories.
 
-**責任範囲**:
-- GitHub APIとの通信
-- リポジトリコンテンツの取得
-- base64エンコードされたコンテンツのデコード
-- 並列ファイル取得とセマフォ制御
-- レート制限の監視と対応
+**Responsibilities**:
+- Communication with GitHub API
+- Fetching repository content
+- Decoding base64-encoded content
+- Parallel file fetching and semaphore control
+- Rate limit monitoring and handling
 
 ### [FileSystem Writer](/api/filesystem-writer)
-ローカルファイルシステムにファイルを書き込むモジュールです。
+Module for writing files to the local filesystem.
 
-**責任範囲**:
-- ローカルファイルシステムへの書き込み
-- ディレクトリの自動作成
-- 既存ファイル上書き確認プロンプト
-- --dry-runモードの処理
+**Responsibilities**:
+- Writing to local filesystem
+- Automatic directory creation
+- Existing file overwrite confirmation prompt
+- --dry-run mode processing
 
-## アーキテクチャ原則
+## Architecture Principles
 
 ### 1. Single Responsibility Principle (SRP)
-各コンポーネントは単一の責任を持ちます。
+Each component has a single responsibility.
 
 ### 2. Dependency Inversion Principle (DIP)
-上位層は抽象（インターフェース）に依存し、具象に依存しません。
+Upper layers depend on abstractions (interfaces), not on concrete implementations.
 
 ### 3. Layer Isolation
-レイヤー間の直接依存を最小化し、GitHub層とFileSystem層は互いに依存しません。
+Minimize direct dependencies between layers; GitHub and FileSystem layers don't depend on each other.
 
-## 開発ガイドライン
+## Development Guidelines
 
 ### TypeScript
-- **厳格な型チェック**: `strict: true`
-- **`any`禁止**: 明示的な型定義を強制
-- **関数の戻り値型明記**: 推論に頼らず明示的に指定
+- **Strict type checking**: `strict: true`
+- **No `any`**: Enforce explicit type definitions
+- **Explicit return types**: Explicitly specify function return types instead of relying on inference
 
 ### Naming
-- **関数**: 動詞から始めるキャメルケース（`fetchFiles`, `validateInput`）
-- **クラス**: 名詞のパスカルケース（`GitHubFetcher`, `ProgressReporter`）
-- **定数**: アッパースネークケース（`MAX_CONCURRENCY`, `DEFAULT_CONFIG`）
+- **Functions**: Camel case starting with verbs (`fetchFiles`, `validateInput`)
+- **Classes**: Noun-based Pascal case (`GitHubFetcher`, `ProgressReporter`)
+- **Constants**: Upper snake case (`MAX_CONCURRENCY`, `DEFAULT_CONFIG`)
 
 ### Error Handling
-- **カスタムエラークラス**: ドメイン固有のエラー型を定義
-- **エラーの適切な伝播**: try-catchで握りつぶさない
+- **Custom error classes**: Define domain-specific error types
+- **Proper error propagation**: Don't suppress errors with try-catch
 
 ### Async/Await
-- **Promiseチェーン禁止**: async/awaitを優先
-- **並列処理**: `Promise.all()` / `Promise.allSettled()` 使用
+- **No Promise chains**: Prefer async/await
+- **Parallel processing**: Use `Promise.all()` / `Promise.allSettled()`
 
-## パフォーマンス
+## Performance
 
-- **並列ファイル取得**: 最大5並列
-- **大量ファイル取得**: 50ファイル取得時30秒以内
-- **メモリ使用量**: 100ファイル取得時100MB以内
-- **レート制限回避**: 100ファイル取得時にGitHub APIレート制限に抵触しない
+- **Parallel file fetching**: Max 5 concurrent
+- **Large file fetching**: Within 30 seconds for 50 files
+- **Memory usage**: Within 100MB for 100 files
+- **Rate limit avoidance**: No GitHub API rate limit violation for 100 files
 
-## 次のステップ
+## Next Steps
 
-- [GitHub Fetcher API](/api/github-fetcher): GitHub連携の詳細
-- [FileSystem Writer API](/api/filesystem-writer): ファイルシステム操作の詳細
+- [GitHub Fetcher API](/api/github-fetcher): Details on GitHub integration
+- [FileSystem Writer API](/api/filesystem-writer): Details on filesystem operations

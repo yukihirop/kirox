@@ -1,100 +1,100 @@
 ---
-title: 基本的な使い方
-description: Kirox CLIの基本的なコマンドとオプション
+title: Basic Usage
+description: Basic commands and options for Kirox CLI
 ---
 
-# 基本的な使い方
+# Basic Usage
 
-Kirox CLIの基本的なコマンドとオプションについて説明します。
+This guide explains the basic commands and options of Kirox CLI.
 
-## 基本コマンド
+## Basic Commands
 
-### リポジトリからファイルを取得
+### Fetch Files from Repository
 
 ```bash
 npx kirox <owner/repo> -p <project-name>
 ```
 
-**例**:
+**Example**:
 ```bash
 npx kirox yukihirop/my-project -p my-spec
 ```
 
-これにより、以下のファイルが取得されます：
-- `.kiro/specs/my-spec/` 配下のすべてのファイル
-- `.kiro/steering/` 配下のすべてのファイル
+This will fetch:
+- All files under `.kiro/specs/my-spec/`
+- All files under `.kiro/steering/`
 
-### インタラクティブモード
+### Interactive Mode
 
-オプションなしで実行すると、対話形式で設定できます：
+Running without options allows interactive configuration:
 
 ```bash
 npx kirox
 ```
 
-## 主要オプション
+## Main Options
 
-### プロジェクト指定 (`-p, --project`)
+### Project Specification (`-p, --project`)
 
-取得するプロジェクトを指定します：
+Specify the project(s) to fetch:
 
 ```bash
-# 単一プロジェクト
+# Single project
 npx kirox owner/repo -p project1
 
-# 複数プロジェクト（カンマ区切り）
+# Multiple projects (comma-separated)
 npx kirox owner/repo -p project1,project2,project3
 ```
 
-### 更新追跡 (`--track`)
+### Update Tracking (`--track`)
 
-リモートリポジトリの変更を追跡します：
+Track changes in the remote repository:
 
 ```bash
 npx kirox owner/repo -p project1 --track
 ```
 
-デフォルトは`false`です。`--track`を指定すると、次回実行時に変更があったファイルのみを取得します。
+Default is `false`. When `--track` is specified, only changed files will be fetched on subsequent runs.
 
-### ステアリングのみ取得 (`--steering`)
+### Fetch Steering Only (`--steering`)
 
-`.kiro/steering/`のみを取得し、プロジェクト仕様をスキップします：
+Fetch only `.kiro/steering/` and skip project specifications:
 
 ```bash
 npx kirox owner/repo --steering
 ```
 
-### 上書き確認スキップ (`-f, --force`)
+### Skip Overwrite Confirmation (`-f, --force`)
 
-既存ファイルを確認なしで上書きします：
+Overwrite existing files without confirmation:
 
 ```bash
 npx kirox owner/repo -p project1 --force
 ```
 
-::: warning 注意
-`--force`オプションは既存ファイルを警告なしで上書きします。使用には注意が必要です。
+::: warning Warning
+The `--force` option overwrites existing files without warning. Use with caution.
 :::
 
-### ドライラン (`--dry-run`)
+### Dry Run (`--dry-run`)
 
-実際にファイルを書き込まず、取得するファイルを確認します：
+Preview which files would be fetched without actually writing them:
 
 ```bash
 npx kirox owner/repo -p project1 --dry-run
 ```
 
-### 詳細ログ (`--verbose`)
+### Verbose Logging (`--verbose`)
 
-詳細なログを表示します：
+Display detailed logs:
 
 ```bash
 npx kirox owner/repo -p project1 --verbose
 ```
 
-## 実行例
+## Usage Examples
 
-### 基本的な取得
+### Basic Fetch
 
 ```bash
 $ npx kirox yukihirop/my-project -p api-spec
@@ -111,7 +111,7 @@ Summary:
   Failed: 0 files
 ```
 
-### 複数プロジェクトの取得
+### Fetch Multiple Projects
 
 ```bash
 $ npx kirox yukihirop/my-project -p api-spec,web-spec
@@ -125,7 +125,7 @@ Summary:
   Failed: 0 files
 ```
 
-### ドライランで確認
+### Preview with Dry Run
 
 ```bash
 $ npx kirox yukihirop/my-project -p api-spec --dry-run
@@ -140,23 +140,23 @@ $ npx kirox yukihirop/my-project -p api-spec --dry-run
 No files were written (dry run mode).
 ```
 
-## ヘルプの表示
+## Display Help
 
-コマンドのヘルプを表示：
+Display command help:
 
 ```bash
 npx kirox --help
 ```
 
-サブコマンドのヘルプを表示：
+Display subcommand help:
 
 ```bash
 npx kirox add --help
 npx kirox completion --help
 ```
 
-## 次のステップ
+## Next Steps
 
-- [高度な使い方](/guide/advanced-usage): 設定ファイル、ブランチ指定、サブディレクトリ対応
-- [CLI リファレンス](/cli/): 全コマンドとオプションの詳細
-- [トラブルシューティング](/guide/troubleshooting): よくある問題と解決方法
+- [Advanced Usage](/guide/advanced-usage): Configuration files, branch specification, subdirectory support
+- [CLI Reference](/cli/): Details on all commands and options
+- [Troubleshooting](/guide/troubleshooting): Common issues and solutions

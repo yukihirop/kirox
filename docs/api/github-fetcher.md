@@ -1,40 +1,40 @@
 ---
 title: GitHub Fetcher API
-description: GitHub連携モジュールのAPI仕様
+description: GitHub integration module API specification
 ---
 
 # GitHub Fetcher API
 
-GitHubリポジトリからファイルを取得するモジュールのAPI仕様です。
+API specification for the module that fetches files from GitHub repositories.
 
-## 概要
+## Overview
 
-GitHub Fetcher (`src/github/`)は、GitHub REST APIを使用してリポジトリコンテンツを取得するレイヤーです。
+GitHub Fetcher (`src/github/`) is a layer that retrieves repository content using the GitHub REST API.
 
-**主要機能**:
-- リポジトリコンテンツの取得（ディレクトリ一覧、ファイルコンテンツ）
-- base64エンコードされたコンテンツのデコード
-- 並列ファイル取得とセマフォ制御
-- レート制限の監視と対応
+**Key Features**:
+- Fetch repository content (directory listings, file content)
+- Decode base64-encoded content
+- Parallel file fetching and semaphore control
+- Rate limit monitoring and handling
 
-## ディレクトリ構造
+## Directory Structure
 
 ```
 src/github/
-├── fetcher.ts        # GitHubFetcher: ファイル取得のメインロジック
-├── client.ts         # Octokitクライアント初期化と認証
-├── semaphore.ts      # セマフォによる並列度制御ユーティリティ
-├── rate-limit.ts     # レート制限チェックとモニタリング
-└── types.ts          # GitHub層の型定義（FetchResult, FileContent等）
+├── fetcher.ts        # GitHubFetcher: Main file fetching logic
+├── client.ts         # Octokit client initialization and authentication
+├── semaphore.ts      # Semaphore for concurrency control utility
+├── rate-limit.ts     # Rate limit checking and monitoring
+└── types.ts          # GitHub layer type definitions (FetchResult, FileContent, etc.)
 ```
 
-## 主要クラスとインターフェース
+## Main Classes and Interfaces
 
 ### GitHubFetcher
 
-リポジトリからファイルを取得するメインクラスです。
+Main class for fetching files from repositories.
 
-#### コンストラクタ
+#### Constructor
 
 ```typescript
 class GitHubFetcher {
@@ -45,15 +45,15 @@ class GitHubFetcher {
 }
 ```
 
-**パラメータ**:
-- `octokit`: Octokitインスタンス
-- `options`: フェッチャーオプション
+**Parameters**:
+- `octokit`: Octokit instance
+- `options`: Fetcher options
 
-#### メソッド
+#### Methods
 
 ##### fetchFiles()
 
-指定したリポジトリからファイルを取得します。
+Fetches files from the specified repository.
 
 ```typescript
 async fetchFiles(
@@ -64,15 +64,15 @@ async fetchFiles(
 ): Promise<FetchResult[]>
 ```
 
-**パラメータ**:
-- `owner`: リポジトリオーナー名
-- `repo`: リポジトリ名
-- `paths`: 取得するファイルパスの配列
-- `ref`: ブランチ名、タグ、コミットSHA（オプション）
+**Parameters**:
+- `owner`: Repository owner name
+- `repo`: Repository name
+- `paths`: Array of file paths to fetch
+- `ref`: Branch name, tag, or commit SHA (optional)
 
-**戻り値**: `FetchResult[]` - 取得結果の配列
+**Return Value**: `FetchResult[]` - Array of fetch results
 
-**例**:
+**Example**:
 ```typescript
 const fetcher = new GitHubFetcher(octokit, options);
 const results = await fetcher.fetchFiles(
@@ -85,7 +85,7 @@ const results = await fetcher.fetchFiles(
 
 ##### fetchDirectoryContents()
 
-指定したディレクトリのコンテンツ一覧を取得します。
+Fetches the contents list of the specified directory.
 
 ```typescript
 async fetchDirectoryContents(
@@ -96,17 +96,17 @@ async fetchDirectoryContents(
 ): Promise<DirectoryContent[]>
 ```
 
-**パラメータ**:
-- `owner`: リポジトリオーナー名
-- `repo`: リポジトリ名
-- `path`: ディレクトリパス
-- `ref`: ブランチ名、タグ、コミットSHA（オプション）
+**Parameters**:
+- `owner`: Repository owner name
+- `repo`: Repository name
+- `path`: Directory path
+- `ref`: Branch name, tag, or commit SHA (optional)
 
-**戻り値**: `DirectoryContent[]` - ディレクトリコンテンツの配列
+**Return Value**: `DirectoryContent[]` - Array of directory contents
 
 ##### fetchFilesInParallel()
 
-複数のファイルを並列で取得します（最大5並列）。
+Fetches multiple files in parallel (max 5 concurrent).
 
 ```typescript
 async fetchFilesInParallel(
@@ -117,19 +117,19 @@ async fetchFilesInParallel(
 ): Promise<FetchResult[]>
 ```
 
-**パラメータ**:
-- `owner`: リポジトリオーナー名
-- `repo`: リポジトリ名
-- `paths`: 取得するファイルパスの配列
-- `ref`: ブランチ名、タグ、コミットSHA（オプション）
+**Parameters**:
+- `owner`: Repository owner name
+- `repo`: Repository name
+- `paths`: Array of file paths to fetch
+- `ref`: Branch name, tag, or commit SHA (optional)
 
-**戻り値**: `FetchResult[]` - 取得結果の配列
+**Return Value**: `FetchResult[]` - Array of fetch results
 
-## 型定義
+## Type Definitions
 
 ### FetchResult
 
-ファイル取得結果を表します。
+Represents file fetch result.
 
 ```typescript
 interface FetchResult {
@@ -142,17 +142,17 @@ interface FetchResult {
 }
 ```
 
-**プロパティ**:
-- `path`: ファイルパス
-- `content`: ファイルコンテンツ（取得成功時）
-- `success`: 取得成功フラグ
-- `error`: エラーメッセージ（取得失敗時）
-- `size`: ファイルサイズ（バイト）
-- `sha`: GitオブジェクトSHA
+**Properties**:
+- `path`: File path
+- `content`: File content (on successful fetch)
+- `success`: Fetch success flag
+- `error`: Error message (on failed fetch)
+- `size`: File size (bytes)
+- `sha`: Git object SHA
 
 ### DirectoryContent
 
-ディレクトリコンテンツを表します。
+Represents directory content.
 
 ```typescript
 interface DirectoryContent {
@@ -164,30 +164,30 @@ interface DirectoryContent {
 }
 ```
 
-**プロパティ**:
-- `name`: ファイル/ディレクトリ名
-- `path`: 相対パス
-- `type`: タイプ（`file`または`dir`）
-- `size`: ファイルサイズ（バイト、ファイルのみ）
-- `sha`: GitオブジェクトSHA
+**Properties**:
+- `name`: File/directory name
+- `path`: Relative path
+- `type`: Type (`file` or `dir`)
+- `size`: File size (bytes, files only)
+- `sha`: Git object SHA
 
 ### FetcherOptions
 
-フェッチャーオプションを表します。
+Represents fetcher options.
 
 ```typescript
 interface FetcherOptions {
-  maxConcurrency?: number;  // 最大並列数（デフォルト: 5）
-  timeout?: number;          // タイムアウト（ミリ秒、デフォルト: 30000）
-  retries?: number;          // リトライ回数（デフォルト: 3）
+  maxConcurrency?: number;  // Max concurrency (default: 5)
+  timeout?: number;          // Timeout in milliseconds (default: 30000)
+  retries?: number;          // Number of retries (default: 3)
 }
 ```
 
-## セマフォ制御
+## Semaphore Control
 
 ### Semaphore
 
-並列度を制御するセマフォクラスです。
+Semaphore class for controlling concurrency.
 
 ```typescript
 class Semaphore {
@@ -198,24 +198,24 @@ class Semaphore {
 }
 ```
 
-**使用例**:
+**Usage Example**:
 ```typescript
 const semaphore = new Semaphore(5);
 
 await semaphore.acquire();
 try {
-  // 並列処理
+  // Concurrent processing
   await fetchFile();
 } finally {
   semaphore.release();
 }
 ```
 
-## レート制限管理
+## Rate Limit Management
 
 ### RateLimitManager
 
-GitHub APIのレート制限を管理します。
+Manages GitHub API rate limits.
 
 ```typescript
 class RateLimitManager {
@@ -226,24 +226,24 @@ class RateLimitManager {
 
 #### checkRateLimit()
 
-現在のレート制限状況を取得します。
+Gets current rate limit status.
 
-**戻り値**: `RateLimitStatus`
+**Return Value**: `RateLimitStatus`
 
 ```typescript
 interface RateLimitStatus {
-  limit: number;       // レート制限（リクエスト数）
-  remaining: number;   // 残りリクエスト数
-  reset: number;       // リセット時刻（UNIXタイムスタンプ）
-  used: number;        // 使用済みリクエスト数
+  limit: number;       // Rate limit (number of requests)
+  remaining: number;   // Remaining requests
+  reset: number;       // Reset time (UNIX timestamp)
+  used: number;        // Used requests
 }
 ```
 
-## エラーハンドリング
+## Error Handling
 
 ### GitHubAPIError
 
-GitHub APIエラーを表すカスタムエラークラスです。
+Custom error class representing GitHub API errors.
 
 ```typescript
 class GitHubAPIError extends Error {
@@ -257,33 +257,33 @@ class GitHubAPIError extends Error {
 }
 ```
 
-**エラーコード**:
-- `404`: リポジトリまたはファイルが見つからない
-- `403`: レート制限超過または権限不足
-- `401`: 認証エラー
-- `500`: サーバーエラー
+**Error Codes**:
+- `404`: Repository or file not found
+- `403`: Rate limit exceeded or insufficient permissions
+- `401`: Authentication error
+- `500`: Server error
 
-## 使用例
+## Usage Examples
 
-### 基本的な使い方
+### Basic Usage
 
 ```typescript
 import { Octokit } from 'octokit';
 import { GitHubFetcher } from './github/fetcher';
 
-// Octokitクライアントの初期化
+// Initialize Octokit client
 const octokit = new Octokit({
   auth: process.env.GITHUB_TOKEN
 });
 
-// GitHubFetcherの初期化
+// Initialize GitHubFetcher
 const fetcher = new GitHubFetcher(octokit, {
   maxConcurrency: 5,
   timeout: 30000,
   retries: 3
 });
 
-// ファイルを取得
+// Fetch files
 const results = await fetcher.fetchFiles(
   'yukihirop',
   'my-project',
@@ -300,7 +300,7 @@ results.forEach(result => {
 });
 ```
 
-### 並列ファイル取得
+### Parallel File Fetching
 
 ```typescript
 const paths = [
@@ -319,7 +319,7 @@ const results = await fetcher.fetchFilesInParallel(
 );
 ```
 
-### ディレクトリコンテンツの取得
+### Fetch Directory Contents
 
 ```typescript
 const contents = await fetcher.fetchDirectoryContents(
@@ -334,20 +334,20 @@ contents.forEach(item => {
 });
 ```
 
-## パフォーマンス
+## Performance
 
-### 並列処理
+### Parallel Processing
 
-- **最大並列数**: 5リクエスト
-- **大量ファイル取得**: 50ファイル取得時30秒以内
-- **時間短縮**: 約80%の時間短縮（並列処理使用時）
+- **Max concurrency**: 5 requests
+- **Large file fetching**: Within 30 seconds for 50 files
+- **Time reduction**: Approximately 80% time reduction (with parallel processing)
 
-### レート制限
+### Rate Limits
 
-- **認証なし**: 60リクエスト/時
-- **認証あり**: 5,000リクエスト/時
+- **Without authentication**: 60 requests/hour
+- **With authentication**: 5,000 requests/hour
 
-## 関連ページ
+## Related Pages
 
-- [FileSystem Writer API](/api/filesystem-writer): ファイルシステム操作の詳細
-- [API 仕様](/api/): API仕様の概要
+- [FileSystem Writer API](/api/filesystem-writer): Details on filesystem operations
+- [API Specification](/api/): API specification overview

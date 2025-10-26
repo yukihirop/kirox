@@ -1,278 +1,278 @@
 ---
-title: トラブルシューティング
-description: よくある問題と解決方法
+title: Troubleshooting
+description: Common issues and solutions
 ---
 
-# トラブルシューティング
+# Troubleshooting
 
-Kirox CLIの使用中に発生する可能性のある問題と、その解決方法を説明します。
+This guide explains potential issues when using Kirox CLI and their solutions.
 
-## インストールと実行
+## Installation and Execution
 
-### Node.jsのバージョンエラー
+### Node.js Version Error
 
-**エラーメッセージ**:
+**Error Message**:
 ```
 Error: Kirox requires Node.js 18.0.0 or higher
 ```
 
-**原因**: Node.jsのバージョンが古い
+**Cause**: Node.js version is outdated
 
-**解決方法**:
+**Solution**:
 ```bash
-# Node.jsのバージョンを確認
+# Check Node.js version
 node --version
 
-# Node.js 18以上にアップグレード
-# https://nodejs.org/ から最新版をダウンロード
+# Upgrade to Node.js 18 or higher
+# Download the latest version from https://nodejs.org/
 
-# nvm使用時
+# Using nvm
 nvm install 18
 nvm use 18
 ```
 
-### npxコマンドが見つからない
+### npx Command Not Found
 
-**エラーメッセージ**:
+**Error Message**:
 ```
 command not found: npx
 ```
 
-**原因**: npmが古いか、インストールされていない
+**Cause**: npm is outdated or not installed
 
-**解決方法**:
+**Solution**:
 ```bash
-# npmのバージョンを確認
+# Check npm version
 npm --version
 
-# npmをアップグレード
+# Upgrade npm
 npm install -g npm@latest
 ```
 
-## GitHub API関連
+## GitHub API Related
 
-### レート制限エラー
+### Rate Limit Error
 
-**エラーメッセージ**:
+**Error Message**:
 ```
 Error: GitHub API rate limit exceeded
 ```
 
-**原因**: GitHub APIのレート制限に到達（認証なし: 60リクエスト/時）
+**Cause**: Reached GitHub API rate limit (without authentication: 60 requests/hour)
 
-**解決方法**:
+**Solution**:
 
-1. GitHub Personal Access Token（PAT）を設定：
+1. Set GitHub Personal Access Token (PAT):
 ```bash
 export GITHUB_TOKEN=ghp_your_token_here
 ```
 
-2. 設定後、レート制限が5,000リクエスト/時に緩和されます
+2. After configuration, rate limit is relaxed to 5,000 requests/hour
 
-3. 現在のレート制限状況を確認：
+3. Check current rate limit status:
 ```bash
 npx kirox owner/repo -p project --verbose
 ```
 
-### 認証エラー
+### Authentication Error
 
-**エラーメッセージ**:
+**Error Message**:
 ```
 Error: Bad credentials
 ```
 
-**原因**: 無効なGitHub Personal Access Token
+**Cause**: Invalid GitHub Personal Access Token
 
-**解決方法**:
+**Solution**:
 
-1. PATが正しいか確認：
+1. Verify PAT is correct:
 ```bash
 echo $GITHUB_TOKEN
 ```
 
-2. PATのスコープを確認（`public_repo`または`repo`が必要）
+2. Verify PAT scope (requires `public_repo` or `repo`)
 
-3. 新しいPATを生成：
+3. Generate a new PAT:
    - [GitHub Settings → Developer settings → Personal access tokens](https://github.com/settings/tokens)
 
-### リポジトリが見つからない
+### Repository Not Found
 
-**エラーメッセージ**:
+**Error Message**:
 ```
 Error: Repository not found: owner/repo
 ```
 
-**原因**: リポジトリが存在しないか、アクセス権限がない
+**Cause**: Repository does not exist or no access permission
 
-**解決方法**:
+**Solution**:
 
-1. リポジトリ名のスペルを確認
-2. プライベートリポジトリの場合、`GITHUB_TOKEN`を設定
-3. リポジトリへのアクセス権限を確認
+1. Verify repository name spelling
+2. For private repositories, set `GITHUB_TOKEN`
+3. Verify access permissions to the repository
 
-## ファイル取得関連
+## File Fetching Related
 
-### ファイルが見つからない
+### File Not Found
 
-**エラーメッセージ**:
+**Error Message**:
 ```
 Warning: .kiro/specs/project-name/ not found in repository
 ```
 
-**原因**: 指定したプロジェクトがリポジトリに存在しない
+**Cause**: Specified project does not exist in the repository
 
-**解決方法**:
+**Solution**:
 
-1. プロジェクト名のスペルを確認
-2. ブランチを確認（別のブランチに存在する可能性）：
+1. Verify project name spelling
+2. Check branch (may exist in a different branch):
 ```bash
 npx kirox owner/repo#develop -p project-name
 ```
 
-3. サブディレクトリを確認（モノレポの場合）：
+3. Check subdirectory (for monorepos):
 ```bash
 npx kirox owner/repo -p project-name --subdirectory path/to/subdir
 ```
 
-4. リポジトリ内の利用可能なプロジェクトを確認：
+4. Check available projects in the repository:
 ```bash
-# インタラクティブモードで自動検出
+# Auto-detect in interactive mode
 npx kirox
 ```
 
-### ファイルサイズ制限エラー
+### File Size Limit Error
 
-**エラーメッセージ**:
+**Error Message**:
 ```
 Error: File too large (max 1MB via GitHub API)
 ```
 
-**原因**: GitHubのContent APIは1MBを超えるファイルを取得できない
+**Cause**: GitHub's Content API cannot fetch files larger than 1MB
 
-**解決方法**:
+**Solution**:
 
-1. ファイルサイズを確認し、必要に応じて分割
-2. 大きなバイナリファイルは`.kiro/`ディレクトリに含めない
-3. Git LFS使用時は、APIでの取得が困難な場合がある
+1. Check file size and split if necessary
+2. Do not include large binary files in the `.kiro/` directory
+3. When using Git LFS, fetching via API may be difficult
 
-## ローカルファイルシステム関連
+## Local Filesystem Related
 
-### 書き込み権限エラー
+### Write Permission Error
 
-**エラーメッセージ**:
+**Error Message**:
 ```
 Error: EACCES: permission denied
 ```
 
-**原因**: ディレクトリへの書き込み権限がない
+**Cause**: No write permission to the directory
 
-**解決方法**:
+**Solution**:
 
-1. ディレクトリの権限を確認：
+1. Check directory permissions:
 ```bash
 ls -la .kiro/
 ```
 
-2. 権限を修正：
+2. Correct permissions:
 ```bash
 chmod -R u+w .kiro/
 ```
 
-3. sudoでの実行は推奨しません（セキュリティリスク）
+3. Running with sudo is not recommended (security risk)
 
-### 既存ファイルの上書き確認
+### Existing File Overwrite Confirmation
 
-**現象**: 既存ファイルを上書きするか確認される
+**Behavior**: Asked to confirm overwriting existing files
 
-**対処方法**:
+**Solutions**:
 
-1. 確認プロンプトで選択：
-   - `y`: 上書き
-   - `n`: スキップ
-   - `a`: すべて上書き
+1. Select in confirmation prompt:
+   - `y`: Overwrite
+   - `n`: Skip
+   - `a`: Overwrite all
 
-2. 確認をスキップ（`--force`オプション）：
+2. Skip confirmation (`--force` option):
 ```bash
 npx kirox owner/repo -p project --force
 ```
 
-::: warning 注意
-`--force`オプションは既存ファイルを警告なしで上書きします。
+::: warning Warning
+The `--force` option overwrites existing files without warning.
 :::
 
-3. ドライランで事前確認：
+3. Preview beforehand with dry run:
 ```bash
 npx kirox owner/repo -p project --dry-run
 ```
 
-## ネットワーク関連
+## Network Related
 
-### タイムアウトエラー
+### Timeout Error
 
-**エラーメッセージ**:
+**Error Message**:
 ```
 Error: Request timeout
 ```
 
-**原因**: ネットワーク接続が遅いか、不安定
+**Cause**: Network connection is slow or unstable
 
-**解決方法**:
+**Solution**:
 
-1. インターネット接続を確認
-2. ファイアウォールやプロキシ設定を確認
-3. 再試行：
+1. Check internet connection
+2. Check firewall or proxy settings
+3. Retry:
 ```bash
 npx kirox owner/repo -p project
 ```
 
-### プロキシ設定
+### Proxy Configuration
 
-プロキシ経由でGitHub APIにアクセスする場合：
+When accessing GitHub API through a proxy:
 
 ```bash
-# HTTP プロキシ
+# HTTP proxy
 export HTTP_PROXY=http://proxy.example.com:8080
 export HTTPS_PROXY=http://proxy.example.com:8080
 
-# 認証付きプロキシ
+# Authenticated proxy
 export HTTP_PROXY=http://user:pass@proxy.example.com:8080
 ```
 
-## その他
+## Other Issues
 
-### 予期しないエラー
+### Unexpected Errors
 
-**対処方法**:
+**Solutions**:
 
-1. 詳細ログを有効化：
+1. Enable verbose logging:
 ```bash
 npx kirox owner/repo -p project --verbose
 ```
 
-2. デバッグログを確認：
+2. Check debug logs:
 ```bash
 DEBUG=kirox:* npx kirox owner/repo -p project
 ```
 
-3. 最新バージョンを使用（npxは自動的に最新版を使用）
+3. Use the latest version (npx automatically uses the latest)
 
-4. 問題が解決しない場合は、[GitHubリポジトリ](https://github.com/yukihirop/kirox/issues)でIssueを報告
+4. If the issue persists, report an issue on the [GitHub repository](https://github.com/yukihirop/kirox/issues)
 
-### ヘルプの表示
+### Displaying Help
 
-問題解決のヒントを得るには：
+To get hints for problem-solving:
 
 ```bash
-# 全般的なヘルプ
+# General help
 npx kirox --help
 
-# サブコマンドのヘルプ
+# Subcommand help
 npx kirox add --help
 npx kirox completion --help
 ```
 
-## さらなるサポート
+## Further Support
 
-- [GitHub Issues](https://github.com/yukihirop/kirox/issues): バグ報告や機能リクエスト
-- [GitHub Discussions](https://github.com/yukihirop/kirox/discussions): 質問やディスカッション
-- [CLI リファレンス](/cli/): コマンドとオプションの詳細
+- [GitHub Issues](https://github.com/yukihirop/kirox/issues): Bug reports and feature requests
+- [GitHub Discussions](https://github.com/yukihirop/kirox/discussions): Questions and discussions
+- [CLI Reference](/cli/): Details on commands and options

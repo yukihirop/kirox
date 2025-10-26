@@ -1,119 +1,119 @@
 ---
-title: kirox コマンド
-description: Kirox CLIのメインコマンド
+title: kirox Command
+description: Kirox CLI main command
 ---
 
-# kirox コマンド
+# kirox Command
 
-GitHubリポジトリから`.kiro/specs/`と`.kiro/steering/`のファイルを取得します。
+Fetches files from `.kiro/specs/` and `.kiro/steering/` in GitHub repositories.
 
-## 構文
+## Syntax
 
 ```bash
 npx kirox [<owner/repo>[#branch]] [options]
 ```
 
-## 引数
+## Arguments
 
 ### `<owner/repo>[#branch]`
 
-GitHubリポジトリを指定します（オプション）。
+Specify a GitHub repository (optional).
 
-**形式**:
-- `owner/repo`: リポジトリのみ指定（デフォルトブランチを使用）
-- `owner/repo#branch`: ブランチも指定
+**Format**:
+- `owner/repo`: Specify repository only (uses default branch)
+- `owner/repo#branch`: Specify branch as well
 
-**例**:
+**Examples**:
 ```bash
 npx kirox yukihirop/my-project
 npx kirox yukihirop/my-project#develop
 npx kirox yukihirop/my-project#feature/new-feature
 ```
 
-**省略時**: インタラクティブモードで対話形式で入力
+**When omitted**: Interactive mode prompts for input
 
-## オプション
+## Options
 
 ### `-p, --project <projects>`
 
-取得するプロジェクト名を指定します（カンマ区切りで複数指定可）。
+Specify project name(s) to fetch (comma-separated for multiple).
 
-**型**: `string`
+**Type**: `string`
 
-**例**:
+**Examples**:
 ```bash
-# 単一プロジェクト
+# Single project
 npx kirox yukihirop/my-project -p api-spec
 
-# 複数プロジェクト
+# Multiple projects
 npx kirox yukihirop/my-project -p api-spec,web-spec,mobile-spec
 ```
 
-**省略時**:
-- 非インタラクティブモード: エラー（`--steering`オプション使用時を除く）
-- インタラクティブモード: 利用可能なプロジェクトを自動検出して提示
+**When omitted**:
+- Non-interactive mode: Error (except when using `--steering` option)
+- Interactive mode: Auto-detect and suggest available projects
 
 ### `--track`
 
-リモートリポジトリの変更を追跡します。
+Track changes in remote repository.
 
-**型**: `boolean`
-**デフォルト**: `false`
+**Type**: `boolean`
+**Default**: `false`
 
-**動作**:
-- 初回実行時: すべてのファイルを取得し、メタデータを保存
-- 2回目以降: 変更があったファイルのみを取得
+**Behavior**:
+- First run: Fetch all files and save metadata
+- Subsequent runs: Fetch only changed files
 
-**例**:
+**Example**:
 ```bash
 npx kirox yukihirop/my-project -p api-spec --track
 ```
 
 ### `--steering`
 
-`.kiro/steering/`のみを取得し、プロジェクト仕様をスキップします。
+Fetch only `.kiro/steering/` and skip project specifications.
 
-**型**: `boolean`
-**デフォルト**: `false`
+**Type**: `boolean`
+**Default**: `false`
 
-**例**:
+**Example**:
 ```bash
 npx kirox yukihirop/my-project --steering
 ```
 
-::: tip ヒント
-チーム全体で共有するステアリング情報のみを取得したい場合に便利です。
+::: tip Tip
+Useful when you only want to fetch steering information shared across the team.
 :::
 
 ### `-f, --force`
 
-既存ファイルを確認なしで上書きします。
+Overwrite existing files without confirmation.
 
-**型**: `boolean`
-**デフォルト**: `false`
+**Type**: `boolean`
+**Default**: `false`
 
-**例**:
+**Example**:
 ```bash
 npx kirox yukihirop/my-project -p api-spec --force
 ```
 
-::: warning 注意
-`--force`オプションは既存ファイルを警告なしで上書きします。使用には注意が必要です。
+::: warning Warning
+The `--force` option overwrites existing files without warning. Use with caution.
 :::
 
 ### `--dry-run`
 
-ファイル書き込みをシミュレートし、取得するファイルを表示します。
+Simulate file writing and display which files would be fetched.
 
-**型**: `boolean`
-**デフォルト**: `false`
+**Type**: `boolean`
+**Default**: `false`
 
-**例**:
+**Example**:
 ```bash
 npx kirox yukihirop/my-project -p api-spec --dry-run
 ```
 
-**出力例**:
+**Sample Output**:
 ```
 [DRY RUN] The following files would be fetched:
   .kiro/specs/api-spec/requirements.md
@@ -125,17 +125,17 @@ npx kirox yukihirop/my-project -p api-spec --dry-run
 
 ### `--verbose`
 
-詳細なログを表示します。
+Display detailed logs.
 
-**型**: `boolean`
-**デフォルト**: `false`
+**Type**: `boolean`
+**Default**: `false`
 
-**例**:
+**Example**:
 ```bash
 npx kirox yukihirop/my-project -p api-spec --verbose
 ```
 
-**出力例**:
+**Sample Output**:
 ```
 [DEBUG] Loading config from .kiroxrc.json
 [DEBUG] Fetching repository: yukihirop/my-project
@@ -147,142 +147,142 @@ npx kirox yukihirop/my-project -p api-spec --verbose
 
 ### `--subdirectory <path>`
 
-リポジトリ内のサブディレクトリから`.kiro/`ファイルを取得します。
+Fetch `.kiro/` files from a subdirectory within the repository.
 
-**型**: `string`
+**Type**: `string`
 
-**例**:
+**Examples**:
 ```bash
-# モノレポ内のbackendディレクトリから取得
+# Fetch from backend directory in monorepo
 npx kirox yukihirop/monorepo -p api-spec --subdirectory backend
 
-# ネストしたサブディレクトリ
+# Nested subdirectory
 npx kirox yukihirop/monorepo -p api-spec --subdirectory packages/core
 ```
 
 ### `-c, --config <path>`
 
-設定ファイルのパスを指定します。
+Specify configuration file path.
 
-**型**: `string`
-**デフォルト**: `.kiroxrc.json`
+**Type**: `string`
+**Default**: `.kiroxrc.json`
 
-**例**:
+**Example**:
 ```bash
 npx kirox yukihirop/my-project -p api-spec --config custom-config.json
 ```
 
 ### `-h, --help`
 
-ヘルプメッセージを表示します。
+Display help message.
 
-**例**:
+**Example**:
 ```bash
 npx kirox --help
 ```
 
 ### `-V, --version`
 
-Kirox CLIのバージョンを表示します。
+Display Kirox CLI version.
 
-**例**:
+**Example**:
 ```bash
 npx kirox --version
 ```
 
-## インタラクティブモード
+## Interactive Mode
 
-引数とオプションを省略して実行すると、対話形式で設定できます。
+Run without arguments and options to configure interactively.
 
 ```bash
 npx kirox
 ```
 
-**プロンプト**:
-1. **リポジトリ入力**: `owner/repo`形式で入力
-2. **ブランチ選択**: 利用可能なブランチを検索可能なチェックボックスで選択（オプション）
-3. **サブディレクトリ選択**: 検出されたサブディレクトリから選択（オプション）
-4. **プロジェクト選択**: 利用可能なプロジェクトを検索可能なチェックボックスで選択（複数選択可）
+**Prompts**:
+1. **Repository input**: Enter in `owner/repo` format
+2. **Branch selection**: Select from available branches with searchable checkbox (optional)
+3. **Subdirectory selection**: Select from detected subdirectories (optional)
+4. **Project selection**: Select from available projects with searchable checkbox (multiple selection available)
 
-## 使用例
+## Usage Examples
 
-### 基本的な使い方
+### Basic Usage
 
 ```bash
-# 特定のプロジェクトを取得
+# Fetch specific project
 npx kirox yukihirop/my-project -p api-spec
 ```
 
-### ブランチ指定
+### Specify Branch
 
 ```bash
-# developブランチから取得
+# Fetch from develop branch
 npx kirox yukihirop/my-project#develop -p api-spec
 
-# feature/新機能ブランチから取得
+# Fetch from feature/new-feature branch
 npx kirox yukihirop/my-project#feature/new-feature -p api-spec
 ```
 
-### 複数プロジェクト
+### Multiple Projects
 
 ```bash
-# 複数プロジェクトを取得
+# Fetch multiple projects
 npx kirox yukihirop/my-project -p api-spec,web-spec,mobile-spec
 ```
 
-### サブディレクトリ
+### Subdirectory
 
 ```bash
-# モノレポ内のbackendディレクトリから取得
+# Fetch from backend directory in monorepo
 npx kirox yukihirop/monorepo -p api-spec --subdirectory backend
 ```
 
-### オプション組み合わせ
+### Option Combinations
 
 ```bash
-# ドライラン + 詳細ログ
+# Dry run + verbose logs
 npx kirox yukihirop/my-project -p api-spec --dry-run --verbose
 
-# 強制上書き + 更新追跡
+# Force overwrite + update tracking
 npx kirox yukihirop/my-project -p api-spec --force --track
 
-# ステアリングのみ + カスタム設定ファイル
+# Steering only + custom config file
 npx kirox yukihirop/my-project --steering --config team-config.json
 ```
 
-## 実行フロー
+## Execution Flow
 
-1. **設定読み込み**: `.kiroxrc.json`またはカスタム設定ファイル
-2. **GitHub API認証**: `GITHUB_TOKEN`環境変数（オプション）
-3. **リポジトリ情報取得**: ブランチ、サブディレクトリ、プロジェクト一覧
-4. **ファイル取得**: 最大5並列でファイルを取得
-5. **ファイル書き込み**: ローカル`.kiro/`ディレクトリに保存
-6. **サマリー表示**: 成功・失敗ファイル数を表示
+1. **Load configuration**: `.kiroxrc.json` or custom config file
+2. **GitHub API authentication**: `GITHUB_TOKEN` environment variable (optional)
+3. **Fetch repository information**: Branch, subdirectory, project list
+4. **Fetch files**: Fetch files in parallel (max 5 concurrent)
+5. **Write files**: Save to local `.kiro/` directory
+6. **Display summary**: Show success/failure file counts
 
-## 環境変数
+## Environment Variables
 
 ### GITHUB_TOKEN
 
-GitHub API認証に使用します。
+Used for GitHub API authentication.
 
 ```bash
 export GITHUB_TOKEN=ghp_your_token_here
 ```
 
-プライベートリポジトリへのアクセスや、レート制限の緩和に必要です。
+Required for accessing private repositories or relaxing rate limits.
 
-## 終了コード
+## Exit Codes
 
-| コード | 説明 |
+| Code | Description |
 |-------|------|
-| `0` | 成功 |
-| `1` | 引数エラー |
-| `2` | GitHub APIエラー |
-| `3` | ファイルシステムエラー |
-| `4` | 設定エラー |
+| `0` | Success |
+| `1` | Argument error |
+| `2` | GitHub API error |
+| `3` | Filesystem error |
+| `4` | Configuration error |
 
-## 関連ページ
+## Related Pages
 
-- [基本的な使い方](/guide/basic-usage): 基本的なコマンド使用方法
-- [高度な使い方](/guide/advanced-usage): 設定ファイル、ブランチ指定、サブディレクトリ対応
-- [トラブルシューティング](/guide/troubleshooting): よくある問題と解決方法
+- [Basic Usage](/guide/basic-usage): Basic command usage
+- [Advanced Usage](/guide/advanced-usage): Configuration files, branch specification, subdirectory support
+- [Troubleshooting](/guide/troubleshooting): Common issues and solutions

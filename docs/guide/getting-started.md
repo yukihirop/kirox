@@ -1,86 +1,86 @@
 ---
-title: はじめに
-description: Kirox CLIのインストール方法と初期設定
+title: Getting Started
+description: Installation and initial setup for Kirox CLI
 ---
 
-# はじめに
+# Getting Started
 
-Kirox CLIを使い始めるための手順を説明します。
+This guide explains how to get started with Kirox CLI.
 
-## 前提条件
+## Prerequisites
 
-Kirox CLIを使用するには、以下の環境が必要です：
+To use Kirox CLI, you need the following environment:
 
-- **Node.js 18.0.0以上**: [Node.js公式サイト](https://nodejs.org/)からダウンロード
-- **npm 9以上**: Node.jsに同梱されています
-- **Git**: バージョン管理ツール（オプション）
+- **Node.js 18.0.0 or higher**: Download from [Node.js official website](https://nodejs.org/)
+- **npm 9 or higher**: Included with Node.js
+- **Git**: Version control tool (optional)
 
-バージョンの確認：
+Verify versions:
 
 ```bash
-node --version  # v18.0.0以上
-npm --version   # 9.0.0以上
+node --version  # v18.0.0 or higher
+npm --version   # 9.0.0 or higher
 ```
 
-## インストール
+## Installation
 
-Kirox CLIは**グローバルインストール不要**で、npxコマンドで即座に実行できます。
+Kirox CLI **does not require global installation** and can be run immediately with the npx command.
 
-### npxで実行（推奨）
+### Run with npx (Recommended)
 
 ```bash
 npx kirox owner/repo -p project-name
 ```
 
-常に最新バージョンが実行されるため、この方法を推奨します。
+This method is recommended as it always runs the latest version.
 
-### グローバルインストール
+### Global Installation
 
-頻繁に使用する場合は、グローバルインストールも可能です：
+If you use it frequently, you can install it globally:
 
 ```bash
 npm install -g kirox
 kirox owner/repo -p project-name
 ```
 
-## 初回実行
+## First Run
 
-### 基本的な使い方
+### Basic Usage
 
-GitHubリポジトリから仕様書を取得します：
+Fetch specifications from a GitHub repository:
 
 ```bash
 npx kirox yukihirop/my-project -p my-spec
 ```
 
-### インタラクティブモード
+### Interactive Mode
 
-オプションなしで実行すると、対話形式で設定できます：
+Running without options allows you to configure interactively:
 
 ```bash
 npx kirox
 ```
 
-プロンプトに従って以下を入力します：
-1. GitHubリポジトリ（例: `yukihirop/my-project`）
-2. ブランチ（オプション）
-3. サブディレクトリ（オプション）
-4. プロジェクト名（複数選択可能）
+Follow the prompts to enter:
+1. GitHub repository (e.g., `yukihirop/my-project`)
+2. Branch (optional)
+3. Subdirectory (optional)
+4. Project name (multiple selection available)
 
-## GitHub認証（オプション）
+## GitHub Authentication (Optional)
 
-プライベートリポジトリにアクセスする場合や、GitHub APIのレート制限を緩和したい場合は、Personal Access Token（PAT）を設定します。
+To access private repositories or to relax GitHub API rate limits, set up a Personal Access Token (PAT).
 
-### PATの取得
+### Obtaining a PAT
 
-1. [GitHub Settings → Developer settings → Personal access tokens](https://github.com/settings/tokens)にアクセス
-2. "Generate new token (classic)"をクリック
-3. 以下のスコープを選択：
-   - `public_repo`: パブリックリポジトリ読み取り
-   - `repo`: プライベートリポジトリ読み取り（必要に応じて）
-4. トークンを生成してコピー
+1. Go to [GitHub Settings → Developer settings → Personal access tokens](https://github.com/settings/tokens)
+2. Click "Generate new token (classic)"
+3. Select the following scopes:
+   - `public_repo`: Read public repositories
+   - `repo`: Read private repositories (if needed)
+4. Generate and copy the token
 
-### 環境変数の設定
+### Setting Environment Variables
 
 ```bash
 # macOS / Linux
@@ -90,25 +90,25 @@ export GITHUB_TOKEN=ghp_your_token_here
 $env:GITHUB_TOKEN="ghp_your_token_here"
 ```
 
-永続的に設定する場合は、`.bashrc`、`.zshrc`、または`.profile`に追加します：
+To set permanently, add to `.bashrc`, `.zshrc`, or `.profile`:
 
 ```bash
 echo 'export GITHUB_TOKEN=ghp_your_token_here' >> ~/.bashrc
 source ~/.bashrc
 ```
 
-## 動作確認
+## Verification
 
-以下のコマンドで、Kirox CLIが正しく動作することを確認します：
+Verify that Kirox CLI is working correctly with the following command:
 
 ```bash
 npx kirox --help
 ```
 
-ヘルプメッセージが表示されれば、正常にインストールされています。
+If the help message is displayed, the installation was successful.
 
-## 次のステップ
+## Next Steps
 
-- [基本的な使い方](/guide/basic-usage): コマンドとオプションの詳細
-- [高度な使い方](/guide/advanced-usage): 設定ファイルと高度な機能
-- [CLI リファレンス](/cli/): 全コマンドのリファレンス
+- [Basic Usage](/guide/basic-usage): Details on commands and options
+- [Advanced Usage](/guide/advanced-usage): Configuration files and advanced features
+- [CLI Reference](/cli/): Reference for all commands
