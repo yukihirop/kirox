@@ -18,25 +18,16 @@ import {
  */
 export type ProgressCallback = (completed: number, total: number, path: string) => void;
 
-/**
- * Options for parallel metadata fetching
- */
-export interface FetchOptions {
-  /** Maximum concurrent requests (default: 5) */
+/** Options for parallel metadata fetching - @internal Internal type - not exported */
+interface FetchOptions {
   maxConcurrency?: number;
-  /** Progress callback function */
   onProgress?: ProgressCallback;
 }
 
-/**
- * Failed metadata fetch information
- */
-export interface MetadataFetchError {
-  /** File path that failed */
+/** Failed metadata fetch information - @internal Internal type - not exported */
+interface MetadataFetchError {
   path: string;
-  /** Error type */
   errorType: GitHubMetadataErrorType;
-  /** Error message */
   message: string;
 }
 

@@ -8,13 +8,9 @@ import chalk from 'chalk';
 import searchableCheckbox from './prompts/searchable-checkbox.js';
 import type { ProjectLocation } from '../github/project-location-builder.js';
 
-/**
- * Project selection result
- */
-export interface ProjectSelectionResult {
-  /** Selected project names */
+/** Project selection result - @internal Internal type - not exported */
+interface ProjectSelectionResult {
   projects: string[];
-  /** Subdirectory path (common to all selected projects) */
   subdir: string;
 }
 

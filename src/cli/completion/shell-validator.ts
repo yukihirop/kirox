@@ -12,13 +12,11 @@ export type SupportedShell = 'bash' | 'zsh' | 'fish' | 'powershell' | 'elvish';
 
 /**
  * Result of shell type validation
+ * @internal Internal type - not exported
  */
-export interface ValidationResult {
-  /** Whether the shell type is valid */
+interface ValidationResult {
   valid: boolean;
-  /** Normalized shell name (lowercase) if valid */
   normalizedShell?: SupportedShell;
-  /** Error message if validation failed */
   error?: string;
 }
 

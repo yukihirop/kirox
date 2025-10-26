@@ -18,7 +18,7 @@ export default defineConfig({
     ['meta', { name: 'theme-color', content: '#8544FF' }],
     ['meta', { name: 'apple-mobile-web-app-capable', content: 'yes' }],
     ['meta', { name: 'apple-mobile-web-app-status-bar-style', content: 'black' }],
-    ['link', { rel: 'icon', type: 'image/x-icon', href: '/favicon.png' }],
+    ['link', { rel: 'icon', type: 'image/x-icon', href: '/favicon.ico' }],
     ['meta', { property: 'og:type', content: 'website' }],
     ['meta', { property: 'og:locale', content: 'en' }],
     ['meta', { property: 'og:title', content: 'Kirox | Recycle .kiro CLI' }],

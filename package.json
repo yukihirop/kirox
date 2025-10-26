@@ -1,9 +1,9 @@
 {
   "name": "kirox",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "CLI tool to fetch Kiro specification and steering files from remote GitHub repositories",
   "type": "module",
-  "main": ".dist/index.js",
+  "main": "dist/index.js",
   "bin": {
     "kirox": "dist/index.js"
   },
@@ -24,10 +24,14 @@
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
     "lint": "eslint src --ext .ts",
+    "lint:knip": "knip",
+    "lint:all": "npm run lint && npm run lint:knip",
+    "knip": "knip",
     "format": "prettier --write \"src/**/*.ts\"",
     "docs:dev": "vitepress dev docs",
     "docs:build": "vitepress build docs",
-    "docs:preview": "vitepress preview docs"
+    "docs:preview": "vitepress preview docs",
+    "bumpp": "bumpp"
   },
   "keywords": [
     "cli",
@@ -58,8 +62,10 @@
     "@types/figlet": "^1.7.0",
     "@types/node": "^20.17.10",
     "@vitest/coverage-v8": "^2.1.8",
+    "bumpp": "^10.3.1",
     "esbuild-plugin-tsconfig-paths": "^1.0.1",
     "eslint": "^9.17.0",
+    "knip": "^5.66.3",
     "prettier": "^3.4.2",
     "tsup": "^8.5.0",
     "tsx": "^4.19.2",

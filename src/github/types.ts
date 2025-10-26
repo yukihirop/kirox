@@ -14,36 +14,16 @@ export interface RateLimitInfo {
   resetAt: Date;
 }
 
-/**
- * File content retrieved from GitHub
- */
-export interface FileContent {
-  /** File path in repository */
-  path: string;
-  /** Decoded file content (UTF-8) */
-  content: string;
-  /** File size in bytes */
-  size: number;
-}
+// File content retrieved from GitHub - Commented out - reserved for future use
+// interface FileContent {
+//   path: string;
+//   content: string;
+//   size: number;
+// }
 
-/**
- * Error occurred during file fetch
- */
-export interface FetchError {
-  /** File path that failed to fetch */
-  path: string;
-  /** Error details */
-  error: Error;
-  /** Whether this error is retryable */
-  retryable: boolean;
-}
-
-/**
- * Result of fetching repository files
- */
-export interface FetchResult {
-  /** Successfully fetched files */
-  files: FileContent[];
-  /** Errors encountered during fetch */
-  errors: FetchError[];
-}
+// Error occurred during file fetch - Commented out - reserved for future use
+// interface FetchError {
+//   path: string;
+//   error: Error;
+//   retryable: boolean;
+// }

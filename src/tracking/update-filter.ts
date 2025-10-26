@@ -6,34 +6,18 @@
 
 import { UpdateStatus, type UpdateCheckResult } from './update-checker.js';
 
-/**
- * Skip reason for files that cannot be updated
- */
-export type SkipReason =
-  | 'up-to-date'
-  | 'local-edit'
-  | 'conflict'
-  | 'local-deleted'
-  | 'remote-deleted'
-  | 'error';
+/** Skip reason for files that cannot be updated - @internal Internal type - not exported */
+type SkipReason = 'up-to-date' | 'local-edit' | 'conflict' | 'local-deleted' | 'remote-deleted' | 'error';
 
-/**
- * Skipped file information
- */
-export interface SkippedFile {
-  /** Original update check result */
+/** Skipped file information - @internal Internal type - not exported */
+interface SkippedFile {
   result: UpdateCheckResult;
-  /** Reason why this file was skipped */
   reason: SkipReason;
 }
 
-/**
- * Filter result
- */
-export interface FilterResult {
-  /** Files that can be updated */
+/** Filter result - @internal Internal type - not exported */
+interface FilterResult {
   updatable: UpdateCheckResult[];
-  /** Files that were skipped */
   skipped: SkippedFile[];
 }
 

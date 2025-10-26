@@ -625,18 +625,16 @@ export async function promptMissingArguments(
   return completedArgs;
 }
 
-/**
- * Error handling result for interactive mode
- */
-export interface InteractiveErrorResult {
+// Error handling result for interactive mode
+// @internal Commented out - reserved for future use
+interface InteractiveErrorResult {
   exitCode: number;
   shouldExit: boolean;
 }
 
-/**
- * TTY environment check result
- */
-export interface TTYCheckResult {
+// TTY environment check result
+// @internal Commented out - reserved for future use
+interface TTYCheckResult {
   success: boolean;
   exitCode: number;
 }

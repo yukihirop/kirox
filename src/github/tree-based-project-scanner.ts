@@ -11,33 +11,20 @@ import { getTreeSha } from './tree-sha-fetcher.js';
 import { parseTreeResponse, type TreeItem } from './tree-response-parser.js';
 import { buildProjectLocations, type ProjectLocation } from './project-location-builder.js';
 
-/**
- * Result of tree-based project scan
- */
-export interface TreeScanResult {
-  /** List of discovered projects */
+/** Result of tree-based project scan - @internal Internal type - not exported */
+interface TreeScanResult {
   projects: ProjectLocation[];
-  /** Whether the scan was successful */
   success: boolean;
-  /** Whether the tree response was truncated (>100,000 entries) */
   truncated: boolean;
-  /** Total number of entries in tree response (Task 2.5: Requirement 8.4) */
   entryCount: number;
-  /** Error message if scan failed */
   errorMessage?: string;
 }
 
-/**
- * Options for tree-based project scan
- */
-export interface TreeScanOptions {
-  /** Target repository reference */
+/** Options for tree-based project scan - @internal Internal type - not exported */
+interface TreeScanOptions {
   repository: RepositoryRef;
-  /** Octokit client for GitHub API calls */
   client: Octokit;
-  /** Logger for reporting scan progress */
   logger: Logger;
-  /** Enable verbose logging */
   verbose: boolean;
 }
 

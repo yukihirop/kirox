@@ -16,19 +16,12 @@ export enum EditStatus {
   UNKNOWN = 'UNKNOWN', // Hash calculation failed
 }
 
-/**
- * Local edit detection result
- */
-export interface EditDetectionResult {
-  /** Edit status */
+/** Local edit detection result - @internal Internal type - not exported */
+interface EditDetectionResult {
   status: EditStatus;
-  /** Current file hash (if available) */
   currentHash?: string;
-  /** Recorded hash from metadata */
   recordedHash: string;
-  /** Human-readable message */
   message: string;
-  /** Error details (if status is UNKNOWN) */
   error?: string;
 }
 

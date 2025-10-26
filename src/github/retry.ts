@@ -34,10 +34,8 @@ export interface RetryOptions {
   onRetry?: (error: Error, attempt: number) => void; // Callback on retry
 }
 
-/**
- * Rate limit information
- */
-export interface RateLimitInfo {
+/** Rate limit information - @internal Internal type - not exported */
+interface RateLimitInfo {
   remaining: number;
   limit: number;
   resetAt: Date;
@@ -210,33 +208,4 @@ export async function checkRateLimit(client: Octokit): Promise<RateLimitInfo> {
       `Failed to check rate limit: ${error instanceof Error ? error.message : 'Unknown error'}`
     );
   }
-}
-
-/**
- * Execute GitHub API request with retry and rate limit checking
- *
- * @param client - Octokit client instance
- * @param fn - Function to execute (GitHub API call)
- * @param options - Retry options
- * @returns Result of function execution
- * @throws Error if request fails after retries or rate limit exceeded
- */
-export async function withRetryAndRateLimit<T>(
-  client: Octokit,
-  fn: () => Promise<T>,
-  options: RetryOptions = {}
-): Promise<T> {
-  // Check rate limit before making request
-  await checkRateLimit(client);
-
-  // Execute with retry logic
-  return withRetry(fn, {
-    ...options,
-    onRetry: (error, attempt) => {
-      console.log(`Retry attempt ${attempt} after error: ${error.message}`);
-      if (options.onRetry) {
-        options.onRetry(error, attempt);
-      }
-    },
-  });
 }
