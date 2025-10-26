@@ -5,6 +5,9 @@
 </p>
 <h1 align="center" style="font-family: sans-serif; font-size: 50px; font-weight: 700; background: -webkit-linear-gradient(90deg, #6A37CC 20%, #8544FF 60%, #9B6FFF 100%); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; color: transparent;">Kirox</h1>
 
+<p align="center">
+	<a href="https://yukihirop.github.io/kirox/">📚 Documentation</a>
+</p>
 [![CI](https://github.com/yukihirop/kirox/actions/workflows/ci.yml/badge.svg)](https://github.com/yukihirop/kirox/actions/workflows/ci.yml)
 [![Release](https://github.com/yukihirop/kirox/actions/workflows/release.yml/badge.svg)](https://github.com/yukihirop/kirox/actions/workflows/release.yml)
 
