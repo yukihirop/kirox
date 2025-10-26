@@ -823,6 +823,35 @@ npx kirox add owner/repo -p existing-project
 npx kirox add owner/repo -p existing-project --force --track
 ```
 
+## Documentation
+
+Full documentation is available at: [https://yukihirop.github.io/kirox/](https://yukihirop.github.io/kirox/)
+
+### Local Documentation Development
+
+```bash
+# Start VitePress development server
+npm run docs:dev
+
+# Build documentation
+npm run docs:build
+
+# Preview production build
+npm run docs:preview
+```
+
+### Contributing to Documentation
+
+To contribute to the documentation:
+
+1. **Edit documentation files** in `docs/` directory
+2. **Add new pages** to appropriate sections (guide, cli, api, config)
+3. **Update navigation** in `docs/.vitepress/config.ts` if adding new pages
+4. **Preview changes** with `npm run docs:dev`
+5. **Submit pull request** - documentation automatically deploys when merged to `main`
+
+See [Documentation Guide](https://yukihirop.github.io/kirox/guide/) for detailed instructions.
+
 ## Development
 
 ### Setup
@@ -856,6 +885,11 @@ npm run build
 
 # Type check
 npm run type-check
+
+# Documentation commands
+npm run docs:dev        # Start docs dev server
+npm run docs:build      # Build docs
+npm run docs:preview    # Preview built docs
 ```
 
 ### Requirements
