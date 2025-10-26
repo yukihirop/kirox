@@ -89,22 +89,22 @@
   - マークダウン内の相対リンクが正しく機能することを確認
   - _Requirements: 4.3, 4.5_
 
-- [ ] 5. GitHub Actionsデプロイワークフローの構築
-- [ ] 5.1 GitHub Actionsワークフローファイルの作成
+- [x] 5. GitHub Actionsデプロイワークフローの構築
+- [x] 5.1 GitHub Actionsワークフローファイルの作成
   - deploy-docs.ymlワークフローファイルを作成
   - mainブランチへのpushと手動トリガーを設定
   - 必要な権限（contents: read、pages: write、id-token: write）を定義
   - リポジトリの全履歴取得設定（lastUpdated機能用）を追加
   - _Requirements: 5.3_
 
-- [ ] 5.2 ビルドジョブの実装
+- [x] 5.2 ビルドジョブの実装
   - Node.js 22セットアップステップを追加
   - npm ciで依存関係をインストール
   - npm run docs:buildでVitePressビルドを実行
   - ビルド成果物（docs/.vitepress/dist/）をアップロード
   - _Requirements: 5.1_
 
-- [ ] 5.3 デプロイジョブの実装
+- [x] 5.3 デプロイジョブの実装
   - GitHub Pagesへのデプロイステップを追加
   - github-pages環境を設定
   - デプロイ成功後のURL出力を確認
