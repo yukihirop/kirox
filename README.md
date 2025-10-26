@@ -51,6 +51,11 @@ CLI tool to fetch Kiro specification and steering files from remote GitHub repos
 
 ### Interactive Mode (Recommended)
 
+<p align="center">
+	<img alt="logo" width="196" src="./docs/public/npx-kirox.png">
+</p>
+
+
 ```bash
 npx kirox
 ```
