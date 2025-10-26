@@ -96,7 +96,6 @@ Source: yukihirop/eg-kanban (branch: test)
 ✓ Saved: .kiro/steering/testing.md
 [simple-kanban-board-a] [8/8] 📥 Fetching .kiro/steering/structure.md...
 ✓ Saved: .kiro/steering/structure.md
-✓ Saved metadata: .kiro/.kirox-meta.json
 [simple-kanban-board-a] Completed: 8 files succeeded, 0 files failed
 [INFO] 2025-10-09T14:13:13 Fetching directory listings from GitHub {"repository":"yukihirop/eg-kanban#test","project":"simple-kanban-board-b","branch":"test"}
 [INFO] 2025-10-09T14:13:13 Fetching file contents {"count":4}
@@ -108,7 +107,6 @@ Source: yukihirop/eg-kanban (branch: test)
 ✓ Saved: .kiro/specs/simple-kanban-board-b/design.md
 [simple-kanban-board-b] [4/4] 📥 Fetching .kiro/specs/simple-kanban-board-b/tasks.md...
 ✓ Saved: .kiro/specs/simple-kanban-board-b/tasks.md
-✓ Saved metadata: .kiro/.kirox-meta.json
 [simple-kanban-board-b] Completed: 4 files succeeded, 0 files failed
 
 Summary:
