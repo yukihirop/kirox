@@ -33,6 +33,7 @@ Kiro-style Spec Driven Development implementation using claude code slash comman
 - `kirox-bug-interactive`: Fix interactive mode prompt completion indicators - ensure branch, subdirectory, and project selections display checkmarks (✔) instead of question marks (?)
 - `kirox-opt-steering`: Add --steering option to fetch only .kiro/steering directory; skip project specification in non-interactive mode and project suggestion in interactive mode
 - `kirox-interactive-emoji`: Add emoji prefixes to interactive mode prompts to improve visual appeal and user experience
+- `kirox-vitepress-docs`: VitePress documentation creation and deployment
 - Use `/kiro:spec-status [feature-name]` to check progress
 
 ## Development Guidelines

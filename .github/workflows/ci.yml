@@ -55,3 +55,7 @@ jobs:
         if: always() && matrix.node-version == '20.x'
         with:
           file-coverage-mode: 'changes'
+
+      - name: Build documentation
+        if: matrix.node-version == '20.x'
+        run: npm run docs:build

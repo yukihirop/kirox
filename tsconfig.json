@@ -40,6 +40,6 @@
       "@/*": ["src/*"]
     }
   },
-  "include": ["src/**/*"],
+  "include": ["src/**/*", "docs/.vitepress/**/*"],
   "exclude": ["node_modules", "dist", "**/*.test.ts"]
 }

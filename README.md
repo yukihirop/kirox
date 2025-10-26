@@ -1,5 +1,34 @@
 # Kirox (♻️ Recycle `.kiro` CLI)
 
+<p align="center">
+	<img alt="logo" width="196" src="./docs/public/logo.png">
+</p>
+<h1 align="center" class="kirox-logo-text">Kirox</h1>
+
+<style>
+.kirox-logo-text {
+  font-family: sans-serif;
+  font-size: 50px;
+  font-weight: 700;
+
+  /* 文字の背景としてグラデーションを設定 */
+  background: -webkit-linear-gradient(
+    90deg,
+    #6A37CC 20%,
+    #8544FF 60%,
+    #9B6FFF 100%
+  );
+
+  /* 背景をテキストの形にクリップ */
+  -webkit-background-clip: text;
+  background-clip: text;
+
+  /* テキスト自体を透明にして背景グラデーションを表示 */
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+}
+</style>
+
 [![CI](https://github.com/yukihirop/kirox/actions/workflows/ci.yml/badge.svg)](https://github.com/yukihirop/kirox/actions/workflows/ci.yml)
 [![Release](https://github.com/yukihirop/kirox/actions/workflows/release.yml/badge.svg)](https://github.com/yukihirop/kirox/actions/workflows/release.yml)
 
@@ -10,116 +39,48 @@ CLI tool to fetch Kiro specification and steering files from remote GitHub repos
 
 ## Features
 
-- 💬 **Interactive Mode** - Guided prompts for easy usage (no arguments needed)
-  - 🌿 **Smart Branch Selection** - Automatically detects default branch and suggests all available branches
-  - 🔍 **Smart Project Discovery** - Automatically scans repository using GitHub Tree API
-  - 🎯 **Searchable Selection UI** - Type to filter branches and projects with real-time search
-  - 📂 **Multi-Project Support** - Select multiple projects at once with space key
-  - ⚡ **Intelligent Subdirectory Detection** - No need to manually specify subdirectory paths
+- 💬 **Interactive Mode** - Guided prompts with smart branch/project discovery and searchable UI
 - 🎯 **Steering Mode** - Fetch only steering documents without project specs (`--steering`)
-  - 📂 **Subdirectory Selection** - Interactive UI to select subdirectories with `.kiro/steering`
-  - 🔍 **Searchable Subdirectory List** - Type to filter subdirectories with real-time search
-  - 🎯 **Flexible Targeting** - Fetch steering files from root or any subdirectory
-- ➕ **Add Command** - Incrementally add new projects to existing metadata without re-fetching everything
-  - Works in both interactive and non-interactive modes
-  - Duplicate detection with `--force` option to overwrite
-  - Optional metadata tracking with `--track` flag
-- 🔧 **Shell Completion** - Generate completion scripts for popular shells
-  - Supports bash, zsh, fish, PowerShell, and Elvish
-  - Tab completion for commands, subcommands, and options
-  - Easy installation with `kirox completion` command
-- 📦 Fetch Kiro specification and steering files from any GitHub repository
-- 🌿 Branch/tag specification support (`owner/repo#branch`)
-- 📁 Subdirectory support for monorepo structures
+- ➕ **Add Command** - Incrementally add new projects without re-fetching everything
+- 🔧 **Shell Completion** - Tab completion for bash, zsh, fish, PowerShell, and Elvish
+- 📦 **Repository Support** - Fetch from any GitHub repository with branch/tag specification
 - 🔄 **Update Tracking** - Detect remote changes and update only modified files (opt-in with `--track`)
-- 🚀 NPX support - no installation required
-- 🔄 Automatic directory creation
-- ✅ Overwrite confirmation prompts
-- 🎨 Colorized output and progress indicators
-- 🔍 Verbose logging for debugging
-- 🏃 Dry-run mode to preview operations
+- 🚀 **NPX Support** - No installation required, run instantly with `npx kirox`
+
+## Quick Start
+
+### Interactive Mode (Recommended)
+
+<p align="center">
+	<img alt="logo" width="196" src="./docs/public/npx-kirox.png">
+</p>
 
 
 ```bash
 npx kirox
+```
 
-✔ 📦 Enter GitHub repository (owner/repo or owner/repo#branch) yukihirop/eg-kanban
+Follow the interactive prompts to:
+1. Enter GitHub repository
+2. Select branch (with smart detection)
+3. Select projects (auto-discovered with searchable UI)
+4. Choose output directory
+5. Confirm and execute
 
-Fetching branches...
-? 🌿 Select branch (type to filter, enter to confirm): (Search: "test")
-❯◉ main (default)
- ◯ develop
- ◯ test
- ◯ feature/new-ui
-(Press space to select, enter to proceed)
+### Non-Interactive Mode
 
-✔ Selected branch: test
+```bash
+# Fetch a single project
+npx kirox owner/repo -p project-name
 
-Scanning repository for projects...
-Found 4 projects across 3 subdirectories
+# Fetch multiple projects
+npx kirox owner/repo -p project1,project2
 
-? 📋 Select projects (type to filter, space to select, enter to confirm): (Search: "lib/a")
-❯◉ lib/a/simple-kanban-board-a
- ◉ lib/a/simple-kanban-board-b
-(Press space to select, enter to proceed)
+# Fetch from specific branch
+npx kirox owner/repo#branch -p project-name
 
-✔ 📂 Enter output directory .
-
-Configuration:
-  Repository: yukihirop/eg-kanban#test
-  Project: simple-kanban-board-a, simple-kanban-board-b
-  Output: .
-  Subdirectory: lib/a
-
-✔ 🚀 Execute with this configuration? Yes
-Fetching files from yukihirop/eg-kanban#test/lib/a/.kiro
-Fetching 2 projects: simple-kanban-board-a, simple-kanban-board-b
-Source: yukihirop/eg-kanban (branch: test)
-[INFO] 2025-10-09T14:13:11 Fetching directory listings from GitHub {"repository":"yukihirop/eg-kanban#test","project":"simple-kanban-board-a","branch":"test"}
-[INFO] 2025-10-09T14:13:12 Fetching file contents {"count":8}
-[simple-kanban-board-a] [1/8] 📥 Fetching .kiro/specs/simple-kanban-board-a/design.md...
-✓ Saved: .kiro/specs/simple-kanban-board-a/design.md
-[simple-kanban-board-a] [2/8] 📥 Fetching .kiro/steering/product.md...
-✓ Saved: .kiro/steering/product.md
-[simple-kanban-board-a] [3/8] 📥 Fetching .kiro/specs/simple-kanban-board-a/tasks.md...
-✓ Saved: .kiro/specs/simple-kanban-board-a/tasks.md
-[simple-kanban-board-a] [4/8] 📥 Fetching .kiro/specs/simple-kanban-board-a/spec.json...
-✓ Saved: .kiro/specs/simple-kanban-board-a/spec.json
-[simple-kanban-board-a] [5/8] 📥 Fetching .kiro/specs/simple-kanban-board-a/requirements.md...
-✓ Saved: .kiro/specs/simple-kanban-board-a/requirements.md
-[simple-kanban-board-a] [6/8] 📥 Fetching .kiro/steering/tech.md...
-✓ Saved: .kiro/steering/tech.md
-[simple-kanban-board-a] [7/8] 📥 Fetching .kiro/steering/testing.md...
-✓ Saved: .kiro/steering/testing.md
-[simple-kanban-board-a] [8/8] 📥 Fetching .kiro/steering/structure.md...
-✓ Saved: .kiro/steering/structure.md
-✓ Saved metadata: .kiro/.kirox-meta.json
-[simple-kanban-board-a] Completed: 8 files succeeded, 0 files failed
-[INFO] 2025-10-09T14:13:13 Fetching directory listings from GitHub {"repository":"yukihirop/eg-kanban#test","project":"simple-kanban-board-b","branch":"test"}
-[INFO] 2025-10-09T14:13:13 Fetching file contents {"count":4}
-[simple-kanban-board-b] [1/4] 📥 Fetching .kiro/specs/simple-kanban-board-b/spec.json...
-✓ Saved: .kiro/specs/simple-kanban-board-b/spec.json
-[simple-kanban-board-b] [2/4] 📥 Fetching .kiro/specs/simple-kanban-board-b/requirements.md...
-✓ Saved: .kiro/specs/simple-kanban-board-b/requirements.md
-[simple-kanban-board-b] [3/4] 📥Fetching .kiro/specs/simple-kanban-board-b/design.md...
-✓ Saved: .kiro/specs/simple-kanban-board-b/design.md
-[simple-kanban-board-b] [4/4] 📥 Fetching .kiro/specs/simple-kanban-board-b/tasks.md...
-✓ Saved: .kiro/specs/simple-kanban-board-b/tasks.md
-✓ Saved metadata: .kiro/.kirox-meta.json
-[simple-kanban-board-b] Completed: 4 files succeeded, 0 files failed
-
-Summary:
-  Fetched from: lib/a
-  Source: (branch: test)
-  12 files succeeded
-  0 files failed
-
-=== Overall Summary ===
-Projects: 2
-Total files: 12
-Succeeded: 12 files
-Failed: 0 files
-[INFO] 2025-10-09T14:13:13 Execution completed {"filesDownloaded":12,"filesFailed":0,"total":12}
+# Fetch only steering files
+npx kirox owner/repo --steering
 ```
 
 ## Installation
@@ -138,724 +99,125 @@ npx kirox <owner>/<repo> -p <project>
 npm install -g kirox
 ```
 
-## Usage
-
-### Interactive Mode (Recommended for First-Time Users)
-
-Run without arguments to enter interactive mode:
+## Basic Usage Examples
 
 ```bash
+# Interactive mode
 npx kirox
-```
 
-Interactive mode guides you through:
-1. **Repository**: Enter GitHub repository (owner/repo or owner/repo#branch)
-2. **Branch Selection** (if branch not specified):
-   - Automatically detects repository's default branch
-   - Displays all available branches with searchable interface
-   - Type to filter branches (e.g., "feature" to show feature branches)
-   - Press space to select a branch, or press enter without selection to use default branch
-   - Selected branch is highlighted with "(default)" label if it's the repository's default
-3. **Project Discovery**: Automatically scans repository for available projects
-4. **Project Selection**:
-   - Type to filter projects with real-time search (e.g., "lib/a" to filter subdirectories)
-   - Use arrow keys to navigate
-   - Press space to select/deselect multiple projects
-   - Press enter to confirm selection
-5. **Output**: Choose output directory (default: current directory)
-6. **Confirmation**: Review and confirm your choices
-
-**Benefits:**
-- ✨ No need to remember command syntax, branch names, or project names
-- 🌿 **Smart Branch Detection**: Automatically detects default branch and offers all branches
-- 🔍 **Intelligent Discovery**: Automatically finds all projects in repository
-- 🎯 **Quick Filtering**: Type to instantly filter branches, projects, or subdirectory paths
-- 📦 **Multi-Select**: Select multiple projects at once with space key
-- 🗂️ **Auto-Subdirectory**: Automatically detects and uses correct subdirectory paths
-- 📝 Clear preview before execution
-- 🚫 Prevent mistakes with confirmation prompt
-
-**Note:** Interactive mode requires a TTY environment. If running in a CI/CD pipeline or non-interactive shell, use the non-interactive mode with explicit arguments.
-
-### Non-Interactive Mode
-
-Provide all arguments explicitly:
-
-```bash
+# Fetch from repository
 npx kirox yukihirop/eg-kanban -p simple-kanban-board
-```
 
-This fetches:
-- `.kiro/specs/simple-kanban-board/**` - Project specifications
-- `.kiro/steering/**` - Steering documents
-
-### Branch/Tag Specification
-
-Fetch from a specific branch or tag:
-
-```bash
-# Fetch from a feature branch
-npx kirox owner/repo#feature/new-api -p project
-
-# Fetch from a release branch
-npx kirox owner/repo#release/v2.0 -p project
-
-# Fetch from a specific tag
-npx kirox owner/repo#v1.2.3 -p project
-
-# Fetch from development branch
+# Fetch from specific branch
 npx kirox owner/repo#develop -p project
-```
 
-**Interactive Mode Branch Selection:**
-
-When you don't specify a branch in interactive mode (`npx kirox`):
-1. Kirox automatically fetches all available branches from the repository
-2. Displays a searchable list with the default branch marked
-3. You can type to filter branches (e.g., type "feature" to see only feature branches)
-4. Press space to select a branch, or press enter without selection to use the default branch
-5. The selected branch is then used for fetching files
-
-### Subdirectory Support
-
-Fetch from a subdirectory (useful for monorepos):
-
-```bash
-# Fetch from a subdirectory
+# Fetch from subdirectory (monorepo)
 npx kirox owner/repo --subdir packages/api -p project
 
-# Combine with branch specification
-npx kirox owner/repo#develop --subdir services/auth -p project
-
-# Short option
-npx kirox owner/repo -s apps/frontend -p project
-```
-
-### Custom Output Directory
-
-```bash
-npx kirox yukihirop/eg-kanban -p simple-kanban-board -o ./my-project
-```
-
-Files will be saved to `./my-project/.kiro/`
-
-### Steering Mode
-
-Fetch only steering documents without project specifications using the `--steering` flag:
-
-```bash
-# Fetch steering files from repository root
+# Fetch only steering files
 npx kirox owner/repo --steering
 
-# Fetch steering files from specific subdirectory
-npx kirox owner/repo --steering --subdir packages/api
-
-# Fetch steering files from specific branch
-npx kirox owner/repo#develop --steering
-```
-
-**Interactive Mode** (`npx kirox --steering`):
-
-When you run steering mode interactively:
-1. **Repository**: Enter GitHub repository
-2. **Branch Selection** (if not specified): Choose branch with searchable UI
-3. **Subdirectory Selection**:
-   - Automatically scans repository for directories containing `.kiro/steering`
-   - Displays searchable list with "(root)" option
-   - Type to filter subdirectories (e.g., "lib/" to show lib subdirectories)
-   - Select one subdirectory or root
-4. **Output**: Choose output directory
-5. **Confirmation**: Review configuration with "Mode: Steering only"
-
-**What it fetches:**
-- Only `.kiro/steering/**` files (product.md, tech.md, structure.md, etc.)
-- Skips `.kiro/specs/<project>/**` files entirely
-
-**Benefits:**
-- 🎯 **Focused Fetching**: Get only project-wide steering documents
-- 📂 **Smart Discovery**: Auto-detect subdirectories with `.kiro/steering`
-- 🔍 **Quick Selection**: Searchable UI for subdirectory paths
-- 🚀 **Faster**: Skip project spec files when you only need steering docs
-
-**Mutual Exclusivity:**
-The `--steering` flag cannot be combined with:
-- `--check-updates`: Update tracking is project-specific
-- `--update`: Update operations require project specification
-
-### Advanced Usage
-
-```bash
-# Force overwrite without confirmation
-npx kirox owner/repo -p project --force
-
-# Preview what will be fetched (no actual writes)
-npx kirox owner/repo -p project --dry-run
-
-# Verbose output for debugging
-npx kirox owner/repo -p project --verbose
-
-# Track files for update detection (creates .kirox-meta.json with file hashes)
-npx kirox owner/repo -p project --track
-
-# Check for updates to previously tracked files
-npx kirox owner/repo -p project --check-updates
-
-# Update only changed files (requires prior --track usage)
-npx kirox owner/repo -p project --update
-
-# Combine options
-npx kirox owner/repo#develop -s packages/api -p project -o ./output --verbose --dry-run
-```
-
-### Commands
-
-Kirox provides the following commands:
-
-- **`npx kirox [repository] [options]`** - Main command for initial fetch or starting fresh
-- **`npx kirox add [repository] [options]`** - Add new projects to existing metadata incrementally
-- **`npx kirox completion [shell]`** - Generate shell completion scripts for enhanced CLI experience
-
-Use `kirox --help`, `kirox add --help`, or `kirox completion --help` for detailed command information.
-
-## Add Command
-
-The `add` command allows you to incrementally add new projects to your existing metadata without re-fetching all files. This is useful when you want to manage multiple projects over time.
-
-### When to use `add` vs regular fetch
-
-- **Regular fetch** (`npx kirox owner/repo -p project`): Initial setup or when you want to start fresh
-- **Add command** (`npx kirox add owner/repo -p project`): Adding more projects after initial setup
-
-### Basic Usage
-
-```bash
-# Add a single project
+# Add new projects incrementally
 npx kirox add owner/repo -p new-project
 
-# Add multiple projects at once
-npx kirox add owner/repo -p proj1,proj2,proj3
+# Enable update tracking
+npx kirox owner/repo -p project --track
 
-# Add project from specific branch
-npx kirox add owner/repo#feature -p new-project
+# Check for updates
+npx kirox owner/repo -p project --check-updates
 
-# Add project with subdirectory
-npx kirox add owner/repo --subdir packages/api -p new-project
+# Update changed files only
+npx kirox owner/repo -p project --update
 ```
 
-### Interactive Mode
+## Common Options
 
-Run without arguments to enter interactive mode:
+| Option | Alias | Description |
+|--------|-------|-------------|
+| `--project <name>` | `-p` | Project name(s) to fetch (required except in `--steering` mode) |
+| `--output <path>` | `-o` | Output directory (default: current directory) |
+| `--subdir <path>` | `-s` | Subdirectory path containing .kiro folder |
+| `--steering` | - | Fetch only steering files (skip project specs) |
+| `--track` | - | Track files for update detection (default: `false`) |
+| `--force` | - | Force overwrite without confirmation |
+| `--dry-run` | - | Preview mode (no actual writes) |
+| `--verbose` | - | Verbose logging |
 
-```bash
-npx kirox add
-```
-
-Interactive mode will guide you through:
-1. Repository selection (with suggestions from existing metadata)
-2. Branch selection (if not specified in repository)
-3. Project discovery and selection
-4. Output directory confirmation
-5. Final confirmation before execution
-
-### Duplicate Detection
-
-When adding a project that already exists in metadata:
-
-```bash
-# Without --force: shows warning and skips
-npx kirox add owner/repo -p existing-project
-# Warning: Project already exists: existing-project (skipping)
-
-# With --force: overwrites existing project metadata
-npx kirox add owner/repo -p existing-project --force
-```
-
-### Tracking with `add`
-
-The `--track` option is **optional** for the `add` command:
-
-```bash
-# Add without tracking (no metadata file created/updated)
-npx kirox add owner/repo -p project
-
-# Add with tracking (metadata file created/updated)
-npx kirox add owner/repo -p project --track
-```
-
-**Note:** Tracking allows you to use `--check-updates` and `--update` features later. If you don't need update detection, you can omit `--track`.
-
-### Advanced Examples
-
-```bash
-# Dry-run to preview changes
-npx kirox add owner/repo -p project --dry-run
-
-# Add with tracking and verbose output
-npx kirox add owner/repo -p project --track --verbose
-
-# Force overwrite with custom output directory
-npx kirox add owner/repo -p project --force -o ./custom-dir
-```
-
-## Completion Command
-
-The `completion` command generates shell completion scripts to enhance your CLI experience with tab completion for commands, options, and arguments.
-
-### Supported Shells
-
-Kirox supports completion scripts for the following shells:
-- **bash** - Bourne Again Shell
-- **zsh** - Z Shell
-- **fish** - Friendly Interactive Shell
-- **powershell** - PowerShell
-- **elvish** - Elvish Shell
-
-### Usage
-
-```bash
-# Generate completion script for your shell
-npx kirox completion [shell]
-```
-
-### Installation Examples
-
-#### Bash
-
-```bash
-# Generate and save completion script
-npx kirox completion bash > ~/.kirox-completion.bash
-
-# Add to your .bashrc
-echo "source ~/.kirox-completion.bash" >> ~/.bashrc
-
-# Reload your shell
-source ~/.bashrc
-```
-
-#### Zsh
-
-```bash
-# Generate and save completion script
-npx kirox completion zsh > ~/.kirox-completion.zsh
-
-# Add to your .zshrc
-echo "source ~/.kirox-completion.zsh" >> ~/.zshrc
-
-# Reload your shell
-source ~/.zshrc
-```
-
-#### Fish
-
-```bash
-# Generate and save completion script
-npx kirox completion fish > ~/.config/fish/completions/kirox.fish
-
-# Fish automatically loads completions from this directory
-```
-
-#### PowerShell
-
-```powershell
-# Generate and save completion script
-npx kirox completion powershell > ~/kirox-completion.ps1
-
-# Add to your PowerShell profile
-echo ". ~/kirox-completion.ps1" >> $PROFILE
-
-# Reload your profile
-. $PROFILE
-```
-
-#### Elvish
-
-```bash
-# Generate and save completion script
-npx kirox completion elvish > ~/.elvish/lib/kirox-completion.elv
-
-# Add to your rc.elv
-echo "use ./kirox-completion" >> ~/.elvish/rc.elv
-
-# Restart your shell
-```
-
-### Benefits
-
-- **Tab Completion**: Press Tab to autocomplete commands, subcommands, and options
-- **Option Discovery**: See available options without checking documentation
-- **Faster Workflow**: Reduce typing and avoid typos
-- **Command Hints**: Get inline help while typing commands
-
-## Options
-
-| Option | Alias | Description | Default |
-|--------|-------|-------------|---------|
-| `--project <name>` | `-p` | Project name(s) to fetch - supports comma-separated multiple projects (required, except in `--steering` mode) | - |
-| `--output <path>` | `-o` | Output directory | `.` (current directory) |
-| `--subdir <path>` | `-s` | Subdirectory path containing .kiro folder | - |
-| `--steering` | - | Fetch only `.kiro/steering` directory (skip project specs) | `false` |
-| `--track` | - | Track fetched files for update detection (creates `.kirox-meta.json`) | `false` |
-| `--check-updates` | - | Check for updates to previously tracked files (requires prior `--track` usage, cannot be used with `--steering`) | `false` |
-| `--update` | - | Update tracked files that have changed remotely (requires prior `--track` usage, cannot be used with `--steering`) | `false` |
-| `--force` | - | Force overwrite without confirmation | `false` |
-| `--dry-run` | - | Preview mode (no actual writes) | `false` |
-| `--verbose` | - | Verbose logging | `false` |
-| `--config <path>` | - | Custom config file path | - |
-
-### Repository Format
-
-```
-owner/repo              # Fetch from default branch
-owner/repo#branch       # Fetch from specific branch
-owner/repo#tag          # Fetch from specific tag
-```
-
-Branch names can include slashes (e.g., `feature/new-api`, `release/v2.0`).
+See [CLI Reference](https://yukihirop.github.io/kirox/cli/) for all options.
 
 ## Authentication
 
-For private repositories or to avoid rate limits, set the `GITHUB_TOKEN` environment variable:
+For private repositories or to avoid rate limits:
 
 ```bash
 export GITHUB_TOKEN=your_github_personal_access_token
 npx kirox owner/private-repo -p project
 ```
 
-### Rate Limits
-
-- **Without token**: 60 requests/hour
-- **With token**: 5,000 requests/hour
+**Rate Limits:**
+- Without token: 60 requests/hour
+- With token: 5,000 requests/hour
 
 ## What it Fetches
 
-Kirox fetches the following directory structures:
-
-**Normal Mode** (default):
+**Normal Mode:**
 ```
 .kiro/
-├── specs/
-│   └── <project>/
-│       ├── spec.json
-│       ├── requirements.md
-│       ├── design.md
-│       └── tasks.md
+├── specs/<project>/
+│   ├── spec.json
+│   ├── requirements.md
+│   ├── design.md
+│   └── tasks.md
 └── steering/
     ├── product.md
     ├── tech.md
     └── structure.md
 ```
 
-**Steering Mode** (`--steering` flag):
+**Steering Mode** (`--steering`):
 ```
 .kiro/
 └── steering/
     ├── product.md
     ├── tech.md
-    ├── structure.md
-    └── ... (other steering documents)
+    └── structure.md
 ```
 
-These `.kiro` files are created using [Claude Code Spec-Driven Development (cc-sdd)](https://github.com/gotalab/cc-sdd), which provides:
-- **Specifications** (`specs/`): Requirements, design documents, and implementation tasks for individual features
-- **Steering Documents** (`steering/`): Project-wide rules, context, and guidelines for AI-assisted development
-
-**When to use `--steering` mode:**
-- You only need project-wide steering documents (product.md, tech.md, structure.md, etc.)
-- You want to fetch steering files from multiple subdirectories without fetching project specs
-- You're setting up shared steering documents across team members
-
-Learn more about creating `.kiro` files: https://github.com/gotalab/cc-sdd
-
-## Examples
-
-### Fetch to Current Directory
-
-```bash
-npx kirox yukihirop/eg-kanban -p simple-kanban-board
-# Files saved to ./.kiro/
-```
-
-### Fetch Multiple Projects
-
-**Interactive Mode (Recommended):**
-
-Simply run `npx kirox` and use the searchable checkbox interface:
-- Type to filter projects (e.g., "lib/" to show all projects in lib subdirectory)
-- Press space to select/deselect multiple projects
-- Press enter to confirm
-
-**Non-Interactive Mode:**
-
-Fetch multiple projects from the same repository with comma-separated names:
-
-```bash
-# Fetch two projects with comma-separated names
-npx kirox yukihirop/eg-kanban -p simple-kanban-board-a,simple-kanban-board-b
-
-# Fetch three projects from a specific branch
-npx kirox owner/repo#develop -p project-a,project-b,project-c
-
-# Fetch multiple projects with custom output
-npx kirox owner/repo -p api-service,web-app,mobile-app -o ./projects
-
-# Important: Multiple projects must be in the same subdirectory
-npx kirox owner/repo --subdir packages/api -p service-a,service-b
-```
-
-**Subdirectory Constraint:**
-When selecting multiple projects, they must all be in the same subdirectory. This ensures consistent file paths and prevents conflicts. In interactive mode, the validation is automatic and will show an error if you try to select projects from different subdirectories.
-
-Each project's files are saved to separate directories:
-```
-.kiro/
-├── specs/
-│   ├── simple-kanban-board-a/
-│   │   └── ...
-│   └── simple-kanban-board-b/
-│       └── ...
-└── steering/
-    └── ... (shared across projects)
-```
-
-### Fetch from Specific Branch
-
-```bash
-npx kirox yukihirop/eg-kanban#develop -p simple-kanban-board
-# Files saved to ./.kiro/ from develop branch
-```
-
-### Fetch from Subdirectory
-
-```bash
-npx kirox owner/monorepo --subdir packages/api -p api-service
-# Files saved from packages/api/.kiro/
-```
-
-### Fetch to Custom Directory
-
-```bash
-npx kirox yukihirop/eg-kanban -p simple-kanban-board -o ./tmp
-# Files saved to ./tmp/.kiro/
-```
-
-### Combine Branch and Subdirectory
-
-```bash
-npx kirox owner/monorepo#feature/new-api -s services/auth -p auth-service
-# Files saved from feature/new-api branch, services/auth/.kiro/
-```
-
-### Preview Before Fetching
-
-```bash
-npx kirox yukihirop/eg-kanban -p simple-kanban-board --dry-run --verbose
-# Shows what would be fetched without writing files
-```
-
-### Fetch Only Steering Files
-
-Use `--steering` flag to fetch only steering documents:
-
-```bash
-# Fetch steering files from repository root (interactive mode)
-npx kirox owner/repo --steering
-
-# Fetch steering files from repository root (non-interactive mode)
-npx kirox owner/repo --steering --subdir ""
-
-# Fetch steering files from specific subdirectory
-npx kirox owner/repo --steering --subdir packages/api
-# Files saved from packages/api/.kiro/steering/
-
-# Fetch steering files from specific branch
-npx kirox owner/repo#develop --steering
-# Files saved from develop branch, .kiro/steering/ only
-
-# Combine with other options
-npx kirox owner/repo#main --steering --subdir lib/sample -o ./my-steering --verbose
-# Files saved to ./my-steering/.kiro/steering/
-```
-
-### Update Tracking
-
-Kirox supports tracking fetched files to detect remote changes and selectively update only modified files.
-
-**Important:** The `--track` option defaults to `false`. You must explicitly enable it to use update detection features.
-
-#### Enable Tracking
-
-```bash
-# Fetch files with tracking enabled (creates .kirox-meta.json)
-npx kirox owner/repo -p project --track
-```
-
-When `--track` is enabled, Kirox creates a `.kiro/.kirox-meta.json` file that stores:
-- File paths and SHA hashes from GitHub
-- Repository, branch, and project information
-- Last fetch timestamp
-
-#### Check for Updates
-
-```bash
-# Check which tracked files have been updated remotely
-npx kirox owner/repo -p project --check-updates
-```
-
-This compares local file hashes against remote versions and displays:
-- Files that have changed
-- Files that are up-to-date
-- Files that no longer exist remotely
-
-**Note:** Requires that files were previously fetched with `--track` enabled.
-
-#### Update Changed Files
-
-```bash
-# Fetch only files that have changed remotely
-npx kirox owner/repo -p project --update
-```
-
-This updates only the files that have changed, preserving local files that are unchanged.
-
-**Note:** Requires that files were previously fetched with `--track` enabled.
-
-#### Update Tracking Workflow
-
-```bash
-# 1. Initial fetch with tracking
-npx kirox owner/repo -p my-project --track
-
-# 2. Later, check for updates
-npx kirox owner/repo -p my-project --check-updates
-
-# 3. Update only changed files
-npx kirox owner/repo -p my-project --update
-```
-
-#### Metadata File
-
-The `.kiro/.kirox-meta.json` file contains tracking metadata:
-
-```json
-{
-  "version": "1.0",
-  "lastUpdated": "2025-10-11T12:34:56.789Z",
-  "projects": {
-    "my-project": {
-      "repository": "owner/repo",
-      "branch": "main",
-      "subdir": "",
-      "files": {
-        ".kiro/specs/my-project/spec.json": {
-          "sha": "abc123...",
-          "path": ".kiro/specs/my-project/spec.json",
-          "lastFetched": "2025-10-11T12:34:56.789Z"
-        }
-      }
-    }
-  }
-}
-```
-
-**Important:** Do not manually edit this file. It is automatically managed by Kirox.
-
-### Using `add` Command with Update Tracking
-
-The `add` command integrates seamlessly with update tracking. Here's a typical workflow:
-
-```bash
-# 1. Initial fetch with tracking
-npx kirox owner/repo -p my-first-project --track
-
-# 2. Later, add more projects with tracking
-npx kirox add owner/repo -p my-second-project --track
-
-# 3. Check for updates across all tracked projects
-npx kirox --check-updates
-
-# 4. Update all changed files
-npx kirox --update
-```
-
-Both the regular `fetch` and `add` commands work together in the same metadata file, allowing you to build up your project collection incrementally while maintaining full update tracking.
-
-### Add Command Examples
-
-#### Add a Single Project
-
-```bash
-# Initial setup - fetch first project
-npx kirox owner/repo -p initial-project --track
-
-# Later - add another project
-npx kirox add owner/repo -p new-project --track
-```
-
-#### Add Projects in Interactive Mode
-
-```bash
-# Run add command without arguments
-npx kirox add
-
-# Interactive prompts will guide you through:
-# 1. Repository selection
-# 2. Branch selection
-# 3. Project discovery and selection
-# 4. Output directory
-# 5. Confirmation
-```
-
-#### Add from Different Branch
-
-```bash
-# Add project from feature branch
-npx kirox add owner/repo#feature/experimental -p experimental-project --track
-```
-
-#### Add with Duplicate Detection
-
-```bash
-# Try to add existing project - will skip with warning
-npx kirox add owner/repo -p existing-project
-# Output: Warning: Project already exists: existing-project (skipping)
-
-# Force overwrite existing project
-npx kirox add owner/repo -p existing-project --force --track
-```
+## Documentation
+
+**Full documentation is available at: https://yukihirop.github.io/kirox/**
+
+- [Getting Started](https://yukihirop.github.io/kirox/guide/getting-started) - Installation and setup
+- [Basic Usage](https://yukihirop.github.io/kirox/guide/basic-usage) - Common commands and options
+- [Advanced Usage](https://yukihirop.github.io/kirox/guide/advanced-usage) - Configuration files, branch/subdirectory support
+- [CLI Reference](https://yukihirop.github.io/kirox/cli/) - Complete command reference
+- [API Documentation](https://yukihirop.github.io/kirox/api/) - API specifications
+- [Configuration](https://yukihirop.github.io/kirox/config/) - Configuration file reference
+- [Troubleshooting](https://yukihirop.github.io/kirox/guide/troubleshooting) - Common issues and solutions
 
 ## Development
 
-### Setup
-
 ```bash
 # Clone repository
-git clone https://github.com/your-org/kirox.git
+git clone https://github.com/yukihirop/kirox.git
 cd kirox
 
 # Install dependencies
 npm install
 
-# Run in development mode
-npm run dev -- owner/repo -p project
-```
-
-### Commands
-
-```bash
 # Run tests
 npm test
-
-# Run tests in watch mode
-npm run test:watch
-
-# Run tests with coverage
-npm run test:coverage
 
 # Build
 npm run build
 
 # Type check
 npm run type-check
+
+# Documentation
+npm run docs:dev        # Start docs dev server
+npm run docs:build      # Build docs
+npm run docs:preview    # Preview built docs
 ```
 
 ### Requirements
@@ -863,118 +225,10 @@ npm run type-check
 - Node.js >= 18.0.0
 - TypeScript 5.x
 
-## Configuration File
+## Contributing
 
-Create a `.kiroxrc.json` file in your project root to set default values:
-
-```json
-{
-  "defaultRepository": "owner/repo",
-  "project": "default-project",
-  "branch": "develop",
-  "subdir": "packages/api",
-  "outputDirectory": "./kiro-files",
-  "defaultConcurrency": 5,
-  "verbose": false,
-  "force": false,
-  "track": false
-}
-```
-
-**Note:** The `track` option defaults to `false`. To enable update tracking, you must explicitly set it to `true` in the configuration file or use the `--track` flag. Update detection features (`--check-updates` and `--update`) require that files have been previously tracked.
-
-### Multiple Projects in Configuration
-
-The `project` field supports both single and multiple projects:
-
-```json
-{
-  "defaultRepository": "owner/repo",
-  "project": ["project-a", "project-b", "project-c"],
-  "outputDirectory": "./kiro-files"
-}
-```
-
-Or as a single string with comma-separated values:
-
-```json
-{
-  "defaultRepository": "owner/repo",
-  "project": "project-a,project-b,project-c",
-  "outputDirectory": "./kiro-files"
-}
-```
-
-Command-line options override configuration file values.
-
-## Troubleshooting
-
-### Interactive mode not available / "TTY environment required" error
-
-**Symptom:** Error message: "Interactive mode is only available in TTY environment. Please specify arguments explicitly."
-
-**Cause:** Interactive mode requires a TTY (interactive terminal) environment to display prompts and receive user input.
-
-**Solution:** Use non-interactive mode with explicit arguments:
-
-```bash
-# Instead of: npx kirox
-# Use:
-npx kirox owner/repo -p project-name
-```
-
-**Common scenarios where this occurs:**
-- CI/CD pipelines (GitHub Actions, GitLab CI, Jenkins, etc.)
-- Shell scripts with redirected input/output
-- Docker containers without TTY allocation
-- Cron jobs
-- Non-interactive SSH sessions
-
-**To use kirox in these environments:**
-1. Always provide all required arguments explicitly
-2. Use configuration file (`.kiroxrc.json`) to set defaults
-3. Consider using `--force` flag to skip confirmation prompts
-
-```bash
-# Example for CI/CD
-npx kirox owner/repo -p project --force --output ./kiro-files
-```
-
-### "Rate limit exceeded" error
-
-Set `GITHUB_TOKEN` environment variable:
-
-```bash
-export GITHUB_TOKEN=your_token
-```
-
-### "Repository not found" error
-
-- Verify repository exists: `https://github.com/owner/repo`
-- For private repos, ensure `GITHUB_TOKEN` has access
-- Check repository owner/name spelling
-
-### "Branch not found" error
-
-- Verify branch exists in repository
-- Check branch name spelling (case-sensitive)
-- Try fetching without branch specification to use default branch
-
-### "Project not found" error
-
-- Verify project exists in `.kiro/specs/<project>/`
-- If using `--subdir`, verify the subdirectory path is correct
-- Check project name spelling (case-sensitive)
-
-### "Subdirectory not found" error
-
-- Verify the subdirectory path exists in repository
-- Check subdirectory path spelling
-- Ensure subdirectory contains a `.kiro` folder
+See [CONTRIBUTING.md](CONTRIBUTING.md) for documentation contribution guidelines.
 
 ## License
 
 MIT
-
-
-
