@@ -37,9 +37,6 @@ const config: KnipConfig = {
     '@types/figlet',                 // Type definitions for figlet (used in src/cli/entry.ts)
   ],
 
-  // Exclude exported types and functions (public API)
-  ignoreExportsUsedInFile: true,
-
   // Enable Vitest plugin
   vitest: true,
 };

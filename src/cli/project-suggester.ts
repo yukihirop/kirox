@@ -12,17 +12,11 @@ import { fetchDirectoryContents } from '@/github/fetcher.js';
 import type { RepositoryRef } from '@/github/fetcher.js';
 import type { Logger } from '@/reporting/logger.js';
 
-/**
- * Project suggestion result
- */
-export interface ProjectSuggestionResult {
-  /** Selected project names */
+/** Project suggestion result - @internal Internal type - not exported */
+interface ProjectSuggestionResult {
   projects: string[];
-  /** Whether suggestion was successful (true) or fallback to manual (false) */
   success: boolean;
-  /** Error message when success is false (optional) */
   errorMessage?: string;
-  /** Detailed error information for debugging (optional) */
   errorDetails?: {
     repository: string;
     path: string;
@@ -30,19 +24,12 @@ export interface ProjectSuggestionResult {
   };
 }
 
-/**
- * Project suggestion options
- */
-export interface ProjectSuggestionOptions {
-  /** GitHub repository reference (owner, repo, branch) */
+/** Project suggestion options - @internal Internal type - not exported */
+interface ProjectSuggestionOptions {
   repository: RepositoryRef;
-  /** Optional subdirectory path */
   subdir?: string;
-  /** GitHub client instance */
   client: Octokit;
-  /** Logger instance for verbose output */
   logger: Logger;
-  /** Enable verbose logging */
   verbose: boolean;
 }
 

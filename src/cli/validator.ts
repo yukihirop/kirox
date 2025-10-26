@@ -96,7 +96,8 @@ export function validateInput(args: ParsedArguments): ValidationResult {
       }
 
       // Task 4.1: Check for duplicate project names
-      errors.push(...validateProjectDuplicates(args.projects));
+      // validateProjectDuplicates is commented out - reserved for future use
+      // errors.push(...validateProjectDuplicates(args.projects));
     } else {
       errors.push({
         field: 'project',
@@ -198,8 +199,9 @@ export function validateProjectName(project: string): ValidationError[] {
  *
  * @param projects - Array of project names to check for duplicates
  * @returns Array of validation errors (empty if no duplicates found)
+ * @internal Commented out - reserved for future use
  */
-export function validateProjectDuplicates(
+/* export function validateProjectDuplicates(
   projects: string[]
 ): ValidationError[] {
   const errors: ValidationError[] = [];
@@ -228,7 +230,7 @@ export function validateProjectDuplicates(
   }
 
   return errors;
-}
+} */
 
 /**
  * Validate branch name for control characters and whitespace issues

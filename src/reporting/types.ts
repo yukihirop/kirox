@@ -11,15 +11,6 @@ export interface ReporterOptions {
 }
 
 /**
- * Summary statistics for reporting
- */
-export interface Summary {
-  success: number; // Number of successful operations
-  failed: number; // Number of failed operations
-  total: number; // Total number of operations
-}
-
-/**
  * Error types for classification
  */
 export type ErrorType =

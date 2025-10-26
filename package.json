@@ -3,7 +3,7 @@
   "version": "0.1.1",
   "description": "CLI tool to fetch Kiro specification and steering files from remote GitHub repositories",
   "type": "module",
-  "main": ".dist/index.js",
+  "main": "dist/index.js",
   "bin": {
     "kirox": "dist/index.js"
   },

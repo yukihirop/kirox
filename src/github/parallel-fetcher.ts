@@ -18,29 +18,23 @@ const MAX_FILE_SIZE = 1024 * 1024; // 1MB in bytes
  */
 const MAX_FILE_COUNT = 100;
 
-/**
- * Fetched file content with metadata
- */
-export interface FetchedFile {
+/** Fetched file content with metadata - @internal Internal type - not exported */
+interface FetchedFile {
   path: string;
-  content: string; // Decoded UTF-8 content
+  content: string;
   size: number;
   sha: string;
 }
 
-/**
- * Failed file fetch with error information
- */
-export interface FailedFile {
+/** Failed file fetch with error information - @internal Internal type - not exported */
+interface FailedFile {
   path: string;
   error: string;
   retryable: boolean;
 }
 
-/**
- * Result of parallel file fetching operation
- */
-export interface ParallelFetchResult {
+/** Result of parallel file fetching operation - @internal Internal type - not exported */
+interface ParallelFetchResult {
   success: FetchedFile[];
   failed: FailedFile[];
 }

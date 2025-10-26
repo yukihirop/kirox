@@ -11,39 +11,24 @@ import { updateFile, type UpdateResult } from './file-updater.js';
 import type { UpdateCheckResult } from './update-checker.js';
 import type { FileMetadata } from './types.js';
 
-/**
- * Updated file information
- */
-export interface UpdatedFileInfo {
-  /** File path */
+/** Updated file information - @internal Internal type - not exported */
+interface UpdatedFileInfo {
   path: string;
-  /** Old SHA before update */
   oldSha: string;
-  /** New SHA after update */
   newSha: string;
-  /** New hash after update */
   newHash: string;
-  /** New size after update */
   newSize: number;
 }
 
-/**
- * Skipped file information
- */
-export interface SkippedFileInfo {
-  /** File path */
+/** Skipped file information - @internal Internal type - not exported */
+interface SkippedFileInfo {
   path: string;
-  /** Skip reason */
   reason: string;
 }
 
-/**
- * Failed file information
- */
-export interface FailedFileInfo {
-  /** File path */
+/** Failed file information - @internal Internal type - not exported */
+interface FailedFileInfo {
   path: string;
-  /** Error message */
   error: string;
 }
 
