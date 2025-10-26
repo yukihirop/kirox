@@ -25,6 +25,7 @@
     "test:coverage": "vitest run --coverage",
     "lint": "eslint src --ext .ts",
     "lint:knip": "knip",
+    "lint:all": "npm run lint && npm run lint:knip",
     "knip": "knip",
     "format": "prettier --write \"src/**/*.ts\"",
     "docs:dev": "vitepress dev docs",

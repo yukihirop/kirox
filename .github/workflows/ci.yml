@@ -39,6 +39,9 @@ jobs:
       - name: Lint
         run: npm run lint
 
+      - name: Knip check
+        run: npm run knip
+
       - name: Build
         run: npm run build
 

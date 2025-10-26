@@ -31,13 +31,13 @@
   - 統合テスト: knip実行が成功（exit code 0または1）することを確認するテストを作成
   - _Requirements: 1.4_
 
-- [ ] 9. lint:knipスクリプトをlintワークフローに統合
+- [x] 9. lint:knipスクリプトをlintワークフローに統合
   - package.jsonの`scripts`セクションに既存の`lint`スクリプトがあるか確認
   - （オプション）`lint:all`スクリプトを作成: `"lint:all": "npm run lint && npm run lint:knip"`
   - `npm run lint:all`を実行し、ESLintとknipが順次実行されることを確認
   - _Requirements: 3.1_
 
-- [ ] 12. GitHub Actions CI/CDワークフローにknipチェックを追加
+- [x] 12. GitHub Actions CI/CDワークフローにknipチェックを追加
   - `.github/workflows/ci.yml`を開き、既存のlintとtype-checkステップを確認
   - type-checkステップの後、testステップの前に`knip`ステップを追加
   - テストPRを作成し、CIでknipステップが実行されることを確認
@@ -45,7 +45,7 @@
   - E2Eテスト: 未使用ファイルを削除し、CIが成功することを確認
   - _Requirements: 3.4, 3.5_
 
-- [ ] 18. CONTRIBUTING.mdにknipセクションを追加
+- [x] 18. CONTRIBUTING.mdにknipセクションを追加
   - `CONTRIBUTING.md`を開き、`Code Quality`セクションを追加（または既存セクションに統合）
   - knipの概要と目的を記述
   - ローカルでのknip実行方法（`npm run knip`）を記述
@@ -55,7 +55,7 @@
   - README.mdの`Development`セクションに`npm run knip`コマンドを追記
   - _Requirements: 5.3_
 
-- [ ] 23. knip設定とレポートのドキュメントを完成させる
+- [x] 23. knip設定とレポートのドキュメントを完成させる
   - `CONTRIBUTING.md`のknipセクションを充実させる
   - knip.ts設定の詳細を記述（エントリポイント、除外パターン、除外依存関係）
   - knipレポートの読み方を説明（未使用ファイル、未使用依存関係、未使用エクスポート）

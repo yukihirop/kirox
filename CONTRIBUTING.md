@@ -1,6 +1,244 @@
-# Contributing to Kirox Documentation
+# Contributing to Kirox
 
-Thank you for your interest in contributing to Kirox documentation! This guide will help you get started with updating and adding documentation.
+Thank you for your interest in contributing to Kirox! This guide will help you get started with code development, documentation, and code quality management.
+
+---
+
+## Table of Contents
+
+- [Code Development](#code-development)
+  - [Quick Start](#quick-start-development)
+  - [Code Quality](#code-quality)
+  - [Running Tests](#running-tests)
+- [Documentation](#documentation)
+  - [Quick Start](#quick-start-documentation)
+  - [Documentation Structure](#documentation-structure)
+
+---
+
+# Code Development
+
+## Quick Start (Development)
+
+### Prerequisites
+
+- Node.js >= 18.0.0
+- npm >= 9.0.0
+
+### Setup Development Environment
+
+```bash
+# Clone the repository
+git clone https://github.com/yukihirop/kirox.git
+cd kirox
+
+# Install dependencies
+npm install
+
+# Build the project
+npm run build
+
+# Run tests
+npm test
+```
+
+### Development Commands
+
+```bash
+# Development mode (run CLI without building)
+npm run dev
+
+# Build for production
+npm run build
+
+# Type checking
+npm run type-check
+
+# Linting
+npm run lint              # ESLint only
+npm run lint:knip         # Knip only
+npm run lint:all          # Both ESLint and Knip
+
+# Testing
+npm test                  # Run tests
+npm run test:watch        # Watch mode
+npm run test:coverage     # With coverage report
+
+# Formatting
+npm run format
+```
+
+## Code Quality
+
+Kirox uses multiple tools to ensure code quality and maintainability:
+
+- **TypeScript** - Static type checking
+- **ESLint** - Code linting and style enforcement
+- **Knip** - Unused code detection (files, dependencies, exports)
+- **Vitest** - Unit and integration testing
+- **Prettier** - Code formatting
+
+### Knip - Unused Code Detection
+
+Knip helps maintain a clean codebase by detecting:
+- **Unused files** - Source files not imported anywhere
+- **Unused dependencies** - npm packages not used in the code
+- **Unused exports** - Functions, types, and variables exported but never imported
+
+#### Running Knip Locally
+
+```bash
+# Run knip check
+npm run knip
+# or
+npm run lint:knip
+
+# Run all linting (ESLint + Knip)
+npm run lint:all
+```
+
+#### Understanding Knip Reports
+
+Knip output includes several categories:
+
+1. **Unused files**
+   ```
+   Unused files (1)
+   src/utils/old-helper.ts
+   ```
+   **Action**: Remove the file or add it to entry points if needed
+
+2. **Unused dependencies**
+   ```
+   Unused dependencies (1)
+   lodash  package.json
+   ```
+   **Action**: Remove from package.json or use it in code
+
+3. **Unused exports**
+   ```
+   Unused exports (1)
+   helperFunction  function  src/utils/helpers.ts:45:23
+   ```
+   **Action**: Remove export or use it elsewhere
+
+4. **Configuration hints**
+   ```
+   Configuration hints (2)
+   src/index.ts      knip.ts       Remove redundant entry pattern
+   .dist/index.js    package.json  Package entry file not found
+   ```
+   **Action**: Review configuration or build the project first
+
+#### Knip Configuration
+
+Knip configuration is defined in `knip.ts`:
+
+```typescript
+const config: KnipConfig = {
+  // Entry points - starting points for dependency analysis
+  entry: [
+    'src/index.ts',                  // CLI entry point
+    'docs/.vitepress/config.ts',     // VitePress documentation
+  ],
+
+  // Files to analyze
+  project: [
+    'src/**/*.ts',                   // Source code
+    'tests/**/*.test.ts',            // Test files
+    'docs/.vitepress/**/*.ts',       // VitePress configuration
+  ],
+
+  // Exclusion patterns
+  ignore: [
+    'dist/**/*',                     // Build artifacts
+    '.kiro/**/*',                    // Kiro specifications
+    '.claude/**/*',                  // Claude Code config
+    'demo/**/*',                     // Demo files
+  ],
+
+  // Exclude known build-only and peer dependencies
+  ignoreDependencies: [
+    'esbuild-plugin-tsconfig-paths', // Used by tsup internally
+    // @inquirer/prompts peer dependencies
+    'cli-width',
+    'mute-stream',
+    'yoctocolors-cjs',
+  ],
+
+  // Enable Vitest plugin for test file analysis
+  vitest: true,
+};
+```
+
+#### Handling Knip Issues
+
+**False Positives**: If Knip reports a false positive:
+- Add the pattern to `ignore` in `knip.ts`
+- Add the dependency to `ignoreDependencies`
+- Use `ignoreExportsUsedInFile: true` for public APIs
+
+**Legitimate Issues**: If Knip finds real unused code:
+- Remove unused files, dependencies, or exports
+- Or document why they're kept (future use, public API)
+
+#### CI/CD Integration
+
+Knip runs automatically in GitHub Actions CI/CD pipeline:
+
+1. **When**: On every pull request and push to main
+2. **Where**: After type checking and linting, before tests
+3. **What happens**: If unused code is detected, CI provides a report (but may not fail the build)
+
+See `.github/workflows/ci.yml` for the complete workflow.
+
+## Running Tests
+
+```bash
+# Run all tests
+npm test
+
+# Watch mode for development
+npm run test:watch
+
+# Generate coverage report
+npm run test:coverage
+```
+
+### Test Structure
+
+```
+tests/
+├── unit/           # Unit tests for individual functions
+└── integration/    # Integration tests for components
+```
+
+### Writing Tests
+
+- Use Vitest for all tests
+- Follow the Arrange-Act-Assert pattern
+- Mock external dependencies (GitHub API, filesystem)
+- Aim for high test coverage on core logic
+
+Example test:
+
+```typescript
+import { describe, it, expect } from 'vitest';
+import { parseRepository } from '@/github/parser';
+
+describe('parseRepository', () => {
+  it('should parse owner/repo format', () => {
+    const result = parseRepository('owner/repo');
+
+    expect(result.owner).toBe('owner');
+    expect(result.repo).toBe('repo');
+  });
+});
+```
+
+---
+
+# Documentation
 
 ## Documentation Structure
 
@@ -33,7 +271,7 @@ docs/
     └── theme/              # Custom theme
 ```
 
-## Quick Start
+## Quick Start (Documentation)
 
 ### Prerequisites
 
