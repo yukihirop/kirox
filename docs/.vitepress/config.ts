@@ -7,6 +7,11 @@ export default defineConfig({
   base: '/kirox/',
   lang: 'ja-JP',
 
+  // Sitemap configuration for SEO
+  sitemap: {
+    hostname: 'https://yukihirop.github.io/kirox/'
+  },
+
   head: [
     ['meta', { name: 'theme-color', content: '#3eaf7c' }],
     ['meta', { name: 'apple-mobile-web-app-capable', content: 'yes' }],
