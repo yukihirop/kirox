@@ -5,6 +5,9 @@ hero:
   name: Kirox
   text: Kiro Spec-Driven Development CLI
   tagline: CLI tool to fetch Kiro specification and steering files from remote GitHub repositories
+  image:
+    src: /logo.png
+    alt: kirox
   actions:
     - theme: brand
       text: Getting Started
