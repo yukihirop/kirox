@@ -34,3 +34,4 @@ yarn-error.log*
 
 # Local settings
 .claude/settings.local.json
+*/.vitepress/cache
