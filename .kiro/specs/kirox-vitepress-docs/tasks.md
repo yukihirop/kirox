@@ -1,14 +1,14 @@
 # 実装計画
 
-- [ ] 1. VitePressプロジェクトのセットアップと基本設定
-- [ ] 1.1 VitePress依存関係のインストールと初期設定
+- [x] 1. VitePressプロジェクトのセットアップと基本設定
+- [x] 1.1 VitePress依存関係のインストールと初期設定
   - package.jsonにVitePress依存関係を追加
   - VitePress開発・ビルド・プレビュー用のnpmスクリプトを設定
   - docs/ディレクトリとサブディレクトリ構造を作成
   - 型チェックスクリプトにVitePress設定ファイルを含める
   - _Requirements: 1.1, 1.3, 1.4_
 
-- [ ] 1.2 VitePress基本設定ファイルの作成
+- [x] 1.2 VitePress基本設定ファイルの作成
   - TypeScript形式でVitePress設定ファイルを作成
   - サイトタイトルと説明のメタデータを設定
   - GitHub Pages用のbaseパス設定を構成
