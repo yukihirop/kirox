@@ -1,7 +1,7 @@
 # Kirox (♻️ Recycle `.kiro` CLI)
 
 <p align="center">
-	<img alt="logo" width="196" src="./docs/public/logo.png">
+	<img alt="logo" width="196" src="https://raw.githubusercontent.com/yukihirop/kirox/main/docs/public/logo.png">
 </p>
 
 <h1 align="center" style="font-family: sans-serif; font-size: 50px; font-weight: 700; background: -webkit-linear-gradient(90deg, #6A37CC 20%, #8544FF 60%, #9B6FFF 100%); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; color: transparent;">Kirox</h1>
@@ -34,8 +34,13 @@ CLI tool to fetch Kiro specification and steering files from remote GitHub repos
 ### Interactive Mode (Recommended)
 
 <p align="center">
-	<img alt="logo" width="196" src="./docs/public/npx-kirox.png">
+	<img alt="logo" width="196" src="https://raw.githubusercontent.com/yukihirop/kirox/main/docs/public/npx-kirox.png">
 </p>
+
+<p align="center">
+	<img alt="kirox demo" width="800" src="https://raw.githubusercontent.com/yukihirop/kirox/main/demo/kirox-demo.gif">
+</p>
+
 
 ## What it Fetches
 
@@ -77,7 +82,7 @@ CLI tool to fetch Kiro specification and steering files from remote GitHub repos
 
 ## Contributing
 
-See [CONTRIBUTING.md](CONTRIBUTING.md) for documentation contribution guidelines.
+See [CONTRIBUTING.md](https://github.com/yukihirop/kirox/blob/main/CONTRIBUTING.md) for documentation contribution guidelines.
 
 ## License
 
