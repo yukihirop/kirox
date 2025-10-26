@@ -8,8 +8,8 @@
 
 :root {
   /* Kirox Brand Colors */
-  --vp-c-brand-1: #3eaf7c;
-  --vp-c-brand-2: #42b883;
+  --vp-c-brand-1: #8544FF;
+  --vp-c-brand-2: #9B6FFF;
   --vp-c-brand-3: #35495e;
   --vp-c-brand-soft: rgba(62, 175, 124, 0.14);
 
@@ -36,9 +36,9 @@
 
 .dark {
   /* Kirox Brand Colors (Dark Mode) */
-  --vp-c-brand-1: #42b883;
-  --vp-c-brand-2: #3eaf7c;
-  --vp-c-brand-3: #42d392;
+  --vp-c-brand-1: #8544FF;
+  --vp-c-brand-2: #6A37CC;
+  --vp-c-brand-3: #9B6FFF;
   --vp-c-brand-soft: rgba(66, 184, 131, 0.16);
 
   /* Background Colors */
@@ -82,8 +82,8 @@
   --vp-home-hero-name-color: transparent;
   --vp-home-hero-name-background: -webkit-linear-gradient(
     120deg,
-    #42b883 30%,
-    #35495e
+    #8544FF 30%,
+    #4a355e
   );
 
   --vp-home-hero-image-background-image: linear-gradient(
