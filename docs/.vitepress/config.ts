@@ -17,6 +17,12 @@ export default defineConfig({
     ['meta', { name: 'apple-mobile-web-app-capable', content: 'yes' }],
     ['meta', { name: 'apple-mobile-web-app-status-bar-style', content: 'black' }],
     ['link', { rel: 'icon', type: 'image/x-icon', href: '/favicon.png' }],
+    ['meta', { property: 'og:type', content: 'website' }],
+    ['meta', { property: 'og:locale', content: 'en' }],
+    ['meta', { property: 'og:title', content: 'Kirox | Recycle .kiro CLI' }],
+    ['meta', { property: 'og:image', content: 'todo' }],
+    ['meta', { property: 'og:site_name', content: 'Kirox' }],
+    ['meta', { property: 'og:url', content: 'todo' }],
   ],
 
   markdown: {
