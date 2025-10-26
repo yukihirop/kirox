@@ -1,0 +1,42 @@
+# Kirox
+
+> Recycle .kiro CLI
+
+CLI tool to fetch Kiro specification and steering files from remote GitHub repositories
+
+## Table of Contents
+
+### Guide
+
+- [Guide](/kirox/guide.md): User guide for Kirox CLI
+- [Getting Started](/kirox/guide/getting-started.md): Installation and initial setup for Kirox CLI
+- [Basic Usage](/kirox/guide/basic-usage.md): Basic commands and options for Kirox CLI
+- [Advanced Usage](/kirox/guide/advanced-usage.md): Advanced features and configuration for Kirox CLI
+- [Troubleshooting](/kirox/guide/troubleshooting.md): Common issues and solutions
+
+### CLI Reference
+
+- [CLI Reference](/kirox/cli.md): Reference for Kirox CLI commands
+- [kirox Command](/kirox/cli/kirox.md): Kirox CLI main command
+- [add Command](/kirox/cli/add.md): Subcommand to add projects
+- [completion Command](/kirox/cli/completion.md): Shell completion script generation command
+
+### API
+
+- [API Specification](/kirox/api.md): Kirox CLI API specification
+- [GitHub Fetcher API](/kirox/api/github-fetcher.md): GitHub integration module API specification
+- [FileSystem Writer API](/kirox/api/filesystem-writer.md): Filesystem operations module API specification
+
+### Config
+
+- [Configuration](/kirox/config.md): Kirox CLI configuration guide
+- [.kiroxrc.json](/kirox/config/kiroxrc.md): Kirox CLI configuration file reference
+
+### LLMs
+
+- [LLMs.txt](/kirox/llms.md): llms.txt files for LLMs
+- [LLMs.txt File Details](/kirox/llms/llms.md): Details about llms.txt files
+
+### Other
+
+- [Kirox CLI - Performance Analysis Report](/kirox/PERFORMANCE_ANALYSIS.md)
