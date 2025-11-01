@@ -14,10 +14,20 @@ import { executeAddCommand } from '@/cli/add-command-entry.js';
 import * as metadataManager from '@/tracking/metadata-manager.js';
 import * as fetcher from '@/github/fetcher.js';
 import * as parallelFetcher from '@/github/parallel-fetcher.js';
+import { PinoLogger } from '@/reporting/pino-logger.js';
 
 describe('Add Command Duplicate Project Detection (Task 11.2)', () => {
+  let mockLoggerWarn: ReturnType<typeof vi.fn>;
+  let mockLoggerInfo: ReturnType<typeof vi.fn>;
+
   beforeEach(() => {
-    // Mock console methods
+    // Mock PinoLogger methods to capture structured log messages
+    mockLoggerWarn = vi.fn();
+    mockLoggerInfo = vi.fn();
+    vi.spyOn(PinoLogger.prototype, 'warn').mockImplementation(mockLoggerWarn);
+    vi.spyOn(PinoLogger.prototype, 'info').mockImplementation(mockLoggerInfo);
+
+    // Mock console methods for ora spinner output
     vi.spyOn(console, 'log').mockImplementation(() => {});
     vi.spyOn(console, 'error').mockImplementation(() => {});
     vi.spyOn(console, 'warn').mockImplementation(() => {});
@@ -92,12 +102,14 @@ describe('Add Command Duplicate Project Detection (Task 11.2)', () => {
       expect(result.exitCode).toBe(1);
 
       // Should display warning about duplicate
-      // Logger.warn() uses console.log, not console.error
-      const logCalls = (console.log as any).mock.calls.map((call: any[]) => call.join(' '));
-      const hasWarning = logCalls.some((msg: string) =>
-        msg.includes('already exists') || msg.includes('--force')
+      // Check PinoLogger.warn() was called with correct message
+      expect(mockLoggerWarn).toHaveBeenCalledWith(
+        expect.stringContaining('already exists'),
+        expect.objectContaining({
+          repository: 'owner/repo',
+          projectName: 'test-project',
+        })
       );
-      expect(hasWarning).toBe(true);
     });
 
     it('should treat projects with different subdirectories as separate projects', async () => {
@@ -339,11 +351,14 @@ describe('Add Command Duplicate Project Detection (Task 11.2)', () => {
       ]);
 
       // Should log verbose message about overwriting
-      const logCalls = (console.log as any).mock.calls.map((call: any[]) => call.join(' '));
-      const hasOverwriteLog = logCalls.some((msg: string) =>
-        msg.includes('overwrite') || msg.includes('Overwriting') || msg.includes('force')
+      // Check PinoLogger.info() was called with overwrite message (verbose mode)
+      expect(mockLoggerInfo).toHaveBeenCalledWith(
+        expect.stringContaining('Overwriting'),
+        expect.objectContaining({
+          repository: 'owner/repo',
+          projectName: 'test-project',
+        })
       );
-      expect(hasOverwriteLog).toBe(true);
     });
 
     it('should skip duplicate without --force and display warning', async () => {
@@ -385,12 +400,14 @@ describe('Add Command Duplicate Project Detection (Task 11.2)', () => {
       expect(result.exitCode).toBe(1);
 
       // Should display warning message
-      // Logger.warn() uses console.log, not console.error
-      const logCalls = (console.log as any).mock.calls.map((call: any[]) => call.join(' '));
-      const hasWarning = logCalls.some((msg: string) =>
-        msg.includes('exists') || msg.includes('--force')
+      // Check PinoLogger.warn() was called with correct message
+      expect(mockLoggerWarn).toHaveBeenCalledWith(
+        expect.stringContaining('already exists'),
+        expect.objectContaining({
+          repository: 'owner/repo',
+          projectName: 'test-project',
+        })
       );
-      expect(hasWarning).toBe(true);
     });
   });
 
