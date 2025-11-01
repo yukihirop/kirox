@@ -358,11 +358,12 @@ export class ProgressReporter {
   reportSuccess(message: string, projectName?: string): void {
     // Strip subdirectory prefix from file paths in success messages
     const displayMessage = this.stripSubdirPrefixFromMessage(message);
-    const formattedMessage = `✓ ${displayMessage}`;
 
     // Task 4.1: Use spinner if not in fallback mode
     if (this.useFallback) {
       // Fallback to console.log if spinner initialization failed
+      // Add checkmark manually for console.log output
+      const formattedMessage = `✓ ${displayMessage}`;
       console.log(this.chalk.green(formattedMessage));
     } else {
       try {
@@ -371,14 +372,17 @@ export class ProgressReporter {
         const spinner = this.spinnerMap.get(spinnerKey);
 
         if (spinner && spinner.isSpinning) {
-          // Stop spinner with success message
-          spinner.succeed(formattedMessage);
+          // Task 14.6: Pass message WITHOUT ✓ prefix to spinner.succeed()
+          // ora automatically adds ✔ prefix, so we should not add ✓ manually
+          spinner.succeed(displayMessage);
 
           // Task 14.4: Remove stopped spinner from map to prevent reuse issues
           // This allows getOrCreateSpinner to create a fresh spinner for next file
           this.spinnerMap.delete(spinnerKey);
         } else {
           // No active spinner, fall back to console.log
+          // Add checkmark manually for console.log fallback
+          const formattedMessage = `✓ ${displayMessage}`;
           console.log(this.chalk.green(formattedMessage));
         }
       } catch (error) {
@@ -386,6 +390,8 @@ export class ProgressReporter {
         if (this.options.verbose) {
           console.log('[VERBOSE] Spinner succeed operation failed, falling back to console output');
         }
+        // Add checkmark manually for console.log fallback
+        const formattedMessage = `✓ ${displayMessage}`;
         console.log(this.chalk.green(formattedMessage));
       }
     }
@@ -432,11 +438,11 @@ export class ProgressReporter {
    * ```
    */
   reportError(message: string, projectName?: string): void {
-    const formattedMessage = `✗ ${message}`;
-
     // Task 4.2: Use spinner if not in fallback mode
     if (this.useFallback) {
       // Fallback to console.error if spinner initialization failed
+      // Add cross mark manually for console.error output
+      const formattedMessage = `✗ ${message}`;
       console.error(this.chalk.red(formattedMessage));
     } else {
       try {
@@ -445,14 +451,17 @@ export class ProgressReporter {
         const spinner = this.spinnerMap.get(spinnerKey);
 
         if (spinner && spinner.isSpinning) {
-          // Stop spinner with error message
-          spinner.fail(formattedMessage);
+          // Task 14.6: Pass message WITHOUT ✗ prefix to spinner.fail()
+          // ora automatically adds ✖ prefix, so we should not add ✗ manually
+          spinner.fail(message);
 
           // Task 14.4: Remove stopped spinner from map to prevent reuse issues
           // This allows getOrCreateSpinner to create a fresh spinner for next file
           this.spinnerMap.delete(spinnerKey);
         } else {
           // No active spinner, fall back to console.error
+          // Add cross mark manually for console.error fallback
+          const formattedMessage = `✗ ${message}`;
           console.error(this.chalk.red(formattedMessage));
         }
       } catch (error) {
@@ -460,6 +469,8 @@ export class ProgressReporter {
         if (this.options.verbose) {
           console.log('[VERBOSE] Spinner fail operation failed, falling back to console output');
         }
+        // Add cross mark manually for console.error fallback
+        const formattedMessage = `✗ ${message}`;
         console.error(this.chalk.red(formattedMessage));
       }
     }

@@ -109,8 +109,9 @@ describe('ProgressReporter - reportSuccess/reportError with Spinner (Task 4.1 & 
       // Call reportSuccess
       reporter.reportSuccess('File downloaded successfully');
 
-      // Should have called spinner.succeed() with the message
-      expect(spinner!.succeed).toHaveBeenCalledWith('✓ File downloaded successfully');
+      // Task 14.6: Should call spinner.succeed() WITHOUT ✓ prefix
+      // ora adds its own ✔ prefix automatically
+      expect(spinner!.succeed).toHaveBeenCalledWith('File downloaded successfully');
     });
 
     it('should stop spinner when calling succeed()', async () => {
@@ -224,8 +225,9 @@ describe('ProgressReporter - reportSuccess/reportError with Spinner (Task 4.1 & 
       // Call reportError
       reporter.reportError('Failed to fetch file');
 
-      // Should have called spinner.fail() with the message
-      expect(spinner!.fail).toHaveBeenCalledWith('✗ Failed to fetch file');
+      // Task 14.6: Should call spinner.fail() WITHOUT ✗ prefix
+      // ora adds its own ✖ prefix automatically
+      expect(spinner!.fail).toHaveBeenCalledWith('Failed to fetch file');
     });
 
     it('should stop spinner when calling fail()', async () => {

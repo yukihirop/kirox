@@ -1234,9 +1234,15 @@ describe('executeAddCommand', () => {
       await executeAddCommand(argv);
 
       // Should call reportSuccess for written file
-      expect(mockReporter.reportSuccess).toHaveBeenCalledWith(
-        expect.stringContaining('.kiro/specs/test-project/spec.json')
-      );
+      // Task 14.6: reportSuccess now accepts optional projectName parameter
+      expect(mockReporter.reportSuccess).toHaveBeenCalled();
+      const calls = (mockReporter.reportSuccess as ReturnType<typeof vi.fn>).mock.calls;
+      expect(calls.length).toBeGreaterThan(0);
+
+      // Check first call contains the expected file path
+      const firstCall = calls[0];
+      expect(firstCall[0]).toContain('.kiro/specs/test-project/spec.json');
+      // Second parameter (projectName) can be undefined or string, we don't care in this test
     });
 
     it('should call reportError for file write failures', async () => {

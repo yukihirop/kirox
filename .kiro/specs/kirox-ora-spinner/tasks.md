@@ -231,7 +231,19 @@
   - ⏳ **実環境テスト**: KIROX_DEMO_DELAY=3000で3秒間スピナーアニメーションが表示されることを確認 (ユーザー実行待ち)
   - _Requirements: 2.1, 2.2, 2.4, 9.1_
 
-- [ ] 14.6 デバッグ情報の追加と検証
+- [x] 14.6 マルチプロジェクトモード時のスピナー二重チェックマーク問題の修正 (CRITICAL BUG)
+  - ✅ **問題特定**: reportSuccess/reportErrorで`✓`/`✗`プレフィックスを追加してからspinner.succeed()/fail()に渡していたため、oraが自動追加する`✔`/`✖`と重複
+  - ✅ **根本原因**: progress-reporter.ts:361, 441でformattedMessageに手動でチェックマークを追加
+  - ✅ **修正実装**:
+    - reportSuccess: spinner.succeed()にはプレフィックスなしのメッセージを渡す (progress-reporter.ts:377)
+    - reportError: spinner.fail()にはプレフィックスなしのメッセージを渡す (progress-reporter.ts:456)
+    - フォールバック時(console.log/error)のみ手動でチェックマークを追加
+  - ✅ **テスト**: progress-reporter-double-checkmark.test.ts作成 - 6テスト全て合格
+  - ✅ **回帰テスト**: 既存テスト2ファイル(progress-reporter-success-error-spinner.test.ts, add-command-entry.test.ts)を修正
+  - ✅ **全テスト**: 2187テスト合格
+  - _Requirements: 5.1, 5.2, 5.4 (マルチプロジェクトスピナー管理)_
+
+- [ ] 14.7 デバッグ情報の追加と検証
   - スピナー初期化時のデバッグログ追加
   - スピナーstart/succeed/fail呼び出し時のデバッグログ追加
   - 実際の動作確認とログ出力の検証
