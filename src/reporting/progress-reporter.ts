@@ -269,6 +269,39 @@ export class ProgressReporter {
   }
 
   /**
+   * Stop all active spinners and clear the spinner map
+   *
+   * Task 5.2: Helper method to cleanup all spinners
+   * - Stops all spinners that are currently spinning
+   * - Clears the spinner map
+   *
+   * Used by reportSummary and reportOverallSummary to ensure clean state
+   * before displaying summary information
+   */
+  private stopAllSpinners(): void {
+    if (this.useFallback) {
+      return; // No spinners to stop in fallback mode
+    }
+
+    try {
+      // Stop all active spinners
+      for (const spinner of this.spinnerMap.values()) {
+        if (spinner.isSpinning) {
+          spinner.stop();
+        }
+      }
+
+      // Clear the map
+      this.spinnerMap.clear();
+    } catch (error) {
+      // If cleanup fails, log warning if verbose
+      if (this.options.verbose) {
+        console.log('[VERBOSE] Failed to stop all spinners:', error);
+      }
+    }
+  }
+
+  /**
    * Strip subdirectory prefix from file path
    *
    * Removes subdirectory prefix before .kiro/ to match local save paths.
@@ -421,6 +454,7 @@ export class ProgressReporter {
   /**
    * Report summary of operation
    *
+   * Task 5.2: Stop all spinners before displaying summary
    * Displays success and failed counts with appropriate colors
    *
    * @param success - Number of successful operations
@@ -451,6 +485,9 @@ export class ProgressReporter {
    * ```
    */
   reportSummary(success: number, failed: number, subdir?: string, branch?: string): void {
+    // Task 5.2: Stop all active spinners and clear map
+    this.stopAllSpinners();
+
     console.log('\nSummary:');
 
     if (subdir) {
@@ -508,6 +545,7 @@ export class ProgressReporter {
   /**
    * Report summary for completed project
    *
+   * Task 5.1: Cleanup spinner when project completes
    * Displays success and failure counts for a specific project
    * Used in multi-project operations to show per-project results
    *
@@ -529,6 +567,31 @@ export class ProgressReporter {
     filesDownloaded: number,
     filesFailed: number
   ): void {
+    // Task 5.1: Stop and remove spinner for this project
+    if (!this.useFallback) {
+      try {
+        // Normalize project name to match spinner key
+        const spinnerKey = projectName && projectName.trim() !== '' ? projectName : '';
+        const spinner = this.spinnerMap.get(spinnerKey);
+
+        if (spinner) {
+          // Stop spinner if it's still spinning
+          if (spinner.isSpinning) {
+            spinner.stop();
+          }
+
+          // Remove spinner from map
+          this.spinnerMap.delete(spinnerKey);
+        }
+      } catch (error) {
+        // If spinner cleanup fails, log warning if verbose
+        if (this.options.verbose) {
+          console.log('[VERBOSE] Spinner cleanup failed for project:', projectName);
+        }
+      }
+    }
+
+    // Output project summary message to console
     const successText = `${filesDownloaded} files succeeded`;
     const failedText = `${filesFailed} files failed`;
     const summaryMessage = `[${projectName}] Completed: ${successText}, ${failedText}`;
@@ -570,6 +633,7 @@ export class ProgressReporter {
   /**
    * Report overall summary for all projects
    *
+   * Task 5.2: Stop all spinners before displaying summary
    * Displays total project count, total file count, success count, and failure count
    * Used in multi-project operations to show aggregated results
    *
@@ -593,6 +657,9 @@ export class ProgressReporter {
     totalDownloaded: number,
     totalFailed: number
   ): void {
+    // Task 5.2: Stop all active spinners and clear map
+    this.stopAllSpinners();
+
     const totalFiles = totalDownloaded + totalFailed;
 
     console.log(this.chalk.cyan('\n=== Overall Summary ==='));
