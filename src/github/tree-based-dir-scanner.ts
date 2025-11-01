@@ -6,7 +6,7 @@
  */
 
 import type { Octokit } from 'octokit';
-import type { Logger } from '../reporting/logger.js';
+import { PinoLogger } from '../reporting/pino-logger.js';
 import type { RepositoryRef } from './fetcher.js';
 import { getTreeSha } from './tree-sha-fetcher.js';
 
@@ -45,7 +45,7 @@ export interface DirectoryScanOptions {
   /** Octokit client for GitHub API calls */
   client: Octokit;
   /** Logger for reporting scan progress */
-  logger: Logger;
+  logger: PinoLogger;
   /** Enable verbose logging */
   verbose: boolean;
 }

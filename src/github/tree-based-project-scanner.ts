@@ -5,7 +5,7 @@
  */
 
 import type { Octokit } from 'octokit';
-import type { Logger } from '../reporting/logger.js';
+import { PinoLogger } from '../reporting/pino-logger.js';
 import type { RepositoryRef } from './fetcher.js';
 import { getTreeSha } from './tree-sha-fetcher.js';
 import { parseTreeResponse, type TreeItem } from './tree-response-parser.js';
@@ -24,7 +24,7 @@ interface TreeScanResult {
 interface TreeScanOptions {
   repository: RepositoryRef;
   client: Octokit;
-  logger: Logger;
+  logger: PinoLogger;
   verbose: boolean;
 }
 

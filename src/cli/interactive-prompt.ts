@@ -16,7 +16,7 @@ import chalk from 'chalk';
 import type { ParsedArguments } from './types.js';
 import { validateRepositoryFormat, validateProjectName } from './validator.js';
 import { parseProjects } from './project-name-parser.js';
-import type { Logger } from '../reporting/logger.js';
+import { PinoLogger } from '../reporting/pino-logger.js';
 import type { KiroxConfig } from '../config/types.js';
 import type { Metadata } from '../tracking/types.js';
 import {
@@ -133,7 +133,7 @@ export async function promptProject(
   repository?: string,
   subdir?: string,
   client?: Octokit | undefined,
-  logger?: Logger,
+  logger?: PinoLogger,
   verbose?: boolean
 ): Promise<string> {
   // Skip prompt if value is already provided (non-empty after trim)
@@ -333,7 +333,7 @@ export async function confirmExecution(args: ParsedArguments): Promise<boolean> 
 export async function promptMissingArguments(
   args: ParsedArguments,
   configFile?: KiroxConfig,
-  logger?: Logger,
+  logger?: PinoLogger,
   verbose?: boolean,
   metadata?: Metadata
 ): Promise<ParsedArguments> {
@@ -640,7 +640,7 @@ interface TTYCheckResult {
  * @param logger - Logger instance for recording events
  * @returns TTY check result with success flag and exit code
  */
-export function checkTTYEnvironment(logger: Logger): TTYCheckResult {
+export function checkTTYEnvironment(logger: PinoLogger): TTYCheckResult {
   // Check if stdin is a TTY (terminal)
   if (!process.stdin.isTTY) {
     // Display error message
@@ -684,7 +684,7 @@ export function checkTTYEnvironment(logger: Logger): TTYCheckResult {
  */
 export function handleInteractiveError(
   error: unknown,
-  logger: Logger
+  logger: PinoLogger
 ): InteractiveErrorResult {
   if (error instanceof Error) {
     // Case 1: ExitPromptError (Ctrl+C by user)

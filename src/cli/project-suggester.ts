@@ -10,7 +10,7 @@ import type { Octokit } from 'octokit';
 import { select, checkbox } from '@inquirer/prompts';
 import { fetchDirectoryContents } from '@/github/fetcher.js';
 import type { RepositoryRef } from '@/github/fetcher.js';
-import type { Logger } from '@/reporting/logger.js';
+import { PinoLogger } from '@/reporting/pino-logger.js';
 
 /** Project suggestion result - @internal Internal type - not exported */
 interface ProjectSuggestionResult {
@@ -29,7 +29,7 @@ interface ProjectSuggestionOptions {
   repository: RepositoryRef;
   subdir?: string;
   client: Octokit;
-  logger: Logger;
+  logger: PinoLogger;
   verbose: boolean;
 }
 
