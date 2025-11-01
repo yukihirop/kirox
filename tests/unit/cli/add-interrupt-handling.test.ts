@@ -15,7 +15,6 @@ import { executeAddCommand } from '@/cli/add-command-entry.js';
 import * as metadataManager from '@/tracking/metadata-manager.js';
 import * as fetcher from '@/github/fetcher.js';
 import * as parallelFetcher from '@/github/parallel-fetcher.js';
-import type { ParsedArguments } from '@/cli/types.js';
 
 describe('Add Command Ctrl+C Interrupt Handling (Task 8.4)', () => {
   let originalProcessOn: typeof process.on;
@@ -71,21 +70,18 @@ describe('Add Command Ctrl+C Interrupt Handling (Task 8.4)', () => {
 
   describe('Requirement 6.5: SIGINT/SIGTERM signal handling', () => {
     it('should register SIGINT signal handler when add command starts', async () => {
-      const args: ParsedArguments = {
-        subcommand: 'add',
-        repository: 'owner/repo',
-        projects: ['test-project'],
-        output: '.',
-        force: false,
-        dryRun: false,
-        verbose: false,
-        track: true,
-        checkUpdates: false,
-        update: false,
-      };
+      const argv: string[] = [
+        'node',
+        'kirox',
+        'add',
+        'owner/repo',
+        '-p',
+        'test-project',
+        '--track',
+      ];
 
       // Execute command (don't await - we just want to check handler registration)
-      const promise = executeAddCommand(args);
+      const promise = executeAddCommand(argv);
 
       // Allow event loop to process
       await new Promise(resolve => setTimeout(resolve, 10));
@@ -99,21 +95,18 @@ describe('Add Command Ctrl+C Interrupt Handling (Task 8.4)', () => {
     });
 
     it('should register SIGTERM signal handler when add command starts', async () => {
-      const args: ParsedArguments = {
-        subcommand: 'add',
-        repository: 'owner/repo',
-        projects: ['test-project'],
-        output: '.',
-        force: false,
-        dryRun: false,
-        verbose: false,
-        track: true,
-        checkUpdates: false,
-        update: false,
-      };
+      const argv: string[] = [
+        'node',
+        'kirox',
+        'add',
+        'owner/repo',
+        '-p',
+        'test-project',
+        '--track',
+      ];
 
       // Execute command
-      const promise = executeAddCommand(args);
+      const promise = executeAddCommand(argv);
 
       // Allow event loop to process
       await new Promise(resolve => setTimeout(resolve, 10));
@@ -127,24 +120,21 @@ describe('Add Command Ctrl+C Interrupt Handling (Task 8.4)', () => {
     });
 
     it('should display "Operation was interrupted." when SIGINT is received', async () => {
-      const args: ParsedArguments = {
-        subcommand: 'add',
-        repository: 'owner/repo',
-        projects: ['test-project'],
-        output: '.',
-        force: false,
-        dryRun: false,
-        verbose: false,
-        track: true,
-        checkUpdates: false,
-        update: false,
-      };
+      const argv: string[] = [
+        'node',
+        'kirox',
+        'add',
+        'owner/repo',
+        '-p',
+        'test-project',
+        '--track',
+      ];
 
       // Mock process.exit to prevent test termination
       const mockExit = vi.spyOn(process, 'exit').mockImplementation((() => {}) as any);
 
       // Execute command
-      const promise = executeAddCommand(args);
+      const promise = executeAddCommand(argv);
 
       // Wait for handlers to be registered
       await new Promise(resolve => setTimeout(resolve, 10));
@@ -167,18 +157,15 @@ describe('Add Command Ctrl+C Interrupt Handling (Task 8.4)', () => {
 
   describe('Requirement 6.5: Metadata rollback on interrupt', () => {
     it('should not save metadata when interrupted before completion', async () => {
-      const args: ParsedArguments = {
-        subcommand: 'add',
-        repository: 'owner/repo',
-        projects: ['test-project'],
-        output: '.',
-        force: false,
-        dryRun: false,
-        verbose: false,
-        track: true,
-        checkUpdates: false,
-        update: false,
-      };
+      const argv: string[] = [
+        'node',
+        'kirox',
+        'add',
+        'owner/repo',
+        '-p',
+        'test-project',
+        '--track',
+      ];
 
       // Mock saveMetadata to track calls
       const saveMetadataSpy = vi.spyOn(metadataManager, 'saveMetadata');
@@ -187,7 +174,7 @@ describe('Add Command Ctrl+C Interrupt Handling (Task 8.4)', () => {
       const mockExit = vi.spyOn(process, 'exit').mockImplementation((() => {}) as any);
 
       // Execute command
-      const promise = executeAddCommand(args);
+      const promise = executeAddCommand(argv);
 
       // Wait for handlers to be registered
       await new Promise(resolve => setTimeout(resolve, 10));
@@ -232,24 +219,21 @@ describe('Add Command Ctrl+C Interrupt Handling (Task 8.4)', () => {
       // Mock loadMetadata to return existing metadata
       vi.spyOn(metadataManager, 'loadMetadata').mockResolvedValue(existingMetadata);
 
-      const args: ParsedArguments = {
-        subcommand: 'add',
-        repository: 'owner/repo',
-        projects: ['new-project'],
-        output: '.',
-        force: false,
-        dryRun: false,
-        verbose: false,
-        track: true,
-        checkUpdates: false,
-        update: false,
-      };
+      const argv: string[] = [
+        'node',
+        'kirox',
+        'add',
+        'owner/repo',
+        '-p',
+        'new-project',
+        '--track',
+      ];
 
       // Mock process.exit
       const mockExit = vi.spyOn(process, 'exit').mockImplementation((() => {}) as any);
 
       // Execute command
-      const promise = executeAddCommand(args);
+      const promise = executeAddCommand(argv);
 
       // Wait for handlers to be registered
       await new Promise(resolve => setTimeout(resolve, 10));
@@ -268,24 +252,21 @@ describe('Add Command Ctrl+C Interrupt Handling (Task 8.4)', () => {
     });
 
     it('should exit with appropriate code when interrupted', async () => {
-      const args: ParsedArguments = {
-        subcommand: 'add',
-        repository: 'owner/repo',
-        projects: ['test-project'],
-        output: '.',
-        force: false,
-        dryRun: false,
-        verbose: false,
-        track: true,
-        checkUpdates: false,
-        update: false,
-      };
+      const argv: string[] = [
+        'node',
+        'kirox',
+        'add',
+        'owner/repo',
+        '-p',
+        'test-project',
+        '--track',
+      ];
 
       // Mock process.exit to capture exit code
       const mockExit = vi.spyOn(process, 'exit').mockImplementation((() => {}) as any);
 
       // Execute command
-      const promise = executeAddCommand(args);
+      const promise = executeAddCommand(argv);
 
       // Wait for handlers to be registered
       await new Promise(resolve => setTimeout(resolve, 10));
@@ -311,24 +292,21 @@ describe('Add Command Ctrl+C Interrupt Handling (Task 8.4)', () => {
 
   describe('Requirement 6.5: Signal handler cleanup', () => {
     it('should remove signal handlers after command completion', async () => {
-      const args: ParsedArguments = {
-        subcommand: 'add',
-        repository: 'owner/repo',
-        projects: ['test-project'],
-        output: '.',
-        force: false,
-        dryRun: false,
-        verbose: false,
-        track: true,
-        checkUpdates: false,
-        update: false,
-      };
+      const argv: string[] = [
+        'node',
+        'kirox',
+        'add',
+        'owner/repo',
+        '-p',
+        'test-project',
+        '--track',
+      ];
 
       // Mock process.removeListener to track cleanup
       const removeListenerSpy = vi.spyOn(process, 'removeListener').mockReturnValue(process);
 
       // Execute command and wait for completion
-      await executeAddCommand(args);
+      await executeAddCommand(argv);
 
       // Verify signal handlers were removed
       expect(removeListenerSpy).toHaveBeenCalledWith('SIGINT', expect.any(Function));

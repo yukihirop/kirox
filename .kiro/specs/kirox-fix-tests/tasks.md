@@ -54,20 +54,20 @@
 
 ### 3. シグナルハンドリングテストのargv型エラー修正
 
-- [ ] 3.1 argv配列形式への変換パターン確立
+- [x] 3.1 argv配列形式への変換パターン確立
   - ParsedArgumentsからstring[]への変換ロジックを設計
   - コマンドライン引数配列の構築パターンを定義
   - オプション付き引数配列の生成方法を確立
   - _Requirements: 4.8, 5.1, 5.2, 5.3, 5.4_
 
-- [ ] 3.2 add-interrupt-handling.test.tsのargv型修正（前半）
+- [x] 3.2 add-interrupt-handling.test.tsのargv型修正（前半）
   - SIGINT/SIGTERMハンドラー登録テストのargv形式を修正
   - process.onモックの設定を検証
   - シグナルハンドラーキャプチャの動作を確認
   - "Operation was interrupted."メッセージ表示テストのargv形式を修正
   - _Requirements: 4.1, 4.2, 4.3, 4.8, 5.1, 5.3_
 
-- [ ] 3.3 add-interrupt-handling.test.tsのargv型修正（後半）
+- [x] 3.3 add-interrupt-handling.test.tsのargv型修正（後半）
   - メタデータ保存阻止テストのargv形式を修正
   - 既存メタデータ保持テストのargv形式を修正
   - 終了コード検証テストのargv形式を修正
