@@ -8,15 +8,16 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { PinoLogger } from '@/reporting/pino-logger.js';
 import type { ErrorResult } from '@/reporting/types.js';
 
+// Create mock Pino instance
+const mockPinoInstance = {
+  info: vi.fn(),
+  warn: vi.fn(),
+  error: vi.fn(),
+  debug: vi.fn(),
+};
+
 // Mock pino module
 vi.mock('pino', () => {
-  const mockPinoInstance = {
-    info: vi.fn(),
-    warn: vi.fn(),
-    error: vi.fn(),
-    debug: vi.fn(),
-  };
-
   return {
     default: vi.fn(() => mockPinoInstance),
   };
@@ -40,8 +41,6 @@ describe('PinoLogger', () => {
   describe('Task 2.1: ログレベル制御機能', () => {
     it('should suppress debug logs when verbose=false', () => {
       const logger = new PinoLogger(false);
-      const pino = require('pino');
-      const mockPinoInstance = pino();
 
       logger.debug('Debug message', { detail: 'value' });
 
@@ -55,8 +54,8 @@ describe('PinoLogger', () => {
 
     it('should output debug logs when verbose=true', () => {
       const logger = new PinoLogger(true);
-      const pino = require('pino');
-      const mockPinoInstance = pino();
+      
+      
 
       logger.debug('Debug message', { detail: 'value' });
 
@@ -69,8 +68,8 @@ describe('PinoLogger', () => {
 
     it('should output info logs regardless of verbose flag (verbose=false)', () => {
       const logger = new PinoLogger(false);
-      const pino = require('pino');
-      const mockPinoInstance = pino();
+      
+      
 
       logger.info('Info message', { detail: 'value' });
 
@@ -79,8 +78,8 @@ describe('PinoLogger', () => {
 
     it('should output info logs regardless of verbose flag (verbose=true)', () => {
       const logger = new PinoLogger(true);
-      const pino = require('pino');
-      const mockPinoInstance = pino();
+      
+      
 
       logger.info('Info message', { detail: 'value' });
 
@@ -89,8 +88,8 @@ describe('PinoLogger', () => {
 
     it('should output warn logs regardless of verbose flag', () => {
       const logger = new PinoLogger(false);
-      const pino = require('pino');
-      const mockPinoInstance = pino();
+      
+      
 
       logger.warn('Warning message', { detail: 'value' });
 
@@ -99,8 +98,8 @@ describe('PinoLogger', () => {
 
     it('should output error logs regardless of verbose flag', () => {
       const logger = new PinoLogger(false);
-      const pino = require('pino');
-      const mockPinoInstance = pino();
+      
+      
 
       logger.error('Error message', { detail: 'value' });
 
@@ -114,8 +113,8 @@ describe('PinoLogger', () => {
   describe('Task 2.2: 基本ログメソッド', () => {
     it('should call pino.info when info method is called', () => {
       const logger = new PinoLogger(false);
-      const pino = require('pino');
-      const mockPinoInstance = pino();
+      
+      
 
       logger.info('Test message', { key: 'value' });
 
@@ -124,8 +123,8 @@ describe('PinoLogger', () => {
 
     it('should call pino.warn when warn method is called', () => {
       const logger = new PinoLogger(false);
-      const pino = require('pino');
-      const mockPinoInstance = pino();
+      
+      
 
       logger.warn('Warning message', { key: 'value' });
 
@@ -134,8 +133,8 @@ describe('PinoLogger', () => {
 
     it('should call pino.error when error method is called', () => {
       const logger = new PinoLogger(false);
-      const pino = require('pino');
-      const mockPinoInstance = pino();
+      
+      
 
       logger.error('Error message', { key: 'value' });
 
@@ -144,8 +143,8 @@ describe('PinoLogger', () => {
 
     it('should call pino.debug when debug method is called', () => {
       const logger = new PinoLogger(true);
-      const pino = require('pino');
-      const mockPinoInstance = pino();
+      
+      
 
       logger.debug('Debug message', { key: 'value' });
 
@@ -154,8 +153,8 @@ describe('PinoLogger', () => {
 
     it('should pass message and details correctly to pino methods', () => {
       const logger = new PinoLogger(false);
-      const pino = require('pino');
-      const mockPinoInstance = pino();
+      
+      
 
       const message = 'Operation started';
       const details = { repository: 'owner/repo', files: 10 };
@@ -167,8 +166,8 @@ describe('PinoLogger', () => {
 
     it('should handle undefined details gracefully', () => {
       const logger = new PinoLogger(false);
-      const pino = require('pino');
-      const mockPinoInstance = pino();
+      
+      
 
       logger.info('Message without details');
 
@@ -177,8 +176,8 @@ describe('PinoLogger', () => {
 
     it('should call warn when logError receives recoverable error', () => {
       const logger = new PinoLogger(false);
-      const pino = require('pino');
-      const mockPinoInstance = pino();
+      
+      
 
       const errorResult: ErrorResult = {
         type: 'NETWORK_ERROR',
@@ -194,8 +193,8 @@ describe('PinoLogger', () => {
 
     it('should call error when logError receives non-recoverable error', () => {
       const logger = new PinoLogger(false);
-      const pino = require('pino');
-      const mockPinoInstance = pino();
+      
+      
 
       const errorResult: ErrorResult = {
         type: 'VALIDATION_ERROR',
@@ -213,8 +212,8 @@ describe('PinoLogger', () => {
   describe('Task 2.3: ログ出力先', () => {
     it('should output error logs to stderr (Pino default behavior)', () => {
       const logger = new PinoLogger(false);
-      const pino = require('pino');
-      const mockPinoInstance = pino();
+      
+      
 
       logger.error('Error message', { code: 'ERR_001' });
 
@@ -227,8 +226,8 @@ describe('PinoLogger', () => {
 
     it('should output info logs to stdout (Pino default behavior)', () => {
       const logger = new PinoLogger(false);
-      const pino = require('pino');
-      const mockPinoInstance = pino();
+      
+      
 
       logger.info('Info message', { data: 'value' });
 
@@ -238,8 +237,8 @@ describe('PinoLogger', () => {
 
     it('should output warn logs to stdout (Pino default behavior)', () => {
       const logger = new PinoLogger(false);
-      const pino = require('pino');
-      const mockPinoInstance = pino();
+      
+      
 
       logger.warn('Warning message', { data: 'value' });
 
@@ -249,8 +248,8 @@ describe('PinoLogger', () => {
 
     it('should output debug logs to stdout (Pino default behavior)', () => {
       const logger = new PinoLogger(true);
-      const pino = require('pino');
-      const mockPinoInstance = pino();
+      
+      
 
       logger.debug('Debug message', { data: 'value' });
 

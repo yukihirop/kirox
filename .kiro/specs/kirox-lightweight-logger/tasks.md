@@ -26,32 +26,32 @@
   - info/warn/debugログがstdoutに出力されることを検証するテスト
   - _Requirements: 5.2, 5.3_
 
-- [ ] 3. PinoLoggerクラスの実装(TDD: GREEN)
-- [ ] 3.1 基本的なPinoLoggerクラス構造を実装
+- [x] 3. PinoLoggerクラスの実装(TDD: GREEN)
+- [x] 3.1 基本的なPinoLoggerクラス構造を実装
   - verboseフラグを受け取るコンストラクタを実装
   - verboseフラグに基づくログレベル設定(false=info, true=debug)
   - Pinoインスタンスの初期化とラッピング
   - _Requirements: 2.1, 2.2, 2.3_
 
-- [ ] 3.2 ログメソッド(info/warn/error/debug)を実装
+- [x] 3.2 ログメソッド(info/warn/error/debug)を実装
   - 既存Logger APIと互換性のあるメソッド署名を維持
   - Pinoの引数順序(details, message)に変換して呼び出し
   - TypeScript型定義でany型を使用せず、明示的な型を定義
   - _Requirements: 1.2, 3.3_
 
-- [ ] 3.3 logErrorメソッドを実装
+- [x] 3.3 logErrorメソッドを実装
   - ErrorResult型を受け取り、recoverableフラグで分岐
   - recoverable=trueの場合warnメソッド、falseの場合errorメソッドを呼び出し
   - 既存のLogger.logErrorと同じ動作を保証
   - _Requirements: 5.1_
 
-- [ ] 3.4 ログ出力形式のカスタマイズを実装(オプション)
+- [x] 3.4 ログ出力形式のカスタマイズを実装(オプション)
   - Pinoのformattersオプションで既存形式に近いログ出力を実現
   - ログレベル表示を大文字(INFO/WARN/ERROR/DEBUG)に設定
   - タイムスタンプをISO 8601形式(ミリ秒なし)で出力
   - _Requirements: 5.1, 5.4_
 
-- [ ] 4. 単体テストを実行して全テスト成功を確認(TDD: GREEN検証)
+- [x] 4. 単体テストを実行して全テスト成功を確認(TDD: GREEN検証)
   - PinoLoggerの単体テストが全て成功することを確認
   - ログレベル制御が期待通り動作することを確認
   - 既存の685テストが継続して成功することを確認
