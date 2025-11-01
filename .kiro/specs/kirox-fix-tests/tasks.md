@@ -76,12 +76,12 @@
 
 ### 4. Phase 1検証とUnhandled Rejection解消確認
 
-- [ ] 4.1 Phase 1修正後のテスト実行と検証
-  - entry-pino-logger.test.tsの成功を確認（1件）
-  - project-suggestion-github-api.test.tsの成功を確認（2件）
-  - add-command-entry.test.tsのLogger関連テスト成功を確認（6件）
-  - add-interrupt-handling.test.tsの全テスト成功を確認（7件）
-  - Unhandled Rejection（6件）が解消されたことを確認
+- [x] 4.1 Phase 1修正後のテスト実行と検証
+  - entry-pino-logger.test.tsの成功を確認（5件）✅
+  - project-suggestion-github-api.test.tsの成功を確認（13件）✅
+  - add-command-entry-pino-logger.test.tsの成功を確認（3件）✅
+  - add-interrupt-handling.test.tsの全テスト成功を確認（7件）✅
+  - Unhandled Rejection（6件）が解消されたことを確認 ✅ (0件)
   - _Requirements: 1.1-1.7, 4.1-4.8, 5.1-5.4_
 
 ## Phase 2: 中優先度修正（Steering、未実装オプション、--track）
