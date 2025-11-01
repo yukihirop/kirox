@@ -6,7 +6,6 @@
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { executeAddCommand } from '@/cli/add-command-entry.js';
-import type { ExecutionResult } from '@/cli/types.js';
 import { loadMetadata } from '@/tracking/metadata-manager.js';
 import { fetchDirectoryContents } from '@/github/fetcher.js';
 import { fetchFilesInParallel } from '@/github/parallel-fetcher.js';
@@ -14,7 +13,6 @@ import { writeFile } from '@/filesystem/writer.js';
 import { calculateFileHash } from '@/tracking/hash-calculator.js';
 import { upsertProject } from '@/tracking/metadata-manager.js';
 import { MetadataError, MetadataErrorType } from '@/tracking/types.js';
-import { mergeConfig } from '@/config/merger.js';
 import { promptMissingArguments, shouldEnterInteractiveMode } from '@/cli/interactive-prompt.js';
 
 // Mock Pino module with log level filtering (Task 2.1: PinoLogger support)
@@ -172,7 +170,7 @@ describe('executeAddCommand', () => {
     const { fetchDirectoryContents } = await import('@/github/fetcher.js');
     const { fetchFilesInParallel } = await import('@/github/parallel-fetcher.js');
     const { writeFile } = await import('@/filesystem/writer.js');
-    const { Logger } = await import('@/reporting/logger.js');
+    const { PinoLogger } = await import('@/reporting/pino-logger.js');
 
     // Set default behaviors for mocks
     // Tests can override these with their own mockResolvedValue calls
@@ -199,7 +197,7 @@ describe('executeAddCommand', () => {
       size: 100,
     });
 
-    vi.mocked(Logger).mockReturnValue({
+    vi.mocked(PinoLogger).mockReturnValue({
       info: vi.fn(),
       warn: vi.fn(),
       error: vi.fn(),

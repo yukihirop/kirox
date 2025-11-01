@@ -11,7 +11,7 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { Octokit } from 'octokit';
 import { suggestProjects } from '@/cli/project-suggester.js';
-import type { Logger } from '@/reporting/logger.js';
+import type { PinoLogger } from '@/reporting/pino-logger.js';
 import type { RepositoryRef } from '@/github/fetcher.js';
 
 // Mock Octokit module to avoid external API calls (testing.md requirement)
@@ -35,7 +35,7 @@ describe('Project Suggestion GitHub API Integration', () => {
   const MAIN_BRANCH = 'main';
 
   let client: Octokit;
-  let mockLogger: Logger;
+  let mockLogger: PinoLogger;
   let mockGetContent: ReturnType<typeof vi.fn>;
 
   beforeEach(() => {
@@ -62,7 +62,7 @@ describe('Project Suggestion GitHub API Integration', () => {
       error: vi.fn(),
       warn: vi.fn(),
       debug: vi.fn(),
-    } as unknown as Logger;
+    } as unknown as PinoLogger;
   });
 
   afterEach(() => {

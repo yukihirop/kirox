@@ -5,7 +5,7 @@
 
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { Octokit } from 'octokit';
-import type { Logger } from '../../../src/reporting/logger.js';
+import type { PinoLogger } from '../../../src/reporting/pino-logger.js';
 import type { RepositoryRef } from '../../../src/github/fetcher.js';
 import {
   scanDirectoriesAcrossRepo,
@@ -18,7 +18,7 @@ vi.mock('octokit');
 
 describe('TreeBasedDirectoryScanner (Task 9.1)', () => {
   let mockOctokit: any;
-  let mockLogger: Logger;
+  let mockLogger: PinoLogger;
   let repository: RepositoryRef;
 
   beforeEach(() => {
@@ -29,7 +29,7 @@ describe('TreeBasedDirectoryScanner (Task 9.1)', () => {
       error: vi.fn(),
       verbose: vi.fn(),
       debug: vi.fn(),
-    } as unknown as Logger;
+    } as unknown as PinoLogger;
 
     // Setup repository reference
     repository = {

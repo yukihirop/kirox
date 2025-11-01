@@ -7,7 +7,7 @@
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { checkTTYEnvironment } from '@/cli/interactive-prompt.js';
-import { Logger } from '@/reporting/logger.js';
+import { PinoLogger } from '@/reporting/pino-logger.js';
 
 // Mock console.error and console.log
 const mockConsoleError = vi.spyOn(console, 'error').mockImplementation(() => {});
@@ -23,11 +23,11 @@ vi.mock('@/reporting/logger.js', () => ({
 }));
 
 describe('checkTTYEnvironment', () => {
-  let mockLogger: Logger;
+  let mockLogger: PinoLogger;
   let originalIsTTY: boolean | undefined;
 
   beforeEach(() => {
-    mockLogger = new Logger();
+    mockLogger = new PinoLogger();
     mockConsoleError.mockClear();
     mockConsoleLog.mockClear();
     vi.clearAllMocks();

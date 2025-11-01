@@ -8,7 +8,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { promptMissingArguments } from '@/cli/interactive-prompt.js';
 import type { ParsedArguments } from '@/cli/types.js';
-import type { Logger } from '@/reporting/logger.js';
+import type { PinoLogger } from '@/reporting/pino-logger.js';
 import { Octokit } from 'octokit';
 
 // Mock modules
@@ -65,7 +65,7 @@ describe('promptMissingArguments - Branch Selection Integration (Task 3.1)', () 
   let mockPromptBranch: ReturnType<typeof vi.fn>;
   let mockFetchBranches: ReturnType<typeof vi.fn>;
   let mockFetchDefaultBranch: ReturnType<typeof vi.fn>;
-  let mockLogger: Logger;
+  let mockLogger: PinoLogger;
   let mockClient: Octokit;
 
   const createValidArgs = (
@@ -110,7 +110,7 @@ describe('promptMissingArguments - Branch Selection Integration (Task 3.1)', () 
       error: vi.fn(),
       info: vi.fn(),
       debug: vi.fn(),
-    } as unknown as Logger;
+    } as unknown as PinoLogger;
 
     // Create mock Octokit client
     mockClient = {} as Octokit;

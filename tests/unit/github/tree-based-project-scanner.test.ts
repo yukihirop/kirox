@@ -6,7 +6,7 @@
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import type { Octokit } from 'octokit';
-import type { Logger } from '../../../src/reporting/logger.js';
+import type { PinoLogger } from '../../../src/reporting/pino-logger.js';
 import type { RepositoryRef } from '../../../src/github/fetcher.js';
 
 // Will be implemented in GREEN phase
@@ -31,7 +31,7 @@ interface TreeScanResult {
 interface TreeScanOptions {
   repository: RepositoryRef;
   client: Octokit;
-  logger: Logger;
+  logger: PinoLogger;
   verbose: boolean;
 }
 
@@ -40,7 +40,7 @@ declare function scanProjectsAcrossSubdirs(options: TreeScanOptions): Promise<Tr
 
 describe('Tree-Based Project Scanner', () => {
   let mockClient: Octokit;
-  let mockLogger: Logger;
+  let mockLogger: PinoLogger;
   let repository: RepositoryRef;
 
   beforeEach(() => {
@@ -64,7 +64,7 @@ describe('Tree-Based Project Scanner', () => {
       error: vi.fn(),
       debug: vi.fn(),
       verbose: vi.fn(),
-    } as unknown as Logger;
+    } as unknown as PinoLogger;
 
     repository = {
       owner: 'test-owner',

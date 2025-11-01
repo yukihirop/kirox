@@ -9,7 +9,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { promptProject } from '@/cli/interactive-prompt.js';
 import type { Octokit } from 'octokit';
-import type { Logger } from '@/reporting/logger.js';
+import type { PinoLogger } from '@/reporting/pino-logger.js';
 
 // Mock @inquirer/prompts
 vi.mock('@inquirer/prompts', () => ({
@@ -204,7 +204,7 @@ describe('promptProject', () => {
   describe('プロジェクトサジェスト機能統合 (Task 4.1)', () => {
     let mockSuggestProjects: ReturnType<typeof vi.fn>;
     let mockClient: Octokit;
-    let mockLogger: Logger;
+    let mockLogger: PinoLogger;
 
     beforeEach(async () => {
       const suggester = await import('@/cli/project-suggester.js');
@@ -217,7 +217,7 @@ describe('promptProject', () => {
         info: vi.fn(),
         error: vi.fn(),
         warn: vi.fn(),
-      } as unknown as Logger;
+      } as unknown as PinoLogger;
     });
 
     describe('既存機能との互換性維持 (Requirement 5.1)', () => {

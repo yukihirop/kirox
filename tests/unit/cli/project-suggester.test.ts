@@ -8,7 +8,7 @@
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import type { Octokit } from 'octokit';
-import type { Logger } from '@/reporting/logger.js';
+import type { PinoLogger } from '@/reporting/pino-logger.js';
 
 // Mock fetchDirectoryContents
 vi.mock('@/github/fetcher.js', () => ({
@@ -23,7 +23,7 @@ vi.mock('@inquirer/prompts', () => ({
 
 describe('ProjectSuggester', () => {
   let mockClient: Octokit;
-  let mockLogger: Logger;
+  let mockLogger: PinoLogger;
   let mockFetchDirectoryContents: ReturnType<typeof vi.fn>;
   let mockSelect: ReturnType<typeof vi.fn>;
   let mockCheckbox: ReturnType<typeof vi.fn>;
@@ -36,7 +36,7 @@ describe('ProjectSuggester', () => {
       error: vi.fn(),
       warn: vi.fn(),
       debug: vi.fn(),
-    } as unknown as Logger;
+    } as unknown as PinoLogger;
 
     // Import and setup mocks
     const fetcher = await import('@/github/fetcher.js');

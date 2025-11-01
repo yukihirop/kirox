@@ -20,7 +20,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { promptMissingArguments } from '../../src/cli/interactive-prompt.js';
 import type { ParsedArguments } from '../../src/cli/types.js';
-import type { Logger } from '../../src/reporting/logger.js';
+import type { PinoLogger } from '../../src/reporting/pino-logger.js';
 import * as treeScanner from '../../src/github/tree-based-project-scanner.js';
 import * as searchablePrompt from '../../src/cli/searchable-project-prompt.js';
 import * as projectSuggester from '../../src/cli/project-suggester.js';
@@ -35,7 +35,7 @@ vi.mock('@inquirer/prompts', () => ({
 }));
 
 describe('Tree API Project Scan Integration (Task 4.1)', () => {
-  let mockLogger: Logger;
+  let mockLogger: PinoLogger;
   let mockScanProjectsAcrossSubdirs: ReturnType<typeof vi.fn>;
   let mockPromptProjectSelection: ReturnType<typeof vi.fn>;
   let mockSuggestProjects: ReturnType<typeof vi.fn>;
@@ -53,7 +53,7 @@ describe('Tree API Project Scan Integration (Task 4.1)', () => {
       warn: vi.fn(),
       error: vi.fn(),
       verbose: vi.fn(),
-    } as unknown as Logger;
+    } as unknown as PinoLogger;
 
     // Get mocked functions
     const inquirer = await import('@inquirer/prompts');

@@ -7,13 +7,13 @@
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { handleInteractiveError } from '@/cli/interactive-prompt.js';
-import { Logger } from '@/reporting/logger.js';
+import { PinoLogger } from '@/reporting/pino-logger.js';
 
 // Mock console.log
 const mockConsoleLog = vi.spyOn(console, 'log').mockImplementation(() => {});
 
 // Mock Logger
-vi.mock('@/reporting/logger.js', () => ({
+vi.mock('@/reporting/pino-logger.js', () => ({
   Logger: vi.fn().mockImplementation(() => ({
     info: vi.fn(),
     warn: vi.fn(),
@@ -22,10 +22,10 @@ vi.mock('@/reporting/logger.js', () => ({
 }));
 
 describe('handleInteractiveError', () => {
-  let mockLogger: Logger;
+  let mockLogger: PinoLogger;
 
   beforeEach(() => {
-    mockLogger = new Logger();
+    mockLogger = new PinoLogger(false);
     mockConsoleLog.mockClear();
     vi.clearAllMocks();
   });
