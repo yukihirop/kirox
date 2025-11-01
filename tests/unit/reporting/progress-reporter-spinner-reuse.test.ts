@@ -7,12 +7,11 @@
  */
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import type { SpyInstance } from 'vitest';
 import { ProgressReporter } from '../../../src/reporting/progress-reporter.js';
 
 describe('ProgressReporter - Spinner Reuse Issue (Task 14.4)', () => {
-  let consoleLogSpy: SpyInstance;
-  let consoleErrorSpy: SpyInstance;
+  let consoleLogSpy: ReturnType<typeof vi.spyOn>;
+  let consoleErrorSpy: ReturnType<typeof vi.spyOn>;
 
   beforeEach(() => {
     consoleLogSpy = vi.spyOn(console, 'log').mockImplementation(() => {});

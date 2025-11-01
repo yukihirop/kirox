@@ -46,10 +46,7 @@ describe('E2E Project Suggestion Flow', () => {
   let mockShouldEnterInteractiveMode: ReturnType<typeof vi.fn>;
   let mockPromptMissingArguments: ReturnType<typeof vi.fn>;
   let mockCheckTTYEnvironment: ReturnType<typeof vi.fn>;
-  let mockPromptProject: ReturnType<typeof vi.fn>;
   let mockSuggestProjects: ReturnType<typeof vi.fn>;
-  let mockPromptMultipleProjectsWithValidation: ReturnType<typeof vi.fn>;
-  let mockFormatMultipleProjectsToString: ReturnType<typeof vi.fn>;
 
   beforeEach(async () => {
     // Clean up test output directory
@@ -64,10 +61,7 @@ describe('E2E Project Suggestion Flow', () => {
     mockShouldEnterInteractiveMode = interactive.shouldEnterInteractiveMode as ReturnType<typeof vi.fn>;
     mockPromptMissingArguments = interactive.promptMissingArguments as ReturnType<typeof vi.fn>;
     mockCheckTTYEnvironment = interactive.checkTTYEnvironment as ReturnType<typeof vi.fn>;
-    mockPromptProject = interactive.promptProject as ReturnType<typeof vi.fn>;
     mockSuggestProjects = suggester.suggestProjects as ReturnType<typeof vi.fn>;
-    mockPromptMultipleProjectsWithValidation = suggester.promptMultipleProjectsWithValidation as ReturnType<typeof vi.fn>;
-    mockFormatMultipleProjectsToString = suggester.formatMultipleProjectsToString as ReturnType<typeof vi.fn>;
 
     // Default TTY check success
     mockCheckTTYEnvironment.mockReturnValue({ success: true });

@@ -1,6 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { execute } from '@/cli/entry.js';
-import type { ParsedArguments } from '@/cli/types.js';
 import * as metadataManager from '@/tracking/metadata-manager.js';
 import * as batchChecker from '@/tracking/batch-update-checker.js';
 import type { Metadata } from '@/tracking/types.js';
@@ -63,18 +62,6 @@ describe('--check-updates Command Flow Integration', () => {
 
       vi.spyOn(metadataManager, 'loadMetadata').mockResolvedValue(mockMetadata);
       vi.spyOn(batchChecker, 'checkAllFiles').mockResolvedValue(mockCheckResult);
-
-      const args: ParsedArguments = {
-        repository: '',
-        projects: [],
-        output: '.',
-        force: false,
-        dryRun: false,
-        verbose: false,
-        track: false,
-        checkUpdates: true,
-        update: false,
-      };
 
       const result = await execute(['node', 'kirox', '--check-updates']);
 
@@ -146,18 +133,6 @@ describe('--check-updates Command Flow Integration', () => {
       vi.spyOn(metadataManager, 'loadMetadata').mockResolvedValue(mockMetadata);
       vi.spyOn(batchChecker, 'checkAllFiles').mockResolvedValue(mockCheckResult);
 
-      const args: ParsedArguments = {
-        repository: '',
-        projects: [],
-        output: '.',
-        force: false,
-        dryRun: false,
-        verbose: false,
-        track: false,
-        checkUpdates: true,
-        update: false,
-      };
-
       const result = await execute(['node', 'kirox', '--check-updates']);
 
       expect(result.success).toBe(true);
@@ -170,18 +145,6 @@ describe('--check-updates Command Flow Integration', () => {
       vi.spyOn(metadataManager, 'loadMetadata').mockRejectedValue(
         new Error('Metadata file not found')
       );
-
-      const args: ParsedArguments = {
-        repository: '',
-        projects: [],
-        output: '.',
-        force: false,
-        dryRun: false,
-        verbose: false,
-        track: false,
-        checkUpdates: true,
-        update: false,
-      };
 
       const result = await execute(['node', 'kirox', '--check-updates']);
 
@@ -214,18 +177,6 @@ describe('--check-updates Command Flow Integration', () => {
       vi.spyOn(batchChecker, 'checkAllFiles').mockRejectedValue(
         new Error('GitHub API error')
       );
-
-      const args: ParsedArguments = {
-        repository: '',
-        projects: [],
-        output: '.',
-        force: false,
-        dryRun: false,
-        verbose: false,
-        track: false,
-        checkUpdates: true,
-        update: false,
-      };
 
       const result = await execute(['node', 'kirox', '--check-updates']);
 

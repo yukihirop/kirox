@@ -8,6 +8,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { promptMissingArguments } from '@/cli/interactive-prompt.js';
 import type { ParsedArguments } from '@/cli/types.js';
+import type { PinoLogger } from '@/reporting/pino-logger.js';
 
 // Mock @inquirer/prompts
 vi.mock('@inquirer/prompts', () => ({
@@ -327,7 +328,8 @@ describe('promptMissingArguments', () => {
         warn: vi.fn(),
         error: vi.fn(),
         verbose: vi.fn(),
-      };
+        debug: vi.fn(),
+      } as unknown as PinoLogger;
 
       mockInput
         .mockResolvedValueOnce('owner/repo')
@@ -360,7 +362,8 @@ describe('promptMissingArguments', () => {
         warn: vi.fn(),
         error: vi.fn(),
         verbose: vi.fn(),
-      };
+        debug: vi.fn(),
+      } as unknown as PinoLogger;
 
       mockInput
         .mockResolvedValueOnce('owner/repo')

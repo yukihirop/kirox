@@ -5,7 +5,7 @@
  * Task 3.1: 対話モード起動条件の実装
  */
 
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { shouldEnterInteractiveMode } from '@/cli/interactive-prompt.js';
 import type { ParsedArguments } from '@/cli/types.js';
 
@@ -20,6 +20,7 @@ describe('shouldEnterInteractiveMode', () => {
     track: false,
     checkUpdates: false,
     update: false,
+    steering: false,
   });
 
   let originalIsTTY: boolean | undefined;

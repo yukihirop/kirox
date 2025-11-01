@@ -80,7 +80,6 @@ import type { DirectoryLocation, DirectoryScanResult } from '../../../src/github
 
 describe('promptMissingArguments --steering subdirectory logic (Task 9.3)', () => {
   let mockLogger: PinoLogger;
-  let mockOctokit: Octokit;
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -93,9 +92,6 @@ describe('promptMissingArguments --steering subdirectory logic (Task 9.3)', () =
       verbose: vi.fn(),
       debug: vi.fn(),
     } as unknown as PinoLogger;
-
-    // Setup mock Octokit
-    mockOctokit = new Octokit();
 
     // Mock console methods
     vi.spyOn(console, 'log').mockImplementation(() => {});

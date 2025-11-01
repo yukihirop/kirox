@@ -194,6 +194,7 @@ describe('Interactive Mode Config File Integration', () => {
         checkUpdates: false,
         update: false,
         subdir: undefined,
+        steering: false,
       };
 
       // Mock prompts (Task 5.3: subdir now comes before output)
@@ -236,6 +237,7 @@ describe('Interactive Mode Config File Integration', () => {
         checkUpdates: false,
         update: false,
         subdir: undefined,
+        steering: false,
       };
 
       // Mock user overriding defaults (Task 5.3: subdir before output)
@@ -262,6 +264,7 @@ describe('Interactive Mode Config File Integration', () => {
         checkUpdates: false,
         update: false,
         subdir: undefined,
+        steering: false,
       };
 
       // Mock prompts without config file (Task 5.3: subdir before output)
