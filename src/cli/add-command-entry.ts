@@ -651,7 +651,7 @@ export async function executeAddCommand(argv: string[]): Promise<ExecutionResult
               filesWritten++;
 
               // Task 4.2: Report success for written file
-              reporter.reportSuccess(`Saved: ${file.path}`);
+              reporter.reportSuccess(`Saved: ${file.path}`, displayProjectName);
             } else if (writeResult.skipped) {
               filesSkipped++;
               if (args.verbose && writeResult.reason) {

@@ -177,3 +177,34 @@
   - デバッグ用のconsole.logがあれば削除
   - 不要なインポートを削除
   - _Requirements: Code quality_
+
+
+## 修正タスク
+
+- [ ] 14. スピナー表示が全く動作しない問題の調査と修正
+- [ ] 14.1 スピナーが表示されない根本原因の調査
+  - ProgressReporterのコンストラクタでスピナー初期化が成功しているかデバッグログを追加
+  - useFallbackフラグの状態を確認
+  - reportProgressメソッドでスピナーのstart()が呼ばれているか確認
+  - スピナーインスタンスがnullまたはundefinedになっていないか確認
+  - _Requirements: 1.1, 2.1, 3.1_
+
+- [ ] 14.2 現在のログ出力との競合を解決
+  - [INFO]ログとスピナー表示が競合していないか確認
+  - console.logとスピナーが同時に出力されている場合の処理を修正
+  - verboseモード時のログ出力とスピナーの共存方法を見直し
+  - _Requirements: 7.1_
+
+- [ ] 14.3 期待される動作の実装
+  - "⠹ Fetching: .kiro/specs/simple-kanban-board-a/design.md" のようなスピナーアニメーション表示
+  - ファイル保存完了時に "✔ Saved: .kiro/specs/simple-kanban-board-a/design.md" に変更
+  - マルチプロジェクトモードで各プロジェクトごとに独立したスピナー表示
+  - _Requirements: 2.1, 2.5, 3.1, 4.1, 5.1_
+
+- [ ] 14.4 デバッグ情報の追加と検証
+  - スピナー初期化時のデバッグログ追加
+  - スピナーstart/succeed/fail呼び出し時のデバッグログ追加
+  - KIROX_DEMO_DELAY環境変数との互換性確認
+  - 実際の動作確認とログ出力の検証
+  - _Requirements: All spinner requirements_
+

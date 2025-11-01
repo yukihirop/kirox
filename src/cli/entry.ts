@@ -297,7 +297,7 @@ export async function execute(argv: string[]): Promise<ExecutionResult> {
 
             if (writeResult.written) {
               filesDownloaded++;
-              reporter.reportSuccess(`Saved: ${file.path}`);
+              reporter.reportSuccess(`Saved: ${file.path}`, displayProjectName);
 
               // Track written file for metadata
               if (args.track) {
@@ -320,7 +320,7 @@ export async function execute(argv: string[]): Promise<ExecutionResult> {
               filePath: file.path,
               details: error instanceof Error ? error.message : String(error),
             });
-            reporter.reportError(`Failed: ${file.path} - ${errorResult.message}`);
+            reporter.reportError(`Failed: ${file.path} - ${errorResult.message}`, displayProjectName);
             logger.logError(errorResult);
           }
         }
@@ -331,7 +331,7 @@ export async function execute(argv: string[]): Promise<ExecutionResult> {
             filePath: failedFile.path,
             details: failedFile.error,
           });
-          reporter.reportError(`Failed to fetch: ${failedFile.path} - ${errorResult.message}`);
+          reporter.reportError(`Failed to fetch: ${failedFile.path} - ${errorResult.message}`, displayProjectName);
           logger.logError(errorResult);
         }
 

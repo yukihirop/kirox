@@ -121,6 +121,13 @@ export async function fetchFileContents(
       params.ref = ref;
     }
 
+    // Development: Add artificial delay to demonstrate spinner animation
+    // Set KIROX_DEMO_DELAY=3000 to enable 3 second delay
+    const demoDelay = process.env.KIROX_DEMO_DELAY;
+    if (demoDelay) {
+      await new Promise(resolve => setTimeout(resolve, parseInt(demoDelay, 10)));
+    }
+
     const response = await client.rest.repos.getContent(params);
 
     // Ensure response is a file (not directory)
