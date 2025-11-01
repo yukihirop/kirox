@@ -109,6 +109,7 @@ describe('promptMissingArguments - Branch Selection Integration (Task 3.1)', () 
       warn: vi.fn(),
       error: vi.fn(),
       info: vi.fn(),
+      debug: vi.fn(),
     } as unknown as Logger;
 
     // Create mock Octokit client
@@ -261,8 +262,8 @@ describe('promptMissingArguments - Branch Selection Integration (Task 3.1)', () 
       expect(mockFetchBranches).toHaveBeenCalled();
       expect(mockPromptBranch).toHaveBeenCalledWith(['develop', 'feature/auth'], undefined);
 
-      // Verbose mode should log warning
-      expect(mockLogger.warn).toHaveBeenCalledWith(
+      // Should log debug message
+      expect(mockLogger.debug).toHaveBeenCalledWith(
         'Failed to fetch default branch',
         expect.any(Object)
       );
@@ -295,8 +296,8 @@ describe('promptMissingArguments - Branch Selection Integration (Task 3.1)', () 
       // Fallback to default branch
       expect(result.repository).toBe('owner/repo#main');
 
-      // Verbose mode should log warning
-      expect(mockLogger.warn).toHaveBeenCalledWith(
+      // Should log debug message
+      expect(mockLogger.debug).toHaveBeenCalledWith(
         'Failed to fetch branches',
         expect.any(Object)
       );
@@ -345,7 +346,7 @@ describe('promptMissingArguments - Branch Selection Integration (Task 3.1)', () 
       const args = createValidArgs();
       await promptMissingArguments(args, undefined, mockLogger, true); // verbose: true
 
-      expect(mockLogger.verbose).toHaveBeenCalledWith('Default branch detected', {
+      expect(mockLogger.debug).toHaveBeenCalledWith('Default branch detected', {
         defaultBranch: 'main',
       });
     });
@@ -366,7 +367,7 @@ describe('promptMissingArguments - Branch Selection Integration (Task 3.1)', () 
       const args = createValidArgs();
       await promptMissingArguments(args, undefined, mockLogger, true); // verbose: true
 
-      expect(mockLogger.verbose).toHaveBeenCalledWith('Branch selected', {
+      expect(mockLogger.debug).toHaveBeenCalledWith('Branch selected', {
         branch: 'develop',
       });
     });
@@ -487,7 +488,7 @@ describe('promptMissingArguments - Branch Selection Integration (Task 3.1)', () 
       const args = createValidArgs();
       await promptMissingArguments(args, undefined, mockLogger, true); // verbose: true
 
-      expect(mockLogger.verbose).toHaveBeenCalledWith('Fetched branches', {
+      expect(mockLogger.debug).toHaveBeenCalledWith('Fetched branches', {
         count: 3,
       });
     });
@@ -508,7 +509,7 @@ describe('promptMissingArguments - Branch Selection Integration (Task 3.1)', () 
       await promptMissingArguments(args, undefined, mockLogger, true); // verbose: true
 
       // Should not log branch count for empty branches
-      expect(mockLogger.verbose).not.toHaveBeenCalledWith('Fetched branches', expect.any(Object));
+      expect(mockLogger.debug).not.toHaveBeenCalledWith('Fetched branches', expect.any(Object));
     });
   });
 

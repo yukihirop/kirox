@@ -318,7 +318,7 @@ describe('ProjectSuggester', () => {
       });
 
       // Assert
-      expect(mockLogger.info).toHaveBeenCalledWith(
+      expect(mockLogger.debug).toHaveBeenCalledWith(
         expect.stringContaining('Fetching available projects'),
         expect.objectContaining({
           repository: 'test-owner/test-repo',
@@ -345,7 +345,7 @@ describe('ProjectSuggester', () => {
       });
 
       // Assert
-      expect(mockLogger.info).toHaveBeenCalledWith(
+      expect(mockLogger.debug).toHaveBeenCalledWith(
         expect.stringContaining('Successfully fetched projects'),
         expect.objectContaining({
           count: 2,
@@ -370,7 +370,7 @@ describe('ProjectSuggester', () => {
       });
 
       // Assert
-      expect(mockLogger.error).toHaveBeenCalledWith(
+      expect(mockLogger.debug).toHaveBeenCalledWith(
         expect.stringContaining('Failed to fetch projects'),
         expect.objectContaining({
           error: expect.any(String),

@@ -437,8 +437,8 @@ describe('Tree-Based Project Scanner', () => {
           verbose: true,
         });
 
-        // Assert: Should have logged verbose messages
-        expect(mockLogger.verbose).toHaveBeenCalled();
+        // Assert: Should have logged debug messages
+        expect(mockLogger.debug).toHaveBeenCalled();
       });
 
       it('should log Tree SHA, entry count, and .kiro/specs/ directory count when verbose=true (task 2.4)', async () => {
@@ -499,22 +499,22 @@ describe('Tree-Based Project Scanner', () => {
         // Requirement 7.4: Log Tree SHA, entry count, and processing details
 
         // 1. Should log Tree SHA during fetch (using commit SHA from getTreeSha)
-        expect(mockLogger.verbose).toHaveBeenCalledWith(
+        expect(mockLogger.debug).toHaveBeenCalledWith(
           expect.stringContaining('Fetching repository tree (recursive) with SHA: commit-sha-detailed')
         );
 
         // 2. Should log total entry count from tree response
-        expect(mockLogger.verbose).toHaveBeenCalledWith(
+        expect(mockLogger.debug).toHaveBeenCalledWith(
           expect.stringContaining('Parsing tree response (3 entries)')
         );
 
         // 3. Should log count of found .kiro/specs/ directories
-        expect(mockLogger.verbose).toHaveBeenCalledWith(
+        expect(mockLogger.debug).toHaveBeenCalledWith(
           expect.stringContaining('Found 2 .kiro/specs/ directories')
         );
       });
 
-      it('should not log verbose messages when verbose=false', async () => {
+      it('should log debug messages even when verbose=false', async () => {
         // Arrange
         vi.mocked(mockClient.rest.repos.getBranch).mockResolvedValue({
           data: {
@@ -554,8 +554,8 @@ describe('Tree-Based Project Scanner', () => {
           verbose: false,
         });
 
-        // Assert: Should NOT log verbose messages
-        expect(mockLogger.verbose).not.toHaveBeenCalled();
+        // Assert: Should log debug messages (verbose flag no longer controls whether debug is called)
+        expect(mockLogger.debug).toHaveBeenCalled();
       });
 
       it('should log truncation warning when truncated=true and verbose=true (task 2.4)', async () => {
@@ -599,7 +599,7 @@ describe('Tree-Based Project Scanner', () => {
         });
 
         // Assert: Should log truncation warning
-        expect(mockLogger.verbose).toHaveBeenCalledWith(
+        expect(mockLogger.debug).toHaveBeenCalledWith(
           'Warning: Tree response was truncated (>100,000 entries)'
         );
       });

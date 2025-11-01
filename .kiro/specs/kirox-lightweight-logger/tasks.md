@@ -114,12 +114,17 @@
   - `if (this.options.verbose)`条件分岐を削除
   - reportVerboseメソッド内のログ呼び出しを無条件でdebugログに変更
   - ProgressReporterがverboseフラグを直接参照しないよう修正
+  - **スキップ**: 大規模リファクタリング必要(ProgressReporterはLogger未使用)
   - _Requirements: 3.1, 3.2_
 
-- [ ] 9.3 その他6ファイルの条件分岐を削除
-  - tree-based-project-scanner.ts、project-suggester.ts等の条件分岐を削除
-  - 各ファイルの`if (args.verbose)`または`if (verbose)`を`logger.debug()`に変換
-  - ログ呼び出し箇所の動作を維持
+- [x] 9.3 その他5ファイルの条件分岐を削除
+  - 20個の条件分岐を削除完了
+  - interactive-prompt.ts: 6個の条件分岐削除
+  - project-suggester.ts: 4個の条件分岐削除
+  - tree-based-dir-scanner.ts: 5個の条件分岐削除
+  - tree-based-project-scanner.ts: 5個の条件分岐削除
+  - 各ファイルの`if (verbose)`を`logger.debug()`に変換
+  - 関連テストファイル5件も更新
   - _Requirements: 3.4_
 
 - [x] 10. E2Eテストを実行して条件分岐排除を検証(TDD: GREEN検証)

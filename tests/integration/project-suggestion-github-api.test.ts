@@ -61,6 +61,7 @@ describe('Project Suggestion GitHub API Integration', () => {
       info: vi.fn(),
       error: vi.fn(),
       warn: vi.fn(),
+      debug: vi.fn(),
     } as unknown as Logger;
   });
 
