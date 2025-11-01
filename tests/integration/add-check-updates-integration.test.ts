@@ -16,7 +16,8 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { execute } from '@/cli/entry.js';
 import * as metadataManager from '@/tracking/metadata-manager.js';
 import * as batchChecker from '@/tracking/batch-update-checker.js';
-import type { Metadata, UpdateStatus } from '@/tracking/types.js';
+import type { Metadata, ProjectMetadata } from '@/tracking/types.js';
+import { UpdateStatus } from '@/tracking/update-checker.js';
 
 // Unmock PinoLogger to allow actual implementation
 vi.unmock('@/reporting/pino-logger.js');
@@ -68,34 +69,36 @@ describe('Add Command & Check-Updates Integration (Task 9.1)', () => {
 
       // Mock check-updates result showing both projects are checked
       const mockCheckResult = {
-        updates: [
+        totalFiles: 2,
+        upToDate: 2,
+        updatable: 0,
+        localEdited: 0,
+        conflict: 0,
+        localDeleted: 0,
+        remoteDeleted: 0,
+        errors: 0,
+        files: [
           {
             path: '.kiro/specs/existing-project/requirements.md',
             status: 'UP_TO_DATE' as UpdateStatus,
-            currentSha: 'abc123',
+            recordedSha: 'abc123',
             remoteSha: 'abc123',
-            localHash: 'hash123',
-            hasLocalEdits: false,
+            recordedHash: 'hash123',
+            currentHash: 'hash123',
+            hasLocalEdit: false,
+            hasRemoteUpdate: false,
           },
           {
             path: '.kiro/specs/added-project/requirements.md',
             status: 'UP_TO_DATE' as UpdateStatus,
-            currentSha: 'def456',
+            recordedSha: 'def456',
             remoteSha: 'def456',
-            localHash: 'hash456',
-            hasLocalEdits: false,
+            recordedHash: 'hash456',
+            currentHash: 'hash456',
+            hasLocalEdit: false,
+            hasRemoteUpdate: false,
           },
         ],
-        summary: {
-          totalFiles: 2,
-          upToDate: 2,
-          remoteUpdated: 0,
-          localEdited: 0,
-          conflict: 0,
-          localDeleted: 0,
-          remoteDeleted: 0,
-          error: 0,
-        },
       };
 
       vi.spyOn(metadataManager, 'loadMetadata').mockResolvedValue(mockMetadata);
@@ -148,34 +151,36 @@ describe('Add Command & Check-Updates Integration (Task 9.1)', () => {
       };
 
       const mockCheckResult = {
-        updates: [
+        totalFiles: 2,
+        upToDate: 2,
+        updatable: 0,
+        localEdited: 0,
+        conflict: 0,
+        localDeleted: 0,
+        remoteDeleted: 0,
+        errors: 0,
+        files: [
           {
             path: '.kiro/specs/project1/design.md',
             status: 'UP_TO_DATE' as UpdateStatus,
-            currentSha: 'aaa111',
+            recordedSha: 'aaa111',
             remoteSha: 'aaa111',
-            localHash: 'localhash1',
-            hasLocalEdits: false,
+            recordedHash: 'localhash1',
+            currentHash: 'localhash1',
+            hasLocalEdit: false,
+            hasRemoteUpdate: false,
           },
           {
             path: '.kiro/specs/project2/design.md',
             status: 'UP_TO_DATE' as UpdateStatus,
-            currentSha: 'bbb222',
+            recordedSha: 'bbb222',
             remoteSha: 'bbb222',
-            localHash: 'localhash2',
-            hasLocalEdits: false,
+            recordedHash: 'localhash2',
+            currentHash: 'localhash2',
+            hasLocalEdit: false,
+            hasRemoteUpdate: false,
           },
         ],
-        summary: {
-          totalFiles: 2,
-          upToDate: 2,
-          remoteUpdated: 0,
-          localEdited: 0,
-          conflict: 0,
-          localDeleted: 0,
-          remoteDeleted: 0,
-          error: 0,
-        },
       };
 
       vi.spyOn(metadataManager, 'loadMetadata').mockResolvedValue(mockMetadata);
@@ -218,26 +223,26 @@ describe('Add Command & Check-Updates Integration (Task 9.1)', () => {
 
       // Mock check result showing LOCAL_EDITED status
       const mockCheckResult = {
-        updates: [
+        totalFiles: 1,
+        upToDate: 0,
+        updatable: 0,
+        localEdited: 1, // One file locally edited
+        conflict: 0,
+        localDeleted: 0,
+        remoteDeleted: 0,
+        errors: 0,
+        files: [
           {
             path: '.kiro/specs/added-project/requirements.md',
             status: 'LOCAL_EDITED' as UpdateStatus,
-            currentSha: 'original123',
+            recordedSha: 'original123',
             remoteSha: 'original123',
-            localHash: 'editedhash', // Local hash changed
-            hasLocalEdits: true,
+            recordedHash: 'originalhash',
+            currentHash: 'editedhash', // Local hash changed
+            hasLocalEdit: true,
+            hasRemoteUpdate: false,
           },
         ],
-        summary: {
-          totalFiles: 1,
-          upToDate: 0,
-          remoteUpdated: 0,
-          localEdited: 1, // One file locally edited
-          conflict: 0,
-          localDeleted: 0,
-          remoteDeleted: 0,
-          error: 0,
-        },
       };
 
       vi.spyOn(metadataManager, 'loadMetadata').mockResolvedValue(mockMetadata);
@@ -252,8 +257,8 @@ describe('Add Command & Check-Updates Integration (Task 9.1)', () => {
 
       // Verify check result includes local edit
       const checkResult = await vi.mocked(batchChecker.checkAllFiles).mock.results[0]!.value;
-      expect(checkResult.summary.localEdited).toBe(1);
-      expect(checkResult.updates[0]!.status).toBe('LOCAL_EDITED');
+      expect(checkResult.localEdited).toBe(1);
+      expect(checkResult.files[0]!.status).toBe('LOCAL_EDITED');
     });
 
     it('should warn about local edits in both existing and newly added projects', async () => {
@@ -294,34 +299,36 @@ describe('Add Command & Check-Updates Integration (Task 9.1)', () => {
 
       // Mock check result showing both files are locally edited
       const mockCheckResult = {
-        updates: [
+        totalFiles: 2,
+        upToDate: 0,
+        updatable: 0,
+        localEdited: 2, // Both files locally edited
+        conflict: 0,
+        localDeleted: 0,
+        remoteDeleted: 0,
+        errors: 0,
+        files: [
           {
             path: '.kiro/specs/project1/requirements.md',
             status: 'LOCAL_EDITED' as UpdateStatus,
-            currentSha: 'sha1',
+            recordedSha: 'sha1',
             remoteSha: 'sha1',
-            localHash: 'editedhash1',
-            hasLocalEdits: true,
+            recordedHash: 'hash1',
+            currentHash: 'editedhash1',
+            hasLocalEdit: true,
+            hasRemoteUpdate: false,
           },
           {
             path: '.kiro/specs/project2/requirements.md',
             status: 'LOCAL_EDITED' as UpdateStatus,
-            currentSha: 'sha2',
+            recordedSha: 'sha2',
             remoteSha: 'sha2',
-            localHash: 'editedhash2',
-            hasLocalEdits: true,
+            recordedHash: 'hash2',
+            currentHash: 'editedhash2',
+            hasLocalEdit: true,
+            hasRemoteUpdate: false,
           },
         ],
-        summary: {
-          totalFiles: 2,
-          upToDate: 0,
-          remoteUpdated: 0,
-          localEdited: 2, // Both files locally edited
-          conflict: 0,
-          localDeleted: 0,
-          remoteDeleted: 0,
-          error: 0,
-        },
       };
 
       vi.spyOn(metadataManager, 'loadMetadata').mockResolvedValue(mockMetadata);
@@ -333,7 +340,7 @@ describe('Add Command & Check-Updates Integration (Task 9.1)', () => {
       // ASSERT: Local edits detected in both projects
       expect(result.success).toBe(true);
       const checkResult = await vi.mocked(batchChecker.checkAllFiles).mock.results[0]!.value;
-      expect(checkResult.summary.localEdited).toBe(2);
+      expect(checkResult.localEdited).toBe(2);
     });
   });
 
@@ -406,24 +413,24 @@ describe('Add Command & Check-Updates Integration (Task 9.1)', () => {
       };
 
       const mockCheckResult = {
-        updates: mockMetadata.projects.map((project) => ({
+        totalFiles: 4,
+        upToDate: 4,
+        updatable: 0,
+        localEdited: 0,
+        conflict: 0,
+        localDeleted: 0,
+        remoteDeleted: 0,
+        errors: 0,
+        files: mockMetadata.projects.map((project) => ({
           path: project.files[0]!.path,
           status: 'UP_TO_DATE' as UpdateStatus,
-          currentSha: project.files[0]!.sha,
+          recordedSha: project.files[0]!.sha,
           remoteSha: project.files[0]!.sha,
-          localHash: project.files[0]!.localHash,
-          hasLocalEdits: false,
+          recordedHash: project.files[0]!.localHash,
+          currentHash: project.files[0]!.localHash,
+          hasLocalEdit: false,
+          hasRemoteUpdate: false,
         })),
-        summary: {
-          totalFiles: 4,
-          upToDate: 4,
-          remoteUpdated: 0,
-          localEdited: 0,
-          conflict: 0,
-          localDeleted: 0,
-          remoteDeleted: 0,
-          error: 0,
-        },
       };
 
       vi.spyOn(metadataManager, 'loadMetadata').mockResolvedValue(mockMetadata);
@@ -437,7 +444,7 @@ describe('Add Command & Check-Updates Integration (Task 9.1)', () => {
       expect(result.exitCode).toBe(0);
 
       const checkResult = await vi.mocked(batchChecker.checkAllFiles).mock.results[0]!.value;
-      expect(checkResult.summary.totalFiles).toBe(4);
+      expect(checkResult.totalFiles).toBe(4);
     });
   });
 
@@ -482,24 +489,24 @@ describe('Add Command & Check-Updates Integration (Task 9.1)', () => {
       };
 
       const mockCheckResult = {
-        updates: mockMetadata.projects.map((project) => ({
+        totalFiles: 2,
+        upToDate: 2,
+        updatable: 0,
+        localEdited: 0,
+        conflict: 0,
+        localDeleted: 0,
+        remoteDeleted: 0,
+        errors: 0,
+        files: mockMetadata.projects.map((project) => ({
           path: project.files[0]!.path,
           status: 'UP_TO_DATE' as UpdateStatus,
-          currentSha: project.files[0]!.sha,
+          recordedSha: project.files[0]!.sha,
           remoteSha: project.files[0]!.sha,
-          localHash: project.files[0]!.localHash,
-          hasLocalEdits: false,
+          recordedHash: project.files[0]!.localHash,
+          currentHash: project.files[0]!.localHash,
+          hasLocalEdit: false,
+          hasRemoteUpdate: false,
         })),
-        summary: {
-          totalFiles: 2,
-          upToDate: 2,
-          remoteUpdated: 0,
-          localEdited: 0,
-          conflict: 0,
-          localDeleted: 0,
-          remoteDeleted: 0,
-          error: 0,
-        },
       };
 
       vi.spyOn(metadataManager, 'loadMetadata').mockResolvedValue(mockMetadata);
@@ -515,9 +522,9 @@ describe('Add Command & Check-Updates Integration (Task 9.1)', () => {
       const loadedMetadata = await vi.mocked(metadataManager.loadMetadata).mock.results[0]!.value;
       expect(loadedMetadata.version).toBe('1.0');
       expect(loadedMetadata.projects).toHaveLength(2);
-      expect(loadedMetadata.projects.every((p) => p.repository)).toBe(true);
-      expect(loadedMetadata.projects.every((p) => p.projectName)).toBe(true);
-      expect(loadedMetadata.projects.every((p) => Array.isArray(p.files))).toBe(true);
+      expect(loadedMetadata.projects.every((p: ProjectMetadata) => p.repository)).toBe(true);
+      expect(loadedMetadata.projects.every((p: ProjectMetadata) => p.projectName)).toBe(true);
+      expect(loadedMetadata.projects.every((p: ProjectMetadata) => Array.isArray(p.files))).toBe(true);
     });
   });
 });
