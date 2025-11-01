@@ -13,6 +13,7 @@ import type { ReporterOptions } from './types.js';
  */
 interface OraOptions {
   color?: string | false;
+  isEnabled?: boolean;
 }
 
 /**
@@ -41,6 +42,7 @@ export class ProgressReporter {
     this.spinnerMap = new Map<string, Ora>();
     this.oraOptions = {
       color: options.useColor ? undefined : false, // undefined uses ora default (cyan), false disables color
+      isEnabled: true, // Force spinner to be enabled even in non-TTY environments
     };
 
     // Task 2.2: Try to initialize ora, fall back to console.log on failure
@@ -224,12 +226,11 @@ export class ProgressReporter {
         // Get or create spinner for this project
         const spinner = this.getOrCreateSpinner(projectName);
 
-        // Update spinner text
-        spinner.text = message;
-
-        // Start spinner if not already running
+        // Start spinner if not already running, OR update text if already running
         if (!spinner.isSpinning) {
-          spinner.start();
+          spinner.start(message);
+        } else {
+          spinner.text = message;
         }
       } catch (error) {
         // If spinner operation fails, fall back to console.log

@@ -182,11 +182,12 @@
 ## 修正タスク
 
 - [ ] 14. スピナー表示が全く動作しない問題の調査と修正
-- [ ] 14.1 スピナーが表示されない根本原因の調査
-  - ProgressReporterのコンストラクタでスピナー初期化が成功しているかデバッグログを追加
-  - useFallbackフラグの状態を確認
-  - reportProgressメソッドでスピナーのstart()が呼ばれているか確認
-  - スピナーインスタンスがnullまたはundefinedになっていないか確認
+- [x] 14.1 スピナーが表示されない根本原因の調査と修正
+  - ✅ デバッグテスト追加 (progress-reporter-debug.test.ts)
+  - ✅ 根本原因を特定: 非TTY環境でoraがデフォルトで無効化される
+  - ✅ 修正実装: OraOptionsに`isEnabled: true`を追加
+  - ✅ reportProgressで`spinner.start(message)`を使用するように修正
+  - ✅ デバッグテスト全て通過、スピナーアニメーション表示確認
   - _Requirements: 1.1, 2.1, 3.1_
 
 - [ ] 14.2 現在のログ出力との競合を解決
