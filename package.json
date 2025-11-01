@@ -61,6 +61,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.37.0",
+    "@tsconfig/node22": "^22.0.2",
     "@types/figlet": "^1.7.0",
     "@types/node": "^20.17.10",
     "@vitest/coverage-v8": "^2.1.8",

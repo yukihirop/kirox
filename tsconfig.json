@@ -1,11 +1,6 @@
 {
+  "extends": "@tsconfig/node22/tsconfig.json",
   "compilerOptions": {
-    /* Language and Environment */
-    "target": "ES2022",
-    "lib": ["ES2022"],
-    "module": "Node16",
-    "moduleResolution": "bundler",
-
     /* Emit */
     "declaration": false,
     "declarationMap": false,
@@ -15,13 +10,11 @@
     "importHelpers": false,
 
     /* Interop Constraints */
-    "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
     "forceConsistentCasingInFileNames": true,
     "isolatedModules": true,
 
     /* Type Checking */
-    "strict": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "noImplicitReturns": true,
@@ -30,9 +23,6 @@
     "noImplicitOverride": true,
     "allowUnusedLabels": false,
     "allowUnreachableCode": false,
-
-    /* Completeness */
-    "skipLibCheck": true,
 
     /* Path Mapping */
     "baseUrl": ".",
