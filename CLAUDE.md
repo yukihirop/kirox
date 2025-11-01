@@ -39,6 +39,7 @@ Kiro-style Spec Driven Development implementation using claude code slash comman
 - `kirox-lightweight-logger`: Replace custom logger.ts with lightweight logging library, default to info level, and eliminate verbose flag conditionals
 - `kirox-fix-tests`: Fix failing tests by correcting test code (implementation code is assumed correct)
 - `kirox-fix-pino-logger-mocks`: Fix PinoLogger mock configuration in test files to resolve 92 failing tests caused by incorrect mock setup
+- `kirox-fix-logger-error-tests`: Fix logger.error is not a function errors affecting 140 test failures across multiple test files
 - Use `/kiro:spec-status [feature-name]` to check progress
 
 ## Development Guidelines
