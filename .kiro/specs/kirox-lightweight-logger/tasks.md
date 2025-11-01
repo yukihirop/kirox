@@ -8,20 +8,20 @@
   - バンドルサイズへの影響を測定(3.46KB gzipped想定)
   - _Requirements: 1.1, 1.3_
 
-- [ ] 2. PinoLoggerラッパークラスの単体テストを作成(TDD: RED)
-- [ ] 2.1 ログレベル制御機能のテストケースを作成
+- [x] 2. PinoLoggerラッパークラスの単体テストを作成(TDD: RED)
+- [x] 2.1 ログレベル制御機能のテストケースを作成
   - verboseフラグfalse時にdebugログが抑制されることを検証するテスト
   - verboseフラグtrue時にdebugログが出力されることを検証するテスト
   - info/warn/errorログがverboseフラグに関わらず出力されることを検証するテスト
   - _Requirements: 2.1, 2.2, 2.4_
 
-- [ ] 2.2 基本ログメソッドのテストケースを作成
+- [x] 2.2 基本ログメソッドのテストケースを作成
   - info/warn/error/debugメソッドがPinoの対応メソッドを呼び出すことを検証するテスト
   - メッセージと詳細情報が正しく渡されることを検証するテスト
   - logErrorメソッドがrecoverable判定でwarn/errorを切り替えることを検証するテスト
   - _Requirements: 1.2, 5.1_
 
-- [ ] 2.3 ログ出力先のテストケースを作成
+- [x] 2.3 ログ出力先のテストケースを作成
   - errorログがstderrに出力されることを検証するテスト
   - info/warn/debugログがstdoutに出力されることを検証するテスト
   - _Requirements: 5.2, 5.3_
