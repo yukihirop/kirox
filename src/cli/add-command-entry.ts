@@ -411,7 +411,7 @@ export async function executeAddCommand(argv: string[]): Promise<ExecutionResult
     const subdir = config.subdir || '';
 
     if (args.verbose && subdir) {
-      logger.info('Using subdirectory', { subdir });
+      logger.verbose('Using subdirectory', { subdir });
     }
 
     // Track steering directory fetch status to avoid duplication across multiple projects
@@ -430,7 +430,7 @@ export async function executeAddCommand(argv: string[]): Promise<ExecutionResult
 
       try {
         // Step 10.1: Fetch directory listings for current project
-        logger.info('Fetching directory listings from GitHub', {
+        logger.verbose('Fetching directory listings from GitHub', {
           repository: args.repository,
           project: projectName,
           ...(effectiveBranch && { branch: effectiveBranch }),

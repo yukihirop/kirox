@@ -171,7 +171,7 @@ export async function execute(argv: string[]): Promise<ExecutionResult> {
 
       try {
         // Step 5.1: Fetch directory listings for current project
-        logger.info('Fetching directory listings from GitHub', {
+        logger.verbose('Fetching directory listings from GitHub', {
           repository: args.repository,
           project: projectName,
           ...(effectiveBranch && { branch: effectiveBranch }),
@@ -243,7 +243,7 @@ export async function execute(argv: string[]): Promise<ExecutionResult> {
         }
 
         // Step 5.2: Fetch all file contents in parallel
-        logger.info('Fetching file contents', { count: allFiles.length });
+        logger.verbose('Fetching file contents', { count: allFiles.length });
 
         const filePaths = allFiles.map((item) => item.path);
 
