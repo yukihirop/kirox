@@ -6,6 +6,9 @@ import * as batchChecker from '@/tracking/batch-update-checker.js';
 import type { Metadata } from '@/tracking/types.js';
 import type { UpdateStatus } from '@/tracking/types.js';
 
+// Unmock PinoLogger to allow actual implementation
+vi.unmock('@/reporting/pino-logger.js');
+
 describe('--check-updates Command Flow Integration', () => {
   beforeEach(() => {
     vi.restoreAllMocks();

@@ -10,6 +10,9 @@ import path from 'path';
 import { executeAddCommand } from '../../../src/cli/add-command-entry.js';
 import { Octokit } from 'octokit';
 
+// Unmock PinoLogger to allow actual implementation
+vi.unmock('@/reporting/pino-logger.js');
+
 // Mock dependencies
 vi.mock('octokit');
 vi.mock('@inquirer/prompts', () => ({

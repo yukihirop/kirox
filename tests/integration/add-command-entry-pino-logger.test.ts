@@ -8,6 +8,9 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { executeAddCommand } from '@/cli/add-command-entry.js';
 
+// Unmock PinoLogger to allow actual implementation
+vi.unmock('@/reporting/pino-logger.js');
+
 // Mock external dependencies
 vi.mock('octokit');
 vi.mock('@/github/fetcher.js');

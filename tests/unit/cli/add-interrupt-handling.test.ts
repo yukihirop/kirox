@@ -16,6 +16,9 @@ import * as metadataManager from '@/tracking/metadata-manager.js';
 import * as fetcher from '@/github/fetcher.js';
 import * as parallelFetcher from '@/github/parallel-fetcher.js';
 
+// Unmock PinoLogger to allow actual implementation
+vi.unmock('@/reporting/pino-logger.js');
+
 describe('Add Command Ctrl+C Interrupt Handling (Task 8.4)', () => {
   let originalProcessOn: typeof process.on;
   let signalHandlers: Map<string, Function>;

@@ -18,6 +18,9 @@ import * as batchChecker from '@/tracking/batch-update-checker.js';
 import * as batchUpdater from '@/tracking/batch-file-updater.js';
 import type { Metadata, UpdateStatus } from '@/tracking/types.js';
 
+// Unmock PinoLogger to allow actual implementation
+vi.unmock('@/reporting/pino-logger.js');
+
 describe('Add Command & Update Integration (Task 9.2)', () => {
   beforeEach(() => {
     vi.restoreAllMocks();

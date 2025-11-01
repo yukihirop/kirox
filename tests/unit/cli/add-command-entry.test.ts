@@ -278,17 +278,13 @@ describe('executeAddCommand', () => {
 
   describe('Logger initialization', () => {
     it('should initialize Logger instance', async () => {
-      const pino = (await import('pino')).default;
       const argv = ['node', 'kirox', 'add', 'owner/repo', '-p', 'test-project'];
+      const { PinoLogger } = await import('@/reporting/pino-logger.js');
 
       await executeAddCommand(argv);
 
-      // PinoLogger should instantiate Pino with level='info' (verbose=false)
-      expect(pino).toHaveBeenCalledWith(
-        expect.objectContaining({
-          level: 'info',
-        })
-      );
+      // PinoLogger should be instantiated with verbose=false
+      expect(PinoLogger).toHaveBeenCalledWith(false);
     });
 
     it('should log execution start when verbose is true', async () => {
@@ -531,13 +527,13 @@ describe('executeAddCommand', () => {
       // Should detect duplicate and skip without --force
       expect(result.success).toBe(false);
       expect(result.exitCode).toBe(1);
-      // Task 2.2: PinoLogger uses warnSpy (from Pino module mock at top of file)
+      // Task 2.2: PinoLogger.warn is called with (message, details) format
       expect(warnSpy).toHaveBeenCalledWith(
+        expect.stringMatching(/already exists|duplicate/i),
         expect.objectContaining({
           repository: 'owner/repo',
           projectName: 'test-project',
-        }),
-        expect.stringMatching(/already exists|duplicate/i)
+        })
       );
     });
 
@@ -616,11 +612,11 @@ describe('executeAddCommand', () => {
       expect(result.exitCode).toBeGreaterThanOrEqual(0);
       // Task 2.2: PinoLogger uses infoSpy for verbose log (from Pino module mock)
       expect(infoSpy).toHaveBeenCalledWith(
+        expect.stringMatching(/overwriting|force/i),
         expect.objectContaining({
           repository: 'owner/repo',
           projectName: 'test-project',
-        }),
-        expect.stringMatching(/overwriting|force/i)
+        })
       );
     });
 
@@ -643,13 +639,13 @@ describe('executeAddCommand', () => {
       const argv = ['node', 'kirox', 'add', 'owner/repo', '-p', 'test-project', '--track'];
       await executeAddCommand(argv);
 
-      // Task 2.2: PinoLogger uses warnSpy - check message about --force option
+      // Task 2.2: PinoLogger.warn is called with (message, details) format
       expect(warnSpy).toHaveBeenCalledWith(
+        expect.stringMatching(/use.*--force|--force.*overwrite/i),
         expect.objectContaining({
           repository: 'owner/repo',
           projectName: 'test-project',
-        }),
-        expect.stringMatching(/use.*--force|--force.*overwrite/i)
+        })
       );
     });
   });
@@ -811,12 +807,12 @@ describe('executeAddCommand', () => {
       // Should continue despite steering directory not found
       expect(result.exitCode).toBeGreaterThanOrEqual(0);
 
-      // Task 2.3: PinoLogger uses warnSpy for steering directory not found warning
+      // Task 2.3: PinoLogger.warn is called with (message, details) format
       expect(warnSpy).toHaveBeenCalledWith(
+        expect.stringMatching(/steering.*not found|skipping/i),
         expect.objectContaining({
           path: expect.any(String),
-        }),
-        expect.stringMatching(/steering.*not found|skipping/i)
+        })
       );
     });
 
@@ -2219,13 +2215,13 @@ describe('executeAddCommand', () => {
       const argv = ['node', 'kirox', 'add', 'owner/repo', '-p', 'test-project', '--track'];
       const result = await executeAddCommand(argv);
 
-      // Task 2.4: PinoLogger uses infoSpy for success summary message
+      // Task 2.4: PinoLogger.info is called with (message, details) format
       expect(infoSpy).toHaveBeenCalledWith(
+        expect.stringMatching(/successfully added|project added/i),
         expect.objectContaining({
           project: 'test-project',
           fileCount: 3,
-        }),
-        expect.stringMatching(/successfully added|project added/i)
+        })
       );
 
       expect(result.success).toBe(true);
@@ -2331,12 +2327,12 @@ describe('executeAddCommand', () => {
       const argv = ['node', 'kirox', 'add', 'owner/repo', '-p', 'test-project', '--track'];
       await executeAddCommand(argv);
 
-      // Task 2.4: PinoLogger uses infoSpy - should display file count (5 files) in success message
+      // Task 2.4: PinoLogger.info is called with (message, details) format
       expect(infoSpy).toHaveBeenCalledWith(
+        expect.anything(),
         expect.objectContaining({
           fileCount: 5,
-        }),
-        expect.anything()
+        })
       );
     });
   });

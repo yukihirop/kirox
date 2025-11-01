@@ -8,6 +8,9 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { PinoLogger } from '@/reporting/pino-logger.js';
 import type { ErrorResult } from '@/reporting/types.js';
 
+// Unmock PinoLogger to test the actual implementation
+vi.unmock('@/reporting/pino-logger.js');
+
 // Create mock Pino instance
 const mockPinoInstance = {
   info: vi.fn(),

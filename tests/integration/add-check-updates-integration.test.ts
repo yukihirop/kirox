@@ -19,6 +19,9 @@ import * as metadataManager from '@/tracking/metadata-manager.js';
 import * as batchChecker from '@/tracking/batch-update-checker.js';
 import type { Metadata, UpdateStatus } from '@/tracking/types.js';
 
+// Unmock PinoLogger to allow actual implementation
+vi.unmock('@/reporting/pino-logger.js');
+
 describe('Add Command & Check-Updates Integration (Task 9.1)', () => {
   beforeEach(() => {
     vi.restoreAllMocks();

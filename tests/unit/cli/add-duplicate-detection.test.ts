@@ -16,6 +16,9 @@ import * as fetcher from '@/github/fetcher.js';
 import * as parallelFetcher from '@/github/parallel-fetcher.js';
 import { PinoLogger } from '@/reporting/pino-logger.js';
 
+// Unmock PinoLogger to allow prototype spying
+vi.unmock('@/reporting/pino-logger.js');
+
 describe('Add Command Duplicate Project Detection (Task 11.2)', () => {
   let mockLoggerWarn: ReturnType<typeof vi.fn>;
   let mockLoggerInfo: ReturnType<typeof vi.fn>;

@@ -16,6 +16,9 @@ import * as metadataManager from '@/tracking/metadata-manager.js';
 import * as fetcher from '@/github/fetcher.js';
 import type { ParsedArguments } from '@/cli/types.js';
 
+// Unmock PinoLogger to allow actual implementation
+vi.unmock('@/reporting/pino-logger.js');
+
 describe('Add Command .kiro Folder Not Found Error Handling (Task 8.5)', () => {
   beforeEach(() => {
     // Mock console methods
