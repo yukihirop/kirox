@@ -15,11 +15,11 @@ PinoLoggerモック設定の修正により、92件の失敗テストを通過�
   - TypeScript型定義との整合性を確認 ✓
   - _Requirements: 1.1, 1.2, 1.3, 2.1, 3.1, 3.2, 5.2, 5.3_
 
-- [ ] 2. Vitest設定ファイルの更新
-- [ ] 2.1 グローバルセットアップファイルを読み込むよう設定
-  - vitest.config.tsにsetupFiles設定を追加
-  - tests/setup.tsを指定
-  - 設定ファイルの構文エラーがないことを確認
+- [x] 2. Vitest設定ファイルの更新
+- [x] 2.1 グローバルセットアップファイルを読み込むよう設定
+  - vitest.config.tsにsetupFiles設定を追加 ✓
+  - tests/setup.tsを指定 ✓
+  - 設定ファイルの構文エラーがないことを確認 ✓
   - _Requirements: 5.1, 5.2_
 
 - [ ] 3. テストファイルの修正とクリーンアップ
