@@ -10,7 +10,7 @@ import type { ErrorResult } from './types.js';
 /**
  * PinoLogger options
  */
-export interface PinoLoggerOptions {
+interface PinoLoggerOptions {
   timestamp?: boolean; // Show timestamp (default: true)
   formatMessage?: boolean; // Format message in existing style (default: true)
 }

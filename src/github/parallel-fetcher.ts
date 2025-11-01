@@ -198,7 +198,7 @@ export async function fetchFileContents(
  * @param total - Total number of files
  * @param filePath - Path of the file being fetched
  */
-export type ProgressCallback = (current: number, total: number, filePath: string) => void;
+type ProgressCallback = (current: number, total: number, filePath: string) => void;
 
 export async function fetchFilesInParallel(
   client: Octokit,
