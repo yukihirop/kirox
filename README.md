@@ -38,7 +38,7 @@ CLI tool to fetch Kiro specification and steering files from remote GitHub repos
 </p>
 
 <p align="center">
-	<img alt="kirox demo" width="800" src="https://raw.githubusercontent.com/yukihirop/kirox/main/demo/kirox-demo.gif">
+	<img alt="kirox demo" width="800" src="https://raw.githubusercontent.com/yukihirop/kirox/main/demo/kirox-demo-v0.1.2.gif">
 </p>
 
 
