@@ -35,6 +35,7 @@ Kiro-style Spec Driven Development implementation using claude code slash comman
 - `kirox-interactive-emoji`: Add emoji prefixes to interactive mode prompts to improve visual appeal and user experience
 - `kirox-vitepress-docs`: VitePress documentation creation and deployment
 - `kirox-knip`: Configure knip for detecting unused files, dependencies, and exports
+- `kirox-ora-spinner`: Integrate ora spinner library to unify file fetching progress display with spinner UI instead of line-by-line output
 - Use `/kiro:spec-status [feature-name]` to check progress
 
 ## Development Guidelines
