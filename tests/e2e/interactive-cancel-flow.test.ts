@@ -13,7 +13,6 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { execute } from '../../src/cli/entry.js';
 import { promises as fs } from 'fs';
-import { Octokit } from 'octokit';
 import path from 'path';
 import * as interactive from '../../src/cli/interactive-prompt.js';
 import { ExitPromptError } from '@inquirer/core';

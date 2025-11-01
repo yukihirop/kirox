@@ -13,7 +13,7 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { executeAddCommand } from '@/cli/add-command-entry.js';
 import * as metadataManager from '@/tracking/metadata-manager.js';
-import * as fetcher from '@/github/fetcher.js';
+import * as fetcher from '@/github/fetcher.js.js';
 import type { ParsedArguments } from '@/cli/types.js';
 
 // Unmock PinoLogger to allow actual implementation

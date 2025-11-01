@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
-import { fetchDirectoryContents, parseRepositoryPath } from '@/github/fetcher';
+import { fetchDirectoryContents, parseRepositoryPath } from '@/github/fetcher.js';
 import type { Octokit } from 'octokit';
 
 describe('GitHubFetcher', () => {
@@ -721,7 +721,7 @@ describe('GitHubFetcher', () => {
         },
       } as unknown as Octokit;
 
-      const { fetchBranches } = await import('@/github/fetcher');
+      const { fetchBranches } = await import('@/github/fetcher.js');
       const branches = await fetchBranches(mockClient, 'octocat', 'Hello-World');
 
       expect(branches).toEqual(['main', 'develop', 'feature/branch-selection']);
@@ -749,7 +749,7 @@ describe('GitHubFetcher', () => {
         },
       } as unknown as Octokit;
 
-      const { fetchBranches } = await import('@/github/fetcher');
+      const { fetchBranches } = await import('@/github/fetcher.js');
       const branches = await fetchBranches(mockClient, 'octocat', 'Hello-World');
 
       expect(branches.length).toBe(150);
@@ -772,7 +772,7 @@ describe('GitHubFetcher', () => {
         },
       } as unknown as Octokit;
 
-      const { fetchBranches } = await import('@/github/fetcher');
+      const { fetchBranches } = await import('@/github/fetcher.js');
       const branches = await fetchBranches(mockClient, 'octocat', 'Hello-World');
 
       expect(branches).toEqual([]);
@@ -788,7 +788,7 @@ describe('GitHubFetcher', () => {
         },
       } as unknown as Octokit;
 
-      const { fetchBranches } = await import('@/github/fetcher');
+      const { fetchBranches } = await import('@/github/fetcher.js');
 
       await expect(
         fetchBranches(mockClient, 'nonexistent', 'repo')
@@ -805,7 +805,7 @@ describe('GitHubFetcher', () => {
         },
       } as unknown as Octokit;
 
-      const { fetchBranches } = await import('@/github/fetcher');
+      const { fetchBranches } = await import('@/github/fetcher.js');
 
       await expect(
         fetchBranches(mockClient, 'private', 'repo')
@@ -822,7 +822,7 @@ describe('GitHubFetcher', () => {
         },
       } as unknown as Octokit;
 
-      const { fetchBranches } = await import('@/github/fetcher');
+      const { fetchBranches } = await import('@/github/fetcher.js');
 
       await expect(
         fetchBranches(mockClient, 'restricted', 'repo')
@@ -847,7 +847,7 @@ describe('GitHubFetcher', () => {
         },
       } as unknown as Octokit;
 
-      const { fetchDefaultBranch } = await import('@/github/fetcher');
+      const { fetchDefaultBranch } = await import('@/github/fetcher.js');
       const defaultBranch = await fetchDefaultBranch(mockClient, 'octocat', 'Hello-World');
 
       expect(defaultBranch).toBe('main');
@@ -872,7 +872,7 @@ describe('GitHubFetcher', () => {
         },
       } as unknown as Octokit;
 
-      const { fetchDefaultBranch } = await import('@/github/fetcher');
+      const { fetchDefaultBranch } = await import('@/github/fetcher.js');
       const defaultBranch = await fetchDefaultBranch(mockClient, 'someuser', 'legacy-repo');
 
       expect(defaultBranch).toBe('master');
@@ -888,7 +888,7 @@ describe('GitHubFetcher', () => {
         },
       } as unknown as Octokit;
 
-      const { fetchDefaultBranch } = await import('@/github/fetcher');
+      const { fetchDefaultBranch } = await import('@/github/fetcher.js');
 
       await expect(
         fetchDefaultBranch(mockClient, 'nonexistent', 'repo')
@@ -905,7 +905,7 @@ describe('GitHubFetcher', () => {
         },
       } as unknown as Octokit;
 
-      const { fetchDefaultBranch } = await import('@/github/fetcher');
+      const { fetchDefaultBranch } = await import('@/github/fetcher.js');
 
       await expect(
         fetchDefaultBranch(mockClient, 'private', 'repo')
@@ -922,7 +922,7 @@ describe('GitHubFetcher', () => {
         },
       } as unknown as Octokit;
 
-      const { fetchDefaultBranch } = await import('@/github/fetcher');
+      const { fetchDefaultBranch } = await import('@/github/fetcher.js');
 
       await expect(
         fetchDefaultBranch(mockClient, 'restricted', 'repo')

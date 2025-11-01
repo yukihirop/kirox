@@ -13,7 +13,7 @@ import {
   checkRateLimit,
   RateLimitError,
   RetryOptions,
-} from '@/github/retry';
+} from '@/github/retry.js';
 
 describe('Retry Logic', () => {
   beforeEach(() => {
@@ -144,7 +144,7 @@ describe('Retry Logic', () => {
       // Run timers and wait for promise rejection
       const [, error] = await Promise.all([
         vi.runAllTimersAsync(),
-        promise.catch((e) => e),
+        promise.catch((e: any) => e),
       ]);
 
       expect(error).toBeInstanceOf(Error);

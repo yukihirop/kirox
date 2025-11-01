@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { execute } from '@/cli/entry.js';
+import { execute } from '@/cli/entry.js.js';
 import type { ParsedArguments } from '@/cli/types.js';
 import * as metadataManager from '@/tracking/metadata-manager.js';
 import * as batchChecker from '@/tracking/batch-update-checker.js';

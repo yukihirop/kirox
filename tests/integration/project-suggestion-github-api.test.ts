@@ -12,7 +12,7 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { Octokit } from 'octokit';
 import { suggestProjects } from '@/cli/project-suggester.js';
 import type { PinoLogger } from '@/reporting/pino-logger.js';
-import type { RepositoryRef } from '@/github/fetcher.js';
+import type { RepositoryRef } from '@/github/fetcher.js.js';
 
 // Mock Octokit module to avoid external API calls (testing.md requirement)
 vi.mock('octokit');

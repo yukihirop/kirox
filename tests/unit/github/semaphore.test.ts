@@ -2,7 +2,7 @@
  * Unit tests for Semaphore class
  */
 
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect } from 'vitest';
 import { Semaphore } from '@/github/semaphore';
 
 describe('Semaphore', () => {

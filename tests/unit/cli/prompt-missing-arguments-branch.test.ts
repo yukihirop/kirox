@@ -21,8 +21,8 @@ vi.mock('@/cli/branch-prompt.js', () => ({
   promptBranch: vi.fn(),
 }));
 
-vi.mock('@/github/fetcher.js', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('@/github/fetcher.js')>();
+vi.mock('@/github/fetcher.js.js', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@/github/fetcher.js.js')>();
   return {
     ...actual,
     fetchBranches: vi.fn(),
@@ -86,7 +86,7 @@ describe('promptMissingArguments - Branch Selection Integration (Task 3.1)', () 
   beforeEach(async () => {
     const inquirer = await import('@inquirer/prompts');
     const branchPrompt = await import('@/cli/branch-prompt.js');
-    const fetcher = await import('@/github/fetcher.js');
+    const fetcher = await import('@/github/fetcher.js.js');
 
     mockInput = inquirer.input as ReturnType<typeof vi.fn>;
     mockConfirm = inquirer.confirm as ReturnType<typeof vi.fn>;

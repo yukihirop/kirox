@@ -11,7 +11,7 @@ import type { Octokit } from 'octokit';
 import type { PinoLogger } from '@/reporting/pino-logger.js';
 
 // Mock fetchDirectoryContents
-vi.mock('@/github/fetcher.js', () => ({
+vi.mock('@/github/fetcher.js.js', () => ({
   fetchDirectoryContents: vi.fn(),
 }));
 
@@ -39,7 +39,7 @@ describe('ProjectSuggester', () => {
     } as unknown as PinoLogger;
 
     // Import and setup mocks
-    const fetcher = await import('@/github/fetcher.js');
+    const fetcher = await import('@/github/fetcher.js.js');
     mockFetchDirectoryContents = fetcher.fetchDirectoryContents as ReturnType<
       typeof vi.fn
     >;

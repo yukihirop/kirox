@@ -6,7 +6,7 @@
  */
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { execute } from '@/cli/entry.js';
+import { execute } from '@/cli/entry.js.js';
 import * as parser from '@/cli/parser.js';
 import * as interactive from '@/cli/interactive-prompt.js';
 
@@ -16,7 +16,7 @@ vi.mock('@/cli/validator.js', () => ({
   validateInput: vi.fn(() => ({ valid: true, errors: [] })),
 }));
 vi.mock('@/cli/interactive-prompt.js');
-vi.mock('@/github/fetcher.js');
+vi.mock('@/github/fetcher.js.js');
 vi.mock('@/github/parallel-fetcher.js');
 vi.mock('@/filesystem/writer.js');
 vi.mock('@/reporting/progress-reporter.js');
