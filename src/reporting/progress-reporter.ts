@@ -183,6 +183,8 @@ export class ProgressReporter {
    * Strips subdirectory prefix from file paths to match local save paths
    * Optionally includes project name prefix for multi-project operations
    *
+   * Task 3.1 & 3.2: Uses ora spinner for in-place updates instead of line-by-line output
+   *
    * @param current - Current file number (1-indexed)
    * @param total - Total number of files
    * @param fileName - Name of file being fetched (may include subdirectory prefix)
@@ -191,13 +193,13 @@ export class ProgressReporter {
    * @example
    * ```typescript
    * reporter.reportProgress(3, 10, 'example.md');
-   * // Output: [3/10] 📥 Fetching example.md...
+   * // Output: [3/10] 📥 Fetching example.md... (spinner)
    *
    * reporter.reportProgress(1, 8, 'lib/a/.kiro/specs/project/requirements.md');
-   * // Output: [1/8] 📥 Fetching .kiro/specs/project/requirements.md...
+   * // Output: [1/8] 📥 Fetching .kiro/specs/project/requirements.md... (spinner)
    *
    * reporter.reportProgress(3, 10, 'example.md', 'proj1');
-   * // Output: [proj1] [3/10] 📥 Fetching example.md...
+   * // Output: [proj1] [3/10] 📥 Fetching example.md... (spinner)
    * ```
    */
   reportProgress(current: number, total: number, fileName: string, projectName?: string): void {
@@ -213,7 +215,57 @@ export class ProgressReporter {
       message = `[${current}/${total}] 📥 Fetching ${displayPath}...`;
     }
 
-    console.log(this.chalk.cyan(message));
+    // Task 3.1 & 3.2: Use spinner if not in fallback mode
+    if (this.useFallback) {
+      // Fallback to console.log if spinner initialization failed
+      console.log(this.chalk.cyan(message));
+    } else {
+      try {
+        // Get or create spinner for this project
+        const spinner = this.getOrCreateSpinner(projectName);
+
+        // Update spinner text
+        spinner.text = message;
+
+        // Start spinner if not already running
+        if (!spinner.isSpinning) {
+          spinner.start();
+        }
+      } catch (error) {
+        // If spinner operation fails, fall back to console.log
+        if (this.options.verbose) {
+          console.log('[VERBOSE] Spinner operation failed, falling back to console output');
+        }
+        console.log(this.chalk.cyan(message));
+      }
+    }
+  }
+
+  /**
+   * Get or create spinner for a project
+   *
+   * Task 3.1 & 3.2: Helper method to manage spinner instances
+   * - Uses empty string as key for default spinner (no project name)
+   * - Creates new spinner if not found in Map
+   * - Returns existing spinner if already created
+   *
+   * @param projectName - Optional project name (undefined, empty, or whitespace becomes default spinner)
+   * @returns Ora spinner instance
+   */
+  private getOrCreateSpinner(projectName?: string): Ora {
+    // Normalize project name: undefined, empty string, or whitespace-only becomes ''
+    const spinnerKey = projectName && projectName.trim() !== '' ? projectName : '';
+
+    // Check if spinner already exists
+    if (this.spinnerMap.has(spinnerKey)) {
+      return this.spinnerMap.get(spinnerKey)!;
+    }
+
+    // Create new spinner with ora options
+    const newSpinner = ora(this.oraOptions);
+    this.spinnerMap.set(spinnerKey, newSpinner);
+
+    return newSpinner;
   }
 
   /**
