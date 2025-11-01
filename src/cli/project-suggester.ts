@@ -245,7 +245,7 @@ function clearLoadingMessage(): void {
 export async function suggestProjects(
   options: ProjectSuggestionOptions
 ): Promise<ProjectSuggestionResult> {
-  const { repository, subdir, client, logger, verbose } = options;
+  const { repository, subdir, client, logger } = options;
 
   // Build path: {subdir}/.kiro/specs or .kiro/specs (no trailing slash)
   const path = subdir ? `${subdir}/.kiro/specs` : '.kiro/specs';

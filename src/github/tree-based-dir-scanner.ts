@@ -87,7 +87,7 @@ function extractParentDirectory(steeringPath: string): string {
 export async function scanDirectoriesAcrossRepo(
   options: DirectoryScanOptions
 ): Promise<DirectoryScanResult> {
-  const { repository, client, logger, verbose } = options;
+  const { repository, client, logger } = options;
 
   try {
     // Step 1: Get tree SHA from branch

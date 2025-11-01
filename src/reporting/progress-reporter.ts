@@ -12,7 +12,7 @@ import type { ReporterOptions } from './types.js';
  * Ora options for spinner configuration
  */
 interface OraOptions {
-  color?: string | false;
+  color?: boolean;
   isEnabled?: boolean;
 }
 

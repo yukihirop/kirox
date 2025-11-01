@@ -47,7 +47,7 @@ interface TreeScanOptions {
 export async function scanProjectsAcrossSubdirs(
   options: TreeScanOptions
 ): Promise<TreeScanResult> {
-  const { repository, client, logger, verbose } = options;
+  const { repository, client, logger } = options;
 
   try {
     // Step 1: Get tree SHA from branch
