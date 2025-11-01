@@ -37,6 +37,7 @@ Kiro-style Spec Driven Development implementation using claude code slash comman
 - `kirox-knip`: Configure knip for detecting unused files, dependencies, and exports
 - `kirox-ora-spinner`: Integrate ora spinner library to unify file fetching progress display with spinner UI instead of line-by-line output
 - `kirox-lightweight-logger`: Replace custom logger.ts with lightweight logging library, default to info level, and eliminate verbose flag conditionals
+- `kirox-fix-tests`: Fix failing tests by correcting test code (implementation code is assumed correct)
 - Use `/kiro:spec-status [feature-name]` to check progress
 
 ## Development Guidelines
