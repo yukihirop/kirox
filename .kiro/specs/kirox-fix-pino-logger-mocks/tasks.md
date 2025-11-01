@@ -22,31 +22,29 @@ PinoLoggerモック設定の修正により、92件の失敗テストを通過�
   - 設定ファイルの構文エラーがないことを確認 ✓
   - _Requirements: 5.1, 5.2_
 
-- [ ] 3. テストファイルの修正とクリーンアップ
-- [ ] 3.1 add-command-entry.test.tsのモック定義を削除
-  - vi.mock('pino')ブロックを削除
-  - vi.mock('@/reporting/logger.js')ブロックを削除
-  - グローバルモックが自動適用されることを確認
-  - テストロジックは変更しない
+- [x] 3. テストファイルの修正とクリーンアップ
+- [x] 3.1 add-command-entry.test.tsのモック定義を削除
+  - vi.mock('pino')ブロックを削除 ✓
+  - vi.mock('@/reporting/logger.js')ブロックを削除 ✓
+  - グローバルモックが自動適用されることを確認 ✓
+  - テストロジックは変更しない ✓
   - _Requirements: 4.1, 5.1_
 
-- [ ] 3.2 interactive-error-handler.test.tsのモック定義を修正
-  - 誤ったvi.mock('@/reporting/pino-logger.js')ブロックを削除
-  - Loggerという存在しないエクスポートのモックを削除
-  - グローバルモックが自動適用されることを確認
-  - beforeEachでのインスタンス生成パターンを維持
+- [x] 3.2 interactive-error-handler.test.tsのモック定義を修正
+  - 誤ったvi.mock('@/reporting/pino-logger.js')ブロックを削除 ✓
+  - Loggerという存在しないエクスポートのモックを削除 ✓
+  - グローバルモックが自動適用されることを確認 ✓ (15テスト通過)
+  - beforeEachでのインスタンス生成パターンを維持 ✓
   - _Requirements: 4.2, 5.1_
 
-- [ ] 3.3 interactive-tty-check.test.tsのモック定義を削除
-  - vi.mock('@/reporting/logger.js')ブロックを削除
-  - グローバルモックが自動適用されることを確認
-  - スパイ関数アサーションが正常に動作することを確認
+- [x] 3.3 interactive-tty-check.test.tsのモック定義を削除
+  - vi.mock('@/reporting/logger.js')ブロックを削除 ✓
+  - グローバルモックが自動適用されることを確認 ✓ (14テスト通過)
+  - スパイ関数アサーションが正常に動作することを確認 ✓
   - _Requirements: 2.2, 2.3, 4.3, 5.1_
 
-- [ ] 3.4 interactive-prompt.test.tsのモック定義を修正（ファイルが存在する場合）
-  - 既存のPinoLoggerモック定義を削除
-  - グローバルモックが自動適用されることを確認
-  - テストケースに影響がないことを検証
+- [x] 3.4 interactive-prompt.test.tsのモック定義を修正（ファイルが存在する場合）
+  - ファイルが存在しないため、タスクをスキップ ✓
   - _Requirements: 4.4, 5.1_
 
 - [ ] 4. テスト検証と統合確認

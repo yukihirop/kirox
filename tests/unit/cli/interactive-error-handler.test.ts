@@ -12,14 +12,7 @@ import { PinoLogger } from '@/reporting/pino-logger.js';
 // Mock console.log
 const mockConsoleLog = vi.spyOn(console, 'log').mockImplementation(() => {});
 
-// Mock Logger
-vi.mock('@/reporting/pino-logger.js', () => ({
-  Logger: vi.fn().mockImplementation(() => ({
-    info: vi.fn(),
-    warn: vi.fn(),
-    error: vi.fn(),
-  })),
-}));
+// PinoLogger is mocked globally in tests/setup.ts
 
 describe('handleInteractiveError', () => {
   let mockLogger: PinoLogger;

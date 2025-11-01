@@ -15,46 +15,9 @@ import { upsertProject } from '@/tracking/metadata-manager.js';
 import { MetadataError, MetadataErrorType } from '@/tracking/types.js';
 import { promptMissingArguments, shouldEnterInteractiveMode } from '@/cli/interactive-prompt.js';
 
-// Mock Pino module with log level filtering (Task 2.1: PinoLogger support)
-let currentLogLevel: string = 'info';
-
-// Create separate spies for tracking calls
-const infoSpy = vi.fn();
-const warnSpy = vi.fn();
-const errorSpy = vi.fn();
-const debugSpy = vi.fn();
-
-const mockPinoInstance = {
-  info: infoSpy,
-  warn: warnSpy,
-  error: errorSpy,
-  debug: (details: any, message: string) => {
-    // Only record the call if log level is 'debug' (mimic Pino's behavior)
-    if (currentLogLevel === 'debug') {
-      debugSpy(details, message);
-    }
-  },
-};
-
-vi.mock('pino', () => {
-  return {
-    default: vi.fn((options: { level: string }) => {
-      currentLogLevel = options.level;
-      return mockPinoInstance;
-    }),
-  };
-});
+// PinoLogger is mocked globally in tests/setup.ts
 
 // Mock all dependencies
-vi.mock('@/reporting/logger.js', () => ({
-  Logger: vi.fn(() => ({
-    info: vi.fn(),
-    warn: vi.fn(),
-    error: vi.fn(),
-    logError: vi.fn(),
-  })),
-}));
-
 vi.mock('@/reporting/error-handler.js', () => ({
   ErrorHandler: vi.fn(() => ({
     handle: vi.fn(() => ({
