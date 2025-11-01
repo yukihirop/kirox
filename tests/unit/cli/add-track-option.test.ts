@@ -112,7 +112,9 @@ describe('Task 8.9: Add command --track option behavior', () => {
     });
 
     it('should log info message indicating metadata tracking is disabled', async () => {
-      const consoleSpy = vi.spyOn(console, 'log');
+      // Mock PinoLogger to capture log calls
+      const { PinoLogger } = await import('@/reporting/pino-logger.js');
+      const infoSpy = vi.spyOn(PinoLogger.prototype, 'info');
 
       const argv = [
         'node',
@@ -127,11 +129,12 @@ describe('Task 8.9: Add command --track option behavior', () => {
 
       await executeAddCommand(argv);
 
-      // Check for info message about disabled tracking
-      const logCalls = consoleSpy.mock.calls.flat().join(' ');
-      expect(logCalls).toContain('Metadata tracking is disabled');
+      // Check that logger.info was called with metadata tracking disabled message
+      expect(infoSpy).toHaveBeenCalledWith(
+        'Metadata tracking is disabled. Use --track to enable.'
+      );
 
-      consoleSpy.mockRestore();
+      infoSpy.mockRestore();
     });
 
     it('should skip duplicate detection when --track is not specified', async () => {

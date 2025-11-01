@@ -119,12 +119,12 @@
 
 ### 7. --trackオプションデフォルト値検証修正
 
-- [ ] 7.1 実装の--track動作確認とメッセージ検証修正
-  - --trackオプションなし時の実装の実際の動作を確認
-  - コンソール出力から実際のメッセージパターンを特定
-  - add-track-option.test.tsのメッセージ期待値を実装に合わせる
-  - "Metadata tracking is disabled"メッセージの有無・形式を実装に合致させる
-  - テスト実行して1件のテストが成功することを確認
+- [x] 7.1 実装の--track動作確認とメッセージ検証修正
+  - --trackオプションなし時の実装の実際の動作を確認 ✅（logger.info()で記録）
+  - PinoLoggerの動作パターンを特定 ✅（console.logではなくPinoログ出力）
+  - add-track-option.test.tsのメッセージ期待値を実装に合わせる ✅（PinoLogger.prototype.infoスパイに変更）
+  - "Metadata tracking is disabled"メッセージの検証をlogger.info()で実装 ✅
+  - テスト実行して1件のテストが成功することを確認 ✅（add-track-option.test.ts: 8 passed）
   - _Requirements: 6.1, 6.2, 6.3_
 
 ## Phase 3: 全体検証とCI/CD統合
