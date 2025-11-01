@@ -3,7 +3,7 @@
  */
 
 import { describe, it, expect } from 'vitest';
-import { Semaphore } from '@/github/semaphore';
+import { Semaphore } from '@/github/semaphore.js';
 
 describe('Semaphore', () => {
   describe('constructor', () => {

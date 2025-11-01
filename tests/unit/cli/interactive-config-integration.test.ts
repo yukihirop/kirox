@@ -49,7 +49,7 @@ describe('Interactive Mode Config File Integration', () => {
 
       expect(result).toBe('./custom-output');
       // Check call arguments (Chalk styling may be present)
-      const callArgs = mockInput.mock.calls[0][0];
+      const callArgs = mockInput.mock.calls[0]?.[0];
       expect(callArgs.message).toContain('Enter output directory');
       expect(callArgs.default).toBe('./custom-output');
     });
@@ -63,7 +63,7 @@ describe('Interactive Mode Config File Integration', () => {
 
       expect(result).toBe('.');
       // Check call arguments (Chalk styling may be present)
-      const callArgs = mockInput.mock.calls[0][0];
+      const callArgs = mockInput.mock.calls[0]?.[0];
       expect(callArgs.message).toContain('Enter output directory');
       expect(callArgs.default).toBe('.');
     });
@@ -75,7 +75,7 @@ describe('Interactive Mode Config File Integration', () => {
 
       expect(result).toBe('.');
       // Check call arguments (Chalk styling may be present)
-      const callArgs = mockInput.mock.calls[0][0];
+      const callArgs = mockInput.mock.calls[0]?.[0];
       expect(callArgs.message).toContain('Enter output directory');
       expect(callArgs.default).toBe('.');
     });
@@ -92,7 +92,7 @@ describe('Interactive Mode Config File Integration', () => {
 
       expect(result).toBe('./user-override');
       // Check call arguments (Chalk styling may be present)
-      const callArgs = mockInput.mock.calls[0][0];
+      const callArgs = mockInput.mock.calls[0]?.[0];
       expect(callArgs.message).toContain('Enter output directory');
       expect(callArgs.default).toBe('./custom-output');
     });
@@ -111,7 +111,7 @@ describe('Interactive Mode Config File Integration', () => {
 
       expect(result).toBe('lib/components');
       // Check call arguments (Chalk styling may be present)
-      const callArgs = mockInput.mock.calls[0][0];
+      const callArgs = mockInput.mock.calls[0]?.[0];
       expect(callArgs.message).toContain('Enter subdirectory');
       expect(callArgs.message).toContain('optional');
       expect(callArgs.default).toBe('lib/components');
@@ -155,7 +155,7 @@ describe('Interactive Mode Config File Integration', () => {
 
       expect(result).toBe('src/custom');
       // Check call arguments (Chalk styling may be present)
-      const callArgs = mockInput.mock.calls[0][0];
+      const callArgs = mockInput.mock.calls[0]?.[0];
       expect(callArgs.message).toContain('Enter subdirectory');
       expect(callArgs.message).toContain('optional');
       expect(callArgs.default).toBe('lib/components');
@@ -208,12 +208,12 @@ describe('Interactive Mode Config File Integration', () => {
 
       // Verify config defaults were used (Task 5.3: order changed)
       // Check call arguments (Chalk styling may be present)
-      const call1Args = mockInput.mock.calls[0][0];
+      const call1Args = mockInput.mock.calls[0]?.[0];
       expect(call1Args.message).toContain('Enter subdirectory');
       expect(call1Args.message).toContain('optional');
       expect(call1Args.default).toBe('config/subdir');
 
-      const call2Args = mockInput.mock.calls[1][0];
+      const call2Args = mockInput.mock.calls[1]?.[0];
       expect(call2Args.message).toContain('Enter output directory');
       expect(call2Args.default).toBe('./config-output');
     });
@@ -276,12 +276,12 @@ describe('Interactive Mode Config File Integration', () => {
 
       // Verify default values were used (Task 5.3: order changed)
       // Check call arguments (Chalk styling may be present)
-      const call1Args = mockInput.mock.calls[0][0];
+      const call1Args = mockInput.mock.calls[0]?.[0];
       expect(call1Args.message).toContain('Enter subdirectory');
       expect(call1Args.message).toContain('optional');
       expect(call1Args.default).toBe('');
 
-      const call2Args = mockInput.mock.calls[1][0];
+      const call2Args = mockInput.mock.calls[1]?.[0];
       expect(call2Args.message).toContain('Enter output directory');
       expect(call2Args.default).toBe('.');
     });

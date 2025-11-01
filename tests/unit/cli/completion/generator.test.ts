@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { generateCompletionScript, type CompletionMetadata } from '@/cli/completion/generator';
-import type { SupportedShell } from '@/cli/completion/shell-validator';
+import { generateCompletionScript, type CompletionMetadata } from '@/cli/completion/generator.js';
+import type { SupportedShell } from '@/cli/completion/shell-validator.js';
 
 /**
  * Tests for Generator
@@ -63,8 +63,8 @@ describe('Generator', () => {
       const metadata: CompletionMetadata = sampleMetadata;
 
       expect(metadata.subcommands).toHaveLength(2);
-      expect(metadata.subcommands[0].name).toBe('add');
-      expect(metadata.subcommands[0].options).toHaveLength(2);
+      expect(metadata.subcommands[0]?.name).toBe('add');
+      expect(metadata.subcommands[0]?.options).toHaveLength(2);
       expect(metadata.globalOptions).toHaveLength(4);
     });
   });

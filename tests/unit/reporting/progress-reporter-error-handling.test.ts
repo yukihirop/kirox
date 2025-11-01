@@ -22,7 +22,6 @@
  */
 
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import type { Ora } from 'ora';
 
 // Mock ora module
 function createMockSpinner() {

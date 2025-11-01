@@ -4,7 +4,7 @@
 
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { Octokit } from 'octokit';
-import { fetchFilesInParallel } from '@/github/parallel-fetcher';
+import { fetchFilesInParallel } from '@/github/parallel-fetcher.js';
 import { execute } from '@/cli/entry.js';
 import { promises as fs } from 'fs';
 import path from 'path';

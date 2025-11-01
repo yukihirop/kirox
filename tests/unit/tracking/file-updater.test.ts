@@ -6,7 +6,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { promises as fs } from 'fs';
 import path from 'path';
 import type { Octokit } from 'octokit';
-import { updateFile, type UpdateResult } from '../../../src/tracking/file-updater.js';
+import { updateFile } from '../../../src/tracking/file-updater.js';
 import type { FileMetadata } from '../../../src/tracking/types.js';
 
 describe('FileUpdater', () => {

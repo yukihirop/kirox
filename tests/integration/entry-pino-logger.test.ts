@@ -14,8 +14,8 @@ vi.unmock('@/reporting/pino-logger.js');
 // Mock external dependencies
 vi.mock('octokit');
 vi.mock('@/github/fetcher.js.js');
-vi.mock('@/github/parallel-fetcher.js');
-vi.mock('@/filesystem/writer.js');
+vi.mock('@/github/parallel-fetcher.js.js');
+vi.mock('@/filesystem/writer.js.js');
 vi.mock('@/tracking/metadata-manager.js');
 vi.mock('@/config/loader.js');
 
@@ -74,7 +74,7 @@ describe('entry.ts - PinoLogger Integration (Task 5.1)', () => {
     });
     vi.mocked(fetcherModule.fetchDirectoryContents).mockResolvedValue([]);
 
-    const parallelFetcherModule = await import('@/github/parallel-fetcher.js');
+    const parallelFetcherModule = await import('@/github/parallel-fetcher.js.js');
     vi.mocked(parallelFetcherModule.fetchFilesInParallel).mockResolvedValue({
       success: [],
       failed: [],
@@ -158,7 +158,7 @@ describe('entry.ts - Conditional Branch Removal (Task 8.1)', () => {
     });
     vi.mocked(fetcherModule.fetchDirectoryContents).mockResolvedValue([]);
 
-    const parallelFetcherModule = await import('@/github/parallel-fetcher.js');
+    const parallelFetcherModule = await import('@/github/parallel-fetcher.js.js');
     vi.mocked(parallelFetcherModule.fetchFilesInParallel).mockResolvedValue({
       success: [],
       failed: [],

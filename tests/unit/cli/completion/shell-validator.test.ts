@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { validateShellType, getSupportedShells } from '@/cli/completion/shell-validator';
+import { validateShellType, getSupportedShells } from '@/cli/completion/shell-validator.js';
 
 /**
  * Tests for ShellValidator

@@ -81,7 +81,7 @@ describe('promptOutput', () => {
       await promptOutput();
 
       // Check call arguments (Chalk styling may be present)
-      const callArgs = mockInput.mock.calls[0][0];
+      const callArgs = mockInput.mock.calls[0]?.[0];
       expect(callArgs.message).toContain('Enter output directory');
     });
   });
@@ -151,7 +151,7 @@ describe('promptSubdir', () => {
       await promptSubdir();
 
       // Check call arguments (Chalk styling may be present)
-      const callArgs = mockInput.mock.calls[0][0];
+      const callArgs = mockInput.mock.calls[0]?.[0];
       expect(callArgs.message).toContain('Enter subdirectory');
       expect(callArgs.message).toContain('optional');
     });

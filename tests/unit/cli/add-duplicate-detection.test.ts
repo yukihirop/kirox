@@ -13,7 +13,7 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { executeAddCommand } from '@/cli/add-command-entry.js';
 import * as metadataManager from '@/tracking/metadata-manager.js';
 import * as fetcher from '@/github/fetcher.js.js';
-import * as parallelFetcher from '@/github/parallel-fetcher.js';
+import * as parallelFetcher from '@/github/parallel-fetcher.js.js';
 import { PinoLogger } from '@/reporting/pino-logger.js';
 
 // Unmock PinoLogger to allow prototype spying

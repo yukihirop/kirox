@@ -81,7 +81,7 @@ describe('SubdirectoryPromptService (Task 9.2)', () => {
       await promptSubdirSelection(directories);
 
       // Assert
-      const callArgs = (searchableCheckbox as ReturnType<typeof vi.fn>).mock.calls[0][0];
+      const callArgs = (searchableCheckbox as ReturnType<typeof vi.fn>).mock.calls[0]?.[0];
       const choices = callArgs.choices;
 
       // Root should be first
@@ -212,7 +212,7 @@ describe('SubdirectoryPromptService (Task 9.2)', () => {
       await promptSubdirSelection(directories);
 
       // Assert
-      const callArgs = (searchableCheckbox as ReturnType<typeof vi.fn>).mock.calls[0][0];
+      const callArgs = (searchableCheckbox as ReturnType<typeof vi.fn>).mock.calls[0]?.[0];
       expect(callArgs.message).toContain('📁 Select subdirectory');
       expect(callArgs.message).toContain('type to filter');
       expect(callArgs.message).toContain('space to select');
@@ -231,7 +231,7 @@ describe('SubdirectoryPromptService (Task 9.2)', () => {
       await promptSubdirSelection(directories);
 
       // Assert
-      const callArgs = (searchableCheckbox as ReturnType<typeof vi.fn>).mock.calls[0][0];
+      const callArgs = (searchableCheckbox as ReturnType<typeof vi.fn>).mock.calls[0]?.[0];
       expect(callArgs.pageSize).toBe(10);
       expect(callArgs.loop).toBe(true);
     });
@@ -283,7 +283,7 @@ describe('SubdirectoryPromptService (Task 9.2)', () => {
       await promptSubdirSelection(directories);
 
       // Assert: choices should have exactly one root option
-      const callArgs = (searchableCheckbox as ReturnType<typeof vi.fn>).mock.calls[0][0];
+      const callArgs = (searchableCheckbox as ReturnType<typeof vi.fn>).mock.calls[0]?.[0];
       const choices = callArgs.choices;
 
       // Count how many times "(root)" appears
@@ -312,7 +312,7 @@ describe('SubdirectoryPromptService (Task 9.2)', () => {
       await promptSubdirSelection(directories);
 
       // Assert: choices should have exactly one root option added
-      const callArgs = (searchableCheckbox as ReturnType<typeof vi.fn>).mock.calls[0][0];
+      const callArgs = (searchableCheckbox as ReturnType<typeof vi.fn>).mock.calls[0]?.[0];
       const choices = callArgs.choices;
 
       // Count how many times "(root)" appears

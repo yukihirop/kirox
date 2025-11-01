@@ -3,8 +3,8 @@
  */
 
 import { describe, it, expect, vi, beforeEach, afterEach, beforeAll, afterAll } from 'vitest';
-import { ProgressReporter } from '@/reporting/progress-reporter';
-import type { ReporterOptions } from '@/reporting/types';
+import { ProgressReporter } from '@/reporting/progress-reporter.js';
+import type { ReporterOptions } from '@/reporting/types.js';
 
 describe('ProgressReporter', () => {
   let consoleLogSpy: ReturnType<typeof vi.spyOn>;
@@ -1138,10 +1138,6 @@ describe('ProgressReporter', () => {
 
       const allCalls = consoleLogSpy.mock.calls.map((call) => call[0]);
       const hasFailedHeader = allCalls.some((msg) => String(msg).includes('Failed projects'));
-      const hasNoSuccessProjects = allCalls.some((msg) =>
-        String(msg).includes('No successful projects') ||
-        String(msg).includes('0 projects')
-      );
 
       expect(hasFailedHeader).toBe(true);
       expect(allCalls.some((msg) => String(msg).includes('proj1'))).toBe(true);

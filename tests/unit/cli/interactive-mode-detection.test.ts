@@ -7,7 +7,7 @@
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { shouldEnterInteractiveMode } from '@/cli/interactive-prompt.js';
-import type { ParsedArguments } from '@/cli/types.js';
+import type { ParsedArguments } from '@/cli/types.js.js';
 
 describe('shouldEnterInteractiveMode', () => {
   const createValidArgs = (): ParsedArguments => ({

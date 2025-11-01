@@ -8,7 +8,6 @@ import path from 'path';
 import type { Octokit } from 'octokit';
 import {
   checkFileUpdate,
-  UpdateCheckResult,
   UpdateStatus,
 } from '../../../src/tracking/update-checker.js';
 import type { FileMetadata } from '../../../src/tracking/types.js';

@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { validateInput, validateBranchName } from '@/cli/validator';
-import type { ParsedArguments } from '@/cli/types';
+import { validateInput, validateBranchName } from '@/cli/validator.js';
+import type { ParsedArguments } from '@/cli/types.js';
 
 describe('InputValidator', () => {
   describe('validateInput', () => {
@@ -14,6 +14,7 @@ describe('InputValidator', () => {
       track: false,
       checkUpdates: false,
       update: false,
+      steering: false,
     });
 
     it('should validate correct repository format', () => {
@@ -136,6 +137,7 @@ describe('InputValidator', () => {
       track: false,
       checkUpdates: false,
       update: false,
+      steering: false,
     });
 
     it('should allow --track with repository and project', () => {
@@ -274,6 +276,7 @@ describe('InputValidator', () => {
       track: false,
       checkUpdates: false,
       update: false,
+      steering: false,
     });
 
     it('should accept valid subdirectory path', () => {
@@ -391,6 +394,7 @@ describe('InputValidator', () => {
       track: false,
       checkUpdates: false,
       update: false,
+      steering: false,
     });
 
     it('should validate multiple project names successfully', () => {

@@ -4,7 +4,7 @@
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { createInterface } from 'readline';
-import { confirm } from '@/filesystem/prompt';
+import { confirm } from '@/filesystem/prompt.js';
 
 // Mock readline module
 vi.mock('readline', () => ({

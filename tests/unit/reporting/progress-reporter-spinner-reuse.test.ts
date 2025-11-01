@@ -9,7 +9,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import type { SpyInstance } from 'vitest';
 import { ProgressReporter } from '../../../src/reporting/progress-reporter.js';
-import type { ReporterOptions } from '../../../src/reporting/types.js';
 
 describe('ProgressReporter - Spinner Reuse Issue (Task 14.4)', () => {
   let consoleLogSpy: SpyInstance;

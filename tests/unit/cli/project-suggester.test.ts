@@ -39,7 +39,7 @@ describe('ProjectSuggester', () => {
     } as unknown as PinoLogger;
 
     // Import and setup mocks
-    const fetcher = await import('@/github/fetcher.js.js');
+    const fetcher = await import('@/github/fetcher.js');
     mockFetchDirectoryContents = fetcher.fetchDirectoryContents as ReturnType<
       typeof vi.fn
     >;
@@ -466,7 +466,7 @@ describe('ProjectSuggester', () => {
       await promptSingleProject(projects);
 
       // Assert
-      const callArgs = mockSelect.mock.calls[0][0];
+      const callArgs = mockSelect.mock.calls[0]?.[0];
       const choices = callArgs.choices;
       expect(choices[choices.length - 1]).toEqual({
         name: '[Select multiple projects...]',
@@ -824,7 +824,7 @@ describe('ProjectSuggester', () => {
       );
       // The last call should clear the loading message
       const lastCall = stdoutWriteSpy.mock.calls[stdoutWriteSpy.mock.calls.length - 1];
-      expect(lastCall[0]).toBe('\r\x1b[K'); // Clear line escape sequence
+      expect(lastCall?.[0]).toBe('\r\x1b[K'); // Clear line escape sequence
 
       stdoutWriteSpy.mockRestore();
     });
@@ -915,7 +915,7 @@ describe('ProjectSuggester', () => {
         expect.stringContaining('Fetching available projects')
       );
       const lastCall = stdoutWriteSpy.mock.calls[stdoutWriteSpy.mock.calls.length - 1];
-      expect(lastCall[0]).toBe('\r\x1b[K'); // Clear line escape sequence
+      expect(lastCall?.[0]).toBe('\r\x1b[K'); // Clear line escape sequence
 
       stdoutWriteSpy.mockRestore();
     });

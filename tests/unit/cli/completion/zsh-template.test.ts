@@ -4,7 +4,7 @@ import { promisify } from 'util';
 import { writeFile, unlink } from 'fs/promises';
 import { join } from 'path';
 import { tmpdir } from 'os';
-import { generateCompletionScript, type CompletionMetadata } from '@/cli/completion/generator';
+import { generateCompletionScript, type CompletionMetadata } from '@/cli/completion/generator.js';
 
 const execAsync = promisify(exec);
 

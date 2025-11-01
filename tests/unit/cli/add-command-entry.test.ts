@@ -8,8 +8,8 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { executeAddCommand } from '@/cli/add-command-entry.js';
 import { loadMetadata } from '@/tracking/metadata-manager.js';
 import { fetchDirectoryContents } from '@/github/fetcher.js.js';
-import { fetchFilesInParallel } from '@/github/parallel-fetcher.js';
-import { writeFile } from '@/filesystem/writer.js';
+import { fetchFilesInParallel } from '@/github/parallel-fetcher.js.js';
+import { writeFile } from '@/filesystem/writer.js.js';
 import { calculateFileHash } from '@/tracking/hash-calculator.js';
 import { upsertProject } from '@/tracking/metadata-manager.js';
 import { MetadataError, MetadataErrorType } from '@/tracking/types.js';
@@ -28,7 +28,7 @@ vi.mock('@/reporting/error-handler.js', () => ({
   })),
 }));
 
-vi.mock('@/reporting/progress-reporter.js', () => ({
+vi.mock('@/reporting/progress-reporter.js.js', () => ({
   ProgressReporter: vi.fn(() => ({
     reportStart: vi.fn(),
     reportProgress: vi.fn(),
@@ -74,21 +74,21 @@ vi.mock('@/github/fetcher.js.js', () => ({
   fetchBranches: vi.fn(async () => ['main', 'develop']),
 }));
 
-vi.mock('@/github/parallel-fetcher.js', () => ({
+vi.mock('@/github/parallel-fetcher.js.js', () => ({
   fetchFilesInParallel: vi.fn(async () => ({
     success: [],
     failed: [],
   })),
 }));
 
-vi.mock('@/filesystem/path-utils.js', () => ({
+vi.mock('@/filesystem/path-utils.js.js', () => ({
   buildRemotePath: vi.fn((subdir: string, projectName: string, type: string) => {
     return subdir ? `${subdir}/.kiro/${type}/${projectName}` : `.kiro/${type}/${projectName}`;
   }),
   resolveOutputPath: vi.fn((output: string, filePath: string) => `${output}/${filePath}`),
 }));
 
-vi.mock('@/filesystem/writer.js', () => ({
+vi.mock('@/filesystem/writer.js.js', () => ({
   writeFile: vi.fn(async () => ({
     written: true,
     skipped: false,
@@ -116,7 +116,7 @@ vi.mock('@/cli/interactive-prompt.js', () => ({
   promptMissingArguments: vi.fn(async (args) => args),
 }));
 
-vi.mock('@/cli/validator.js');
+vi.mock('@/cli/validator.js.js');
 
 vi.mock('pino', () => ({
   default: vi.fn(() => ({
@@ -148,8 +148,8 @@ describe('executeAddCommand', () => {
     const { loadConfig } = await import('@/config/loader.js');
     const { mergeConfig } = await import('@/config/merger.js');
     const { fetchDirectoryContents } = await import('@/github/fetcher.js.js');
-    const { fetchFilesInParallel } = await import('@/github/parallel-fetcher.js');
-    const { writeFile } = await import('@/filesystem/writer.js');
+    const { fetchFilesInParallel } = await import('@/github/parallel-fetcher.js.js');
+    const { writeFile } = await import('@/filesystem/writer.js.js');
     const { PinoLogger } = await import('@/reporting/pino-logger.js');
 
     // Set default behaviors for mocks
@@ -231,7 +231,7 @@ describe('executeAddCommand', () => {
   describe('Argument validation', () => {
     beforeEach(async () => {
       // Use actual validator for validation tests
-      const { validateInput } = await import('@/cli/validator.js');
+      const { validateInput } = await import('@/cli/validator.js.js');
       vi.mocked(validateInput).mockImplementation((args) => {
         // Real validation logic
         if (!args.repository || args.repository === '') {
@@ -312,7 +312,7 @@ describe('executeAddCommand', () => {
 
   describe('ProgressReporter initialization', () => {
     it('should initialize ProgressReporter instance', async () => {
-      const { ProgressReporter } = await import('@/reporting/progress-reporter.js');
+      const { ProgressReporter } = await import('@/reporting/progress-reporter.js.js');
       const argv = ['node', 'kirox', 'add', 'owner/repo', '-p', 'test-project'];
 
       await executeAddCommand(argv);
@@ -322,7 +322,7 @@ describe('executeAddCommand', () => {
     });
 
     it('should initialize ProgressReporter with verbose option', async () => {
-      const { ProgressReporter } = await import('@/reporting/progress-reporter.js');
+      const { ProgressReporter } = await import('@/reporting/progress-reporter.js.js');
       const argv = ['node', 'kirox', 'add', 'owner/repo', '-p', 'test-project', '--verbose'];
 
       await executeAddCommand(argv);
@@ -653,7 +653,7 @@ describe('executeAddCommand', () => {
   describe('Directory content fetching (Task 3.1)', () => {
     it('should fetch spec directory contents using buildRemotePath and fetchDirectoryContents', async () => {
       const { loadMetadata } = await import('@/tracking/metadata-manager.js');
-      const { buildRemotePath } = await import('@/filesystem/path-utils.js');
+      const { buildRemotePath } = await import('@/filesystem/path-utils.js.js');
       const { fetchDirectoryContents } = await import('@/github/fetcher.js.js');
 
       // Mock successful metadata load
@@ -713,7 +713,7 @@ describe('executeAddCommand', () => {
     it.skip('should support --subdir option when fetching directory contents', async () => {
       const { loadMetadata } = await import('@/tracking/metadata-manager.js');
       const { mergeConfig } = await import('@/config/merger.js');
-      const { buildRemotePath } = await import('@/filesystem/path-utils.js');
+      const { buildRemotePath } = await import('@/filesystem/path-utils.js.js');
       const { fetchDirectoryContents } = await import('@/github/fetcher.js.js');
 
       vi.mocked(loadMetadata).mockResolvedValue({
@@ -756,7 +756,7 @@ describe('executeAddCommand', () => {
 
     it('should fetch steering directory only once (avoid duplication)', async () => {
       const { loadMetadata } = await import('@/tracking/metadata-manager.js');
-      const { buildRemotePath } = await import('@/filesystem/path-utils.js');
+      const { buildRemotePath } = await import('@/filesystem/path-utils.js.js');
       const { fetchDirectoryContents } = await import('@/github/fetcher.js.js');
 
       vi.mocked(loadMetadata).mockResolvedValue({
@@ -865,7 +865,7 @@ describe('executeAddCommand', () => {
     it('should call fetchFilesInParallel with correct parameters', async () => {
       const { loadMetadata } = await import('@/tracking/metadata-manager.js');
       const { fetchDirectoryContents } = await import('@/github/fetcher.js.js');
-      const { fetchFilesInParallel } = await import('@/github/parallel-fetcher.js');
+      const { fetchFilesInParallel } = await import('@/github/parallel-fetcher.js.js');
 
       vi.mocked(loadMetadata).mockResolvedValue({
         version: '1.0',
@@ -908,7 +908,7 @@ describe('executeAddCommand', () => {
     it('should pass ref parameter to fetchFilesInParallel when branch is specified', async () => {
       const { loadMetadata } = await import('@/tracking/metadata-manager.js');
       const { fetchDirectoryContents } = await import('@/github/fetcher.js.js');
-      const { fetchFilesInParallel } = await import('@/github/parallel-fetcher.js');
+      const { fetchFilesInParallel } = await import('@/github/parallel-fetcher.js.js');
 
       vi.mocked(loadMetadata).mockResolvedValue({
         version: '1.0',
@@ -946,7 +946,7 @@ describe('executeAddCommand', () => {
     it('should classify successful and failed file fetches', async () => {
       const { loadMetadata } = await import('@/tracking/metadata-manager.js');
       const { fetchDirectoryContents } = await import('@/github/fetcher.js.js');
-      const { fetchFilesInParallel } = await import('@/github/parallel-fetcher.js');
+      const { fetchFilesInParallel } = await import('@/github/parallel-fetcher.js.js');
 
       vi.mocked(loadMetadata).mockResolvedValue({
         version: '1.0',
@@ -982,8 +982,8 @@ describe('executeAddCommand', () => {
     it('should integrate progress reporting for each file fetch', async () => {
       const { loadMetadata } = await import('@/tracking/metadata-manager.js');
       const { fetchDirectoryContents } = await import('@/github/fetcher.js.js');
-      const { fetchFilesInParallel } = await import('@/github/parallel-fetcher.js');
-      const { ProgressReporter } = await import('@/reporting/progress-reporter.js');
+      const { fetchFilesInParallel } = await import('@/github/parallel-fetcher.js.js');
+      const { ProgressReporter } = await import('@/reporting/progress-reporter.js.js');
 
       const mockReporter = {
         reportStart: vi.fn(),
@@ -1027,7 +1027,7 @@ describe('executeAddCommand', () => {
     it('should support verbose logging for file fetching', async () => {
       const { loadMetadata } = await import('@/tracking/metadata-manager.js');
       const { fetchDirectoryContents } = await import('@/github/fetcher.js.js');
-      const { fetchFilesInParallel } = await import('@/github/parallel-fetcher.js');
+      const { fetchFilesInParallel } = await import('@/github/parallel-fetcher.js.js');
 
       vi.mocked(loadMetadata).mockResolvedValue({
         version: '1.0',
@@ -1057,7 +1057,7 @@ describe('executeAddCommand', () => {
     it('should tolerate partial failures using Promise.allSettled behavior', async () => {
       const { loadMetadata } = await import('@/tracking/metadata-manager.js');
       const { fetchDirectoryContents } = await import('@/github/fetcher.js.js');
-      const { fetchFilesInParallel } = await import('@/github/parallel-fetcher.js');
+      const { fetchFilesInParallel } = await import('@/github/parallel-fetcher.js.js');
 
       vi.mocked(loadMetadata).mockResolvedValue({
         version: '1.0',
@@ -1093,9 +1093,9 @@ describe('executeAddCommand', () => {
     it('should call reportProgress for each file being written', async () => {
       const { loadMetadata } = await import('@/tracking/metadata-manager.js');
       const { fetchDirectoryContents } = await import('@/github/fetcher.js.js');
-      const { fetchFilesInParallel } = await import('@/github/parallel-fetcher.js');
-      const { writeFile } = await import('@/filesystem/writer.js');
-      const { ProgressReporter } = await import('@/reporting/progress-reporter.js');
+      const { fetchFilesInParallel } = await import('@/github/parallel-fetcher.js.js');
+      const { writeFile } = await import('@/filesystem/writer.js.js');
+      const { ProgressReporter } = await import('@/reporting/progress-reporter.js.js');
 
       const mockReporter = {
         reportStart: vi.fn(),
@@ -1152,9 +1152,9 @@ describe('executeAddCommand', () => {
     it('should call reportSuccess for each successfully written file', async () => {
       const { loadMetadata } = await import('@/tracking/metadata-manager.js');
       const { fetchDirectoryContents } = await import('@/github/fetcher.js.js');
-      const { fetchFilesInParallel } = await import('@/github/parallel-fetcher.js');
-      const { writeFile } = await import('@/filesystem/writer.js');
-      const { ProgressReporter } = await import('@/reporting/progress-reporter.js');
+      const { fetchFilesInParallel } = await import('@/github/parallel-fetcher.js.js');
+      const { writeFile } = await import('@/filesystem/writer.js.js');
+      const { ProgressReporter } = await import('@/reporting/progress-reporter.js.js');
 
       const mockReporter = {
         reportStart: vi.fn(),
@@ -1213,9 +1213,9 @@ describe('executeAddCommand', () => {
     it('should call reportError for file write failures', async () => {
       const { loadMetadata } = await import('@/tracking/metadata-manager.js');
       const { fetchDirectoryContents } = await import('@/github/fetcher.js.js');
-      const { fetchFilesInParallel } = await import('@/github/parallel-fetcher.js');
-      const { writeFile } = await import('@/filesystem/writer.js');
-      const { ProgressReporter } = await import('@/reporting/progress-reporter.js');
+      const { fetchFilesInParallel } = await import('@/github/parallel-fetcher.js.js');
+      const { writeFile } = await import('@/filesystem/writer.js.js');
+      const { ProgressReporter } = await import('@/reporting/progress-reporter.js.js');
 
       const mockReporter = {
         reportStart: vi.fn(),
@@ -1263,9 +1263,9 @@ describe('executeAddCommand', () => {
     it('should include project name prefix when multiple projects are being processed', async () => {
       const { loadMetadata } = await import('@/tracking/metadata-manager.js');
       const { fetchDirectoryContents } = await import('@/github/fetcher.js.js');
-      const { fetchFilesInParallel } = await import('@/github/parallel-fetcher.js');
-      const { writeFile } = await import('@/filesystem/writer.js');
-      const { ProgressReporter } = await import('@/reporting/progress-reporter.js');
+      const { fetchFilesInParallel } = await import('@/github/parallel-fetcher.js.js');
+      const { writeFile } = await import('@/filesystem/writer.js.js');
+      const { ProgressReporter } = await import('@/reporting/progress-reporter.js.js');
 
       const mockReporter = {
         reportStart: vi.fn(),
@@ -1329,9 +1329,9 @@ describe('executeAddCommand', () => {
     it('should report progress with [1/N] format where N is total file count', async () => {
       const { loadMetadata } = await import('@/tracking/metadata-manager.js');
       const { fetchDirectoryContents } = await import('@/github/fetcher.js.js');
-      const { fetchFilesInParallel } = await import('@/github/parallel-fetcher.js');
-      const { writeFile } = await import('@/filesystem/writer.js');
-      const { ProgressReporter } = await import('@/reporting/progress-reporter.js');
+      const { fetchFilesInParallel } = await import('@/github/parallel-fetcher.js.js');
+      const { writeFile } = await import('@/filesystem/writer.js.js');
+      const { ProgressReporter } = await import('@/reporting/progress-reporter.js.js');
 
       const mockReporter = {
         reportStart: vi.fn(),
@@ -1397,9 +1397,9 @@ describe('executeAddCommand', () => {
     it('should call writeFile for each fetched file', async () => {
       const { loadMetadata } = await import('@/tracking/metadata-manager.js');
       const { fetchDirectoryContents } = await import('@/github/fetcher.js.js');
-      const { fetchFilesInParallel } = await import('@/github/parallel-fetcher.js');
-      const { writeFile } = await import('@/filesystem/writer.js');
-      const { resolveOutputPath } = await import('@/filesystem/path-utils.js');
+      const { fetchFilesInParallel } = await import('@/github/parallel-fetcher.js.js');
+      const { writeFile } = await import('@/filesystem/writer.js.js');
+      const { resolveOutputPath } = await import('@/filesystem/path-utils.js.js');
 
       vi.mocked(loadMetadata).mockResolvedValue({
         version: '1.0',
@@ -1446,8 +1446,8 @@ describe('executeAddCommand', () => {
     it('should pass --force option to writeFile', async () => {
       const { loadMetadata } = await import('@/tracking/metadata-manager.js');
       const { fetchDirectoryContents } = await import('@/github/fetcher.js.js');
-      const { fetchFilesInParallel } = await import('@/github/parallel-fetcher.js');
-      const { writeFile } = await import('@/filesystem/writer.js');
+      const { fetchFilesInParallel } = await import('@/github/parallel-fetcher.js.js');
+      const { writeFile } = await import('@/filesystem/writer.js.js');
 
       vi.mocked(loadMetadata).mockResolvedValue({
         version: '1.0',
@@ -1483,8 +1483,8 @@ describe('executeAddCommand', () => {
     it('should pass --dry-run option to writeFile', async () => {
       const { loadMetadata } = await import('@/tracking/metadata-manager.js');
       const { fetchDirectoryContents } = await import('@/github/fetcher.js.js');
-      const { fetchFilesInParallel } = await import('@/github/parallel-fetcher.js');
-      const { writeFile } = await import('@/filesystem/writer.js');
+      const { fetchFilesInParallel } = await import('@/github/parallel-fetcher.js.js');
+      const { writeFile } = await import('@/filesystem/writer.js.js');
 
       vi.mocked(loadMetadata).mockResolvedValue({
         version: '1.0',
@@ -1529,8 +1529,8 @@ describe('executeAddCommand', () => {
     it('should convert remote paths to local paths using resolveOutputPath', async () => {
       const { loadMetadata } = await import('@/tracking/metadata-manager.js');
       const { fetchDirectoryContents } = await import('@/github/fetcher.js.js');
-      const { fetchFilesInParallel } = await import('@/github/parallel-fetcher.js');
-      const { resolveOutputPath } = await import('@/filesystem/path-utils.js');
+      const { fetchFilesInParallel } = await import('@/github/parallel-fetcher.js.js');
+      const { resolveOutputPath } = await import('@/filesystem/path-utils.js.js');
 
       vi.mocked(loadMetadata).mockResolvedValue({
         version: '1.0',
@@ -1563,8 +1563,8 @@ describe('executeAddCommand', () => {
     it('should handle file write failures gracefully', async () => {
       const { loadMetadata } = await import('@/tracking/metadata-manager.js');
       const { fetchDirectoryContents } = await import('@/github/fetcher.js.js');
-      const { fetchFilesInParallel } = await import('@/github/parallel-fetcher.js');
-      const { writeFile } = await import('@/filesystem/writer.js');
+      const { fetchFilesInParallel } = await import('@/github/parallel-fetcher.js.js');
+      const { writeFile } = await import('@/filesystem/writer.js.js');
 
       vi.mocked(loadMetadata).mockResolvedValue({
         version: '1.0',
@@ -1600,8 +1600,8 @@ describe('executeAddCommand', () => {
     it('should create ProjectMetadata and save to metadata file after successful file writes', async () => {
       const { loadMetadata } = await import('@/tracking/metadata-manager.js');
       const { fetchDirectoryContents } = await import('@/github/fetcher.js.js');
-      const { fetchFilesInParallel } = await import('@/github/parallel-fetcher.js');
-      const { writeFile } = await import('@/filesystem/writer.js');
+      const { fetchFilesInParallel } = await import('@/github/parallel-fetcher.js.js');
+      const { writeFile } = await import('@/filesystem/writer.js.js');
       const { upsertProject } = await import('@/tracking/metadata-manager.js');
       const { calculateFileHash } = await import('@/tracking/hash-calculator.js');
 
@@ -1662,8 +1662,8 @@ describe('executeAddCommand', () => {
     it('should calculate localHash for each written file using calculateFileHash', async () => {
       const { loadMetadata } = await import('@/tracking/metadata-manager.js');
       const { fetchDirectoryContents } = await import('@/github/fetcher.js.js');
-      const { fetchFilesInParallel } = await import('@/github/parallel-fetcher.js');
-      const { writeFile } = await import('@/filesystem/writer.js');
+      const { fetchFilesInParallel } = await import('@/github/parallel-fetcher.js.js');
+      const { writeFile } = await import('@/filesystem/writer.js.js');
       const { calculateFileHash } = await import('@/tracking/hash-calculator.js');
 
       vi.mocked(loadMetadata).mockResolvedValue({
@@ -1712,8 +1712,8 @@ describe('executeAddCommand', () => {
       const { loadMetadata } = await import('@/tracking/metadata-manager.js');
       const { mergeConfig } = await import('@/config/merger.js');
       const { fetchDirectoryContents } = await import('@/github/fetcher.js.js');
-      const { fetchFilesInParallel } = await import('@/github/parallel-fetcher.js');
-      const { writeFile } = await import('@/filesystem/writer.js');
+      const { fetchFilesInParallel } = await import('@/github/parallel-fetcher.js.js');
+      const { writeFile } = await import('@/filesystem/writer.js.js');
       const { upsertProject } = await import('@/tracking/metadata-manager.js');
       const { calculateFileHash } = await import('@/tracking/hash-calculator.js');
 
@@ -1767,8 +1767,8 @@ describe('executeAddCommand', () => {
     it('should record GitHub SHA and localHash for each file', async () => {
       const { loadMetadata } = await import('@/tracking/metadata-manager.js');
       const { fetchDirectoryContents } = await import('@/github/fetcher.js.js');
-      const { fetchFilesInParallel } = await import('@/github/parallel-fetcher.js');
-      const { writeFile } = await import('@/filesystem/writer.js');
+      const { fetchFilesInParallel } = await import('@/github/parallel-fetcher.js.js');
+      const { writeFile } = await import('@/filesystem/writer.js.js');
       const { upsertProject } = await import('@/tracking/metadata-manager.js');
       const { calculateFileHash } = await import('@/tracking/hash-calculator.js');
 
@@ -1819,8 +1819,8 @@ describe('executeAddCommand', () => {
     it('should not update metadata if file writes fail', async () => {
       const { loadMetadata } = await import('@/tracking/metadata-manager.js');
       const { fetchDirectoryContents } = await import('@/github/fetcher.js.js');
-      const { fetchFilesInParallel } = await import('@/github/parallel-fetcher.js');
-      const { writeFile } = await import('@/filesystem/writer.js');
+      const { fetchFilesInParallel } = await import('@/github/parallel-fetcher.js.js');
+      const { writeFile } = await import('@/filesystem/writer.js.js');
       const { upsertProject } = await import('@/tracking/metadata-manager.js');
 
       vi.mocked(loadMetadata).mockResolvedValue({
@@ -1855,8 +1855,8 @@ describe('executeAddCommand', () => {
     it('should set fetchedAt timestamp when creating ProjectMetadata', async () => {
       const { loadMetadata } = await import('@/tracking/metadata-manager.js');
       const { fetchDirectoryContents } = await import('@/github/fetcher.js.js');
-      const { fetchFilesInParallel } = await import('@/github/parallel-fetcher.js');
-      const { writeFile } = await import('@/filesystem/writer.js');
+      const { fetchFilesInParallel } = await import('@/github/parallel-fetcher.js.js');
+      const { writeFile } = await import('@/filesystem/writer.js.js');
       const { upsertProject } = await import('@/tracking/metadata-manager.js');
       const { calculateFileHash } = await import('@/tracking/hash-calculator.js');
 
@@ -1916,8 +1916,8 @@ describe('executeAddCommand', () => {
     it('should process multiple projects sequentially in a loop', async () => {
       const { loadMetadata } = await import('@/tracking/metadata-manager.js');
       const { fetchDirectoryContents } = await import('@/github/fetcher.js.js');
-      const { fetchFilesInParallel } = await import('@/github/parallel-fetcher.js');
-      const { writeFile } = await import('@/filesystem/writer.js');
+      const { fetchFilesInParallel } = await import('@/github/parallel-fetcher.js.js');
+      const { writeFile } = await import('@/filesystem/writer.js.js');
       const { upsertProject } = await import('@/tracking/metadata-manager.js');
       const { calculateFileHash } = await import('@/tracking/hash-calculator.js');
 
@@ -1967,8 +1967,8 @@ describe('executeAddCommand', () => {
     it('should treat each project as independent transaction', async () => {
       const { loadMetadata } = await import('@/tracking/metadata-manager.js');
       const { fetchDirectoryContents } = await import('@/github/fetcher.js.js');
-      const { fetchFilesInParallel } = await import('@/github/parallel-fetcher.js');
-      const { writeFile } = await import('@/filesystem/writer.js');
+      const { fetchFilesInParallel } = await import('@/github/parallel-fetcher.js.js');
+      const { writeFile } = await import('@/filesystem/writer.js.js');
       const { upsertProject } = await import('@/tracking/metadata-manager.js');
       const { calculateFileHash } = await import('@/tracking/hash-calculator.js');
 
@@ -2020,8 +2020,8 @@ describe('executeAddCommand', () => {
     it('should continue processing other projects when one project fails', async () => {
       const { loadMetadata } = await import('@/tracking/metadata-manager.js');
       const { fetchDirectoryContents } = await import('@/github/fetcher.js.js');
-      const { fetchFilesInParallel } = await import('@/github/parallel-fetcher.js');
-      const { writeFile } = await import('@/filesystem/writer.js');
+      const { fetchFilesInParallel } = await import('@/github/parallel-fetcher.js.js');
+      const { writeFile } = await import('@/filesystem/writer.js.js');
       const { upsertProject } = await import('@/tracking/metadata-manager.js');
       const { calculateFileHash } = await import('@/tracking/hash-calculator.js');
 
@@ -2082,8 +2082,8 @@ describe('executeAddCommand', () => {
     it('should aggregate success and failure counts across all projects', async () => {
       const { loadMetadata } = await import('@/tracking/metadata-manager.js');
       const { fetchDirectoryContents } = await import('@/github/fetcher.js.js');
-      const { fetchFilesInParallel } = await import('@/github/parallel-fetcher.js');
-      const { writeFile } = await import('@/filesystem/writer.js');
+      const { fetchFilesInParallel } = await import('@/github/parallel-fetcher.js.js');
+      const { writeFile } = await import('@/filesystem/writer.js.js');
       const { upsertProject } = await import('@/tracking/metadata-manager.js');
       const { calculateFileHash } = await import('@/tracking/hash-calculator.js');
 
@@ -2176,8 +2176,8 @@ describe('executeAddCommand', () => {
     it('should display success summary message after successful metadata update', async () => {
       const { loadMetadata } = await import('@/tracking/metadata-manager.js');
       const { fetchDirectoryContents } = await import('@/github/fetcher.js.js');
-      const { fetchFilesInParallel } = await import('@/github/parallel-fetcher.js');
-      const { writeFile } = await import('@/filesystem/writer.js');
+      const { fetchFilesInParallel } = await import('@/github/parallel-fetcher.js.js');
+      const { writeFile } = await import('@/filesystem/writer.js.js');
       const { upsertProject } = await import('@/tracking/metadata-manager.js');
       const { calculateFileHash } = await import('@/tracking/hash-calculator.js');
 
@@ -2231,8 +2231,8 @@ describe('executeAddCommand', () => {
     it('should NOT display success summary when metadata update fails', async () => {
       const { loadMetadata } = await import('@/tracking/metadata-manager.js');
       const { fetchDirectoryContents } = await import('@/github/fetcher.js.js');
-      const { fetchFilesInParallel } = await import('@/github/parallel-fetcher.js');
-      const { writeFile } = await import('@/filesystem/writer.js');
+      const { fetchFilesInParallel } = await import('@/github/parallel-fetcher.js.js');
+      const { writeFile } = await import('@/filesystem/writer.js.js');
       const { upsertProject } = await import('@/tracking/metadata-manager.js');
       const { calculateFileHash } = await import('@/tracking/hash-calculator.js');
 
@@ -2282,8 +2282,8 @@ describe('executeAddCommand', () => {
     it('should display file count in success summary message', async () => {
       const { loadMetadata, upsertProject } = await import('@/tracking/metadata-manager.js');
       const { fetchDirectoryContents } = await import('@/github/fetcher.js.js');
-      const { fetchFilesInParallel } = await import('@/github/parallel-fetcher.js');
-      const { writeFile } = await import('@/filesystem/writer.js');
+      const { fetchFilesInParallel } = await import('@/github/parallel-fetcher.js.js');
+      const { writeFile } = await import('@/filesystem/writer.js.js');
       const { calculateFileHash } = await import('@/tracking/hash-calculator.js');
 
       vi.mocked(loadMetadata).mockResolvedValue({
@@ -2341,11 +2341,11 @@ describe('executeAddCommand', () => {
     it('should call reportProjectSummary for each project when multiple projects', async () => {
       const { loadMetadata } = await import('@/tracking/metadata-manager.js');
       const { fetchDirectoryContents } = await import('@/github/fetcher.js.js');
-      const { fetchFilesInParallel } = await import('@/github/parallel-fetcher.js');
-      const { writeFile } = await import('@/filesystem/writer.js');
+      const { fetchFilesInParallel } = await import('@/github/parallel-fetcher.js.js');
+      const { writeFile } = await import('@/filesystem/writer.js.js');
       const { upsertProject } = await import('@/tracking/metadata-manager.js');
       const { calculateFileHash } = await import('@/tracking/hash-calculator.js');
-      const { ProgressReporter } = await import('@/reporting/progress-reporter.js');
+      const { ProgressReporter } = await import('@/reporting/progress-reporter.js.js');
 
       const mockReporter = {
         reportProjectStart: vi.fn(),
@@ -2407,11 +2407,11 @@ describe('executeAddCommand', () => {
     it('should call reportOverallSummary after all projects complete for multi-project', async () => {
       const { loadMetadata } = await import('@/tracking/metadata-manager.js');
       const { fetchDirectoryContents } = await import('@/github/fetcher.js.js');
-      const { fetchFilesInParallel } = await import('@/github/parallel-fetcher.js');
-      const { writeFile } = await import('@/filesystem/writer.js');
+      const { fetchFilesInParallel } = await import('@/github/parallel-fetcher.js.js');
+      const { writeFile } = await import('@/filesystem/writer.js.js');
       const { upsertProject } = await import('@/tracking/metadata-manager.js');
       const { calculateFileHash } = await import('@/tracking/hash-calculator.js');
-      const { ProgressReporter } = await import('@/reporting/progress-reporter.js');
+      const { ProgressReporter } = await import('@/reporting/progress-reporter.js.js');
 
       const mockReporter = {
         reportProjectStart: vi.fn(),
@@ -2481,11 +2481,11 @@ describe('executeAddCommand', () => {
     it('should NOT call summary methods for single project operation', async () => {
       const { loadMetadata } = await import('@/tracking/metadata-manager.js');
       const { fetchDirectoryContents } = await import('@/github/fetcher.js.js');
-      const { fetchFilesInParallel } = await import('@/github/parallel-fetcher.js');
-      const { writeFile } = await import('@/filesystem/writer.js');
+      const { fetchFilesInParallel } = await import('@/github/parallel-fetcher.js.js');
+      const { writeFile } = await import('@/filesystem/writer.js.js');
       const { upsertProject } = await import('@/tracking/metadata-manager.js');
       const { calculateFileHash } = await import('@/tracking/hash-calculator.js');
-      const { ProgressReporter } = await import('@/reporting/progress-reporter.js');
+      const { ProgressReporter } = await import('@/reporting/progress-reporter.js.js');
 
       const mockReporter = {
         reportProjectStart: vi.fn(),
@@ -2754,8 +2754,8 @@ describe('executeAddCommand', () => {
       it('リポジトリとプロジェクト名が両方指定されている場合、インタラクティブモードをスキップする', async () => {
         const { loadMetadata } = await import('@/tracking/metadata-manager.js');
         const { fetchDirectoryContents } = await import('@/github/fetcher.js.js');
-        const { fetchFilesInParallel } = await import('@/github/parallel-fetcher.js');
-        const { writeFile } = await import('@/filesystem/writer.js');
+        const { fetchFilesInParallel } = await import('@/github/parallel-fetcher.js.js');
+        const { writeFile } = await import('@/filesystem/writer.js.js');
         const { calculateFileHash } = await import('@/tracking/hash-calculator.js');
         const { upsertProject } = await import('@/tracking/metadata-manager.js');
 
@@ -2819,8 +2819,8 @@ describe('executeAddCommand', () => {
       const { mergeConfig } = await import('@/config/merger.js');
       const { loadMetadata } = await import('@/tracking/metadata-manager.js');
       const { fetchDirectoryContents } = await import('@/github/fetcher.js.js');
-      const { fetchFilesInParallel } = await import('@/github/parallel-fetcher.js');
-      const { writeFile } = await import('@/filesystem/writer.js');
+      const { fetchFilesInParallel } = await import('@/github/parallel-fetcher.js.js');
+      const { writeFile } = await import('@/filesystem/writer.js.js');
       const { calculateFileHash } = await import('@/tracking/hash-calculator.js');
       const { upsertProject } = await import('@/tracking/metadata-manager.js');
       const { shouldEnterInteractiveMode, promptMissingArguments } = await import('@/cli/interactive-prompt.js');
@@ -2917,7 +2917,7 @@ describe('executeAddCommand', () => {
       vi.unstubAllGlobals();
 
       // Mock validator for Task 8.7 tests - these tests use valid arguments
-      const { validateInput } = await import('@/cli/validator.js');
+      const { validateInput } = await import('@/cli/validator.js.js');
       vi.mocked(validateInput).mockReturnValue({
         valid: true,
         errors: [],

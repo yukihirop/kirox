@@ -6,7 +6,7 @@
  */
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { ProgressReporter } from '@/reporting/progress-reporter.js';
+import { ProgressReporter } from '@/reporting/progress-reporter.js.js';
 
 describe('ProgressReporter - Conditional Branch Removal (Task 8.2)', () => {
   let consoleLogSpy: ReturnType<typeof vi.spyOn>;

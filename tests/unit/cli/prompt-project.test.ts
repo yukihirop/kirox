@@ -93,7 +93,7 @@ describe('promptProject', () => {
 
       await promptProject('');
 
-      const callArgs = mockInput.mock.calls[0][0];
+      const callArgs = mockInput.mock.calls[0]?.[0];
       expect(callArgs).toHaveProperty('validate');
       expect(typeof callArgs.validate).toBe('function');
     });
@@ -105,7 +105,7 @@ describe('promptProject', () => {
 
       await promptProject('');
 
-      const callArgs = mockInput.mock.calls[0][0];
+      const callArgs = mockInput.mock.calls[0]?.[0];
       const validate = callArgs.validate;
 
       expect(validate('my-project')).toBe(true);
@@ -118,7 +118,7 @@ describe('promptProject', () => {
 
       await promptProject('');
 
-      const callArgs = mockInput.mock.calls[0][0];
+      const callArgs = mockInput.mock.calls[0]?.[0];
       const validate = callArgs.validate;
 
       const result = validate('');
@@ -131,7 +131,7 @@ describe('promptProject', () => {
 
       await promptProject('');
 
-      const callArgs = mockInput.mock.calls[0][0];
+      const callArgs = mockInput.mock.calls[0]?.[0];
       const validate = callArgs.validate;
 
       const result = validate('   ');
@@ -144,7 +144,7 @@ describe('promptProject', () => {
 
       await promptProject('');
 
-      const callArgs = mockInput.mock.calls[0][0];
+      const callArgs = mockInput.mock.calls[0]?.[0];
       const validate = callArgs.validate;
 
       const result = validate('../evil');
@@ -157,7 +157,7 @@ describe('promptProject', () => {
 
       await promptProject('');
 
-      const callArgs = mockInput.mock.calls[0][0];
+      const callArgs = mockInput.mock.calls[0]?.[0];
       const validate = callArgs.validate;
 
       const result = validate('my/project');
@@ -170,7 +170,7 @@ describe('promptProject', () => {
 
       await promptProject('');
 
-      const callArgs = mockInput.mock.calls[0][0];
+      const callArgs = mockInput.mock.calls[0]?.[0];
       const validate = callArgs.validate;
 
       const result = validate('my\\project');
@@ -194,7 +194,7 @@ describe('promptProject', () => {
 
       await promptProject('');
 
-      const callArgs = mockInput.mock.calls[0][0];
+      const callArgs = mockInput.mock.calls[0]?.[0];
       const validate = callArgs.validate;
 
       expect(validate('a')).toBe(true);
