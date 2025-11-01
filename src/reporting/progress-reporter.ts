@@ -5,7 +5,15 @@
  */
 
 import { Chalk } from 'chalk';
+import ora, { type Ora } from 'ora';
 import type { ReporterOptions } from './types.js';
+
+/**
+ * Ora options for spinner configuration
+ */
+interface OraOptions {
+  color?: string | false;
+}
 
 /**
  * Progress Reporter for CLI operations
@@ -16,6 +24,11 @@ export class ProgressReporter {
   private options: ReporterOptions;
   private chalk: InstanceType<typeof Chalk>;
 
+  // Task 2.1: Spinner management state
+  private spinnerMap: Map<string, Ora>;
+  private useFallback: boolean;
+  private oraOptions: OraOptions;
+
   constructor(options: ReporterOptions) {
     this.options = options;
 
@@ -23,6 +36,28 @@ export class ProgressReporter {
     this.chalk = new Chalk({
       level: options.useColor ? 3 : 0, // 3 = TrueColor, 0 = No color
     });
+
+    // Task 2.1: Initialize spinner management state
+    this.spinnerMap = new Map<string, Ora>();
+    this.oraOptions = {
+      color: options.useColor ? undefined : false, // undefined uses ora default (cyan), false disables color
+    };
+
+    // Task 2.2: Try to initialize ora, fall back to console.log on failure
+    try {
+      // Test ora by creating a dummy instance
+      const testSpinner = ora(this.oraOptions);
+      testSpinner.stop(); // Immediately stop test spinner
+      this.useFallback = false;
+    } catch (error) {
+      // Ora initialization failed, use fallback mode
+      this.useFallback = true;
+
+      // Output warning if verbose mode is enabled
+      if (this.options.verbose) {
+        console.log('[VERBOSE] Spinner initialization failed, falling back to console output');
+      }
+    }
   }
 
   /**
