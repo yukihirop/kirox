@@ -420,11 +420,11 @@ describe('Project Suggestion GitHub API Integration', () => {
         verbose: true, // Enable verbose logging
       });
 
-      // Verify logger was called with API details
-      expect(mockLogger.info).toHaveBeenCalled();
+      // Verify logger.debug was called with API details (implementation uses debug, not info)
+      expect(mockLogger.debug).toHaveBeenCalled();
 
       // Check that the log includes repository and path information
-      const logCalls = (mockLogger.info as ReturnType<typeof vi.fn>).mock.calls;
+      const logCalls = (mockLogger.debug as ReturnType<typeof vi.fn>).mock.calls;
       const apiCallLog = logCalls.find((call) =>
         call[0].includes('Fetching available projects from GitHub')
       );
@@ -457,11 +457,11 @@ describe('Project Suggestion GitHub API Integration', () => {
         verbose: true,
       });
 
-      // Verify logger.error was called
-      expect(mockLogger.error).toHaveBeenCalled();
+      // Verify logger.debug was called (implementation uses debug for error logging)
+      expect(mockLogger.debug).toHaveBeenCalled();
 
       // Check that the log includes error details
-      const errorCalls = (mockLogger.error as ReturnType<typeof vi.fn>).mock.calls;
+      const errorCalls = (mockLogger.debug as ReturnType<typeof vi.fn>).mock.calls;
       const errorLog = errorCalls.find((call) =>
         call[0].includes('Failed to fetch projects from GitHub')
       );

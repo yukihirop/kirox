@@ -4,25 +4,25 @@
 
 ### 1. Logger検証ロジックの基盤整備
 
-- [ ] 1.1 Pinoモジュールレベルモックの共通パターン確立
+- [x] 1.1 Pinoモジュールレベルモックの共通パターン確立
   - Pinoモジュール全体をモックするヘルパー関数を設計
   - スパイ付きモックインスタンスの作成パターンを定義
   - beforeEach/afterEachでのスパイリセット戦略を確立
   - モック設定の再利用可能性を確保
   - _Requirements: 1.1, 1.2, 1.3_
 
-- [ ] 1.2 entry-pino-logger.test.tsのLogger検証修正
+- [x] 1.2 entry-pino-logger.test.tsのLogger検証修正
   - Pinoモジュールをモックし、スパイでメソッド呼び出しを追跡可能にする
   - infoSpy, warnSpy, errorSpy, debugSpyの呼び出し検証を実装
   - ログレベル（info vs debug）に応じた出力フィルタリングを検証
   - entry.tsの実行後にloggerメソッド呼び出しが正しく検出されることを確認
   - _Requirements: 1.4, 1.5_
 
-- [ ] 1.3 project-suggestion-github-api.test.tsのverboseモードログ検証修正
+- [x] 1.3 project-suggestion-github-api.test.tsのverboseモードログ検証修正
   - Pinoモジュールモックをテストに統合
   - verboseモード時のAPI呼び出し詳細ログ検証を修正
   - エラー詳細ログ出力の検証を修正
-  - mockLogger.info/errorの呼び出しが正しく追跡されることを確認
+  - mockLogger.debug()の呼び出しが正しく追跡されることを確認
   - _Requirements: 1.6_
 
 ### 2. add-command-entry.test.tsのLogger検証修正

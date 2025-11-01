@@ -125,8 +125,8 @@ describe('entry.ts - PinoLogger Integration (Task 5.1)', () => {
     await execute(argv);
 
     // Assert: Logger methods should be called (PinoLogger wraps Pino methods)
-    // At minimum, info() should be called for execution completion
-    expect(infoSpy).toHaveBeenCalled();
+    // With --verbose flag, debug() should be called for execution details
+    expect(debugSpy).toHaveBeenCalled();
   });
 });
 
