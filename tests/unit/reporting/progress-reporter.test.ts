@@ -258,6 +258,9 @@ describe('ProgressReporter', () => {
       const options: ReporterOptions = { verbose: false, useColor: true };
       const reporter = new ProgressReporter(options);
 
+      // Force fallback mode to test console.log path
+      (reporter as unknown as { useFallback: boolean }).useFallback = true;
+
       reporter.reportProgress(3, 10, 'example.md');
 
       expect(consoleLogSpy).toHaveBeenCalledWith(
@@ -270,6 +273,9 @@ describe('ProgressReporter', () => {
       const options: ReporterOptions = { verbose: false, useColor: true };
       const reporter = new ProgressReporter(options);
 
+      // Force fallback mode to test console.log path
+      (reporter as unknown as { useFallback: boolean }).useFallback = true;
+
       reporter.reportProgress(3, 10, 'example.md', 'proj1');
 
       const call = consoleLogSpy.mock.calls[0][0];
@@ -279,6 +285,9 @@ describe('ProgressReporter', () => {
     it('should not display project prefix when project is undefined (task 8.2)', () => {
       const options: ReporterOptions = { verbose: false, useColor: true };
       const reporter = new ProgressReporter(options);
+
+      // Force fallback mode to test console.log path
+      (reporter as unknown as { useFallback: boolean }).useFallback = true;
 
       reporter.reportProgress(3, 10, 'example.md', undefined);
 
@@ -291,6 +300,9 @@ describe('ProgressReporter', () => {
       const options: ReporterOptions = { verbose: false, useColor: true };
       const reporter = new ProgressReporter(options);
 
+      // Force fallback mode to test console.log path
+      (reporter as unknown as { useFallback: boolean }).useFallback = true;
+
       reporter.reportProgress(3, 10, 'example.md', '');
 
       const call = consoleLogSpy.mock.calls[0][0];
@@ -301,6 +313,9 @@ describe('ProgressReporter', () => {
     it('should strip subdirectory prefix from file paths (bug fix task 5.4)', () => {
       const options: ReporterOptions = { verbose: false, useColor: true };
       const reporter = new ProgressReporter(options);
+
+      // Force fallback mode to test console.log path
+      (reporter as unknown as { useFallback: boolean }).useFallback = true;
 
       // Remote path includes subdirectory: lib/a/.kiro/specs/project/requirements.md
       // Display should show: .kiro/specs/project/requirements.md (WITHOUT subdirectory prefix)
@@ -315,6 +330,9 @@ describe('ProgressReporter', () => {
       const options: ReporterOptions = { verbose: false, useColor: true };
       const reporter = new ProgressReporter(options);
 
+      // Force fallback mode to test console.log path
+      (reporter as unknown as { useFallback: boolean }).useFallback = true;
+
       // Remote path with nested subdirectory: packages/api/v2/.kiro/steering/tech.md
       // Display should show: .kiro/steering/tech.md
       reporter.reportProgress(2, 5, 'packages/api/v2/.kiro/steering/tech.md');
@@ -328,6 +346,9 @@ describe('ProgressReporter', () => {
       const options: ReporterOptions = { verbose: false, useColor: true };
       const reporter = new ProgressReporter(options);
 
+      // Force fallback mode to test console.log path
+      (reporter as unknown as { useFallback: boolean }).useFallback = true;
+
       // Remote path without subdirectory: .kiro/specs/project/tasks.md
       // Display should remain: .kiro/specs/project/tasks.md
       reporter.reportProgress(3, 10, '.kiro/specs/project/tasks.md');
@@ -339,6 +360,9 @@ describe('ProgressReporter', () => {
     it('should show different messages for different progress states', () => {
       const options: ReporterOptions = { verbose: false, useColor: true };
       const reporter = new ProgressReporter(options);
+
+      // Force fallback mode to test console.log path
+      (reporter as unknown as { useFallback: boolean }).useFallback = true;
 
       reporter.reportProgress(1, 5, 'file1.md');
       reporter.reportProgress(5, 5, 'file5.md');
@@ -355,6 +379,9 @@ describe('ProgressReporter', () => {
     it('should use cyan color for progress messages when useColor is true', () => {
       const options: ReporterOptions = { verbose: false, useColor: true };
       const reporter = new ProgressReporter(options);
+
+      // Force fallback mode to test console.log path
+      (reporter as unknown as { useFallback: boolean }).useFallback = true;
 
       reporter.reportProgress(1, 5, 'test.md');
 
@@ -912,6 +939,9 @@ describe('ProgressReporter', () => {
     it('should not display project prefix in reportProgress for single-project mode', () => {
       const options: ReporterOptions = { verbose: false, useColor: true };
       const reporter = new ProgressReporter(options);
+
+      // Force fallback mode to test console.log path
+      (reporter as unknown as { useFallback: boolean }).useFallback = true;
 
       // Single-project mode: projectName is undefined or empty
       reporter.reportProgress(1, 10, 'test.md', undefined);

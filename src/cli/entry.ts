@@ -246,13 +246,20 @@ export async function execute(argv: string[]): Promise<ExecutionResult> {
         logger.info('Fetching file contents', { count: allFiles.length });
 
         const filePaths = allFiles.map((item) => item.path);
+
+        // Task 14.5: Pass progress callback to display spinner during file fetch
+        const displayProjectName = projects.length > 1 ? projectName : undefined;
         const fetchResult = await fetchFilesInParallel(
           octokit,
           owner,
           repo,
           filePaths,
           5, // maxConcurrency
-          effectiveBranch
+          effectiveBranch,
+          // Progress callback - called before fetching each file
+          (current, total, filePath) => {
+            reporter.reportProgress(current, total, filePath, displayProjectName);
+          }
         );
 
         if (args.verbose) {
@@ -270,12 +277,11 @@ export async function execute(argv: string[]): Promise<ExecutionResult> {
         const writtenFiles: Array<{ path: string; sha: string; size: number; localPath: string }> = [];
 
         for (const file of fetchResult.success) {
-          const currentIndex = fetchResult.success.indexOf(file) + 1;
-          const totalFiles = fetchResult.success.length;
+          // Task 14.5: Progress is now reported during file fetch (in fetchFilesInParallel callback)
+          // No need to call reportProgress here
 
           // Show project name prefix for multi-project operations
           const displayProjectName = projects.length > 1 ? projectName : undefined;
-          reporter.reportProgress(currentIndex, totalFiles, file.path, displayProjectName);
 
           // Verbose: Show detailed fetch information with branch
           if (args.verbose && effectiveBranch) {
@@ -287,6 +293,11 @@ export async function execute(argv: string[]): Promise<ExecutionResult> {
             // Resolve output path
             const localPath = resolveOutputPath(args.output, file.path);
 
+            // Task 14.7: Pause spinner before writeFile to prevent hidden readline prompts
+            // When prompt=true and file exists, writeFile() shows readline confirmation prompt
+            // If spinner is active, the prompt is hidden from user, making it appear frozen
+            reporter.pauseSpinner(displayProjectName);
+
             // Write file
             const writeResult = await writeFile(localPath, file.content, {
               force: args.force,
@@ -295,9 +306,12 @@ export async function execute(argv: string[]): Promise<ExecutionResult> {
               verbose: args.verbose,
             });
 
+            // Task 14.7: No need to resume spinner here
+            // reportSuccess() / reportError() will use the paused spinner and clean it up
+
             if (writeResult.written) {
               filesDownloaded++;
-              reporter.reportSuccess(`Saved: ${file.path}`);
+              reporter.reportSuccess(`Saved: ${file.path}`, displayProjectName);
 
               // Track written file for metadata
               if (args.track) {
@@ -320,7 +334,7 @@ export async function execute(argv: string[]): Promise<ExecutionResult> {
               filePath: file.path,
               details: error instanceof Error ? error.message : String(error),
             });
-            reporter.reportError(`Failed: ${file.path} - ${errorResult.message}`);
+            reporter.reportError(`Failed: ${file.path} - ${errorResult.message}`, displayProjectName);
             logger.logError(errorResult);
           }
         }
@@ -331,7 +345,7 @@ export async function execute(argv: string[]): Promise<ExecutionResult> {
             filePath: failedFile.path,
             details: failedFile.error,
           });
-          reporter.reportError(`Failed to fetch: ${failedFile.path} - ${errorResult.message}`);
+          reporter.reportError(`Failed to fetch: ${failedFile.path} - ${errorResult.message}`, displayProjectName);
           logger.logError(errorResult);
         }
 
