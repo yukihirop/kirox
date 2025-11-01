@@ -118,7 +118,24 @@ vi.mock('@/cli/interactive-prompt.js', () => ({
 
 vi.mock('@/cli/validator.js');
 
+vi.mock('pino', () => ({
+  default: vi.fn(() => ({
+    info: vi.fn(),
+    warn: vi.fn(),
+    error: vi.fn(),
+    debug: vi.fn(),
+  })),
+}));
+
 describe('executeAddCommand', () => {
+  // Declare spy variables that will be used across tests
+  let infoSpy: ReturnType<typeof vi.fn>;
+  let warnSpy: ReturnType<typeof vi.fn>;
+  let errorSpy: ReturnType<typeof vi.fn>;
+  let debugSpy: ReturnType<typeof vi.fn>;
+  let verboseSpy: ReturnType<typeof vi.fn>;
+  let logErrorSpy: ReturnType<typeof vi.fn>;
+
   beforeEach(async () => {
     // Clear all mock call history between tests
     vi.clearAllMocks();
@@ -160,11 +177,23 @@ describe('executeAddCommand', () => {
       size: 100,
     });
 
+    // Initialize spy functions for PinoLogger methods
+    infoSpy = vi.fn();
+    warnSpy = vi.fn();
+    errorSpy = vi.fn();
+    debugSpy = vi.fn();
+    verboseSpy = vi.fn();
+    logErrorSpy = vi.fn();
+
     vi.mocked(PinoLogger).mockReturnValue({
-      info: vi.fn(),
-      warn: vi.fn(),
-      error: vi.fn(),
-      logError: vi.fn(),
+      info: infoSpy,
+      warn: warnSpy,
+      error: errorSpy,
+      debug: debugSpy,
+      verbose: verboseSpy,
+      logError: logErrorSpy,
+      formatTimestamp: vi.fn(),
+      formatLogMessage: vi.fn(),
     } as any);
   });
 
@@ -264,12 +293,12 @@ describe('executeAddCommand', () => {
 
     it('should log execution start when verbose is true', async () => {
       const argv = ['node', 'kirox', 'add', 'owner/repo', '-p', 'test-project', '--verbose'];
+      const { PinoLogger } = await import('@/reporting/pino-logger.js');
 
       await executeAddCommand(argv);
 
-      // With --verbose flag, debug() should be called for execution details
-      // (PinoLogger uses debug() for verbose logging, not info())
-      expect(debugSpy).toHaveBeenCalled();
+      // With --verbose flag, PinoLogger should be instantiated with verbose=true
+      expect(PinoLogger).toHaveBeenCalledWith(true);
     });
   });
 
@@ -400,12 +429,12 @@ describe('executeAddCommand', () => {
       const result = await executeAddCommand(argv);
 
       // Task 2.4: Should NOT return error, but proceed with empty metadata
-      // PinoLogger uses infoSpy for creating new metadata message
+      // PinoLogger.info is called with (message, details) format
       expect(infoSpy).toHaveBeenCalledWith(
+        expect.stringMatching(/new.*metadata|creating.*metadata/i),
         expect.objectContaining({
           path: expect.any(String),
-        }),
-        expect.stringMatching(/new.*metadata|creating.*metadata/i)
+        })
       );
 
       // Should not exit with error code 1

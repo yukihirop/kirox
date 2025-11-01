@@ -6,13 +6,17 @@ PinoLoggerグローバルモック定義に欠落している3メソッド（log
 
 ## Tasks
 
-- [ ] 1. グローバルモック定義の拡張
-- [ ] 1.1 tests/setup.tsに3つの欠落メソッドを追加
-  - logErrorメソッドをvi.fn()でスパイ関数として実装
-  - formatTimestampメソッドをvi.fn()でスパイ関数として実装
-  - formatLogMessageメソッドをvi.fn()でスパイ関数として実装
-  - 既存の5メソッド（info、warn、error、debug、verbose)実装パターンを踏襲
-  - TypeScript構文エラーがないことを確認
+- [x] 1. グローバルモック定義の拡張
+- [x] 1.1 tests/setup.tsに3つの欠落メソッドを追加
+  - logErrorメソッドをvi.fn()でスパイ関数として実装 ✓
+  - formatTimestampメソッドをvi.fn()でスパイ関数として実装 ✓
+  - formatLogMessageメソッドをvi.fn()でスパイ関数として実装 ✓
+  - 既存の5メソッド（info、warn、error、debug、verbose)実装パターンを踏襲 ✓
+  - コンストラクタシグネチャを修正（verbose: boolean, options?: unknown） ✓
+  - TypeScript構文エラーがないことを確認 ✓
+  - 追加作業: add-command-entry.test.tsのモック実装を完全な8メソッドに拡張 ✓
+  - 追加作業: add-command-entry.test.tsにスパイ変数（infoSpy、warnSpy等）を追加 ✓
+  - 追加作業: pinoモジュールのモックを追加 ✓
   - _Requirements: 1.1, 1.2, 1.3, 2.1, 2.2, 2.3, 3.1, 3.2, 3.3_
 
 - [ ] 2. テスト検証と最終確認
