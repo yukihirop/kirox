@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { promptBranch } from '@/cli/branch-prompt';
+import { promptBranch } from '@/cli/branch-prompt.js';
 
 // Mock the searchable-checkbox module
 vi.mock('@/cli/prompts/searchable-checkbox.js', () => ({
@@ -117,8 +117,8 @@ describe('promptBranch', () => {
       const branches = ['main', 'develop'];
       await promptBranch(branches, 'main');
 
-      const callArgs = vi.mocked(searchableCheckbox).mock.calls[0][0];
-      const validateFn = callArgs.validate;
+      const callArgs = vi.mocked(searchableCheckbox).mock.calls[0]?.[0];
+      const validateFn = callArgs?.validate;
 
       // Test validation with 0 selections
       const result = validateFn?.([]);
@@ -131,11 +131,11 @@ describe('promptBranch', () => {
       const branches = ['main', 'develop'];
       await promptBranch(branches, 'main');
 
-      const callArgs = vi.mocked(searchableCheckbox).mock.calls[0][0];
-      const validateFn = callArgs.validate;
+      const callArgs = vi.mocked(searchableCheckbox).mock.calls[0]?.[0];
+      const validateFn = callArgs?.validate;
 
       // Test validation with 1 selection
-      const result = validateFn?.([{ value: 'main', name: 'main (default)' }]);
+      const result = validateFn?.([{ value: 'main', name: 'main (default)', short: 'main', disabled: false, checked: true }]);
       expect(result).toBe(true);
     });
 
@@ -145,13 +145,13 @@ describe('promptBranch', () => {
       const branches = ['main', 'develop', 'feature/auth'];
       await promptBranch(branches, 'main');
 
-      const callArgs = vi.mocked(searchableCheckbox).mock.calls[0][0];
-      const validateFn = callArgs.validate;
+      const callArgs = vi.mocked(searchableCheckbox).mock.calls[0]?.[0];
+      const validateFn = callArgs?.validate;
 
       // Test validation with 2 selections
       const result = validateFn?.([
-        { value: 'main', name: 'main (default)' },
-        { value: 'develop', name: 'develop' },
+        { value: 'main', name: 'main (default)', short: 'main', disabled: false, checked: true },
+        { value: 'develop', name: 'develop', short: 'develop', disabled: false, checked: true },
       ]);
       expect(result).toBe('Please select only one branch');
     });
@@ -165,13 +165,13 @@ describe('promptBranch', () => {
       await promptBranch(branches, 'main');
 
       // Get the actual call arguments
-      const callArgs = vi.mocked(searchableCheckbox).mock.calls[0][0];
+      const callArgs = vi.mocked(searchableCheckbox).mock.calls[0]?.[0];
 
       // Check that message contains key text (Chalk styling may be present)
-      expect(callArgs.message).toContain('🌿 Select branch');
-      expect(callArgs.message).toContain('type to filter');
-      expect(callArgs.message).toContain('space to select');
-      expect(callArgs.message).toContain('enter to confirm');
+      expect(callArgs?.message).toContain('🌿 Select branch');
+      expect(callArgs?.message).toContain('type to filter');
+      expect(callArgs?.message).toContain('space to select');
+      expect(callArgs?.message).toContain('enter to confirm');
     });
 
     it('should configure pageSize and loop options', async () => {

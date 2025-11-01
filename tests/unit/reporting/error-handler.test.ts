@@ -3,7 +3,7 @@
  */
 
 import { describe, it, expect } from 'vitest';
-import { ErrorHandler } from '@/reporting/error-handler';
+import { ErrorHandler } from '@/reporting/error-handler.js';
 import type { ErrorContext } from '@/reporting/types.js';
 
 describe('ErrorHandler', () => {

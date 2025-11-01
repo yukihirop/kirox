@@ -6,7 +6,7 @@
  */
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { ProgressReporter } from '@/reporting/progress-reporter.js.js';
+import { ProgressReporter } from '@/reporting/progress-reporter.js';
 
 describe('ProgressReporter - Conditional Branch Removal (Task 8.2)', () => {
   let consoleLogSpy: ReturnType<typeof vi.spyOn>;
@@ -27,18 +27,6 @@ describe('ProgressReporter - Conditional Branch Removal (Task 8.2)', () => {
       // This test verifies that after conditional branch removal,
       // reportVerbose() always calls logger.debug(), and Pino level control
       // determines whether the log is actually output
-
-      // Arrange: Create reporter with verbose=false
-      const mockLogger = {
-        info: vi.fn(),
-        warn: vi.fn(),
-        error: vi.fn(),
-        debug: vi.fn(),
-        verbose: vi.fn(),
-        logError: vi.fn(),
-        formatTimestamp: vi.fn(),
-        formatLogMessage: vi.fn(),
-      };
 
       const reporter = new ProgressReporter({
         verbose: false,
