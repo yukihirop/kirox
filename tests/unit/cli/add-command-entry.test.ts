@@ -17,6 +17,36 @@ import { MetadataError, MetadataErrorType } from '@/tracking/types.js';
 import { mergeConfig } from '@/config/merger.js';
 import { promptMissingArguments, shouldEnterInteractiveMode } from '@/cli/interactive-prompt.js';
 
+// Mock Pino module with log level filtering (Task 2.1: PinoLogger support)
+let currentLogLevel: string = 'info';
+
+// Create separate spies for tracking calls
+const infoSpy = vi.fn();
+const warnSpy = vi.fn();
+const errorSpy = vi.fn();
+const debugSpy = vi.fn();
+
+const mockPinoInstance = {
+  info: infoSpy,
+  warn: warnSpy,
+  error: errorSpy,
+  debug: (details: any, message: string) => {
+    // Only record the call if log level is 'debug' (mimic Pino's behavior)
+    if (currentLogLevel === 'debug') {
+      debugSpy(details, message);
+    }
+  },
+};
+
+vi.mock('pino', () => {
+  return {
+    default: vi.fn((options: { level: string }) => {
+      currentLogLevel = options.level;
+      return mockPinoInstance;
+    }),
+  };
+});
+
 // Mock all dependencies
 vi.mock('@/reporting/logger.js', () => ({
   Logger: vi.fn(() => ({
@@ -258,31 +288,27 @@ describe('executeAddCommand', () => {
 
   describe('Logger initialization', () => {
     it('should initialize Logger instance', async () => {
-      const { Logger } = await import('@/reporting/logger.js');
+      const pino = (await import('pino')).default;
       const argv = ['node', 'kirox', 'add', 'owner/repo', '-p', 'test-project'];
 
       await executeAddCommand(argv);
 
-      // Logger should be instantiated
-      expect(Logger).toHaveBeenCalled();
+      // PinoLogger should instantiate Pino with level='info' (verbose=false)
+      expect(pino).toHaveBeenCalledWith(
+        expect.objectContaining({
+          level: 'info',
+        })
+      );
     });
 
     it('should log execution start when verbose is true', async () => {
-      const { Logger } = await import('@/reporting/logger.js');
-      const mockLogger = {
-        info: vi.fn(),
-        warn: vi.fn(),
-        error: vi.fn(),
-        logError: vi.fn(),
-      };
-      vi.mocked(Logger).mockReturnValue(mockLogger as any);
-
       const argv = ['node', 'kirox', 'add', 'owner/repo', '-p', 'test-project', '--verbose'];
 
       await executeAddCommand(argv);
 
-      // Logger info should be called with verbose flag
-      expect(mockLogger.info).toHaveBeenCalled();
+      // With --verbose flag, debug() should be called for execution details
+      // (PinoLogger uses debug() for verbose logging, not info())
+      expect(debugSpy).toHaveBeenCalled();
     });
   });
 
@@ -399,15 +425,6 @@ describe('executeAddCommand', () => {
     it('should create empty metadata when metadata file does not exist (Task 2.4)', async () => {
       const { loadMetadata } = await import('@/tracking/metadata-manager.js');
       const { MetadataError, MetadataErrorType } = await import('@/tracking/types.js');
-      const { Logger } = await import('@/reporting/logger.js');
-
-      const mockLogger = {
-        info: vi.fn(),
-        warn: vi.fn(),
-        error: vi.fn(),
-        logError: vi.fn(),
-      };
-      vi.mocked(Logger).mockReturnValue(mockLogger as any);
 
       // Mock loadMetadata to throw MetadataError.NOT_FOUND
       vi.mocked(loadMetadata).mockRejectedValue(
@@ -422,10 +439,12 @@ describe('executeAddCommand', () => {
       const result = await executeAddCommand(argv);
 
       // Task 2.4: Should NOT return error, but proceed with empty metadata
-      // Should log info message about creating new metadata
-      expect(mockLogger.info).toHaveBeenCalledWith(
-        expect.stringMatching(/new.*metadata|creating.*metadata/i),
-        expect.any(Object)
+      // PinoLogger uses infoSpy for creating new metadata message
+      expect(infoSpy).toHaveBeenCalledWith(
+        expect.objectContaining({
+          path: expect.any(String),
+        }),
+        expect.stringMatching(/new.*metadata|creating.*metadata/i)
       );
 
       // Should not exit with error code 1
@@ -502,15 +521,6 @@ describe('executeAddCommand', () => {
   describe('Duplicate project detection (Task 2.3)', () => {
     it('should detect duplicate project when repository and projectName match', async () => {
       const { loadMetadata } = await import('@/tracking/metadata-manager.js');
-      const { Logger } = await import('@/reporting/logger.js');
-
-      const mockLogger = {
-        info: vi.fn(),
-        warn: vi.fn(),
-        error: vi.fn(),
-        logError: vi.fn(),
-      };
-      vi.mocked(Logger).mockReturnValue(mockLogger as any);
 
       // Mock loadMetadata to return existing project with same repository and projectName
       vi.mocked(loadMetadata).mockResolvedValue({
@@ -531,9 +541,13 @@ describe('executeAddCommand', () => {
       // Should detect duplicate and skip without --force
       expect(result.success).toBe(false);
       expect(result.exitCode).toBe(1);
-      expect(mockLogger.warn).toHaveBeenCalledWith(
-        expect.stringMatching(/already exists|duplicate/i),
-        expect.any(Object)
+      // Task 2.2: PinoLogger uses warnSpy (from Pino module mock at top of file)
+      expect(warnSpy).toHaveBeenCalledWith(
+        expect.objectContaining({
+          repository: 'owner/repo',
+          projectName: 'test-project',
+        }),
+        expect.stringMatching(/already exists|duplicate/i)
       );
     });
 
@@ -564,15 +578,6 @@ describe('executeAddCommand', () => {
 
     it('should skip duplicate project without --force option', async () => {
       const { loadMetadata } = await import('@/tracking/metadata-manager.js');
-      const { Logger } = await import('@/reporting/logger.js');
-
-      const mockLogger = {
-        info: vi.fn(),
-        warn: vi.fn(),
-        error: vi.fn(),
-        logError: vi.fn(),
-      };
-      vi.mocked(Logger).mockReturnValue(mockLogger as any);
 
       // Mock loadMetadata to return existing project with same repository and projectName
       vi.mocked(loadMetadata).mockResolvedValue({
@@ -593,20 +598,12 @@ describe('executeAddCommand', () => {
       // Should skip with warning
       expect(result.success).toBe(false);
       expect(result.exitCode).toBe(1);
-      expect(mockLogger.warn).toHaveBeenCalled();
+      // Task 2.2: PinoLogger uses warnSpy (from Pino module mock)
+      expect(warnSpy).toHaveBeenCalled();
     });
 
     it('should continue with verbose log when duplicate project found with --force', async () => {
       const { loadMetadata } = await import('@/tracking/metadata-manager.js');
-      const { Logger } = await import('@/reporting/logger.js');
-
-      const mockLogger = {
-        info: vi.fn(),
-        warn: vi.fn(),
-        error: vi.fn(),
-        logError: vi.fn(),
-      };
-      vi.mocked(Logger).mockReturnValue(mockLogger as any);
 
       // Mock loadMetadata to return existing project with same repository and projectName
       vi.mocked(loadMetadata).mockResolvedValue({
@@ -627,23 +624,18 @@ describe('executeAddCommand', () => {
       // Should continue with verbose log (not fail)
       // (Will eventually succeed when full implementation is complete)
       expect(result.exitCode).toBeGreaterThanOrEqual(0);
-      expect(mockLogger.info).toHaveBeenCalledWith(
-        expect.stringMatching(/overwriting|force/i),
-        expect.any(Object)
+      // Task 2.2: PinoLogger uses infoSpy for verbose log (from Pino module mock)
+      expect(infoSpy).toHaveBeenCalledWith(
+        expect.objectContaining({
+          repository: 'owner/repo',
+          projectName: 'test-project',
+        }),
+        expect.stringMatching(/overwriting|force/i)
       );
     });
 
     it('should display warning message when duplicate found without --force', async () => {
       const { loadMetadata } = await import('@/tracking/metadata-manager.js');
-      const { Logger } = await import('@/reporting/logger.js');
-
-      const mockLogger = {
-        info: vi.fn(),
-        warn: vi.fn(),
-        error: vi.fn(),
-        logError: vi.fn(),
-      };
-      vi.mocked(Logger).mockReturnValue(mockLogger as any);
 
       // Mock loadMetadata to return existing project with same repository and projectName
       vi.mocked(loadMetadata).mockResolvedValue({
@@ -661,10 +653,13 @@ describe('executeAddCommand', () => {
       const argv = ['node', 'kirox', 'add', 'owner/repo', '-p', 'test-project', '--track'];
       await executeAddCommand(argv);
 
-      // Should display warning with suggestion to use --force
-      expect(mockLogger.warn).toHaveBeenCalledWith(
-        expect.stringMatching(/use.*--force|--force.*overwrite/i),
-        expect.any(Object)
+      // Task 2.2: PinoLogger uses warnSpy - check message about --force option
+      expect(warnSpy).toHaveBeenCalledWith(
+        expect.objectContaining({
+          repository: 'owner/repo',
+          projectName: 'test-project',
+        }),
+        expect.stringMatching(/use.*--force|--force.*overwrite/i)
       );
     });
   });
@@ -808,16 +803,7 @@ describe('executeAddCommand', () => {
 
     it('should handle steering directory not found gracefully', async () => {
       const { loadMetadata } = await import('@/tracking/metadata-manager.js');
-      const { Logger } = await import('@/reporting/logger.js');
       const { fetchDirectoryContents } = await import('@/github/fetcher.js');
-
-      const mockLogger = {
-        info: vi.fn(),
-        warn: vi.fn(),
-        error: vi.fn(),
-        logError: vi.fn(),
-      };
-      vi.mocked(Logger).mockReturnValue(mockLogger as any);
 
       vi.mocked(loadMetadata).mockResolvedValue({
         version: '1.0',
@@ -835,10 +821,12 @@ describe('executeAddCommand', () => {
       // Should continue despite steering directory not found
       expect(result.exitCode).toBeGreaterThanOrEqual(0);
 
-      // Should log warning when verbose
-      expect(mockLogger.warn).toHaveBeenCalledWith(
-        expect.stringMatching(/steering.*not found|skipping/i),
-        expect.any(Object)
+      // Task 2.3: PinoLogger uses warnSpy for steering directory not found warning
+      expect(warnSpy).toHaveBeenCalledWith(
+        expect.objectContaining({
+          path: expect.any(String),
+        }),
+        expect.stringMatching(/steering.*not found|skipping/i)
       );
     });
 
@@ -1054,15 +1042,6 @@ describe('executeAddCommand', () => {
       const { loadMetadata } = await import('@/tracking/metadata-manager.js');
       const { fetchDirectoryContents } = await import('@/github/fetcher.js');
       const { fetchFilesInParallel } = await import('@/github/parallel-fetcher.js');
-      const { Logger } = await import('@/reporting/logger.js');
-
-      const mockLogger = {
-        info: vi.fn(),
-        warn: vi.fn(),
-        error: vi.fn(),
-        logError: vi.fn(),
-      };
-      vi.mocked(Logger).mockReturnValue(mockLogger as any);
 
       vi.mocked(loadMetadata).mockResolvedValue({
         version: '1.0',
@@ -1085,8 +1064,8 @@ describe('executeAddCommand', () => {
       const argv = ['node', 'kirox', 'add', 'owner/repo', '-p', 'test-project', '--verbose'];
       await executeAddCommand(argv);
 
-      // Logger info should be called with verbose flag
-      expect(mockLogger.info).toHaveBeenCalled();
+      // Task 2.3: PinoLogger uses infoSpy for verbose logging
+      expect(infoSpy).toHaveBeenCalled();
     });
 
     it('should tolerate partial failures using Promise.allSettled behavior', async () => {
@@ -2215,15 +2194,6 @@ describe('executeAddCommand', () => {
       const { writeFile } = await import('@/filesystem/writer.js');
       const { upsertProject } = await import('@/tracking/metadata-manager.js');
       const { calculateFileHash } = await import('@/tracking/hash-calculator.js');
-      const { Logger } = await import('@/reporting/logger.js');
-
-      const mockLogger = {
-        info: vi.fn(),
-        warn: vi.fn(),
-        error: vi.fn(),
-        logError: vi.fn(),
-      };
-      vi.mocked(Logger).mockReturnValue(mockLogger as any);
 
       vi.mocked(loadMetadata).mockResolvedValue({
         version: '1.0',
@@ -2259,13 +2229,13 @@ describe('executeAddCommand', () => {
       const argv = ['node', 'kirox', 'add', 'owner/repo', '-p', 'test-project', '--track'];
       const result = await executeAddCommand(argv);
 
-      // Should display success summary message
-      expect(mockLogger.info).toHaveBeenCalledWith(
-        expect.stringMatching(/successfully added|project added|metadata updated/i),
+      // Task 2.4: PinoLogger uses infoSpy for success summary message
+      expect(infoSpy).toHaveBeenCalledWith(
         expect.objectContaining({
           project: 'test-project',
           fileCount: 3,
-        })
+        }),
+        expect.stringMatching(/successfully added|project added/i)
       );
 
       expect(result.success).toBe(true);
@@ -2279,15 +2249,6 @@ describe('executeAddCommand', () => {
       const { writeFile } = await import('@/filesystem/writer.js');
       const { upsertProject } = await import('@/tracking/metadata-manager.js');
       const { calculateFileHash } = await import('@/tracking/hash-calculator.js');
-      const { Logger } = await import('@/reporting/logger.js');
-
-      const mockLogger = {
-        info: vi.fn(),
-        warn: vi.fn(),
-        error: vi.fn(),
-        logError: vi.fn(),
-      };
-      vi.mocked(Logger).mockReturnValue(mockLogger as any);
 
       vi.mocked(loadMetadata).mockResolvedValue({
         version: '1.0',
@@ -2322,9 +2283,9 @@ describe('executeAddCommand', () => {
       const argv = ['node', 'kirox', 'add', 'owner/repo', '-p', 'test-project', '--track'];
       const result = await executeAddCommand(argv);
 
-      // Should NOT display success summary when metadata update fails
-      const successMessages = mockLogger.info.mock.calls.filter(call =>
-        typeof call[0] === 'string' && /successfully added|project added|metadata updated/i.test(call[0])
+      // Task 2.4: PinoLogger uses infoSpy - should NOT display success summary when metadata update fails
+      const successMessages = infoSpy.mock.calls.filter(call =>
+        typeof call[1] === 'string' && /successfully added|project added/i.test(call[1])
       );
       expect(successMessages).toHaveLength(0);
 
@@ -2338,15 +2299,6 @@ describe('executeAddCommand', () => {
       const { fetchFilesInParallel } = await import('@/github/parallel-fetcher.js');
       const { writeFile } = await import('@/filesystem/writer.js');
       const { calculateFileHash } = await import('@/tracking/hash-calculator.js');
-      const { Logger } = await import('@/reporting/logger.js');
-
-      const mockLogger = {
-        info: vi.fn(),
-        warn: vi.fn(),
-        error: vi.fn(),
-        logError: vi.fn(),
-      };
-      vi.mocked(Logger).mockReturnValue(mockLogger as any);
 
       vi.mocked(loadMetadata).mockResolvedValue({
         version: '1.0',
@@ -2389,12 +2341,12 @@ describe('executeAddCommand', () => {
       const argv = ['node', 'kirox', 'add', 'owner/repo', '-p', 'test-project', '--track'];
       await executeAddCommand(argv);
 
-      // Should display file count (5 files) in success message
-      expect(mockLogger.info).toHaveBeenCalledWith(
-        expect.anything(),
+      // Task 2.4: PinoLogger uses infoSpy - should display file count (5 files) in success message
+      expect(infoSpy).toHaveBeenCalledWith(
         expect.objectContaining({
           fileCount: 5,
-        })
+        }),
+        expect.anything()
       );
     });
   });
