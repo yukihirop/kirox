@@ -374,23 +374,26 @@ describe('ProgressReporter - Spinner Lifecycle (Task 5.1 & 5.2)', () => {
       reporter.reportProgress(1, 10, 'file1.md', 'proj1');
       reporter.reportProgress(1, 8, 'file2.md', 'proj2');
 
-      // Stop one spinner manually
-      reporter.reportSuccess('Done', 'proj1');
-
       const reporterAny = reporter as unknown as {
         spinnerMap: Map<string, Ora>;
       };
 
-      const spinner1 = reporterAny.spinnerMap.get('proj1');
       const spinner2 = reporterAny.spinnerMap.get('proj2');
+      expect(spinner2!.isSpinning).toBe(true);
 
-      expect(spinner1!.isSpinning).toBe(false);
+      // Stop one spinner manually (Task 14.4: this removes spinner1 from map)
+      reporter.reportSuccess('Done', 'proj1');
+
+      const spinner1AfterSuccess = reporterAny.spinnerMap.get('proj1');
+      expect(spinner1AfterSuccess).toBeUndefined(); // Task 14.4: spinner removed after succeed
+
+      // spinner2 should still be spinning
       expect(spinner2!.isSpinning).toBe(true);
 
       // Call reportSummary
       reporter.reportSummary(10, 0);
 
-      // Both should be stopped (stop called on already stopped spinner is ok)
+      // spinner2 should be stopped
       expect(spinner2!.stop).toHaveBeenCalled();
     });
   });

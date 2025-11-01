@@ -314,25 +314,29 @@ describe('ProgressReporter - reportSuccess/reportError with Spinner (Task 4.1 & 
       );
       const reporter = new ProgressReporter({ verbose: false, useColor: true });
 
-      // Create spinner
+      // Create first spinner
       reporter.reportProgress(1, 10, 'file.md');
 
       const reporterAny = reporter as unknown as {
         spinnerMap: Map<string, Ora>;
       };
 
-      const spinner = reporterAny.spinnerMap.get('');
+      const firstSpinner = reporterAny.spinnerMap.get('');
 
-      // Call reportSuccess first
+      // Call reportSuccess - this removes spinner from map (Task 14.4 fix)
       reporter.reportSuccess('First success');
-      expect(spinner!.succeed).toHaveBeenCalledTimes(1);
+      expect(firstSpinner!.succeed).toHaveBeenCalledTimes(1);
 
-      // Create new spinner
+      // Create new spinner (Task 14.4: new instance because previous one was removed)
       reporter.reportProgress(2, 10, 'file2.md');
 
-      // Call reportError
+      // Get the new spinner instance
+      const secondSpinner = reporterAny.spinnerMap.get('');
+      expect(secondSpinner).not.toBe(firstSpinner); // Different instance
+
+      // Call reportError on new spinner
       reporter.reportError('Second error');
-      expect(spinner!.fail).toHaveBeenCalledTimes(1);
+      expect(secondSpinner!.fail).toHaveBeenCalledTimes(1);
     });
 
     it('should handle multiple projects with different outcomes', async () => {

@@ -32,9 +32,12 @@ function createMockSpinner() {
     fail: vi.fn(),
   };
 
-  // Make start() set isSpinning to true and return this
-  spinner.start.mockImplementation(() => {
+  // Make start() set isSpinning to true, set text, and return this
+  spinner.start.mockImplementation((message?: string) => {
     spinner.isSpinning = true;
+    if (message !== undefined) {
+      spinner.text = message;
+    }
     return spinner;
   });
 
@@ -44,8 +47,22 @@ function createMockSpinner() {
     return spinner;
   });
 
-  spinner.succeed.mockReturnValue(spinner);
-  spinner.fail.mockReturnValue(spinner);
+  // Make succeed() and fail() set isSpinning to false (Task 14.4: spinners stop after succeed/fail)
+  spinner.succeed.mockImplementation((message?: string) => {
+    spinner.isSpinning = false;
+    if (message !== undefined) {
+      spinner.text = message;
+    }
+    return spinner;
+  });
+
+  spinner.fail.mockImplementation((message?: string) => {
+    spinner.isSpinning = false;
+    if (message !== undefined) {
+      spinner.text = message;
+    }
+    return spinner;
+  });
 
   return spinner;
 }

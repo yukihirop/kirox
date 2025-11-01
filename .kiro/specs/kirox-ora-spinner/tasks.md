@@ -207,13 +207,15 @@
   - ✅ テスト追加(progress-reporter-type-safety-error.test.ts)で41テスト全て合格
   - _Requirements: 全要件に対する型安全性とエラー処理の検証_
 
-- [ ] 14.4 スピナー再利用問題の修正 (CRITICAL BUG)
-  - 🐛 **問題**: reportSuccess/reportError後に次のreportProgressが呼ばれると処理が固まる
-  - 🔍 **原因**: oraスピナーはsucceed()/fail()で終了後、同じインスタンスを再start()できない
-  - 💡 **解決策1**: reportSuccess/reportError後にスピナーをMapから削除し、次のreportProgressで新しいインスタンスを作成
-  - 💡 **解決策2**: reportProgressで既存スピナーがisSpinning=falseの場合、新しいインスタンスを作成して置き換え
-  - ✅ **実装**: getOrCreateSpinnerメソッドを修正し、停止済みスピナーを検出して新規作成
-  - ✅ **テスト**: 連続したreportProgress→reportSuccess→reportProgressのフローをテスト
+- [x] 14.4 スピナー再利用問題の修正 (CRITICAL BUG)
+  - ✅ **問題**: reportSuccess/reportError後に次のreportProgressが呼ばれると処理が固まる
+  - ✅ **原因**: oraスピナーはsucceed()/fail()で終了後、同じインスタンスを再start()できない
+  - ✅ **解決策採用**: reportSuccess/reportError後にスピナーをMapから削除 + getOrCreateSpinnerで停止済みスピナーを検出して新規作成
+  - ✅ **実装1**: getOrCreateSpinnerメソッドを修正 - 既存スピナーがisSpinning=falseの場合に新しいインスタンスを作成
+  - ✅ **実装2**: reportSuccess/reportError内でsucceed()/fail()後にスピナーをMapから削除
+  - ✅ **テスト**: progress-reporter-spinner-reuse.test.ts作成 - 12テスト全て合格
+  - ✅ **既存テスト修正**: モックのstart()/succeed()/fail()にtext設定とisSpinning管理を追加
+  - ✅ **回帰テスト**: reporting層の全269テスト合格
   - _Requirements: 2.1, 2.7, 4.1, 4.2, 6.3_
 
 - [ ] 14.5 デバッグ情報の追加と検証

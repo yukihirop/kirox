@@ -245,10 +245,11 @@ export class ProgressReporter {
   /**
    * Get or create spinner for a project
    *
-   * Task 3.1 & 3.2: Helper method to manage spinner instances
+   * Task 3.1 & 3.2 & Task 14.4: Helper method to manage spinner instances
    * - Uses empty string as key for default spinner (no project name)
    * - Creates new spinner if not found in Map
-   * - Returns existing spinner if already created
+   * - Creates new spinner if existing one is stopped (Task 14.4 fix)
+   * - Returns existing spinner if already created and still spinning
    *
    * @param projectName - Optional project name (undefined, empty, or whitespace becomes default spinner)
    * @returns Ora spinner instance
@@ -258,11 +259,15 @@ export class ProgressReporter {
     const spinnerKey = projectName && projectName.trim() !== '' ? projectName : '';
 
     // Check if spinner already exists
-    if (this.spinnerMap.has(spinnerKey)) {
-      return this.spinnerMap.get(spinnerKey)!;
+    const existingSpinner = this.spinnerMap.get(spinnerKey);
+
+    // Task 14.4: If spinner exists but is not spinning (stopped by succeed/fail),
+    // we need to create a new one because ora spinners cannot be restarted
+    if (existingSpinner && existingSpinner.isSpinning) {
+      return existingSpinner;
     }
 
-    // Create new spinner with ora options
+    // Create new spinner with ora options (either no spinner exists, or existing one is stopped)
     const newSpinner = ora(this.oraOptions);
     this.spinnerMap.set(spinnerKey, newSpinner);
 
@@ -368,6 +373,10 @@ export class ProgressReporter {
         if (spinner && spinner.isSpinning) {
           // Stop spinner with success message
           spinner.succeed(formattedMessage);
+
+          // Task 14.4: Remove stopped spinner from map to prevent reuse issues
+          // This allows getOrCreateSpinner to create a fresh spinner for next file
+          this.spinnerMap.delete(spinnerKey);
         } else {
           // No active spinner, fall back to console.log
           console.log(this.chalk.green(formattedMessage));
@@ -438,6 +447,10 @@ export class ProgressReporter {
         if (spinner && spinner.isSpinning) {
           // Stop spinner with error message
           spinner.fail(formattedMessage);
+
+          // Task 14.4: Remove stopped spinner from map to prevent reuse issues
+          // This allows getOrCreateSpinner to create a fresh spinner for next file
+          this.spinnerMap.delete(spinnerKey);
         } else {
           // No active spinner, fall back to console.error
           console.error(this.chalk.red(formattedMessage));
