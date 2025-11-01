@@ -114,7 +114,7 @@ describe('ProgressReporter - reportSuccess/reportError with Spinner (Task 4.1 & 
       // Task 14.8: Should call spinner.stop() and console.log with green color
       expect(spinner!.stop).toHaveBeenCalled();
       expect(consoleLogSpy).toHaveBeenCalled();
-      expect(consoleLogSpy.mock.calls[0][0]).toContain('✓ File downloaded successfully');
+      expect(consoleLogSpy.mock.calls[0]?.[0]).toContain('✓ File downloaded successfully');
 
       consoleLogSpy.mockRestore();
     });
@@ -203,7 +203,7 @@ describe('ProgressReporter - reportSuccess/reportError with Spinner (Task 4.1 & 
 
       // Should have stripped 'lib/a/' prefix
       expect(consoleLogSpy).toHaveBeenCalled();
-      const logCall = consoleLogSpy.mock.calls[0][0];
+      const logCall = consoleLogSpy.mock.calls[0]?.[0];
       expect(logCall).toContain('.kiro/specs/project/file.md');
       expect(logCall).not.toContain('lib/a/');
 
@@ -236,7 +236,7 @@ describe('ProgressReporter - reportSuccess/reportError with Spinner (Task 4.1 & 
       // Task 14.8: Should call spinner.stop() and console.error with red color
       expect(spinner!.stop).toHaveBeenCalled();
       expect(consoleErrorSpy).toHaveBeenCalled();
-      expect(consoleErrorSpy.mock.calls[0][0]).toContain('✗ Failed to fetch file');
+      expect(consoleErrorSpy.mock.calls[0]?.[0]).toContain('✗ Failed to fetch file');
 
       consoleErrorSpy.mockRestore();
     });

@@ -374,8 +374,8 @@ describe('InputValidator', () => {
 
       expect(result.valid).toBe(false);
       expect(result.errors).toHaveLength(2);
-      expect(result.errors.some((e) => e.field === 'repository')).toBe(true);
-      expect(result.errors.some((e) => e.field === 'subdir')).toBe(true);
+      expect(result.errors.some((e: any) => e.field === 'repository')).toBe(true);
+      expect(result.errors.some((e: any) => e.field === 'subdir')).toBe(true);
     });
   });
 
@@ -420,7 +420,7 @@ describe('InputValidator', () => {
 
       expect(result.valid).toBe(false);
       expect(result.errors).toHaveLength(3);
-      expect(result.errors.every((e) => e.field === 'project')).toBe(true);
+      expect(result.errors.every((e: any) => e.field === 'project')).toBe(true);
     });
 
     it('should reject empty string in projects array', () => {
@@ -453,7 +453,7 @@ describe('InputValidator', () => {
 
       expect(result.valid).toBe(false);
       expect(result.errors.length).toBeGreaterThanOrEqual(1);
-      const duplicateError = result.errors.find((e) => e.field === 'projects');
+      const duplicateError = result.errors.find((e: any) => e.field === 'projects');
       expect(duplicateError).toBeDefined();
       expect(duplicateError?.message).toContain('Duplicate');
     });
@@ -653,7 +653,7 @@ describe('InputValidator', () => {
       const result = validateInput(args);
 
       expect(result.valid).toBe(false);
-      expect(result.errors.some((e) => e.field === 'repository')).toBe(true);
+      expect(result.errors.some((e: any) => e.field === 'repository')).toBe(true);
     });
 
     it('should validate repository format in --steering mode', () => {

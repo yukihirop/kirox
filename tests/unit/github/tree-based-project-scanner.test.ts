@@ -958,11 +958,11 @@ describe('Tree-Based Project Scanner', () => {
         expect(result.success).toBe(true);
         expect(result.projects).toHaveLength(5);
 
-        expect(result.projects[0].displayName).toBe('root-project');
-        expect(result.projects[1].displayName).toBe('lib/a/alpha');
-        expect(result.projects[2].displayName).toBe('lib/a/gamma');
-        expect(result.projects[3].displayName).toBe('lib/b/beta');
-        expect(result.projects[4].displayName).toBe('packages/z/zebra');
+        expect(result.projects[0]?.displayName).toBe('root-project');
+        expect(result.projects[1]?.displayName).toBe('lib/a/alpha');
+        expect(result.projects[2]?.displayName).toBe('lib/a/gamma');
+        expect(result.projects[3]?.displayName).toBe('lib/b/beta');
+        expect(result.projects[4]?.displayName).toBe('packages/z/zebra');
       });
 
       it('should sort projects within the same subdirectory alphabetically', async () => {
@@ -1018,9 +1018,9 @@ describe('Tree-Based Project Scanner', () => {
         expect(result.success).toBe(true);
         expect(result.projects).toHaveLength(3);
 
-        expect(result.projects[0].name).toBe('alpha');
-        expect(result.projects[1].name).toBe('mike');
-        expect(result.projects[2].name).toBe('zulu');
+        expect(result.projects[0]?.name).toBe('alpha');
+        expect(result.projects[1]?.name).toBe('mike');
+        expect(result.projects[2]?.name).toBe('zulu');
       });
     });
   });

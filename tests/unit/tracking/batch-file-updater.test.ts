@@ -6,7 +6,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { promises as fs } from 'fs';
 import path from 'path';
 import type { Octokit } from 'octokit';
-import { applyUpdates, type ApplySummary } from '../../../src/tracking/batch-file-updater.js';
+import { applyUpdates } from '../../../src/tracking/batch-file-updater.js';
 import type { UpdateCheckResult } from '../../../src/tracking/update-checker.js';
 import { UpdateStatus } from '../../../src/tracking/update-checker.js';
 
@@ -123,12 +123,12 @@ describe('BatchFileUpdater', () => {
 
       expect(summary.updatedFiles).toHaveLength(1);
       const updated = summary.updatedFiles[0];
-      expect(updated.path).toBe('success-test.md');
-      expect(updated.oldSha).toBe('old-sha');
-      expect(updated.newSha).toBe('new-sha-xyz');
-      expect(updated.newSize).toBe(200);
-      expect(updated.newHash).toBeDefined();
-      expect(updated.newHash).toMatch(/^[a-f0-9]{64}$/); // SHA-256 format
+      expect(updated?.path).toBe('success-test.md');
+      expect(updated?.oldSha).toBe('old-sha');
+      expect(updated?.newSha).toBe('new-sha-xyz');
+      expect(updated?.newSize).toBe(200);
+      expect(updated?.newHash).toBeDefined();
+      expect(updated?.newHash).toMatch(/^[a-f0-9]{64}$/); // SHA-256 format
     });
   });
 
@@ -162,8 +162,8 @@ describe('BatchFileUpdater', () => {
       expect(summary.skipped).toBe(1);
       expect(summary.failed).toBe(0);
       expect(summary.skippedFiles).toHaveLength(1);
-      expect(summary.skippedFiles[0].path).toBe('up-to-date.md');
-      expect(summary.skippedFiles[0].reason).toBe('up-to-date');
+      expect(summary?.skippedFiles?.[0]?.path).toBe('up-to-date.md');
+      expect(summary?.skippedFiles?.[0]?.reason).toBe('up-to-date');
 
       // API should not be called for skipped files
       expect(mockClient.rest.repos.getContent).not.toHaveBeenCalled();
@@ -194,7 +194,7 @@ describe('BatchFileUpdater', () => {
       const summary = await applyUpdates(mockClient, 'owner', 'repo', testDir, results);
 
       expect(summary.skipped).toBe(1);
-      expect(summary.skippedFiles[0].reason).toBe('local-edit');
+      expect(summary?.skippedFiles?.[0]?.reason).toBe('local-edit');
       expect(mockClient.rest.repos.getContent).not.toHaveBeenCalled();
     });
 
@@ -223,7 +223,7 @@ describe('BatchFileUpdater', () => {
       const summary = await applyUpdates(mockClient, 'owner', 'repo', testDir, results);
 
       expect(summary.skipped).toBe(1);
-      expect(summary.skippedFiles[0].reason).toBe('conflict');
+      expect(summary?.skippedFiles?.[0]?.reason).toBe('conflict');
     });
 
     it('スキップ理由を正しく記録する', async () => {
@@ -310,8 +310,8 @@ describe('BatchFileUpdater', () => {
       expect(summary.skipped).toBe(0);
       expect(summary.failed).toBe(1);
       expect(summary.failedFiles).toHaveLength(1);
-      expect(summary.failedFiles[0].path).toBe('will-fail.md');
-      expect(summary.failedFiles[0].error).toContain('Network error');
+      expect(summary?.failedFiles?.[0]?.path).toBe('will-fail.md');
+      expect(summary?.failedFiles?.[0]?.error).toContain('Network error');
     });
 
     it('一部失敗しても他のファイルは更新を継続する', async () => {

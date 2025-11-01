@@ -10,7 +10,6 @@ import {
   saveMetadata,
   upsertProject,
   upsertFile,
-  METADATA_PATH,
 } from '../../../src/tracking/metadata-manager.js';
 import { MetadataErrorType } from '../../../src/tracking/types.js';
 import type { Metadata, ProjectMetadata, FileMetadata } from '../../../src/tracking/types.js';
@@ -65,7 +64,7 @@ describe('MetadataManager - loadMetadata', () => {
       expect(result).toEqual(validMetadata);
       expect(result.version).toBe('1.0');
       expect(result.projects).toHaveLength(1);
-      expect(result.projects[0].repository).toBe('owner/repo');
+      expect(result?.projects?.[0]?.repository).toBe('owner/repo');
     });
 
     it('空のプロジェクト配列を持つメタデータを読み込める', async () => {
@@ -590,9 +589,9 @@ describe('MetadataManager - upsertProject', () => {
       // Assert
       const metadata = await loadMetadata(testMetadataPath);
       expect(metadata.projects).toHaveLength(1);
-      expect(metadata.projects[0].fetchedAt).toBe('2025-10-06T11:00:00Z');
-      expect(metadata.projects[0].files).toHaveLength(1);
-      expect(metadata.projects[0].files[0].path).toBe('.kiro/specs/test-project/new-file.md');
+      expect(metadata?.projects?.[0]?.fetchedAt).toBe('2025-10-06T11:00:00Z');
+      expect(metadata?.projects?.[0]?.files).toHaveLength(1);
+      expect(metadata?.projects?.[0]?.files?.[0]?.path).toBe('.kiro/specs/test-project/new-file.md');
     });
 
     it('更新時にfetchedAtタイムスタンプが更新される', async () => {
@@ -626,7 +625,7 @@ describe('MetadataManager - upsertProject', () => {
 
       // Assert
       const metadata = await loadMetadata(testMetadataPath);
-      expect(metadata.projects[0].fetchedAt).toBe('2025-10-06T12:00:00Z');
+      expect(metadata?.projects?.[0]?.fetchedAt).toBe('2025-10-06T12:00:00Z');
     });
   });
 
@@ -731,7 +730,7 @@ describe('MetadataManager - upsertProject', () => {
       // Assert
       const metadata = await loadMetadata(testMetadataPath);
       expect(metadata.projects).toHaveLength(1);
-      expect(metadata.projects[0].fetchedAt).toBe('2025-10-06T10:00:00Z');
+      expect(metadata?.projects?.[0]?.fetchedAt).toBe('2025-10-06T10:00:00Z');
     });
   });
 
@@ -802,8 +801,8 @@ describe('MetadataManager - upsertFile', () => {
 
       // Assert
       const metadata = await loadMetadata(testMetadataPath);
-      expect(metadata.projects[0].files).toHaveLength(1);
-      expect(metadata.projects[0].files[0]).toEqual(newFile);
+      expect(metadata?.projects?.[0]?.files).toHaveLength(1);
+      expect(metadata?.projects?.[0]?.files?.[0]).toEqual(newFile);
     });
 
     it('既存ファイルがある場合、新規ファイルを追加できる', async () => {
@@ -846,8 +845,8 @@ describe('MetadataManager - upsertFile', () => {
 
       // Assert
       const metadata = await loadMetadata(testMetadataPath);
-      expect(metadata.projects[0].files).toHaveLength(2);
-      expect(metadata.projects[0].files[1]).toEqual(newFile);
+      expect(metadata?.projects?.[0]?.files).toHaveLength(2);
+      expect(metadata?.projects?.[0]?.files?.[1]).toEqual(newFile);
     });
   });
 
@@ -892,11 +891,11 @@ describe('MetadataManager - upsertFile', () => {
 
       // Assert
       const metadata = await loadMetadata(testMetadataPath);
-      expect(metadata.projects[0].files).toHaveLength(1);
-      expect(metadata.projects[0].files[0]).toEqual(updatedFile);
-      expect(metadata.projects[0].files[0].sha).toBe('new-sha');
-      expect(metadata.projects[0].files[0].localHash).toBe('new-hash');
-      expect(metadata.projects[0].files[0].fetchedAt).toBe('2025-10-06T11:00:00Z');
+      expect(metadata?.projects?.[0]?.files).toHaveLength(1);
+      expect(metadata?.projects?.[0]?.files?.[0]).toEqual(updatedFile);
+      expect(metadata?.projects?.[0]?.files?.[0]?.sha).toBe('new-sha');
+      expect(metadata?.projects?.[0]?.files?.[0]?.localHash).toBe('new-hash');
+      expect(metadata?.projects?.[0]?.files?.[0]?.fetchedAt).toBe('2025-10-06T11:00:00Z');
     });
 
     it('SHA、ハッシュ、日時が更新される', async () => {
@@ -939,11 +938,11 @@ describe('MetadataManager - upsertFile', () => {
 
       // Assert
       const metadata = await loadMetadata(testMetadataPath);
-      const file = metadata.projects[0].files[0];
-      expect(file.sha).toBe('sha2');
-      expect(file.localHash).toBe('hash2');
-      expect(file.size).toBe(200);
-      expect(file.fetchedAt).toBe('2025-10-06T12:00:00Z');
+      const file = metadata?.projects?.[0]?.files?.[0];
+      expect(file?.sha).toBe('sha2');
+      expect(file?.localHash).toBe('hash2');
+      expect(file?.size).toBe(200);
+      expect(file?.fetchedAt).toBe('2025-10-06T12:00:00Z');
     });
   });
 
@@ -988,7 +987,7 @@ describe('MetadataManager - upsertFile', () => {
 
       // Assert
       const metadata = await loadMetadata(testMetadataPath);
-      expect(metadata.projects[0].files).toHaveLength(2);
+      expect(metadata?.projects?.[0]?.files).toHaveLength(2);
     });
 
     it('ファイルパスが一致する場合のみ更新される', async () => {
@@ -1031,8 +1030,8 @@ describe('MetadataManager - upsertFile', () => {
 
       // Assert
       const metadata = await loadMetadata(testMetadataPath);
-      expect(metadata.projects[0].files).toHaveLength(1);
-      expect(metadata.projects[0].files[0].sha).toBe('new-sha');
+      expect(metadata?.projects?.[0]?.files).toHaveLength(1);
+      expect(metadata?.projects?.[0]?.files?.[0]?.sha).toBe('new-sha');
     });
   });
 

@@ -6,7 +6,6 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import type { Octokit } from 'octokit';
 import {
   fetchMultipleMetadata,
-  MetadataFetchResult,
   ProgressCallback,
 } from '../../../src/github/parallel-metadata-fetcher.js';
 import { GitHubMetadataErrorType } from '../../../src/github/metadata-fetcher.js';
@@ -36,7 +35,11 @@ describe('ParallelMetadataFetcher - fetchMultipleMetadata', () => {
         '.kiro/steering/tech.md',
       ];
 
-      vi.mocked(mockOctokit.rest.repos.getContent).mockImplementation(async ({ path }) => {
+      vi.mocked(mockOctokit.rest.repos.getContent).mockImplementation(async (params) => {
+        const path = params?.path;
+        if (!path) {
+          throw new Error('Path is required');
+        }
         return {
           data: {
             name: path.split('/').pop(),
@@ -124,7 +127,11 @@ describe('ParallelMetadataFetcher - fetchMultipleMetadata', () => {
       const repo = 'repo';
       const paths = ['success1.md', 'failure.md', 'success2.md'];
 
-      vi.mocked(mockOctokit.rest.repos.getContent).mockImplementation(async ({ path }) => {
+      vi.mocked(mockOctokit.rest.repos.getContent).mockImplementation(async (params) => {
+        const path = params?.path;
+        if (!path) {
+          throw new Error('Path is required');
+        }
         if (path === 'failure.md') {
           const error = new Error('Not Found');
           (error as any).status = 404;
@@ -150,8 +157,8 @@ describe('ParallelMetadataFetcher - fetchMultipleMetadata', () => {
       // Assert
       expect(result.successful).toHaveLength(2);
       expect(result.failed).toHaveLength(1);
-      expect(result.successful[0].path).toBe('success1.md');
-      expect(result.successful[1].path).toBe('success2.md');
+      expect(result.successful[0]?.path).toBe('success1.md');
+      expect(result.successful[1]?.path).toBe('success2.md');
       expect(result.failed[0]).toMatchObject({
         path: 'failure.md',
         errorType: GitHubMetadataErrorType.FILE_NOT_FOUND,
@@ -187,7 +194,11 @@ describe('ParallelMetadataFetcher - fetchMultipleMetadata', () => {
       let concurrentCount = 0;
       let maxConcurrent = 0;
 
-      vi.mocked(mockOctokit.rest.repos.getContent).mockImplementation(async ({ path }) => {
+      vi.mocked(mockOctokit.rest.repos.getContent).mockImplementation(async (params) => {
+        const path = params?.path;
+        if (!path) {
+          throw new Error('Path is required');
+        }
         concurrentCount++;
         maxConcurrent = Math.max(maxConcurrent, concurrentCount);
 
@@ -227,7 +238,11 @@ describe('ParallelMetadataFetcher - fetchMultipleMetadata', () => {
       let activeTasks = 0;
       let maxActiveTasks = 0;
 
-      vi.mocked(mockOctokit.rest.repos.getContent).mockImplementation(async ({ path }) => {
+      vi.mocked(mockOctokit.rest.repos.getContent).mockImplementation(async (params) => {
+        const path = params?.path;
+        if (!path) {
+          throw new Error('Path is required');
+        }
         activeTasks++;
         maxActiveTasks = Math.max(maxActiveTasks, activeTasks);
 
@@ -266,7 +281,11 @@ describe('ParallelMetadataFetcher - fetchMultipleMetadata', () => {
       let activeTasks = 0;
       let maxActiveTasks = 0;
 
-      vi.mocked(mockOctokit.rest.repos.getContent).mockImplementation(async ({ path }) => {
+      vi.mocked(mockOctokit.rest.repos.getContent).mockImplementation(async (params) => {
+        const path = params?.path;
+        if (!path) {
+          throw new Error('Path is required');
+        }
         activeTasks++;
         maxActiveTasks = Math.max(maxActiveTasks, activeTasks);
 
@@ -303,7 +322,11 @@ describe('ParallelMetadataFetcher - fetchMultipleMetadata', () => {
       const repo = 'repo';
       const paths = ['file1.md', 'file2.md', 'file3.md'];
 
-      vi.mocked(mockOctokit.rest.repos.getContent).mockImplementation(async ({ path }) => {
+      vi.mocked(mockOctokit.rest.repos.getContent).mockImplementation(async (params) => {
+        const path = params?.path;
+        if (!path) {
+          throw new Error('Path is required');
+        }
         return {
           data: {
             name: path,
@@ -339,7 +362,11 @@ describe('ParallelMetadataFetcher - fetchMultipleMetadata', () => {
       const repo = 'repo';
       const paths = ['success.md', 'failure.md'];
 
-      vi.mocked(mockOctokit.rest.repos.getContent).mockImplementation(async ({ path }) => {
+      vi.mocked(mockOctokit.rest.repos.getContent).mockImplementation(async (params) => {
+        const path = params?.path;
+        if (!path) {
+          throw new Error('Path is required');
+        }
         if (path === 'failure.md') {
           const error = new Error('Not Found');
           (error as any).status = 404;
@@ -369,8 +396,8 @@ describe('ParallelMetadataFetcher - fetchMultipleMetadata', () => {
 
       // Assert
       expect(progressCalls).toHaveLength(2);
-      expect(progressCalls[0].path).toBe('success.md');
-      expect(progressCalls[1].path).toBe('failure.md');
+      expect(progressCalls[0]?.path).toBe('success.md');
+      expect(progressCalls[1]?.path).toBe('failure.md');
     });
 
     it('進捗コールバックなしでも動作する', async () => {
@@ -379,7 +406,11 @@ describe('ParallelMetadataFetcher - fetchMultipleMetadata', () => {
       const repo = 'repo';
       const paths = ['file1.md', 'file2.md'];
 
-      vi.mocked(mockOctokit.rest.repos.getContent).mockImplementation(async ({ path }) => {
+      vi.mocked(mockOctokit.rest.repos.getContent).mockImplementation(async (params) => {
+        const path = params?.path;
+        if (!path) {
+          throw new Error('Path is required');
+        }
         return {
           data: {
             name: path,
@@ -421,8 +452,8 @@ describe('ParallelMetadataFetcher - fetchMultipleMetadata', () => {
       expect(result.failed[0]).toHaveProperty('path');
       expect(result.failed[0]).toHaveProperty('errorType');
       expect(result.failed[0]).toHaveProperty('message');
-      expect(result.failed[0].path).toBe('not-found.md');
-      expect(result.failed[0].errorType).toBe(GitHubMetadataErrorType.FILE_NOT_FOUND);
+      expect(result.failed[0]?.path).toBe('not-found.md');
+      expect(result.failed[0]?.errorType).toBe(GitHubMetadataErrorType.FILE_NOT_FOUND);
     });
 
     it('異なるエラータイプを正しく分類する', async () => {
@@ -431,7 +462,11 @@ describe('ParallelMetadataFetcher - fetchMultipleMetadata', () => {
       const repo = 'repo';
       const paths = ['not-found.md', 'rate-limit.md'];
 
-      vi.mocked(mockOctokit.rest.repos.getContent).mockImplementation(async ({ path }) => {
+      vi.mocked(mockOctokit.rest.repos.getContent).mockImplementation(async (params) => {
+        const path = params?.path;
+        if (!path) {
+          throw new Error('Path is required');
+        }
         if (path === 'not-found.md') {
           const error = new Error('Not Found');
           (error as any).status = 404;
@@ -450,8 +485,8 @@ describe('ParallelMetadataFetcher - fetchMultipleMetadata', () => {
 
       // Assert
       expect(result.failed).toHaveLength(2);
-      expect(result.failed[0].errorType).toBe(GitHubMetadataErrorType.FILE_NOT_FOUND);
-      expect(result.failed[1].errorType).toBe(GitHubMetadataErrorType.RATE_LIMIT);
+      expect(result.failed[0]?.errorType).toBe(GitHubMetadataErrorType.FILE_NOT_FOUND);
+      expect(result.failed[1]?.errorType).toBe(GitHubMetadataErrorType.RATE_LIMIT);
     });
   });
 
@@ -462,7 +497,11 @@ describe('ParallelMetadataFetcher - fetchMultipleMetadata', () => {
       const repo = 'repo';
       const paths = Array.from({ length: 100 }, (_, i) => `file${i}.md`);
 
-      vi.mocked(mockOctokit.rest.repos.getContent).mockImplementation(async ({ path }) => {
+      vi.mocked(mockOctokit.rest.repos.getContent).mockImplementation(async (params) => {
+        const path = params?.path;
+        if (!path) {
+          throw new Error('Path is required');
+        }
         return {
           data: {
             name: path,
@@ -495,7 +534,11 @@ describe('ParallelMetadataFetcher - fetchMultipleMetadata', () => {
       const repo = 'repo';
       const paths = ['file.md', 'file.md', 'other.md'];
 
-      vi.mocked(mockOctokit.rest.repos.getContent).mockImplementation(async ({ path }) => {
+      vi.mocked(mockOctokit.rest.repos.getContent).mockImplementation(async (params) => {
+        const path = params?.path;
+        if (!path) {
+          throw new Error('Path is required');
+        }
         return {
           data: {
             name: path,

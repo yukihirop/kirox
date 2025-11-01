@@ -43,8 +43,8 @@ describe('Tree Response Parser', () => {
 
         // Assert
         expect(result).toHaveLength(1);
-        expect(result[0].type).toBe('tree');
-        expect(result[0].path).toBe('.kiro/specs/project-a');
+        expect(result[0]?.type).toBe('tree');
+        expect(result[0]?.path).toBe('.kiro/specs/project-a');
       });
 
       it('should exclude paths that do not match .kiro/specs/<project> pattern', () => {
@@ -61,7 +61,7 @@ describe('Tree Response Parser', () => {
 
         // Assert
         expect(result).toHaveLength(1);
-        expect(result[0].path).toBe('.kiro/specs/project-a');
+        expect(result[0]?.path).toBe('.kiro/specs/project-a');
       });
     });
 
@@ -120,8 +120,8 @@ describe('Tree Response Parser', () => {
 
         // Assert
         expect(result).toHaveLength(2);
-        expect(result[0].projectName).toBe('my-awesome_project');
-        expect(result[1].projectName).toBe('test_project-v2');
+        expect(result[0]?.projectName).toBe('my-awesome_project');
+        expect(result[1]?.projectName).toBe('test_project-v2');
       });
 
       it('should NOT match paths with extra subdirectories after project name', () => {
@@ -185,8 +185,8 @@ describe('Tree Response Parser', () => {
 
         // Assert
         expect(result).toHaveLength(2);
-        expect(result[0].projectName).toBe('project-a');
-        expect(result[1].projectName).toBe('project-b');
+        expect(result[0]?.projectName).toBe('project-a');
+        expect(result[1]?.projectName).toBe('project-b');
       });
     });
 
@@ -275,8 +275,8 @@ describe('Tree Response Parser', () => {
 
         // Assert
         expect(result).toHaveLength(2);
-        expect(result[0].projectName).toBe('project-v1');
-        expect(result[1].projectName).toBe('app2024');
+        expect(result[0]?.projectName).toBe('project-v1');
+        expect(result[1]?.projectName).toBe('app2024');
       });
     });
   });

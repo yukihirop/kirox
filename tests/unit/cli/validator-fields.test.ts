@@ -42,50 +42,50 @@ describe('validateRepositoryFormat', () => {
     it('空文字列を拒否する', () => {
       const errors = validateRepositoryFormat('');
       expect(errors).toHaveLength(1);
-      expect(errors[0].field).toBe('repository');
-      expect(errors[0].message).toContain('owner/repo');
+      expect(errors[0]?.field).toBe('repository');
+      expect(errors[0]?.message).toContain('owner/repo');
     });
 
     it('スラッシュなしの文字列を拒否する', () => {
       const errors = validateRepositoryFormat('facebook');
       expect(errors).toHaveLength(1);
-      expect(errors[0].field).toBe('repository');
+      expect(errors[0]?.field).toBe('repository');
     });
 
     it('owner部分が空の場合を拒否する', () => {
       const errors = validateRepositoryFormat('/react');
       expect(errors).toHaveLength(1);
-      expect(errors[0].field).toBe('repository');
+      expect(errors[0]?.field).toBe('repository');
     });
 
     it('repo部分が空の場合を拒否する', () => {
       const errors = validateRepositoryFormat('facebook/');
       expect(errors).toHaveLength(1);
-      expect(errors[0].field).toBe('repository');
+      expect(errors[0]?.field).toBe('repository');
     });
 
     it('複数のスラッシュを拒否する', () => {
       const errors = validateRepositoryFormat('org/team/repo');
       expect(errors).toHaveLength(1);
-      expect(errors[0].field).toBe('repository');
+      expect(errors[0]?.field).toBe('repository');
     });
 
     it('branch部分が空の場合を拒否する', () => {
       const errors = validateRepositoryFormat('owner/repo#');
       expect(errors).toHaveLength(1);
-      expect(errors[0].field).toBe('repository');
+      expect(errors[0]?.field).toBe('repository');
     });
 
     it('無効な文字を含む場合を拒否する', () => {
       const errors = validateRepositoryFormat('owner/repo@invalid');
       expect(errors).toHaveLength(1);
-      expect(errors[0].field).toBe('repository');
+      expect(errors[0]?.field).toBe('repository');
     });
 
     it('空白を含む場合を拒否する', () => {
       const errors = validateRepositoryFormat('owner/repo name');
       expect(errors).toHaveLength(1);
-      expect(errors[0].field).toBe('repository');
+      expect(errors[0]?.field).toBe('repository');
     });
   });
 });
@@ -122,43 +122,43 @@ describe('validateProjectName', () => {
     it('空文字列を拒否する', () => {
       const errors = validateProjectName('');
       expect(errors).toHaveLength(1);
-      expect(errors[0].field).toBe('project');
-      expect(errors[0].message).toContain('empty');
+      expect(errors[0]?.field).toBe('project');
+      expect(errors[0]?.message).toContain('empty');
     });
 
     it('空白のみを拒否する', () => {
       const errors = validateProjectName('   ');
       expect(errors).toHaveLength(1);
-      expect(errors[0].field).toBe('project');
-      expect(errors[0].message).toContain('empty');
+      expect(errors[0]?.field).toBe('project');
+      expect(errors[0]?.message).toContain('empty');
     });
 
     it('パストラバーサル("..")を拒否する', () => {
       const errors = validateProjectName('../project');
       expect(errors).toHaveLength(1);
-      expect(errors[0].field).toBe('project');
-      expect(errors[0].message).toContain('..');
+      expect(errors[0]?.field).toBe('project');
+      expect(errors[0]?.message).toContain('..');
     });
 
     it('中間のパストラバーサルを拒否する', () => {
       const errors = validateProjectName('my/../project');
       expect(errors).toHaveLength(1);
-      expect(errors[0].field).toBe('project');
-      expect(errors[0].message).toContain('..');
+      expect(errors[0]?.field).toBe('project');
+      expect(errors[0]?.message).toContain('..');
     });
 
     it('スラッシュを拒否する', () => {
       const errors = validateProjectName('my/project');
       expect(errors).toHaveLength(1);
-      expect(errors[0].field).toBe('project');
-      expect(errors[0].message).toContain('path separators');
+      expect(errors[0]?.field).toBe('project');
+      expect(errors[0]?.message).toContain('path separators');
     });
 
     it('バックスラッシュを拒否する', () => {
       const errors = validateProjectName('my\\project');
       expect(errors).toHaveLength(1);
-      expect(errors[0].field).toBe('project');
-      expect(errors[0].message).toContain('path separators');
+      expect(errors[0]?.field).toBe('project');
+      expect(errors[0]?.message).toContain('path separators');
     });
   });
 
@@ -187,6 +187,7 @@ describe('validateInput関数との互換性', () => {
     track: false,
     checkUpdates: false,
     update: false,
+    steering: false,
   });
 
   describe('validateRepositoryFormat互換性', () => {
