@@ -766,4 +766,90 @@ export class ProgressReporter {
       });
     }
   }
+
+  /**
+   * Pause spinner temporarily
+   *
+   * Task 14.7: Stop spinner before showing readline prompts to prevent hidden prompts
+   * Useful when you need to show interactive prompts (e.g., overwrite confirmation)
+   * while spinner is active. Call resumeSpinner() after prompt completes.
+   *
+   * @param projectName - Optional project name for multi-project spinner management
+   *
+   * @example
+   * ```typescript
+   * // Before showing readline prompt
+   * reporter.pauseSpinner();
+   * const answer = await confirm('Overwrite file?');
+   * reporter.resumeSpinner();
+   *
+   * // Multi-project mode
+   * reporter.pauseSpinner('proj1');
+   * const answer = await confirm('Overwrite file?');
+   * reporter.resumeSpinner('proj1');
+   * ```
+   */
+  pauseSpinner(projectName?: string): void {
+    // In fallback mode, no spinner to pause
+    if (this.useFallback) {
+      return;
+    }
+
+    try {
+      const spinnerKey = projectName && projectName.trim() !== '' ? projectName : '';
+      const spinner = this.spinnerMap.get(spinnerKey);
+
+      if (spinner && spinner.isSpinning) {
+        spinner.stop();
+      }
+    } catch (error) {
+      // Silently ignore errors - spinner pause is optional UX improvement
+      if (this.options.verbose) {
+        console.log('[VERBOSE] Failed to pause spinner, continuing...');
+      }
+    }
+  }
+
+  /**
+   * Resume paused spinner
+   *
+   * Task 14.7: Restart spinner after readline prompt completes
+   * Restarts the spinner with its previous text, continuing the progress display.
+   *
+   * @param projectName - Optional project name for multi-project spinner management
+   *
+   * @example
+   * ```typescript
+   * // After readline prompt completes
+   * reporter.pauseSpinner();
+   * const answer = await confirm('Overwrite file?');
+   * reporter.resumeSpinner();
+   *
+   * // Multi-project mode
+   * reporter.pauseSpinner('proj1');
+   * const answer = await confirm('Overwrite file?');
+   * reporter.resumeSpinner('proj1');
+   * ```
+   */
+  resumeSpinner(projectName?: string): void {
+    // In fallback mode, no spinner to resume
+    if (this.useFallback) {
+      return;
+    }
+
+    try {
+      const spinnerKey = projectName && projectName.trim() !== '' ? projectName : '';
+      const spinner = this.spinnerMap.get(spinnerKey);
+
+      if (spinner && !spinner.isSpinning) {
+        // Restart spinner with its current text
+        spinner.start(spinner.text);
+      }
+    } catch (error) {
+      // Silently ignore errors - spinner resume is optional UX improvement
+      if (this.options.verbose) {
+        console.log('[VERBOSE] Failed to resume spinner, continuing...');
+      }
+    }
+  }
 }

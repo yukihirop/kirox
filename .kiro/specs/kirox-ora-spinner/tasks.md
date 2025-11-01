@@ -243,7 +243,22 @@
   - ✅ **全テスト**: 2187テスト合格
   - _Requirements: 5.1, 5.2, 5.4 (マルチプロジェクトスピナー管理)_
 
-- [ ] 14.7 デバッグ情報の追加と検証
+- [x] 14.7 最終ファイル取得後のスピナー固まり問題の修正 (CRITICAL BUG)
+  - ✅ **問題特定**: writeFile()が上書き確認プロンプトで入力待ちになっているが、スピナーがアクティブでプロンプトが隠れる
+  - ✅ **根本原因**: スピナーがアクティブな状態でreadlineプロンプトが表示されると、プロンプトが隠れてユーザーに見えない
+  - ✅ **解決策実装**: pauseSpinner()/resumeSpinner()メソッドを追加し、entry.tsでwriteFile()前後でスピナーを一時停止/再開
+  - ✅ **実装1**: ProgressReporterにpauseSpinner(projectName?)メソッドを追加 (progress-reporter.ts:792)
+  - ✅ **実装2**: ProgressReporterにresumeSpinner(projectName?)メソッドを追加 (progress-reporter.ts:834)
+  - ✅ **実装3**: entry.tsでwriteFile()呼び出し前にpauseSpinner()を呼び出し (entry.ts:299)
+  - ✅ **実装4**: entry.tsでwriteFile()呼び出し後にresumeSpinner()を呼び出し (entry.ts:310)
+  - ✅ **実装5**: entry.tsのcatchブロックでもresumeSpinner()を呼び出してエラー時にもスピナーを再開 (entry.ts:333)
+  - ✅ **テスト**: progress-reporter-spinner-pause.test.ts作成 - 11テスト全て合格
+  - ✅ **統合テスト**: entry-spinner-pause-integration.test.ts作成 - 4テスト全て合格
+  - ✅ **ビルド**: TypeScriptコンパイル成功
+  - ✅ **全テスト**: 2202テスト合格 (15追加)
+  - _Requirements: 2.1, 2.5, 5.1, 5.2_
+
+- [ ] 14.8 デバッグ情報の追加と検証
   - スピナー初期化時のデバッグログ追加
   - スピナーstart/succeed/fail呼び出し時のデバッグログ追加
   - 実際の動作確認とログ出力の検証

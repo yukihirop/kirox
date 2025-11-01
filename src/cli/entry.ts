@@ -293,6 +293,11 @@ export async function execute(argv: string[]): Promise<ExecutionResult> {
             // Resolve output path
             const localPath = resolveOutputPath(args.output, file.path);
 
+            // Task 14.7: Pause spinner before writeFile to prevent hidden readline prompts
+            // When prompt=true and file exists, writeFile() shows readline confirmation prompt
+            // If spinner is active, the prompt is hidden from user, making it appear frozen
+            reporter.pauseSpinner(displayProjectName);
+
             // Write file
             const writeResult = await writeFile(localPath, file.content, {
               force: args.force,
@@ -300,6 +305,9 @@ export async function execute(argv: string[]): Promise<ExecutionResult> {
               dryRun: args.dryRun,
               verbose: args.verbose,
             });
+
+            // Task 14.7: Resume spinner after writeFile completes
+            reporter.resumeSpinner(displayProjectName);
 
             if (writeResult.written) {
               filesDownloaded++;
@@ -321,6 +329,9 @@ export async function execute(argv: string[]): Promise<ExecutionResult> {
               );
             }
           } catch (error) {
+            // Task 14.7: Resume spinner if error occurs during writeFile
+            reporter.resumeSpinner(displayProjectName);
+
             filesFailed++;
             const errorResult = errorHandler.handle(error, {
               filePath: file.path,
