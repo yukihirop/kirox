@@ -21,7 +21,7 @@ vi.mock('@/cli/branch-prompt.js', () => ({
   promptBranch: vi.fn(),
 }));
 
-vi.mock('@/github/fetcher.js.js', async (importOriginal) => {
+vi.mock('@/github/fetcher.js', async (importOriginal) => {
   const actual = await importOriginal<typeof import('@/github/fetcher.js')>();
   return {
     ...actual,

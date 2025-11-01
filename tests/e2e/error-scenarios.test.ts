@@ -3,7 +3,7 @@
  */
 
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { execute } from '@/cli/entry.js.js';
+import { execute } from '@/cli/entry.js';
 import { promises as fs } from 'fs';
 import { Octokit } from 'octokit';
 import path from 'path';

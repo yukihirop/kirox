@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { executeCompletionCommand } from '@/cli/completion-command-entry';
+import { executeCompletionCommand } from '@/cli/completion-command-entry.js';
 
 /**
  * Tests for completion command entry point

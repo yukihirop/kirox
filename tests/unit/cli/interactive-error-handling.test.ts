@@ -7,7 +7,7 @@
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { promptMissingArguments } from '@/cli/interactive-prompt.js';
-import type { ParsedArguments } from '@/cli/types.js.js';
+import type { ParsedArguments } from '@/cli/types.js';
 
 // Mock @inquirer/prompts
 vi.mock('@inquirer/prompts', () => ({

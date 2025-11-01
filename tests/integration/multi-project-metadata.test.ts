@@ -7,8 +7,8 @@ import { execute } from '@/cli/entry.js';
 import { promises as fs } from 'fs';
 import { Octokit } from 'octokit';
 import path from 'path';
-import { loadMetadata } from '@/tracking/metadata-manager';
-import type { Metadata } from '@/tracking/types';
+import { loadMetadata } from '@/tracking/metadata-manager.js';
+import type { Metadata } from '@/tracking/types.js';
 
 vi.mock('octokit');
 
@@ -134,18 +134,18 @@ describe('Multi-Project Metadata Tracking Integration', () => {
       expect(proj1).toBeDefined();
       expect(proj1!.repository).toBe('owner/repo');
       expect(proj1!.files).toHaveLength(1);
-      expect(proj1!.files[0].path).toBe('.kiro/specs/proj1/file1.md');
-      expect(proj1!.files[0].sha).toBe('sha1');
-      expect(proj1!.files[0].size).toBe(100);
+      expect(proj1!.files[0]?.path).toBe('.kiro/specs/proj1/file1.md');
+      expect(proj1!.files[0]?.sha).toBe('sha1');
+      expect(proj1!.files[0]?.size).toBe(100);
 
       // Verify proj2 metadata
       const proj2 = metadata.projects.find((p) => p.projectName === 'proj2');
       expect(proj2).toBeDefined();
       expect(proj2!.repository).toBe('owner/repo');
       expect(proj2!.files).toHaveLength(1);
-      expect(proj2!.files[0].path).toBe('.kiro/specs/proj2/file2.md');
-      expect(proj2!.files[0].sha).toBe('sha2');
-      expect(proj2!.files[0].size).toBe(200);
+      expect(proj2!.files[0]?.path).toBe('.kiro/specs/proj2/file2.md');
+      expect(proj2!.files[0]?.sha).toBe('sha2');
+      expect(proj2!.files[0]?.size).toBe(200);
     });
 
     it('should use repository + projectName as unique key', async () => {
@@ -247,10 +247,10 @@ describe('Multi-Project Metadata Tracking Integration', () => {
       const metadata: Metadata = await loadMetadata(metadataPath);
 
       expect(metadata.projects).toHaveLength(1);
-      expect(metadata.projects[0].projectName).toBe('proj1');
-      expect(metadata.projects[0].repository).toBe('owner/repo');
-      expect(metadata.projects[0].files[0].sha).toBe('sha1-updated');
-      expect(metadata.projects[0].files[0].size).toBe(150);
+      expect(metadata.projects[0]?.projectName).toBe('proj1');
+      expect(metadata.projects[0]?.repository).toBe('owner/repo');
+      expect(metadata.projects[0]?.files[0]?.sha).toBe('sha1-updated');
+      expect(metadata.projects[0]?.files[0]?.size).toBe(150);
     });
 
     it('should store projects with same name from different repositories separately', async () => {
@@ -361,8 +361,8 @@ describe('Multi-Project Metadata Tracking Integration', () => {
 
       expect(proj1Owner1).toBeDefined();
       expect(proj1Owner2).toBeDefined();
-      expect(proj1Owner1!.files[0].sha).toBe('sha1');
-      expect(proj1Owner2!.files[0].sha).toBe('sha2');
+      expect(proj1Owner1!.files[0]?.sha).toBe('sha1');
+      expect(proj1Owner2!.files[0]?.sha).toBe('sha2');
     });
 
     it('should continue saving metadata for successful projects when some fail', async () => {
@@ -510,8 +510,8 @@ describe('Multi-Project Metadata Tracking Integration', () => {
       const metadata: Metadata = await loadMetadata(metadataPath);
 
       expect(metadata.projects).toHaveLength(1);
-      expect(metadata.projects[0].subdir).toBe('packages/api');
-      expect(metadata.projects[0].projectName).toBe('proj1');
+      expect(metadata.projects[0]?.subdir).toBe('packages/api');
+      expect(metadata.projects[0]?.projectName).toBe('proj1');
     });
   });
 

@@ -525,10 +525,6 @@ describe('Elvish Template Generation', () => {
       };
 
       const elvishScript = generateCompletionScript('elvish', metadata);
-      const bashScript = generateCompletionScript('bash', metadata);
-      const zshScript = generateCompletionScript('zsh', metadata);
-      const fishScript = generateCompletionScript('fish', metadata);
-      const powershellScript = generateCompletionScript('powershell', metadata);
 
       // Elvish-specific
       expect(elvishScript).toContain('edit:completion:arg-completer');

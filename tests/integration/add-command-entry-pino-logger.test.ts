@@ -13,9 +13,9 @@ vi.unmock('@/reporting/pino-logger.js');
 
 // Mock external dependencies
 vi.mock('octokit');
-vi.mock('@/github/fetcher.js.js');
-vi.mock('@/github/parallel-fetcher.js.js');
-vi.mock('@/filesystem/writer.js.js');
+vi.mock('@/github/fetcher.js');
+vi.mock('@/github/parallel-fetcher.js');
+vi.mock('@/filesystem/writer.js');
 vi.mock('@/tracking/metadata-manager.js');
 vi.mock('@/tracking/hash-calculator.js');
 vi.mock('@/config/loader.js');
@@ -51,7 +51,7 @@ describe('add-command-entry.ts - PinoLogger Integration (Task 5.2)', () => {
       },
     }) as any);
 
-    const fetcherModule = await import('@/github/fetcher.js.js');
+    const fetcherModule = await import('@/github/fetcher.js');
     vi.mocked(fetcherModule.parseRepositoryPath).mockReturnValue({
       owner: 'test-owner',
       repo: 'test-repo',
@@ -59,7 +59,7 @@ describe('add-command-entry.ts - PinoLogger Integration (Task 5.2)', () => {
     });
     vi.mocked(fetcherModule.fetchDirectoryContents).mockResolvedValue([]);
 
-    const parallelFetcherModule = await import('@/github/parallel-fetcher.js.js');
+    const parallelFetcherModule = await import('@/github/parallel-fetcher.js');
     vi.mocked(parallelFetcherModule.fetchFilesInParallel).mockResolvedValue({
       success: [],
       failed: [],

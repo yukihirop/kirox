@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { parseArguments } from '@/cli/parser';
+import { parseArguments } from '@/cli/parser.js';
 import * as fs from 'fs';
 import * as path from 'path';
 

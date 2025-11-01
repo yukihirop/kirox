@@ -78,7 +78,7 @@ describe('Interactive Mode Multi-Project Support', () => {
       await promptProject('');
 
       // Verify validate function is passed
-      const callArgs = mockInput.mock.calls[0][0];
+      const callArgs = mockInput.mock.calls[0]?.[0];
       expect(callArgs.validate).toBeInstanceOf(Function);
     });
   });

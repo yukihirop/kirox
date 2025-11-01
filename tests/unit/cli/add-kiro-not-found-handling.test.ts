@@ -10,11 +10,10 @@
  * Requirements: 3.6 (new)
  */
 
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
 import { executeAddCommand } from '@/cli/add-command-entry.js';
 import * as metadataManager from '@/tracking/metadata-manager.js';
-import * as fetcher from '@/github/fetcher.js.js';
-import type { ParsedArguments } from '@/cli/types.js.js';
+import * as fetcher from '@/github/fetcher.js';
 
 // Unmock PinoLogger to allow actual implementation
 vi.unmock('@/reporting/pino-logger.js');
@@ -43,19 +42,6 @@ describe('Add Command .kiro Folder Not Found Error Handling (Task 8.5)', () => {
       (error404 as any).status = 404;
       vi.spyOn(fetcher, 'fetchDirectoryContents').mockRejectedValue(error404);
 
-      const args: ParsedArguments = {
-        subcommand: 'add',
-        repository: 'owner/repo',
-        projects: ['test-project'],
-        output: '.',
-        force: false,
-        dryRun: false,
-        verbose: false,
-        track: true,
-        checkUpdates: false,
-        update: false,
-      };
-
       const result = await executeAddCommand(['node', 'kirox', 'add', 'owner/repo', '-p', 'test-project']);
 
       // Verify command failed
@@ -68,19 +54,6 @@ describe('Add Command .kiro Folder Not Found Error Handling (Task 8.5)', () => {
       const error404 = new Error('Not Found');
       (error404 as any).status = 404;
       vi.spyOn(fetcher, 'fetchDirectoryContents').mockRejectedValue(error404);
-
-      const args: ParsedArguments = {
-        subcommand: 'add',
-        repository: 'owner/repo',
-        projects: ['test-project'],
-        output: '.',
-        force: false,
-        dryRun: false,
-        verbose: false,
-        track: true,
-        checkUpdates: false,
-        update: false,
-      };
 
       await executeAddCommand(['node', 'kirox', 'add', 'owner/repo', '-p', 'test-project']);
 
@@ -99,19 +72,6 @@ describe('Add Command .kiro Folder Not Found Error Handling (Task 8.5)', () => {
       (error404 as any).status = 404;
       vi.spyOn(fetcher, 'fetchDirectoryContents').mockRejectedValue(error404);
 
-      const args: ParsedArguments = {
-        subcommand: 'add',
-        repository: 'owner/repo',
-        projects: ['test-project'],
-        output: '.',
-        force: false,
-        dryRun: false,
-        verbose: false,
-        track: true,
-        checkUpdates: false,
-        update: false,
-      };
-
       await executeAddCommand(['node', 'kirox', 'add', 'owner/repo', '-p', 'test-project']);
 
       // Verify repository is mentioned in error message
@@ -127,19 +87,6 @@ describe('Add Command .kiro Folder Not Found Error Handling (Task 8.5)', () => {
       const error404 = new Error('Not Found');
       (error404 as any).status = 404;
       vi.spyOn(fetcher, 'fetchDirectoryContents').mockRejectedValue(error404);
-
-      const args: ParsedArguments = {
-        subcommand: 'add',
-        repository: 'owner/repo#feature',
-        projects: ['test-project'],
-        output: '.',
-        force: false,
-        dryRun: false,
-        verbose: false,
-        track: true,
-        checkUpdates: false,
-        update: false,
-      };
 
       await executeAddCommand(['node', 'kirox', 'add', 'owner/repo#feature', '-p', 'test-project']);
 
@@ -157,20 +104,6 @@ describe('Add Command .kiro Folder Not Found Error Handling (Task 8.5)', () => {
       (error404 as any).status = 404;
       vi.spyOn(fetcher, 'fetchDirectoryContents').mockRejectedValue(error404);
 
-      const args: ParsedArguments = {
-        subcommand: 'add',
-        repository: 'owner/repo',
-        projects: ['test-project'],
-        output: '.',
-        subdir: 'packages/api',
-        force: false,
-        dryRun: false,
-        verbose: false,
-        track: true,
-        checkUpdates: false,
-        update: false,
-      };
-
       await executeAddCommand(['node', 'kirox', 'add', 'owner/repo', '--subdir', 'packages/api', '-p', 'test-project']);
 
       // Verify subdirectory is mentioned in error message
@@ -187,19 +120,6 @@ describe('Add Command .kiro Folder Not Found Error Handling (Task 8.5)', () => {
       (error404 as any).status = 404;
       vi.spyOn(fetcher, 'fetchDirectoryContents').mockRejectedValue(error404);
 
-      const args: ParsedArguments = {
-        subcommand: 'add',
-        repository: 'owner/repo',
-        projects: ['test-project'],
-        output: '.',
-        force: false,
-        dryRun: false,
-        verbose: false,
-        track: true,
-        checkUpdates: false,
-        update: false,
-      };
-
       await executeAddCommand(['node', 'kirox', 'add', 'owner/repo', '-p', 'test-project']);
 
       // Verify actionable guidance is provided
@@ -215,19 +135,6 @@ describe('Add Command .kiro Folder Not Found Error Handling (Task 8.5)', () => {
       const error404 = new Error('HTTP 404 Not Found: GET https://api.github.com/repos/owner/repo/contents/.kiro');
       (error404 as any).status = 404;
       vi.spyOn(fetcher, 'fetchDirectoryContents').mockRejectedValue(error404);
-
-      const args: ParsedArguments = {
-        subcommand: 'add',
-        repository: 'owner/repo',
-        projects: ['test-project'],
-        output: '.',
-        force: false,
-        dryRun: false,
-        verbose: false,
-        track: true,
-        checkUpdates: false,
-        update: false,
-      };
 
       await executeAddCommand(['node', 'kirox', 'add', 'owner/repo', '-p', 'test-project']);
 
