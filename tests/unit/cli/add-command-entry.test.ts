@@ -4,7 +4,7 @@
  * Tests for executeAddCommand function (Task 2.1)
  */
 
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { executeAddCommand } from '@/cli/add-command-entry.js';
 import { loadMetadata } from '@/tracking/metadata-manager.js';
 import { fetchDirectoryContents } from '@/github/fetcher.js';
@@ -2690,7 +2690,7 @@ describe('executeAddCommand', () => {
 
         const argv = ['node', 'kirox', 'add', '--check-updates'];
 
-        const result = await executeAddCommand(argv);
+        await executeAddCommand(argv);
 
         // --check-updates should skip interactive mode even with missing arguments
         // Verify shouldEnterInteractiveMode logic respects --check-updates
@@ -2705,6 +2705,7 @@ describe('executeAddCommand', () => {
           track: false,
           checkUpdates: true,
           update: false,
+          steering: false,
         };
         const shouldEnter = shouldEnterInteractiveMode(mockArgs);
         expect(shouldEnter).toBe(false); // --check-updates should skip interactive mode
@@ -2728,7 +2729,7 @@ describe('executeAddCommand', () => {
 
         const argv = ['node', 'kirox', 'add', '--update'];
 
-        const result = await executeAddCommand(argv);
+        await executeAddCommand(argv);
 
         // --update should skip interactive mode even with missing arguments
         // Verify shouldEnterInteractiveMode logic respects --update
@@ -2743,6 +2744,7 @@ describe('executeAddCommand', () => {
           track: false,
           checkUpdates: false,
           update: true,
+          steering: false,
         };
         const shouldEnter = shouldEnterInteractiveMode(mockArgs);
         expect(shouldEnter).toBe(false); // --update should skip interactive mode
@@ -2778,6 +2780,7 @@ describe('executeAddCommand', () => {
           written: true,
           filePath: 'test-file.md',
           size: 100,
+          skipped: false,
         });
 
         vi.mocked(calculateFileHash).mockResolvedValue('local-hash-123');
@@ -2846,6 +2849,7 @@ describe('executeAddCommand', () => {
         track: false,
         checkUpdates: false,
         update: false,
+        steering: false,
       });
 
       // Track mergeConfig calls
@@ -2857,6 +2861,8 @@ describe('executeAddCommand', () => {
         force: args.force,
         dryRun: args.dryRun,
         verbose: args.verbose,
+        concurrency: 5,
+        outputDirectory: process.cwd(),
       }));
 
       // Mock GitHub and file operations to allow execution to complete
@@ -2942,12 +2948,12 @@ describe('executeAddCommand', () => {
 
       // Mock GitHub API responses
       const mockSpecContents = [
-        { type: 'file' as const, path: '.kiro/specs/test-project/spec.json', sha: 'abc123' },
-        { type: 'file' as const, path: '.kiro/specs/test-project/requirements.md', sha: 'def456' },
+        { type: 'file' as const, path: '.kiro/specs/test-project/spec.json', sha: 'abc123', name: 'spec.json' },
+        { type: 'file' as const, path: '.kiro/specs/test-project/requirements.md', sha: 'def456', name: 'requirements.md' },
       ];
       const mockSteeringContents = [
-        { type: 'file' as const, path: '.kiro/steering/product.md', sha: 'ghi789' },
-        { type: 'file' as const, path: '.kiro/steering/tech.md', sha: 'jkl012' },
+        { type: 'file' as const, path: '.kiro/steering/product.md', sha: 'ghi789', name: 'product.md' },
+        { type: 'file' as const, path: '.kiro/steering/tech.md', sha: 'jkl012', name: 'tech.md' },
       ];
 
       vi.mocked(fetchDirectoryContents)
@@ -3021,12 +3027,12 @@ describe('executeAddCommand', () => {
 
       // Mock GitHub API responses
       const mockSpecContents = [
-        { type: 'file' as const, path: '.kiro/specs/second-project/spec.json', sha: 'new1' },
-        { type: 'file' as const, path: '.kiro/specs/second-project/requirements.md', sha: 'new2' },
+        { type: 'file' as const, path: '.kiro/specs/second-project/spec.json', sha: 'new1', name: 'spec.json' },
+        { type: 'file' as const, path: '.kiro/specs/second-project/requirements.md', sha: 'new2', name: 'requirements.md' },
       ];
       const mockSteeringContents = [
-        { type: 'file' as const, path: '.kiro/steering/product.md', sha: 'new3' },
-        { type: 'file' as const, path: '.kiro/steering/tech.md', sha: 'new4' },
+        { type: 'file' as const, path: '.kiro/steering/product.md', sha: 'new3', name: 'product.md' },
+        { type: 'file' as const, path: '.kiro/steering/tech.md', sha: 'new4', name: 'tech.md' },
       ];
 
       vi.mocked(fetchDirectoryContents)
@@ -3106,10 +3112,10 @@ describe('executeAddCommand', () => {
 
       // Mock GitHub API responses
       const mockSpecContents = [
-        { type: 'file' as const, path: '.kiro/specs/test-project/spec.json', sha: 'abc' },
+        { type: 'file' as const, path: '.kiro/specs/test-project/spec.json', sha: 'abc', name: 'spec.json' },
       ];
       const mockSteeringContents = [
-        { type: 'file' as const, path: '.kiro/steering/product.md', sha: 'def' },
+        { type: 'file' as const, path: '.kiro/steering/product.md', sha: 'def', name: 'product.md' },
       ];
 
       vi.mocked(fetchDirectoryContents)
@@ -3183,11 +3189,11 @@ describe('executeAddCommand', () => {
 
       // Mock GitHub API responses
       const mockSpecContents = [
-        { type: 'file' as const, path: '.kiro/specs/new-project/spec.json', sha: 'spec1' },
-        { type: 'file' as const, path: '.kiro/specs/new-project/design.md', sha: 'spec2' },
+        { type: 'file' as const, path: '.kiro/specs/new-project/spec.json', sha: 'spec1', name: 'spec.json' },
+        { type: 'file' as const, path: '.kiro/specs/new-project/design.md', sha: 'spec2', name: 'design.md' },
       ];
       const mockSteeringContents = [
-        { type: 'file' as const, path: '.kiro/steering/product.md', sha: 'steer1' },
+        { type: 'file' as const, path: '.kiro/steering/product.md', sha: 'steer1', name: 'product.md' },
       ];
 
       vi.mocked(fetchDirectoryContents)
@@ -3269,7 +3275,7 @@ describe('executeAddCommand', () => {
 
       // Mock directory fetching
       vi.mocked(fetchDirectoryContents).mockResolvedValue([
-        { type: 'file' as const, path: '.kiro/specs/test-project/spec.json', sha: 'sha1' },
+        { type: 'file' as const, path: '.kiro/specs/test-project/spec.json', sha: 'sha1', name: 'spec.json' },
       ]);
       vi.mocked(fetchFilesInParallel).mockResolvedValue({
         success: [
@@ -3318,7 +3324,7 @@ describe('executeAddCommand', () => {
 
       // Mock directory fetching
       vi.mocked(fetchDirectoryContents).mockResolvedValue([
-        { type: 'file' as const, path: '.kiro/specs/test-project/spec.json', sha: 'sha1' },
+        { type: 'file' as const, path: '.kiro/specs/test-project/spec.json', sha: 'sha1', name: 'spec.json' },
       ]);
       vi.mocked(fetchFilesInParallel).mockResolvedValue({
         success: [
@@ -3364,7 +3370,7 @@ describe('executeAddCommand', () => {
 
       // Mock directory fetching
       vi.mocked(fetchDirectoryContents).mockResolvedValue([
-        { type: 'file' as const, path: '.kiro/specs/test-project/spec.json', sha: 'sha1' },
+        { type: 'file' as const, path: '.kiro/specs/test-project/spec.json', sha: 'sha1', name: 'spec.json' },
       ]);
       vi.mocked(fetchFilesInParallel).mockResolvedValue({
         success: [
