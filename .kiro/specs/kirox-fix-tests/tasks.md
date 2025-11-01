@@ -103,18 +103,18 @@
 
 ### 6. 未実装オプションテストのスキップ処理
 
-- [ ] 6.1 --check-updatesオプションテストのスキップ
-  - it.skip()を使用してテストをスキップ
-  - TODOコメントで将来の実装を明示（kirox-update-tracking spec参照）
-  - テストコードは削除せず保持
-  - npm test実行時にスキップされることを確認
+- [x] 6.1 --check-updatesオプションテストのスキップ
+  - it.skip()を使用してテストをスキップ ✅
+  - TODOコメントで将来の実装を明示（kirox-update-tracking spec参照）✅
+  - テストコードは削除せず保持 ✅
+  - npm test実行時にスキップされることを確認 ✅（7 skipped）
   - _Requirements: 3.1, 3.3_
 
-- [ ] 6.2 --updateオプションテストのスキップ
-  - it.skip()を使用してテストをスキップ
-  - TODOコメントで将来の実装を明示
-  - テストコードは削除せず保持
-  - npm test実行時に"unknown option"エラーが発生しないことを確認
+- [x] 6.2 --updateオプションテストのスキップ
+  - it.skip()を使用してテストをスキップ ✅
+  - TODOコメントで将来の実装を明示 ✅
+  - テストコードは削除せず保持 ✅
+  - npm test実行時に"unknown option"エラーが発生しないことを確認 ✅
   - _Requirements: 3.2, 3.4, 3.5_
 
 ### 7. --trackオプションデフォルト値検証修正
