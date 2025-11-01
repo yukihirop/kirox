@@ -400,7 +400,7 @@ describe('CLI to GitHub to FileSystem Integration', () => {
       const getContentCalls = mockOctokit.rest.repos.getContent.mock.calls;
 
       // Check first call (specs directory)
-      expect(getContentCalls[0][0]).toMatchObject({
+      expect(getContentCalls[0]![0]!).toMatchObject({
         owner: 'owner',
         repo: 'repo',
         path: '.kiro/specs/test-project',
@@ -408,7 +408,7 @@ describe('CLI to GitHub to FileSystem Integration', () => {
       });
 
       // Check second call (steering directory)
-      expect(getContentCalls[1][0]).toMatchObject({
+      expect(getContentCalls[1]![0]!).toMatchObject({
         owner: 'owner',
         repo: 'repo',
         path: '.kiro/steering',
@@ -493,8 +493,8 @@ describe('CLI to GitHub to FileSystem Integration', () => {
       const getContentCalls = mockOctokit.rest.repos.getContent.mock.calls;
 
       // Check that ref is undefined (not passed)
-      expect(getContentCalls[0][0].ref).toBeUndefined();
-      expect(getContentCalls[1][0].ref).toBeUndefined();
+      expect(getContentCalls[0]![0]!.ref).toBeUndefined();
+      expect(getContentCalls[1]![0]!.ref).toBeUndefined();
     });
 
     it('should fetch files from specified branch and subdirectory', async () => {
@@ -591,7 +591,7 @@ describe('CLI to GitHub to FileSystem Integration', () => {
       const getContentCalls = mockOctokit.rest.repos.getContent.mock.calls;
 
       // Check first call (specs directory with subdir and ref)
-      expect(getContentCalls[0][0]).toMatchObject({
+      expect(getContentCalls[0]![0]!).toMatchObject({
         owner: 'owner',
         repo: 'repo',
         path: 'packages/api/.kiro/specs/test-project',
@@ -599,7 +599,7 @@ describe('CLI to GitHub to FileSystem Integration', () => {
       });
 
       // Check second call (steering directory with subdir and ref)
-      expect(getContentCalls[1][0]).toMatchObject({
+      expect(getContentCalls[1]![0]!).toMatchObject({
         owner: 'owner',
         repo: 'repo',
         path: 'packages/api/.kiro/steering',
@@ -1752,7 +1752,7 @@ describe('CLI to GitHub to FileSystem Integration', () => {
       expect(getContentCalls.length).toBe(2); // 1 for directory listing, 1 for file content
 
       // Verify first call was for .kiro/steering directory
-      expect(getContentCalls[0][0]).toMatchObject({
+      expect(getContentCalls[0]![0]!).toMatchObject({
         owner: 'owner',
         repo: 'repo',
         path: '.kiro/steering',
@@ -1760,7 +1760,7 @@ describe('CLI to GitHub to FileSystem Integration', () => {
 
       // Verify specs directory was NOT fetched
       const specsCalls = getContentCalls.filter((call) =>
-        call[0].path?.includes('.kiro/specs')
+        call[0]!.path?.includes('.kiro/specs')
       );
       expect(specsCalls.length).toBe(0);
 
@@ -1863,13 +1863,13 @@ describe('CLI to GitHub to FileSystem Integration', () => {
 
       // Verify specs directory was fetched (directory listing only, not file content)
       const specsCalls = getContentCalls.filter((call) =>
-        call[0].path === '.kiro/specs/test-project'
+        call[0]!.path === '.kiro/specs/test-project'
       );
       expect(specsCalls.length).toBe(1);
 
       // Verify steering directory was fetched (directory listing only, not file content)
       const steeringCalls = getContentCalls.filter((call) =>
-        call[0].path === '.kiro/steering'
+        call[0]!.path === '.kiro/steering'
       );
       expect(steeringCalls.length).toBe(1);
 
@@ -1951,7 +1951,7 @@ describe('CLI to GitHub to FileSystem Integration', () => {
 
       // Verify getContent was called with correct subdirectory path
       const getContentCalls = mockOctokit.rest.repos.getContent.mock.calls;
-      expect(getContentCalls[0][0]).toMatchObject({
+      expect(getContentCalls[0]![0]!).toMatchObject({
         owner: 'owner',
         repo: 'repo',
         path: 'packages/api/.kiro/steering',
@@ -2059,13 +2059,13 @@ describe('CLI to GitHub to FileSystem Integration', () => {
 
       // Verify specs directory was fetched
       const specsCalls = getContentCalls.filter((call) =>
-        call[0].path === '.kiro/specs/test-project'
+        call[0]!.path === '.kiro/specs/test-project'
       );
       expect(specsCalls.length).toBe(1);
 
       // Verify steering directory was fetched
       const steeringCalls = getContentCalls.filter((call) =>
-        call[0].path === '.kiro/steering'
+        call[0]!.path === '.kiro/steering'
       );
       expect(steeringCalls.length).toBe(1);
 

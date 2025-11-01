@@ -9,7 +9,7 @@
  * Requirements: Testing Strategy - Unit Tests, Requirements 1.3, 3.2, 3.3, 3.4
  */
 
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
 import { executeAddCommand } from '@/cli/add-command-entry.js';
 import * as metadataManager from '@/tracking/metadata-manager.js';
 import * as fetcher from '@/github/fetcher.js';

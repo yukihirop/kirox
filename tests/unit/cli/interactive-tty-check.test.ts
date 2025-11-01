@@ -20,7 +20,7 @@ describe('checkTTYEnvironment', () => {
   let originalIsTTY: boolean | undefined;
 
   beforeEach(() => {
-    mockLogger = new PinoLogger();
+    mockLogger = new PinoLogger(false);
     mockConsoleError.mockClear();
     mockConsoleLog.mockClear();
     vi.clearAllMocks();

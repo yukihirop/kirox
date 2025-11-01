@@ -284,7 +284,7 @@ describe('Add Command Ctrl+C Interrupt Handling (Task 8.4)', () => {
       // Verify process.exit was called with code 130 (128 + SIGINT signal number 2)
       // or 1 (general error)
       expect(mockExit).toHaveBeenCalled();
-      const exitCode = mockExit.mock.calls[0][0];
+      const exitCode = mockExit.mock.calls[0]![0]!;
       expect([1, 130]).toContain(exitCode);
 
       // Clean up

@@ -539,7 +539,7 @@ describe('GitHubFetcher', () => {
       );
 
       expect(contents).toHaveLength(1);
-      expect(contents[0].name).toBe('feature.md');
+      expect(contents[0]!.name).toBe('feature.md');
       expect(mockClient.rest.repos.getContent).toHaveBeenCalledWith({
         owner: 'octocat',
         repo: 'Hello-World',

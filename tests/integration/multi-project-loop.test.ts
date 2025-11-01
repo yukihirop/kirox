@@ -309,9 +309,9 @@ describe('Multi-Project Loop Integration', () => {
       );
 
       expect(specCalls.length).toBe(3);
-      expect(specCalls[0][3]).toBe('.kiro/specs/proj1');
-      expect(specCalls[1][3]).toBe('.kiro/specs/proj2');
-      expect(specCalls[2][3]).toBe('.kiro/specs/proj3');
+      expect(specCalls[0]![3]!).toBe('.kiro/specs/proj1');
+      expect(specCalls[1]![3]!).toBe('.kiro/specs/proj2');
+      expect(specCalls[2]![3]!).toBe('.kiro/specs/proj3');
     });
 
     it('should construct spec path with subdirectory', async () => {
@@ -324,8 +324,8 @@ describe('Multi-Project Loop Integration', () => {
         (call) => call[3]?.includes('specs')
       );
 
-      expect(specCalls[0][3]).toBe('packages/api/.kiro/specs/proj1');
-      expect(specCalls[1][3]).toBe('packages/api/.kiro/specs/proj2');
+      expect(specCalls[0]![3]!).toBe('packages/api/.kiro/specs/proj1');
+      expect(specCalls[1]![3]!).toBe('packages/api/.kiro/specs/proj2');
     });
 
     it('should handle project not found error gracefully', async () => {

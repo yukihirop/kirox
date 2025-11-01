@@ -150,7 +150,7 @@ describe('confirmExecution', () => {
         (call) =>
           call.length > 0 &&
           typeof call[0] === 'string' &&
-          call[0].includes('Subdirectory')
+          call[0]!.includes('Subdirectory')
       );
       expect(hasSubdirLine).toBe(false);
     });
@@ -166,7 +166,7 @@ describe('confirmExecution', () => {
         (call) =>
           call.length > 0 &&
           typeof call[0] === 'string' &&
-          call[0].includes('Configuration')
+          call[0]!.includes('Configuration')
       );
       expect(hasHeader).toBe(true);
     });
@@ -305,7 +305,7 @@ describe('confirmExecution', () => {
         (call) =>
           call.length > 0 &&
           typeof call[0] === 'string' &&
-          call[0].includes('Mode: Steering only')
+          call[0]!.includes('Mode: Steering only')
       );
       expect(hasSteering).toBe(false);
     });

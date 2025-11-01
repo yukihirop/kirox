@@ -85,12 +85,12 @@ describe('SubdirectoryPromptService (Task 9.2)', () => {
       const choices = callArgs.choices;
 
       // Root should be first
-      expect(choices[0].value).toBe('(root)');
+      expect(choices[0]!.value).toBe('(root)');
 
       // Then directories in alphabetical order
-      expect(choices[1].value).toBe('lib');
-      expect(choices[2].value).toBe('src');
-      expect(choices[3].value).toBe('src/cli');
+      expect(choices[1]!.value).toBe('lib');
+      expect(choices[2]!.value).toBe('src');
+      expect(choices[3]!.value).toBe('src/cli');
     });
   });
 
@@ -294,9 +294,9 @@ describe('SubdirectoryPromptService (Task 9.2)', () => {
       expect(choices.length).toBe(3);
 
       // Verify order: root first, then alphabetically
-      expect(choices[0].value).toBe('(root)');
-      expect(choices[1].value).toBe('lib/a');
-      expect(choices[2].value).toBe('lib/sample');
+      expect(choices[0]!.value).toBe('(root)');
+      expect(choices[1]!.value).toBe('lib/a');
+      expect(choices[2]!.value).toBe('lib/sample');
     });
 
     it('should add root option when directories does not contain root', async () => {
@@ -323,9 +323,9 @@ describe('SubdirectoryPromptService (Task 9.2)', () => {
       expect(choices.length).toBe(3);
 
       // Verify order: root first, then alphabetically
-      expect(choices[0].value).toBe('(root)');
-      expect(choices[1].value).toBe('lib/a');
-      expect(choices[2].value).toBe('lib/sample');
+      expect(choices[0]!.value).toBe('(root)');
+      expect(choices[1]!.value).toBe('lib/a');
+      expect(choices[2]!.value).toBe('lib/sample');
     });
   });
 });

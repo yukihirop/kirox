@@ -1903,7 +1903,7 @@ describe('executeAddCommand', () => {
       );
 
       // Extract the actual timestamp
-      const call = vi.mocked(upsertProject).mock.calls[0][0];
+      const call = vi.mocked(upsertProject).mock.calls[0]![0]!;
       const timestamp = call.fetchedAt;
 
       // Timestamp should be between before and after

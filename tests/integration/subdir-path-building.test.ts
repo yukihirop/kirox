@@ -271,10 +271,10 @@ describe('Subdirectory Path Building Integration', () => {
       expect(result.success).toBe(true);
 
       // Verify buildRemotePath was used correctly (check the path pattern)
-      const firstCall = mockOctokit.rest.repos.getContent.mock.calls[0][0];
+      const firstCall = mockOctokit.rest.repos.getContent.mock.calls[0]![0]!;
       expect(firstCall.path).toBe('services/auth/.kiro/specs/test-project');
 
-      const secondCall = mockOctokit.rest.repos.getContent.mock.calls[1][0];
+      const secondCall = mockOctokit.rest.repos.getContent.mock.calls[1]![0]!;
       expect(secondCall.path).toBe('services/auth/.kiro/steering');
     });
   });

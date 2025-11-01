@@ -252,9 +252,9 @@ describe('Add Command & Check-Updates Integration (Task 9.1)', () => {
       expect(result.exitCode).toBe(0);
 
       // Verify check result includes local edit
-      const checkResult = await vi.mocked(batchChecker.checkAllFiles).mock.results[0].value;
+      const checkResult = await vi.mocked(batchChecker.checkAllFiles).mock.results[0]!.value;
       expect(checkResult.summary.localEdited).toBe(1);
-      expect(checkResult.updates[0].status).toBe('LOCAL_EDITED');
+      expect(checkResult.updates[0]!.status).toBe('LOCAL_EDITED');
     });
 
     it('should warn about local edits in both existing and newly added projects', async () => {
@@ -333,7 +333,7 @@ describe('Add Command & Check-Updates Integration (Task 9.1)', () => {
 
       // ASSERT: Local edits detected in both projects
       expect(result.success).toBe(true);
-      const checkResult = await vi.mocked(batchChecker.checkAllFiles).mock.results[0].value;
+      const checkResult = await vi.mocked(batchChecker.checkAllFiles).mock.results[0]!.value;
       expect(checkResult.summary.localEdited).toBe(2);
     });
   });
@@ -408,11 +408,11 @@ describe('Add Command & Check-Updates Integration (Task 9.1)', () => {
 
       const mockCheckResult = {
         updates: mockMetadata.projects.map((project) => ({
-          path: project.files[0].path,
+          path: project.files[0]!.path,
           status: 'UP_TO_DATE' as UpdateStatus,
-          currentSha: project.files[0].sha,
-          remoteSha: project.files[0].sha,
-          localHash: project.files[0].localHash,
+          currentSha: project.files[0]!.sha,
+          remoteSha: project.files[0]!.sha,
+          localHash: project.files[0]!.localHash,
           hasLocalEdits: false,
         })),
         summary: {
@@ -437,7 +437,7 @@ describe('Add Command & Check-Updates Integration (Task 9.1)', () => {
       expect(result.success).toBe(true);
       expect(result.exitCode).toBe(0);
 
-      const checkResult = await vi.mocked(batchChecker.checkAllFiles).mock.results[0].value;
+      const checkResult = await vi.mocked(batchChecker.checkAllFiles).mock.results[0]!.value;
       expect(checkResult.summary.totalFiles).toBe(4);
     });
   });
@@ -484,11 +484,11 @@ describe('Add Command & Check-Updates Integration (Task 9.1)', () => {
 
       const mockCheckResult = {
         updates: mockMetadata.projects.map((project) => ({
-          path: project.files[0].path,
+          path: project.files[0]!.path,
           status: 'UP_TO_DATE' as UpdateStatus,
-          currentSha: project.files[0].sha,
-          remoteSha: project.files[0].sha,
-          localHash: project.files[0].localHash,
+          currentSha: project.files[0]!.sha,
+          remoteSha: project.files[0]!.sha,
+          localHash: project.files[0]!.localHash,
           hasLocalEdits: false,
         })),
         summary: {
@@ -513,7 +513,7 @@ describe('Add Command & Check-Updates Integration (Task 9.1)', () => {
       expect(result.success).toBe(true);
 
       // Verify loadMetadata was called with correct structure
-      const loadedMetadata = await vi.mocked(metadataManager.loadMetadata).mock.results[0].value;
+      const loadedMetadata = await vi.mocked(metadataManager.loadMetadata).mock.results[0]!.value;
       expect(loadedMetadata.version).toBe('1.0');
       expect(loadedMetadata.projects).toHaveLength(2);
       expect(loadedMetadata.projects.every((p) => p.repository)).toBe(true);

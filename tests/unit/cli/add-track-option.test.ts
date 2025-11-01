@@ -200,8 +200,8 @@ describe('Task 8.9: Add command --track option behavior', () => {
       const metadata = JSON.parse(metadataContent);
 
       expect(metadata.projects).toHaveLength(1);
-      expect(metadata.projects[0].projectName).toBe('test-project');
-      expect(metadata.projects[0].repository).toBe('owner/repo');
+      expect(metadata.projects[0]!.projectName).toBe('test-project');
+      expect(metadata.projects[0]!.repository).toBe('owner/repo');
     });
 
     it('should perform duplicate detection when --track is specified', async () => {
@@ -289,7 +289,7 @@ describe('Task 8.9: Add command --track option behavior', () => {
       // Read initial metadata
       const initialMetadataContent = await fs.readFile(metadataPath, 'utf-8');
       const initialMetadata = JSON.parse(initialMetadataContent);
-      const initialFetchedAt = initialMetadata.projects[0].fetchedAt;
+      const initialFetchedAt = initialMetadata.projects[0]!.fetchedAt;
 
       // Wait a bit to ensure timestamp differs
       await new Promise((resolve) => setTimeout(resolve, 100));
@@ -345,7 +345,7 @@ describe('Task 8.9: Add command --track option behavior', () => {
       // Verify metadata was updated
       const updatedMetadataContent = await fs.readFile(metadataPath, 'utf-8');
       const updatedMetadata = JSON.parse(updatedMetadataContent);
-      const updatedFetchedAt = updatedMetadata.projects[0].fetchedAt;
+      const updatedFetchedAt = updatedMetadata.projects[0]!.fetchedAt;
 
       // Timestamp should be different (updated)
       expect(updatedFetchedAt).not.toBe(initialFetchedAt);

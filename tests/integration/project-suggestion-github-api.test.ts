@@ -426,7 +426,7 @@ describe('Project Suggestion GitHub API Integration', () => {
       // Check that the log includes repository and path information
       const logCalls = (mockLogger.debug as ReturnType<typeof vi.fn>).mock.calls;
       const apiCallLog = logCalls.find((call) =>
-        call[0].includes('Fetching available projects from GitHub')
+        call[0]?.includes('Fetching available projects from GitHub')
       );
 
       expect(apiCallLog).toBeDefined();
@@ -463,7 +463,7 @@ describe('Project Suggestion GitHub API Integration', () => {
       // Check that the log includes error details
       const errorCalls = (mockLogger.debug as ReturnType<typeof vi.fn>).mock.calls;
       const errorLog = errorCalls.find((call) =>
-        call[0].includes('Failed to fetch projects from GitHub')
+        call[0]?.includes('Failed to fetch projects from GitHub')
       );
 
       expect(errorLog).toBeDefined();

@@ -93,6 +93,7 @@ describe('Tree API Project Scan Integration (Task 4.1)', () => {
         checkUpdates: false,
         update: false,
         track: true,
+        steering: false,
       };
 
       // Mock Tree API success with 2 projects
@@ -157,6 +158,7 @@ describe('Tree API Project Scan Integration (Task 4.1)', () => {
         checkUpdates: false,
         update: false,
         track: true,
+        steering: false,
       };
 
       mockScanProjectsAcrossSubdirs.mockResolvedValue({
@@ -196,6 +198,7 @@ describe('Tree API Project Scan Integration (Task 4.1)', () => {
         checkUpdates: false,
         update: false,
         track: true,
+        steering: false,
       };
 
       // Mock Tree API with root and subdir projects
@@ -235,6 +238,7 @@ describe('Tree API Project Scan Integration (Task 4.1)', () => {
         checkUpdates: false,
         update: false,
         track: true,
+        steering: false,
       };
 
       // Mock Tree API with truncated response
@@ -278,6 +282,7 @@ describe('Tree API Project Scan Integration (Task 4.1)', () => {
         checkUpdates: false,
         update: false,
         track: true,
+        steering: false,
       };
 
       // Mock existing workflow: project prompt only
@@ -320,6 +325,7 @@ describe('Tree API Project Scan Integration (Task 4.1)', () => {
           checkUpdates: false,
           update: false,
           track: true,
+          steering: false,
         };
 
         // Mock existing workflow
@@ -363,6 +369,7 @@ describe('Tree API Project Scan Integration (Task 4.1)', () => {
         checkUpdates: false,
         update: false,
         track: true,
+        steering: false,
       };
 
       // Mock Tree API failure
@@ -412,6 +419,7 @@ describe('Tree API Project Scan Integration (Task 4.1)', () => {
         checkUpdates: false,
         update: false,
         track: true,
+        steering: false,
       };
 
       // Mock existing workflow
@@ -446,6 +454,7 @@ describe('Tree API Project Scan Integration (Task 4.1)', () => {
         checkUpdates: false,
         update: false,
         track: true,
+        steering: false,
       };
 
       // Mock Tree API success but 0 projects

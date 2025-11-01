@@ -178,7 +178,7 @@ describe('Error Recovery Integration', () => {
       await checkRateLimit(client);
 
       expect(consoleWarnSpy).toHaveBeenCalled();
-      expect(consoleWarnSpy.mock.calls[0][0]).toContain('rate limit is low');
+      expect(consoleWarnSpy.mock.calls[0]![0]!).toContain('rate limit is low');
 
       consoleWarnSpy.mockRestore();
     });
