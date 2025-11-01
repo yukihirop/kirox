@@ -101,6 +101,45 @@ export class PinoLogger {
   }
 
   /**
+   * Log VERBOSE level message (alias for debug)
+   *
+   * Provided for backward compatibility with existing Logger API
+   *
+   * @param message - Verbose debug message
+   * @param details - Optional details object (structured data)
+   *
+   * @example
+   * ```typescript
+   * logger.verbose('Fetching tree SHA', { repository: 'owner/repo#branch' });
+   * ```
+   */
+  verbose(message: string, details?: Record<string, unknown>): void {
+    this.debug(message, details);
+  }
+
+  /**
+   * Format timestamp (backward compatibility method - unused in PinoLogger)
+   *
+   * Pino handles timestamp formatting internally
+   * This method exists for compatibility with Logger interface
+   */
+  formatTimestamp(): string {
+    return new Date().toISOString().replace(/\.\d{3}Z$/, 'Z');
+  }
+
+  /**
+   * Format log message (backward compatibility method - unused in PinoLogger)
+   *
+   * Pino handles message formatting internally
+   * This method exists for compatibility with Logger interface
+   */
+  formatLogMessage(level: string, message: string, details?: unknown): string {
+    const timestamp = this.formatTimestamp();
+    const detailsStr = details !== undefined ? ` ${JSON.stringify(details)}` : '';
+    return `[${level}] ${timestamp} ${message}${detailsStr}`;
+  }
+
+  /**
    * Log error result with appropriate level
    *
    * Recoverable errors are logged as WARN, fatal errors as ERROR

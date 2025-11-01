@@ -59,31 +59,31 @@
 
 ## Phase 2: CLI EntryポイントでのPinoLogger導入
 
-- [ ] 5. メインエントリポイントの移行テストを作成(TDD: RED)
-- [ ] 5.1 entry.tsの統合テストケースを作成
+- [x] 5. メインエントリポイントの移行テストを作成(TDD: RED)
+- [x] 5.1 entry.tsの統合テストケースを作成
   - PinoLoggerがverboseフラグで正しく初期化されることを検証するテスト
   - ログ呼び出しが既存と同じ動作をすることを検証するテスト
   - _Requirements: 2.1, 2.2_
 
-- [ ] 5.2 add-command-entry.tsの統合テストケースを作成
+- [x] 5.2 add-command-entry.tsの統合テストケースを作成
   - PinoLoggerがverboseフラグで正しく初期化されることを検証するテスト
   - addコマンドのログ出力が正しく動作することを検証するテスト
   - _Requirements: 2.1, 2.2_
 
-- [ ] 6. CLI Entryポイントでの実装変更(TDD: GREEN)
-- [ ] 6.1 entry.tsでPinoLoggerを導入
+- [x] 6. CLI Entryポイントでの実装変更(TDD: GREEN)
+- [x] 6.1 entry.tsでPinoLoggerを導入
   - Loggerインポートをpino-logger.tsのPinoLoggerに変更
   - Logger生成箇所をPinoLogger生成に変更し、verboseフラグを渡す
   - 既存のログ呼び出し箇所は変更せずそのまま維持
   - _Requirements: 4.2_
 
-- [ ] 6.2 add-command-entry.tsでPinoLoggerを導入
+- [x] 6.2 add-command-entry.tsでPinoLoggerを導入
   - Loggerインポートをpino-logger.tsのPinoLoggerに変更
   - Logger生成箇所をPinoLogger生成に変更し、verboseフラグを渡す
   - 既存のログ呼び出し箇所は変更せずそのまま維持
   - _Requirements: 4.2_
 
-- [ ] 7. 統合テストを実行して移行成功を確認(TDD: GREEN検証)
+- [x] 7. 統合テストを実行して移行成功を確認(TDD: GREEN検証)
   - entry.tsとadd-command-entry.tsの統合テストが全て成功することを確認
   - 既存の685テストが継続して成功することを確認
   - ログ出力形式が既存形式に近いことを確認

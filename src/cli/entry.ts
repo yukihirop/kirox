@@ -18,7 +18,7 @@ import { fetchFilesInParallel } from '../github/parallel-fetcher.js';
 import { writeFile } from '../filesystem/writer.js';
 import { ProgressReporter } from '../reporting/progress-reporter.js';
 import { ErrorHandler } from '../reporting/error-handler.js';
-import { Logger } from '../reporting/logger.js';
+import { PinoLogger } from '../reporting/pino-logger.js';
 import { resolveOutputPath, buildRemotePath } from '../filesystem/path-utils.js';
 import { loadMetadata, upsertProject, upsertFile } from '../tracking/metadata-manager.js';
 import { calculateFileHash } from '../tracking/hash-calculator.js';
@@ -53,12 +53,14 @@ function getMetadataPath(outputDir: string): string {
  * @returns Execution result with success status and file counts
  */
 export async function execute(argv: string[]): Promise<ExecutionResult> {
-  const logger = new Logger();
+  // Step 1: Parse arguments (needed early for PinoLogger initialization with verbose flag)
+  let args = parseArguments(argv);
+
+  // Initialize logger with verbose flag from parsed arguments
+  const logger = new PinoLogger(args.verbose);
   const errorHandler = new ErrorHandler();
 
   try {
-    // Step 1: Parse arguments
-    let args = parseArguments(argv);
 
     // Step 1.5: Check if interactive mode is needed
     if (shouldEnterInteractiveMode(args)) {
@@ -536,12 +538,12 @@ export async function execute(argv: string[]): Promise<ExecutionResult> {
  * Handle --check-updates command
  *
  * @param args - Parsed arguments
- * @param logger - Logger instance
+ * @param logger - PinoLogger instance
  * @returns Execution result
  */
 async function handleCheckUpdates(
   args: ParsedArguments,
-  logger: Logger
+  logger: PinoLogger
 ): Promise<ExecutionResult> {
   const errorHandler = new ErrorHandler();
 
@@ -689,12 +691,12 @@ async function handleCheckUpdates(
  * Handle --update command
  *
  * @param args - Parsed arguments
- * @param logger - Logger instance
+ * @param logger - PinoLogger instance
  * @returns Execution result
  */
 async function handleUpdate(
   args: ParsedArguments,
-  logger: Logger
+  logger: PinoLogger
 ): Promise<ExecutionResult> {
   const errorHandler = new ErrorHandler();
 
