@@ -483,7 +483,7 @@ export async function execute(argv: string[]): Promise<ExecutionResult> {
       }
     }
 
-    logger.info('Execution completed', {
+    logger.debug('Execution completed', {
       filesDownloaded: totalFilesDownloaded,
       filesFailed: totalFilesFailed,
       total: totalFilesDownloaded + totalFilesFailed,
