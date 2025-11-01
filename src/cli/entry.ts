@@ -114,8 +114,8 @@ export async function execute(argv: string[]): Promise<ExecutionResult> {
     // Get subdir from merged config (default to empty string if undefined)
     const subdir = mergedConfig.subdir || '';
 
-    if (args.verbose && subdir) {
-      logger.info('Using subdirectory', { subdir });
+    if (subdir) {
+      logger.debug('Using subdirectory', { subdir });
     }
 
     // Step 2.5: Handle --check-updates command
@@ -173,7 +173,7 @@ export async function execute(argv: string[]): Promise<ExecutionResult> {
 
       try {
         // Step 5.1: Fetch directory listings for current project
-        logger.verbose('Fetching directory listings from GitHub', {
+        logger.debug('Fetching directory listings from GitHub', {
           repository: args.repository,
           project: projectName,
           ...(effectiveBranch && { branch: effectiveBranch }),
@@ -207,11 +207,9 @@ export async function execute(argv: string[]): Promise<ExecutionResult> {
             try {
               steeringContents = await fetchDirectoryContents(octokit, owner, repo, steeringPath, effectiveBranch);
             } catch (_error) {
-              if (args.verbose) {
-                logger.warn('Steering directory not found, skipping', {
-                  path: steeringPath,
-                });
-              }
+              logger.debug('Steering directory not found, skipping', {
+                path: steeringPath,
+              });
             }
           }
         }
@@ -221,14 +219,12 @@ export async function execute(argv: string[]): Promise<ExecutionResult> {
         const steeringFiles = steeringContents.filter((item) => item.type === 'file');
         const allFiles: ContentItem[] = [...specFiles, ...steeringFiles];
 
-        if (args.verbose) {
-          logger.info('Directory listings fetched', {
-            specFiles: specFiles.length,
-            steeringFiles: steeringFiles.length,
-            total: allFiles.length,
-            ...(subdir && { subdir }),
-          });
-        }
+        logger.debug('Directory listings fetched', {
+          specFiles: specFiles.length,
+          steeringFiles: steeringFiles.length,
+          total: allFiles.length,
+          ...(subdir && { subdir }),
+        });
 
         // Task 4.4: Empty directory handling for --steering mode
         // When steering directory is empty, display info message and exit with code 0 (Requirement 7.5)
@@ -245,7 +241,7 @@ export async function execute(argv: string[]): Promise<ExecutionResult> {
         }
 
         // Step 5.2: Fetch all file contents in parallel
-        logger.verbose('Fetching file contents', { count: allFiles.length });
+        logger.debug('Fetching file contents', { count: allFiles.length });
 
         const filePaths = allFiles.map((item) => item.path);
 
@@ -264,12 +260,10 @@ export async function execute(argv: string[]): Promise<ExecutionResult> {
           }
         );
 
-        if (args.verbose) {
-          logger.info('Files fetched', {
-            success: fetchResult.success.length,
-            failed: fetchResult.failed.length,
-          });
-        }
+        logger.debug('Files fetched', {
+          success: fetchResult.success.length,
+          failed: fetchResult.failed.length,
+        });
 
         // Step 5.3: Write files to local filesystem
         let filesDownloaded = 0;
@@ -286,9 +280,9 @@ export async function execute(argv: string[]): Promise<ExecutionResult> {
           const displayProjectName = projects.length > 1 ? projectName : undefined;
 
           // Verbose: Show detailed fetch information with branch
-          if (args.verbose && effectiveBranch) {
+          if (effectiveBranch) {
             const branchInfo = `${owner}/${repo}#${effectiveBranch}/${file.path}`;
-            reporter.reportVerbose(`取得中: ${branchInfo}`, displayProjectName);
+            logger.debug(`取得中: ${branchInfo}`, { project: displayProjectName });
           }
 
           try {
@@ -358,27 +352,21 @@ export async function execute(argv: string[]): Promise<ExecutionResult> {
         // Step 5.5: Save metadata if --track option is used
         if (args.track && writtenFiles.length > 0) {
           try {
-            if (args.verbose) {
-              logger.info('Saving tracking metadata', {
-                filesCount: writtenFiles.length,
-              });
-            }
+            logger.debug('Saving tracking metadata', {
+              filesCount: writtenFiles.length,
+            });
 
             const metadataPath = getMetadataPath(args.output);
 
             // Check if metadata exists
             try {
               const existingMetadata = await loadMetadata(metadataPath);
-              if (args.verbose) {
-                logger.info('Loaded existing metadata', {
-                  projectsCount: existingMetadata.projects.length,
-                });
-              }
+              logger.debug('Loaded existing metadata', {
+                projectsCount: existingMetadata.projects.length,
+              });
             } catch (_error) {
               // Metadata doesn't exist
-              if (args.verbose) {
-                logger.info('Creating new metadata file');
-              }
+              logger.debug('Creating new metadata file');
             }
 
             // Upsert project
@@ -406,13 +394,11 @@ export async function execute(argv: string[]): Promise<ExecutionResult> {
 
                 await upsertFile(args.repository, projectName, fileMetadata, metadataPath);
 
-                if (args.verbose) {
-                  logger.info('File metadata saved', {
-                    path: file.path,
-                    sha: file.sha,
-                    hash: localHash,
-                  });
-                }
+                logger.debug('File metadata saved', {
+                  path: file.path,
+                  sha: file.sha,
+                  hash: localHash,
+                });
               } catch (error) {
                 // Log hash calculation error but continue
                 logger.warn('Failed to calculate file hash', {
@@ -425,12 +411,10 @@ export async function execute(argv: string[]): Promise<ExecutionResult> {
             // Success message for metadata save
             reporter.reportSuccess(`Saved metadata: ${metadataPath}`);
 
-            if (args.verbose) {
-              logger.info('Metadata saved successfully', {
-                path: metadataPath,
-                filesTracked: writtenFiles.length,
-              });
-            }
+            logger.debug('Metadata saved successfully', {
+              path: metadataPath,
+              filesTracked: writtenFiles.length,
+            });
           } catch (error) {
             // Metadata save failure should not fail the entire operation
             // Files were already successfully downloaded
@@ -551,18 +535,14 @@ async function handleCheckUpdates(
     const metadataPath = getMetadataPath(args.output);
 
     // Step 1: Load metadata
-    if (args.verbose) {
-      logger.info('Loading tracking metadata');
-    }
+    logger.debug('Loading tracking metadata');
 
     const metadata = await loadMetadata(metadataPath);
 
-    if (args.verbose) {
-      logger.info('Metadata loaded', {
-        projectsCount: metadata.projects.length,
-        totalFiles: metadata.projects.reduce((sum, p) => sum + p.files.length, 0),
-      });
-    }
+    logger.debug('Metadata loaded', {
+      projectsCount: metadata.projects.length,
+      totalFiles: metadata.projects.reduce((sum, p) => sum + p.files.length, 0),
+    });
 
     // Step 2: Initialize Octokit client
     const { Octokit } = await import('octokit');
@@ -587,13 +567,11 @@ async function handleCheckUpdates(
     for (const project of metadata.projects) {
       const { owner, repo } = parseRepositoryPath(project.repository);
 
-      if (args.verbose) {
-        logger.info('Checking updates for project', {
-          repository: project.repository,
-          projectName: project.projectName,
-          filesCount: project.files.length,
-        });
-      }
+      logger.debug('Checking updates for project', {
+        repository: project.repository,
+        projectName: project.projectName,
+        filesCount: project.files.length,
+      });
 
       const checkResult = await checkAllFiles(octokit, owner, repo, '.', project);
 
@@ -704,18 +682,14 @@ async function handleUpdate(
     const metadataPath = getMetadataPath(args.output);
 
     // Step 1: Load metadata
-    if (args.verbose) {
-      logger.info('Loading tracking metadata');
-    }
+    logger.debug('Loading tracking metadata');
 
     const metadata = await loadMetadata(metadataPath);
 
-    if (args.verbose) {
-      logger.info('Metadata loaded', {
-        projectsCount: metadata.projects.length,
-        totalFiles: metadata.projects.reduce((sum, p) => sum + p.files.length, 0),
-      });
-    }
+    logger.debug('Metadata loaded', {
+      projectsCount: metadata.projects.length,
+      totalFiles: metadata.projects.reduce((sum, p) => sum + p.files.length, 0),
+    });
 
     // Step 2: Initialize Octokit client
     const { Octokit } = await import('octokit');
@@ -737,24 +711,20 @@ async function handleUpdate(
     for (const project of metadata.projects) {
       const { owner, repo } = parseRepositoryPath(project.repository);
 
-      if (args.verbose) {
-        logger.info('Checking updates for project', {
-          repository: project.repository,
-          projectName: project.projectName,
-          filesCount: project.files.length,
-        });
-      }
+      logger.debug('Checking updates for project', {
+        repository: project.repository,
+        projectName: project.projectName,
+        filesCount: project.files.length,
+      });
 
       // Step 4: Check for updates
       const checkResult = await checkAllFiles(octokit, owner, repo, '.', project);
 
-      if (args.verbose) {
-        logger.info('Update check completed', {
-          updatable: checkResult.updatable,
-          conflicts: checkResult.conflict,
-          upToDate: checkResult.upToDate,
-        });
-      }
+      logger.debug('Update check completed', {
+        updatable: checkResult.updatable,
+        conflicts: checkResult.conflict,
+        upToDate: checkResult.upToDate,
+      });
 
       // Step 5: Apply updates
       console.log(`\nProject: ${project.repository}/${project.projectName}`);
