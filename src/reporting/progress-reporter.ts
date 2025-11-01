@@ -297,26 +297,55 @@ export class ProgressReporter {
   /**
    * Report success message
    *
+   * Task 4.1: Uses ora spinner.succeed() instead of console.log
    * Displays success message in green color
    * If message contains a file path with subdirectory prefix, strips it
    *
    * @param message - Success message to display
+   * @param projectName - Optional project name for multi-project display
    *
    * @example
    * ```typescript
    * reporter.reportSuccess('File downloaded successfully');
-   * // Output: ✓ File downloaded successfully (in green)
+   * // Output: ✓ File downloaded successfully (spinner succeed)
    *
    * reporter.reportSuccess('Saved: lib/a/.kiro/specs/project/file.md');
-   * // Output: ✓ Saved: .kiro/specs/project/file.md (in green)
+   * // Output: ✓ Saved: .kiro/specs/project/file.md (spinner succeed)
+   *
+   * reporter.reportSuccess('Project completed', 'proj1');
+   * // Output: ✓ Project completed (spinner succeed for proj1)
    * ```
    */
-  reportSuccess(message: string): void {
+  reportSuccess(message: string, projectName?: string): void {
     // Strip subdirectory prefix from file paths in success messages
     const displayMessage = this.stripSubdirPrefixFromMessage(message);
     const formattedMessage = `✓ ${displayMessage}`;
 
-    console.log(this.chalk.green(formattedMessage));
+    // Task 4.1: Use spinner if not in fallback mode
+    if (this.useFallback) {
+      // Fallback to console.log if spinner initialization failed
+      console.log(this.chalk.green(formattedMessage));
+    } else {
+      try {
+        // Get spinner for this project (or default if no project name)
+        const spinnerKey = projectName && projectName.trim() !== '' ? projectName : '';
+        const spinner = this.spinnerMap.get(spinnerKey);
+
+        if (spinner && spinner.isSpinning) {
+          // Stop spinner with success message
+          spinner.succeed(formattedMessage);
+        } else {
+          // No active spinner, fall back to console.log
+          console.log(this.chalk.green(formattedMessage));
+        }
+      } catch (error) {
+        // If spinner operation fails, fall back to console.log
+        if (this.options.verbose) {
+          console.log('[VERBOSE] Spinner succeed operation failed, falling back to console output');
+        }
+        console.log(this.chalk.green(formattedMessage));
+      }
+    }
   }
 
   /**
@@ -344,20 +373,49 @@ export class ProgressReporter {
   /**
    * Report error message
    *
+   * Task 4.2: Uses ora spinner.fail() instead of console.error
    * Displays error message in red color
    *
    * @param message - Error message to display
+   * @param projectName - Optional project name for multi-project display
    *
    * @example
    * ```typescript
    * reporter.reportError('Failed to fetch file');
-   * // Output: ✗ Failed to fetch file (in red)
+   * // Output: ✗ Failed to fetch file (spinner fail)
+   *
+   * reporter.reportError('Project failed', 'proj1');
+   * // Output: ✗ Project failed (spinner fail for proj1)
    * ```
    */
-  reportError(message: string): void {
+  reportError(message: string, projectName?: string): void {
     const formattedMessage = `✗ ${message}`;
 
-    console.error(this.chalk.red(formattedMessage));
+    // Task 4.2: Use spinner if not in fallback mode
+    if (this.useFallback) {
+      // Fallback to console.error if spinner initialization failed
+      console.error(this.chalk.red(formattedMessage));
+    } else {
+      try {
+        // Get spinner for this project (or default if no project name)
+        const spinnerKey = projectName && projectName.trim() !== '' ? projectName : '';
+        const spinner = this.spinnerMap.get(spinnerKey);
+
+        if (spinner && spinner.isSpinning) {
+          // Stop spinner with error message
+          spinner.fail(formattedMessage);
+        } else {
+          // No active spinner, fall back to console.error
+          console.error(this.chalk.red(formattedMessage));
+        }
+      } catch (error) {
+        // If spinner operation fails, fall back to console.error
+        if (this.options.verbose) {
+          console.log('[VERBOSE] Spinner fail operation failed, falling back to console output');
+        }
+        console.error(this.chalk.red(formattedMessage));
+      }
+    }
   }
 
   /**

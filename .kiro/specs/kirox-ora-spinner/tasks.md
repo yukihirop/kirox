@@ -40,14 +40,14 @@
   - 各プロジェクトのスピナーが独立して動作することを保証
   - _Requirements: 2.3, 5.1, 5.2, 5.4_
 
-- [ ] 4. reportSuccess と reportError メソッドをスピナー統合
-- [ ] 4.1 reportSuccess メソッドをoraのsucceedに置き換え
+- [x] 4. reportSuccess と reportError メソッドをスピナー統合
+- [x] 4.1 reportSuccess メソッドをoraのsucceedに置き換え
   - フォールバックモードでない場合、現在のスピナーを .succeed() で停止
   - 成功メッセージを引数としてsucceedメソッドに渡す
   - フォールバックモード時は既存のconsole.log実装を使用
   - _Requirements: 2.5, 4.1, 4.3, 4.5_
 
-- [ ] 4.2 reportError メソッドをoraのfailに置き換え
+- [x] 4.2 reportError メソッドをoraのfailに置き換え
   - フォールバックモードでない場合、現在のスピナーを .fail() で停止
   - エラーメッセージを引数としてfailメソッドに渡す
   - フォールバックモード時は既存のconsole.error実装を使用
