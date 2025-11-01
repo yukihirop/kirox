@@ -66,18 +66,18 @@
   - サマリー情報をconsole.logで出力
   - _Requirements: 6.5, 7.4_
 
-- [ ] 6. 既存機能との互換性を維持
-- [ ] 6.1 verboseモードでの詳細ログ表示を継続サポート
+- [x] 6. 既存機能との互換性を維持
+- [x] 6.1 verboseモードでの詳細ログ表示を継続サポート
   - スピナー動作中でもverboseメッセージをconsole.logで出力
   - スピナー表示と詳細ログが干渉しないことを確認
   - _Requirements: 7.1_
 
-- [ ] 6.2 dry-runモードでスピナーを開始しない
+- [x] 6.2 dry-runモードでスピナーを開始しない
   - reportDryRunFileList メソッドでスピナーを使用しない
   - ファイルリスト表示にはconsole.logを継続使用
   - _Requirements: 7.2_
 
-- [ ] 6.3 useColor設定をoraに正しく伝播
+- [x] 6.3 useColor設定をoraに正しく伝播
   - useColor=false時にoraのcolorオプションをfalseに設定
   - 色無効化が正しく動作することを確認
   - _Requirements: 1.2, 7.3_
