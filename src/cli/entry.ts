@@ -246,13 +246,20 @@ export async function execute(argv: string[]): Promise<ExecutionResult> {
         logger.info('Fetching file contents', { count: allFiles.length });
 
         const filePaths = allFiles.map((item) => item.path);
+
+        // Task 14.5: Pass progress callback to display spinner during file fetch
+        const displayProjectName = projects.length > 1 ? projectName : undefined;
         const fetchResult = await fetchFilesInParallel(
           octokit,
           owner,
           repo,
           filePaths,
           5, // maxConcurrency
-          effectiveBranch
+          effectiveBranch,
+          // Progress callback - called before fetching each file
+          (current, total, filePath) => {
+            reporter.reportProgress(current, total, filePath, displayProjectName);
+          }
         );
 
         if (args.verbose) {
@@ -270,12 +277,11 @@ export async function execute(argv: string[]): Promise<ExecutionResult> {
         const writtenFiles: Array<{ path: string; sha: string; size: number; localPath: string }> = [];
 
         for (const file of fetchResult.success) {
-          const currentIndex = fetchResult.success.indexOf(file) + 1;
-          const totalFiles = fetchResult.success.length;
+          // Task 14.5: Progress is now reported during file fetch (in fetchFilesInParallel callback)
+          // No need to call reportProgress here
 
           // Show project name prefix for multi-project operations
           const displayProjectName = projects.length > 1 ? projectName : undefined;
-          reporter.reportProgress(currentIndex, totalFiles, file.path, displayProjectName);
 
           // Verbose: Show detailed fetch information with branch
           if (args.verbose && effectiveBranch) {

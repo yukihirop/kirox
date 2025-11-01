@@ -218,10 +218,22 @@
   - ✅ **回帰テスト**: reporting層の全269テスト合格
   - _Requirements: 2.1, 2.7, 4.1, 4.2, 6.3_
 
-- [ ] 14.5 デバッグ情報の追加と検証
+- [x] 14.5 進捗報告タイミングの修正 (CRITICAL UX ISSUE)
+  - ✅ **問題**: スピナーが表示されない - reportProgressがファイル取得後に呼ばれるため表示時間がない
+  - ✅ **根本原因**: fetchFilesInParallel()で全ファイルを一括取得後、reportProgress()を呼ぶ設計
+  - ✅ **解決策**: fetchFilesInParallel内でファイル取得時にprogressコールバックを呼ぶ
+  - ✅ **実装1**: fetchFilesInParallelにProgressCallbackパラメータを追加 (src/github/parallel-fetcher.ts:201)
+  - ✅ **実装2**: fetchWithSemaphore内でファイル取得前にonProgress()コールバックを呼び出し (src/github/parallel-fetcher.ts:234)
+  - ✅ **実装3**: entry.tsでprogressコールバックを渡してreportProgress()を呼び出し (src/cli/entry.ts:260)
+  - ✅ **実装4**: 重複したreportProgress呼び出しをローカル書き込みループから削除 (src/cli/entry.ts:280)
+  - ✅ **テスト**: parallel-fetcher-progress.test.ts作成 - 4テスト合格(1テストスキップ)
+  - ✅ **ビルド**: TypeScriptコンパイル成功
+  - ⏳ **実環境テスト**: KIROX_DEMO_DELAY=3000で3秒間スピナーアニメーションが表示されることを確認 (ユーザー実行待ち)
+  - _Requirements: 2.1, 2.2, 2.4, 9.1_
+
+- [ ] 14.6 デバッグ情報の追加と検証
   - スピナー初期化時のデバッグログ追加
   - スピナーstart/succeed/fail呼び出し時のデバッグログ追加
-  - KIROX_DEMO_DELAY環境変数との互換性確認
   - 実際の動作確認とログ出力の検証
   - _Requirements: All spinner requirements_
 
