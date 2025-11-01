@@ -258,24 +258,19 @@
   - ✅ **全テスト**: 2202テスト合格
   - _Requirements: 2.1, 2.5, 5.1, 5.2_
 
-- [ ] 14.8 各プロジェクトの最初のファイルでora.succeed()に色が適用されない問題の修正 (CRITICAL BUG)
-  - 🐛 **問題**: 各プロジェクトの最初のファイルだけ白色の`✔`が表示され、2番目以降は緑色の`✓`が表示される
-  - 📊 **再現条件**:
-    - マルチプロジェクトモード
-    - 各プロジェクトの最初のファイルのみ色が適用されない
-    - 出力例: `✔ Saved: file1.md` (白色) → `✓ Saved: file2.md` (緑色)
-  - 🔍 **原因分析**:
-    - `✔` (白色) = `ora.succeed()` が呼ばれているが色設定が適用されていない
-    - `✓` (緑色) = `console.log(this.chalk.green(...))` フォールバックが使われている
-    - pauseSpinner()後のスピナーでsucceed()を呼んでいるが、色設定が失われている可能性
-  - 💡 **調査項目**:
-    - ora.succeed()が色を使用する条件を確認
-    - OraOptionsのcolor設定がsucceed()に引き継がれるか確認
-    - pauseSpinner()/stop()が色設定をリセットしていないか確認
-  - 🎯 **解決策候補**:
-    - Option A: ora.succeed()にcolorオプションを明示的に渡す
-    - Option B: succeed()の代わりにstop() + console.log()を統一的に使用
-    - Option C: pauseSpinner()を使わず、別の方法でプロンプトを表示
+- [x] 14.8 各プロジェクトの最初のファイルでora.succeed()に色が適用されない問題の修正 (CRITICAL BUG)
+  - ✅ **問題特定**: ora.succeed()/fail()が色を適用しないため、一貫した色表示ができない
+  - ✅ **根本原因**: oraのsucceed()/fail()は独自の色ロジックを持ち、chalk設定と競合する
+  - ✅ **解決策実装**: Option B - stop() + console.log/error()を統一的に使用
+  - ✅ **実装1**: reportSuccess()をstop() + console.log(this.chalk.green())に変更 (progress-reporter.ts:377-384)
+  - ✅ **実装2**: reportError()をstop() + console.error(this.chalk.red())に変更 (progress-reporter.ts:458-465)
+  - ✅ **実装3**: フォーマット済みメッセージ(✓/✗付き)を先に作成してから出力
+  - ✅ **テスト**: progress-reporter-consistent-colors.test.ts作成 - 6テスト全て合格
+  - ✅ **回帰テスト**: progress-reporter-success-error-spinner.test.ts更新 - 12テスト全て合格
+  - ✅ **廃棄テスト**: progress-reporter-double-checkmark.test.ts, entry-spinner-pause-integration.test.ts削除(新実装で不要)
+  - ✅ **ビルド**: TypeScriptコンパイル成功
+  - ✅ **全テスト**: 2198テスト合格 (9削除, 6追加)
+  - ✅ **結果**: 全てのファイルで一貫した緑色の✓と赤色の✗が表示される
   - _Requirements: 1.2, 4.1, 4.5_
 
 - [ ] 14.9 デバッグ情報の追加と検証

@@ -90,11 +90,13 @@ describe('ProgressReporter - reportSuccess/reportError with Spinner (Task 4.1 & 
   });
 
   describe('Task 4.1: reportSuccess with spinner', () => {
-    it('should call spinner.succeed() when spinner exists and not in fallback mode', async () => {
+    it('should stop spinner and use console.log when spinner exists', async () => {
       const { ProgressReporter } = await import(
         '../../../src/reporting/progress-reporter.js'
       );
       const reporter = new ProgressReporter({ verbose: false, useColor: true });
+
+      const consoleLogSpy = vi.spyOn(console, 'log').mockImplementation(() => undefined);
 
       // Create a spinner by calling reportProgress
       reporter.reportProgress(1, 10, 'file.md');
@@ -109,9 +111,12 @@ describe('ProgressReporter - reportSuccess/reportError with Spinner (Task 4.1 & 
       // Call reportSuccess
       reporter.reportSuccess('File downloaded successfully');
 
-      // Task 14.6: Should call spinner.succeed() WITHOUT ✓ prefix
-      // ora adds its own ✔ prefix automatically
-      expect(spinner!.succeed).toHaveBeenCalledWith('File downloaded successfully');
+      // Task 14.8: Should call spinner.stop() and console.log with green color
+      expect(spinner!.stop).toHaveBeenCalled();
+      expect(consoleLogSpy).toHaveBeenCalled();
+      expect(consoleLogSpy.mock.calls[0][0]).toContain('✓ File downloaded successfully');
+
+      consoleLogSpy.mockRestore();
     });
 
     it('should stop spinner when calling succeed()', async () => {
@@ -160,6 +165,8 @@ describe('ProgressReporter - reportSuccess/reportError with Spinner (Task 4.1 & 
       );
       const reporter = new ProgressReporter({ verbose: false, useColor: true });
 
+      const consoleLogSpy = vi.spyOn(console, 'log').mockImplementation(() => undefined);
+
       // Create project-specific spinner
       reporter.reportProgress(1, 8, 'file.md', 'proj1');
 
@@ -173,8 +180,11 @@ describe('ProgressReporter - reportSuccess/reportError with Spinner (Task 4.1 & 
       // Call reportSuccess with project name
       reporter.reportSuccess('Project completed', 'proj1');
 
-      // Should have called spinner.succeed()
-      expect(spinner!.succeed).toHaveBeenCalled();
+      // Task 14.8: Should call spinner.stop() and console.log
+      expect(spinner!.stop).toHaveBeenCalled();
+      expect(consoleLogSpy).toHaveBeenCalled();
+
+      consoleLogSpy.mockRestore();
     });
 
     it('should strip subdirectory prefix from success messages', async () => {
@@ -183,34 +193,32 @@ describe('ProgressReporter - reportSuccess/reportError with Spinner (Task 4.1 & 
       );
       const reporter = new ProgressReporter({ verbose: false, useColor: true });
 
+      const consoleLogSpy = vi.spyOn(console, 'log').mockImplementation(() => undefined);
+
       // Create spinner
       reporter.reportProgress(1, 10, 'file.md');
-
-      const reporterAny = reporter as unknown as {
-        spinnerMap: Map<string, Ora>;
-      };
-
-      const spinner = reporterAny.spinnerMap.get('');
 
       // Call reportSuccess with subdirectory prefix
       reporter.reportSuccess('Saved: lib/a/.kiro/specs/project/file.md');
 
       // Should have stripped 'lib/a/' prefix
-      expect(spinner!.succeed).toHaveBeenCalledWith(
-        expect.stringContaining('.kiro/specs/project/file.md')
-      );
-      expect(spinner!.succeed).toHaveBeenCalledWith(
-        expect.not.stringContaining('lib/a/')
-      );
+      expect(consoleLogSpy).toHaveBeenCalled();
+      const logCall = consoleLogSpy.mock.calls[0][0];
+      expect(logCall).toContain('.kiro/specs/project/file.md');
+      expect(logCall).not.toContain('lib/a/');
+
+      consoleLogSpy.mockRestore();
     });
   });
 
   describe('Task 4.2: reportError with spinner', () => {
-    it('should call spinner.fail() when spinner exists and not in fallback mode', async () => {
+    it('should stop spinner and use console.error when spinner exists', async () => {
       const { ProgressReporter } = await import(
         '../../../src/reporting/progress-reporter.js'
       );
       const reporter = new ProgressReporter({ verbose: false, useColor: true });
+
+      const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => undefined);
 
       // Create a spinner by calling reportProgress
       reporter.reportProgress(1, 10, 'file.md');
@@ -225,9 +233,12 @@ describe('ProgressReporter - reportSuccess/reportError with Spinner (Task 4.1 & 
       // Call reportError
       reporter.reportError('Failed to fetch file');
 
-      // Task 14.6: Should call spinner.fail() WITHOUT ✗ prefix
-      // ora adds its own ✖ prefix automatically
-      expect(spinner!.fail).toHaveBeenCalledWith('Failed to fetch file');
+      // Task 14.8: Should call spinner.stop() and console.error with red color
+      expect(spinner!.stop).toHaveBeenCalled();
+      expect(consoleErrorSpy).toHaveBeenCalled();
+      expect(consoleErrorSpy.mock.calls[0][0]).toContain('✗ Failed to fetch file');
+
+      consoleErrorSpy.mockRestore();
     });
 
     it('should stop spinner when calling fail()', async () => {
@@ -276,6 +287,8 @@ describe('ProgressReporter - reportSuccess/reportError with Spinner (Task 4.1 & 
       );
       const reporter = new ProgressReporter({ verbose: false, useColor: true });
 
+      const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+
       // Create project-specific spinner
       reporter.reportProgress(1, 8, 'file.md', 'proj1');
 
@@ -289,8 +302,11 @@ describe('ProgressReporter - reportSuccess/reportError with Spinner (Task 4.1 & 
       // Call reportError with project name
       reporter.reportError('Project failed', 'proj1');
 
-      // Should have called spinner.fail()
-      expect(spinner!.fail).toHaveBeenCalled();
+      // Task 14.8: Should call spinner.stop() and console.error
+      expect(spinner!.stop).toHaveBeenCalled();
+      expect(consoleErrorSpy).toHaveBeenCalled();
+
+      consoleErrorSpy.mockRestore();
     });
 
     it('should handle error when no spinner exists', async () => {
@@ -316,6 +332,9 @@ describe('ProgressReporter - reportSuccess/reportError with Spinner (Task 4.1 & 
       );
       const reporter = new ProgressReporter({ verbose: false, useColor: true });
 
+      const consoleLogSpy = vi.spyOn(console, 'log').mockImplementation(() => undefined);
+      const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+
       // Create first spinner
       reporter.reportProgress(1, 10, 'file.md');
 
@@ -327,7 +346,8 @@ describe('ProgressReporter - reportSuccess/reportError with Spinner (Task 4.1 & 
 
       // Call reportSuccess - this removes spinner from map (Task 14.4 fix)
       reporter.reportSuccess('First success');
-      expect(firstSpinner!.succeed).toHaveBeenCalledTimes(1);
+      expect(firstSpinner!.stop).toHaveBeenCalled();
+      expect(consoleLogSpy).toHaveBeenCalled();
 
       // Create new spinner (Task 14.4: new instance because previous one was removed)
       reporter.reportProgress(2, 10, 'file2.md');
@@ -338,7 +358,11 @@ describe('ProgressReporter - reportSuccess/reportError with Spinner (Task 4.1 & 
 
       // Call reportError on new spinner
       reporter.reportError('Second error');
-      expect(secondSpinner!.fail).toHaveBeenCalledTimes(1);
+      expect(secondSpinner!.stop).toHaveBeenCalled();
+      expect(consoleErrorSpy).toHaveBeenCalled();
+
+      consoleLogSpy.mockRestore();
+      consoleErrorSpy.mockRestore();
     });
 
     it('should handle multiple projects with different outcomes', async () => {
@@ -346,6 +370,9 @@ describe('ProgressReporter - reportSuccess/reportError with Spinner (Task 4.1 & 
         '../../../src/reporting/progress-reporter.js'
       );
       const reporter = new ProgressReporter({ verbose: false, useColor: true });
+
+      const consoleLogSpy = vi.spyOn(console, 'log').mockImplementation(() => undefined);
+      const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => undefined);
 
       // Create spinners for two projects
       reporter.reportProgress(1, 5, 'file1.md', 'proj1');
@@ -362,8 +389,13 @@ describe('ProgressReporter - reportSuccess/reportError with Spinner (Task 4.1 & 
       reporter.reportSuccess('Project 1 completed', 'proj1');
       reporter.reportError('Project 2 failed', 'proj2');
 
-      expect(spinner1!.succeed).toHaveBeenCalled();
-      expect(spinner2!.fail).toHaveBeenCalled();
+      expect(spinner1!.stop).toHaveBeenCalled();
+      expect(spinner2!.stop).toHaveBeenCalled();
+      expect(consoleLogSpy).toHaveBeenCalled();
+      expect(consoleErrorSpy).toHaveBeenCalled();
+
+      consoleLogSpy.mockRestore();
+      consoleErrorSpy.mockRestore();
     });
   });
 });
