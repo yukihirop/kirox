@@ -371,7 +371,10 @@ export class ProgressReporter {
         const spinnerKey = projectName && projectName.trim() !== '' ? projectName : '';
         const spinner = this.spinnerMap.get(spinnerKey);
 
-        if (spinner && spinner.isSpinning) {
+        // Task 14.7: Check if spinner exists (not just isSpinning)
+        // Spinner may be paused by pauseSpinner(), so isSpinning may be false
+        // But we still want to use spinner.succeed() for consistent output
+        if (spinner) {
           // Task 14.6: Pass message WITHOUT ✓ prefix to spinner.succeed()
           // ora automatically adds ✔ prefix, so we should not add ✓ manually
           spinner.succeed(displayMessage);
@@ -450,7 +453,10 @@ export class ProgressReporter {
         const spinnerKey = projectName && projectName.trim() !== '' ? projectName : '';
         const spinner = this.spinnerMap.get(spinnerKey);
 
-        if (spinner && spinner.isSpinning) {
+        // Task 14.7: Check if spinner exists (not just isSpinning)
+        // Spinner may be paused by pauseSpinner(), so isSpinning may be false
+        // But we still want to use spinner.fail() for consistent output
+        if (spinner) {
           // Task 14.6: Pass message WITHOUT ✗ prefix to spinner.fail()
           // ora automatically adds ✖ prefix, so we should not add ✗ manually
           spinner.fail(message);

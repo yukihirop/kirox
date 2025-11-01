@@ -306,8 +306,8 @@ export async function execute(argv: string[]): Promise<ExecutionResult> {
               verbose: args.verbose,
             });
 
-            // Task 14.7: Resume spinner after writeFile completes
-            reporter.resumeSpinner(displayProjectName);
+            // Task 14.7: No need to resume spinner here
+            // reportSuccess() / reportError() will use the paused spinner and clean it up
 
             if (writeResult.written) {
               filesDownloaded++;
@@ -329,9 +329,6 @@ export async function execute(argv: string[]): Promise<ExecutionResult> {
               );
             }
           } catch (error) {
-            // Task 14.7: Resume spinner if error occurs during writeFile
-            reporter.resumeSpinner(displayProjectName);
-
             filesFailed++;
             const errorResult = errorHandler.handle(error, {
               filePath: file.path,
