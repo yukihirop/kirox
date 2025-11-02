@@ -1,8 +1,14 @@
 import { defineConfig } from 'vitest/config';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { readFileSync } from 'fs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
+
+// Load package.json to inject version in test environment
+const packageJson = JSON.parse(
+  readFileSync(path.join(__dirname, 'package.json'), 'utf-8')
+);
 
 export default defineConfig({
   test: {
@@ -28,6 +34,9 @@ export default defineConfig({
         singleThread: false,
       },
     },
+  },
+  define: {
+    __KIROX_VERSION__: JSON.stringify(packageJson.version),
   },
   resolve: {
     alias: {

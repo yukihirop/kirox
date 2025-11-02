@@ -1,5 +1,11 @@
 import { defineConfig } from 'tsup';
-// Removed tsconfig-paths plugin because it attempted to transform node_modules and crashed
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
+
+// Load package.json to inject version at build time
+const packageJson = JSON.parse(
+  readFileSync(join(process.cwd(), 'package.json'), 'utf-8')
+);
 
 export default defineConfig({
   entry: ['src/index.ts'],
@@ -15,6 +21,10 @@ export default defineConfig({
   skipNodeModulesBundle: false,
   dts: false,
   outExtension: ({ format }) => ({ js: format === 'esm' ? '.js' : '.cjs' }),
+  // Inject version at build time
+  define: {
+    '__KIROX_VERSION__': JSON.stringify(packageJson.version),
+  },
   // No custom esbuild plugins; avoid transforming node_modules
   external: [
     'octokit',
