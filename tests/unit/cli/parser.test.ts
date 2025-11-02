@@ -239,7 +239,7 @@ describe('ArgumentParser', () => {
 
       try {
         parseArguments(argv);
-      } catch (error) {
+      } catch (_error) {
         // Commander.js exits on --help, which throws in our test environment
         // We'll verify the help text is configured correctly by checking the source
       }

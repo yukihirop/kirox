@@ -9,7 +9,6 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { promptMissingArguments } from '@/cli/interactive-prompt.js';
 import type { ParsedArguments } from '@/cli/types.js';
 import type { PinoLogger } from '@/reporting/pino-logger.js';
-import { Octokit } from 'octokit';
 
 // Mock modules
 vi.mock('@inquirer/prompts', () => ({
@@ -66,7 +65,6 @@ describe('promptMissingArguments - Branch Selection Integration (Task 3.1)', () 
   let mockFetchBranches: ReturnType<typeof vi.fn>;
   let mockFetchDefaultBranch: ReturnType<typeof vi.fn>;
   let mockLogger: PinoLogger;
-  let mockClient: Octokit;
 
   const createValidArgs = (
     overrides?: Partial<ParsedArguments>
@@ -112,9 +110,6 @@ describe('promptMissingArguments - Branch Selection Integration (Task 3.1)', () 
       info: vi.fn(),
       debug: vi.fn(),
     } as unknown as PinoLogger;
-
-    // Create mock Octokit client
-    mockClient = {} as Octokit;
 
     // Ensure TTY is enabled for interactive tests
     Object.defineProperty(process.stdin, 'isTTY', {

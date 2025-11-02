@@ -9,35 +9,6 @@ import type { Octokit } from 'octokit';
 import type { PinoLogger } from '../../../src/reporting/pino-logger.js';
 import type { RepositoryRef } from '../../../src/github/fetcher.js';
 
-// Will be implemented in GREEN phase
-interface TreeScanResult {
-  projects: Array<{
-    name: string;
-    subdir: string;
-    displayName: string;
-    path: string;
-    type: 'tree';
-    mode: string;
-    sha: string;
-    url: string;
-    projectName: string;
-  }>;
-  success: boolean;
-  truncated: boolean;
-  entryCount: number; // Task 2.5: Total number of tree entries
-  errorMessage?: string;
-}
-
-interface TreeScanOptions {
-  repository: RepositoryRef;
-  client: Octokit;
-  logger: PinoLogger;
-  verbose: boolean;
-}
-
-// Function to be implemented
-declare function scanProjectsAcrossSubdirs(options: TreeScanOptions): Promise<TreeScanResult>;
-
 describe('Tree-Based Project Scanner', () => {
   let mockClient: Octokit;
   let mockLogger: PinoLogger;

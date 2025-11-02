@@ -27,6 +27,10 @@ export default [
     files: ['tests/**/*.ts'],
     rules: {
       '@typescript-eslint/no-explicit-any': 'off',
+      '@typescript-eslint/no-non-null-asserted-optional-chain': 'off',
+      '@typescript-eslint/no-unsafe-function-type': 'off',
+      'no-useless-escape': 'off',
+      'no-control-regex': 'off',
     },
   },
   {

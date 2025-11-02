@@ -554,8 +554,8 @@ describe('PowerShell Template Generation', () => {
       } catch (error) {
         throw new Error(`PowerShell syntax validation failed: ${error}`);
       } finally {
-        try { fs.unlinkSync(ps1Path); } catch {}
-        try { fs.rmdirSync(tmpDir); } catch {}
+        fs.unlinkSync(ps1Path);
+        fs.rmdirSync(tmpDir);
       }
     }
 

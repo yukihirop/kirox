@@ -98,7 +98,7 @@ describe('Semaphore', () => {
       let currentConcurrent = 0;
       let maxConcurrentObserved = 0;
 
-      const task = async (id: number) => {
+      const task = async (_id: number) => {
         await semaphore.acquire();
         try {
           currentConcurrent++;
