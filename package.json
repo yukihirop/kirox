@@ -76,7 +76,6 @@
     "typescript-eslint": "^8.46.0",
     "vitepress": "^1.6.4",
     "vitepress-plugin-llms": "^1.8.1",
-    "vitest": "^2.1.8",
-    "yaml": "^2.8.1"
+    "vitest": "^2.1.8"
   }
 }
