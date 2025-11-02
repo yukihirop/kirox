@@ -135,9 +135,9 @@ describe('ProgressReporter - Consistent Colors (Task 14.8)', () => {
 
       // Both should have same format and color
       const ansiGreen = String.fromCharCode(0x1b) + '[32m';
-      const greenPattern = new RegExp(ansiGreen.replace(/[[\]\\]/g, '\\$&') + '.*✓ Saved: file1.md');
+      const greenPattern = new RegExp(ansiGreen.replace(/[\[\]\\]/g, '\\$&') + '.*✓ Saved: file1.md');
       expect(firstLogCall).toMatch(greenPattern);
-      const greenPattern2 = new RegExp(ansiGreen.replace(/[[\]\\]/g, '\\$&') + '.*✓ Saved: file2.md');
+      const greenPattern2 = new RegExp(ansiGreen.replace(/[\[\]\\]/g, '\\$&') + '.*✓ Saved: file2.md');
       expect(secondLogCall).toMatch(greenPattern2);
     });
 
@@ -165,7 +165,7 @@ describe('ProgressReporter - Consistent Colors (Task 14.8)', () => {
       // All should use console.log with green color
       expect(consoleLogSpy).toHaveBeenCalledTimes(3);
       const ansiGreen = String.fromCharCode(0x1b) + '[32m';
-      const greenPattern = new RegExp(ansiGreen.replace(/[[\]\\]/g, '\\$&') + '.*✓ Saved:');
+      const greenPattern = new RegExp(ansiGreen.replace(/[\[\]\\]/g, '\\$&') + '.*✓ Saved:');
       consoleLogSpy.mock.calls.forEach((call) => {
         expect(call[0]).toMatch(greenPattern);
       });
@@ -252,7 +252,7 @@ describe('ProgressReporter - Consistent Colors (Task 14.8)', () => {
       // Both should have same format and color
       expect(consoleErrorSpy).toHaveBeenCalledTimes(2);
       const ansiRed = String.fromCharCode(0x1b) + '[31m';
-      const redPattern = new RegExp(ansiRed.replace(/[[\]\\]/g, '\\$&') + '.*✗ Failed:');
+      const redPattern = new RegExp(ansiRed.replace(/[\[\]\\]/g, '\\$&') + '.*✗ Failed:');
       consoleErrorSpy.mock.calls.forEach((call) => {
         expect(call[0]).toMatch(redPattern);
       });
