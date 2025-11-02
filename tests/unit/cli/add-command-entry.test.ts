@@ -2318,9 +2318,11 @@ describe('executeAddCommand', () => {
       const result = await executeAddCommand(argv);
 
       // Task 2.4: PinoLogger uses infoSpy - should NOT display success summary when metadata update fails
-      const successMessages = infoSpy.mock.calls.filter(call =>
-        typeof call[1] === 'string' && /successfully added|project added/i.test(call[1])
-      );
+      const successMessages = infoSpy.mock.calls.filter(call => {
+        if (typeof call[1] !== 'string') return false;
+        const msg = call[1].toLowerCase();
+        return msg.includes('successfully added') || msg.includes('project added');
+      });
       expect(successMessages).toHaveLength(0);
 
       expect(result.success).toBe(false);

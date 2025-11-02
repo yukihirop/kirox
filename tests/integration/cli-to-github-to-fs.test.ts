@@ -704,9 +704,13 @@ describe('CLI to GitHub to FileSystem Integration', () => {
       expect(result.success).toBe(true);
 
       // Verify that verbose output includes branch info in format: owner/repo#feature/<path>
-      const hasVerboseWithBranch = consoleOutput.some((line) =>
-        /owner\/repo#feature\//i.test(line) || /feature.*spec\.json/i.test(line)
-      );
+      const hasVerboseWithBranch = consoleOutput.some((line) => {
+        const lowerLine = line.toLowerCase();
+        return (
+          lowerLine.includes('owner/repo#feature/') ||
+          (lowerLine.includes('feature') && lowerLine.includes('spec.json'))
+        );
+      });
 
       // Note: This test verifies the expected format, implementation will add this feature
       expect(hasVerboseWithBranch).toBe(true);

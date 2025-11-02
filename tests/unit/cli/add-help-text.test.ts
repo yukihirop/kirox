@@ -30,7 +30,7 @@ describe('Add Command Help Text (Task 10.1)', () => {
 
     it('should have .addHelpText() with Examples section', () => {
       // Verify .addHelpText('after', ...) exists
-      const hasAddHelpText = /\.addHelpText\(['\"]after['\"],/.test(parserSource);
+      const hasAddHelpText = parserSource.includes('.addHelpText(\'after\',') || parserSource.includes('.addHelpText("after",');
       expect(hasAddHelpText).toBe(true);
 
       // Verify Examples section exists
@@ -39,7 +39,16 @@ describe('Add Command Help Text (Task 10.1)', () => {
 
     it('should include usage examples in help text', () => {
       // Verify multiple example commands exist
-      const exampleMatches = parserSource.match(/npx kirox add/g);
+      // Count occurrences of 'npx kirox add'
+      let exampleCount = 0;
+      let searchIndex = 0;
+      while (true) {
+        const index = parserSource.indexOf('npx kirox add', searchIndex);
+        if (index === -1) break;
+        exampleCount++;
+        searchIndex = index + 1;
+      }
+      const exampleMatches = Array(exampleCount).fill('npx kirox add');
       expect(exampleMatches).not.toBeNull();
       expect(exampleMatches!.length).toBeGreaterThanOrEqual(5); // At least 5 examples
     });

@@ -285,7 +285,16 @@ describe('Elvish Template Generation', () => {
       const script = generateCompletionScript('elvish', metadata);
 
       // Should appear only once in the option completion section
-      const forceMatches = script.match(/--force/g) || [];
+      // Count occurrences of '--force'
+      let forceCount = 0;
+      let searchIndex = 0;
+      while (true) {
+        const index = script.indexOf('--force', searchIndex);
+        if (index === -1) break;
+        forceCount++;
+        searchIndex = index + 1;
+      }
+      const forceMatches = Array(forceCount).fill('--force');
       expect(forceMatches.length).toBe(1);
     });
 

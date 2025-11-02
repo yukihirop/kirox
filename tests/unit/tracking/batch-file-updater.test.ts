@@ -130,7 +130,7 @@ describe('BatchFileUpdater', () => {
       expect(updated?.newHash).toBeDefined();
       // SHA-256 format - 64 characters, all lowercase hex digits
       expect(updated?.newHash).toHaveLength(64);
-      expect(updated?.newHash.split('').every((c) => /[a-f0-9]/.test(c))).toBe(true);
+      expect(updated?.newHash.split('').every((c) => '0123456789abcdef'.includes(c))).toBe(true);
     });
   });
 

@@ -293,7 +293,15 @@ describe('PowerShell Template Generation', () => {
       const script = generateCompletionScript('powershell', metadata);
 
       // Should appear only once
-      const forceCount = (script.match(/--force/g) || []).length;
+      // Count occurrences of '--force'
+      let forceCount = 0;
+      let searchIndex = 0;
+      while (true) {
+        const index = script.indexOf('--force', searchIndex);
+        if (index === -1) break;
+        forceCount++;
+        searchIndex = index + 1;
+      }
       expect(forceCount).toBe(1);
     });
 

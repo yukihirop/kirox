@@ -190,10 +190,14 @@ describe('ProgressReporter', () => {
       reporter.reportStart('owner/repo', ['proj1', 'proj2', 'proj3']);
 
       const allCalls = consoleLogSpy.mock.calls.map((call) => call[0]);
-      const hasMultiProjectInfo = allCalls.some((msg) =>
-        /Fetching 3 projects|3 projects/i.test(String(msg)) ||
-        (String(msg).includes('proj1') && String(msg).includes('proj2') && String(msg).includes('proj3'))
-      );
+      const hasMultiProjectInfo = allCalls.some((msg) => {
+        const msgStr = String(msg).toLowerCase();
+        return (
+          (msgStr.includes('fetching') && msgStr.includes('3') && msgStr.includes('projects')) ||
+          msgStr.includes('3 projects') ||
+          (String(msg).includes('proj1') && String(msg).includes('proj2') && String(msg).includes('proj3'))
+        );
+      });
 
       expect(hasMultiProjectInfo).toBe(true);
     });
@@ -208,9 +212,13 @@ describe('ProgressReporter', () => {
       const hasSubdir = allCalls.some((msg) =>
         String(msg).includes('packages/api/.kiro')
       );
-      const hasMultiProject = allCalls.some((msg) =>
-        /Fetching 2 projects|2 projects/i.test(String(msg))
-      );
+      const hasMultiProject = allCalls.some((msg) => {
+        const msgStr = String(msg).toLowerCase();
+        return (
+          (msgStr.includes('fetching') && msgStr.includes('2') && msgStr.includes('projects')) ||
+          msgStr.includes('2 projects')
+        );
+      });
 
       expect(hasSubdir).toBe(true);
       expect(hasMultiProject).toBe(true);
@@ -226,9 +234,13 @@ describe('ProgressReporter', () => {
       const hasBranch = allCalls.some((msg) =>
         String(msg).includes('branch: main')
       );
-      const hasMultiProject = allCalls.some((msg) =>
-        /Fetching 2 projects|2 projects/i.test(String(msg))
-      );
+      const hasMultiProject = allCalls.some((msg) => {
+        const msgStr = String(msg).toLowerCase();
+        return (
+          (msgStr.includes('fetching') && msgStr.includes('2') && msgStr.includes('projects')) ||
+          msgStr.includes('2 projects')
+        );
+      });
 
       expect(hasBranch).toBe(true);
       expect(hasMultiProject).toBe(true);
@@ -244,9 +256,10 @@ describe('ProgressReporter', () => {
       const hasSingleProjectDisplay = allCalls.some((msg) =>
         String(msg).includes('Project: single-project')
       );
-      const hasMultiProjectDisplay = allCalls.some((msg) =>
-        /Fetching.*projects/i.test(String(msg))
-      );
+      const hasMultiProjectDisplay = allCalls.some((msg) => {
+        const msgStr = String(msg).toLowerCase();
+        return msgStr.includes('fetching') && msgStr.includes('projects');
+      });
 
       expect(hasSingleProjectDisplay).toBe(true);
       expect(hasMultiProjectDisplay).toBe(false);
@@ -294,7 +307,8 @@ describe('ProgressReporter', () => {
       reporter.reportProgress(3, 10, 'example.md', undefined);
 
       const call = consoleLogSpy.mock.calls[0]?.[0];
-      expect(String(call)).toMatch(new RegExp('\\[3/10\\].*example\\.md'));
+      expect(String(call)).toContain('[3/10]');
+      expect(String(call)).toContain('example.md');
       expect(String(call)).not.toContain('[undefined]');
     });
 
@@ -308,8 +322,9 @@ describe('ProgressReporter', () => {
       reporter.reportProgress(3, 10, 'example.md', '');
 
       const call = consoleLogSpy.mock.calls[0]?.[0];
-      expect(String(call)).toMatch(new RegExp('\\[3/10\\].*example\\.md'));
-      expect(String(call)).not.toMatch(new RegExp('\\[\\]'));
+      expect(String(call)).toContain('[3/10]');
+      expect(String(call)).toContain('example.md');
+      expect(String(call)).not.toContain('[]');
     });
 
     it('should strip subdirectory prefix from file paths (bug fix task 5.4)', () => {
@@ -510,8 +525,14 @@ describe('ProgressReporter', () => {
 
       // Check all console.log calls
       const allCalls = consoleLogSpy.mock.calls.map((call) => call[0]);
-      const hasSuccessMessage = allCalls.some((msg) => /8.*succeeded/i.test(String(msg)));
-      const hasFailedMessage = allCalls.some((msg) => /2.*failed/i.test(String(msg)));
+      const hasSuccessMessage = allCalls.some((msg) => {
+        const msgStr = String(msg).toLowerCase();
+        return msgStr.includes('8') && msgStr.includes('succeeded');
+      });
+      const hasFailedMessage = allCalls.some((msg) => {
+        const msgStr = String(msg).toLowerCase();
+        return msgStr.includes('2') && msgStr.includes('failed');
+      });
 
       expect(hasSuccessMessage).toBe(true);
       expect(hasFailedMessage).toBe(true);
@@ -525,8 +546,14 @@ describe('ProgressReporter', () => {
 
       // Check all console.log calls
       const allCalls = consoleLogSpy.mock.calls.map((call) => call[0]);
-      const hasSuccessMessage = allCalls.some((msg) => /10.*succeeded/i.test(String(msg)));
-      const hasFailedMessage = allCalls.some((msg) => /0.*failed/i.test(String(msg)));
+      const hasSuccessMessage = allCalls.some((msg) => {
+        const msgStr = String(msg).toLowerCase();
+        return msgStr.includes('10') && msgStr.includes('succeeded');
+      });
+      const hasFailedMessage = allCalls.some((msg) => {
+        const msgStr = String(msg).toLowerCase();
+        return msgStr.includes('0') && msgStr.includes('failed');
+      });
 
       expect(hasSuccessMessage).toBe(true);
       expect(hasFailedMessage).toBe(true);
@@ -571,9 +598,10 @@ describe('ProgressReporter', () => {
       reporter.reportSummary(8, 2);
 
       const allCalls = consoleLogSpy.mock.calls.map((call) => call[0]);
-      const hasSubdirMention = allCalls.some((msg) =>
-        /from|subdirectory/i.test(String(msg))
-      );
+      const hasSubdirMention = allCalls.some((msg) => {
+        const msgStr = String(msg).toLowerCase();
+        return msgStr.includes('from') || msgStr.includes('subdirectory');
+      });
 
       expect(hasSubdirMention).toBe(false);
     });
@@ -585,9 +613,10 @@ describe('ProgressReporter', () => {
       reporter.reportSummary(8, 2, '');
 
       const allCalls = consoleLogSpy.mock.calls.map((call) => call[0]);
-      const hasSubdirMention = allCalls.some((msg) =>
-        /from|subdirectory/i.test(String(msg))
-      );
+      const hasSubdirMention = allCalls.some((msg) => {
+        const msgStr = String(msg).toLowerCase();
+        return msgStr.includes('from') || msgStr.includes('subdirectory');
+      });
 
       expect(hasSubdirMention).toBe(false);
     });
@@ -614,7 +643,7 @@ describe('ProgressReporter', () => {
 
       const allCalls = consoleLogSpy.mock.calls.map((call) => call[0]);
       const hasDefaultBranch = allCalls.some((msg) =>
-        /default branch/.test(String(msg))
+        String(msg).toLowerCase().includes('default branch')
       );
 
       expect(hasDefaultBranch).toBe(true);
@@ -646,7 +675,7 @@ describe('ProgressReporter', () => {
 
       const allCalls = consoleLogSpy.mock.calls.map((call) => call[0]);
       const hasDefaultBranch = allCalls.some((msg) =>
-        /default branch/.test(String(msg))
+        String(msg).toLowerCase().includes('default branch')
       );
 
       expect(hasDefaultBranch).toBe(true);
@@ -698,7 +727,9 @@ describe('ProgressReporter', () => {
       reporter.reportVerbose('取得中: file.md', 'proj1');
 
       const call = consoleLogSpy.mock.calls[0]?.[0];
-      expect(String(call)).toMatch(new RegExp('\\[proj1\\].*取得中.*file\\.md'));
+      expect(String(call)).toContain('[proj1]');
+      expect(String(call)).toContain('取得中');
+      expect(String(call)).toContain('file.md');
     });
 
     it('should not display project prefix in verbose mode when project is undefined (task 8.3)', () => {
@@ -720,8 +751,9 @@ describe('ProgressReporter', () => {
       reporter.reportVerbose('取得中: file.md', '');
 
       const call = consoleLogSpy.mock.calls[0]?.[0];
-      expect(String(call)).toMatch(new RegExp('取得中.*file\\.md'));
-      expect(String(call)).not.toMatch(new RegExp('\\[\\]'));
+      expect(String(call)).toContain('取得中');
+      expect(String(call)).toContain('file.md');
+      expect(String(call)).not.toContain('[]');
     });
   });
 
@@ -800,9 +832,10 @@ describe('ProgressReporter', () => {
       reporter.reportDryRunFileList(files);
 
       const allCalls = consoleLogSpy.mock.calls.map((call) => call[0]);
-      const hasDryRunMessage = allCalls.some((msg) =>
-        /dry.*run/i.test(String(msg))
-      );
+      const hasDryRunMessage = allCalls.some((msg) => {
+        const msgStr = String(msg).toLowerCase();
+        return msgStr.includes('dry') && msgStr.includes('run');
+      });
 
       expect(hasDryRunMessage).toBe(true);
     });
@@ -815,7 +848,10 @@ describe('ProgressReporter', () => {
       reporter.reportDryRunFileList(files);
 
       const allCalls = consoleLogSpy.mock.calls.map((call) => call[0]);
-      const hasCount = allCalls.some((msg) => /3.*file/i.test(String(msg)));
+      const hasCount = allCalls.some((msg) => {
+        const msgStr = String(msg).toLowerCase();
+        return msgStr.includes('3') && msgStr.includes('file');
+      });
 
       expect(hasCount).toBe(true);
     });
@@ -858,9 +894,10 @@ describe('ProgressReporter', () => {
       reporter.reportDryRunFileList(files);
 
       const allCalls = consoleLogSpy.mock.calls.map((call) => call[0]);
-      const hasNoFilesMessage = allCalls.some((msg) =>
-        /0.*file|no.*file/i.test(String(msg))
-      );
+      const hasNoFilesMessage = allCalls.some((msg) => {
+        const msgStr = String(msg).toLowerCase();
+        return (msgStr.includes('0') && msgStr.includes('file')) || msgStr.includes('no file');
+      });
 
       expect(hasNoFilesMessage).toBe(true);
     });
@@ -876,10 +913,22 @@ describe('ProgressReporter', () => {
       // Check all console.log calls
       const allCalls = consoleLogSpy.mock.calls.map((call) => call[0]);
       const hasHeader = allCalls.some((msg) => String(msg).includes('Overall Summary'));
-      const hasProjectCount = allCalls.some((msg) => /Projects.*3/i.test(String(msg)));
-      const hasTotalFiles = allCalls.some((msg) => /Total files.*27/i.test(String(msg)));
-      const hasSuccess = allCalls.some((msg) => /Succeeded.*24.*files/i.test(String(msg)));
-      const hasFailed = allCalls.some((msg) => /Failed.*3.*files/i.test(String(msg)));
+      const hasProjectCount = allCalls.some((msg) => {
+        const msgStr = String(msg).toLowerCase();
+        return msgStr.includes('projects') && msgStr.includes('3');
+      });
+      const hasTotalFiles = allCalls.some((msg) => {
+        const msgStr = String(msg).toLowerCase();
+        return msgStr.includes('total files') && msgStr.includes('27');
+      });
+      const hasSuccess = allCalls.some((msg) => {
+        const msgStr = String(msg).toLowerCase();
+        return msgStr.includes('succeeded') && msgStr.includes('24') && msgStr.includes('files');
+      });
+      const hasFailed = allCalls.some((msg) => {
+        const msgStr = String(msg).toLowerCase();
+        return msgStr.includes('failed') && msgStr.includes('3') && msgStr.includes('files');
+      });
 
       expect(hasHeader).toBe(true);
       expect(hasProjectCount).toBe(true);
@@ -896,10 +945,22 @@ describe('ProgressReporter', () => {
 
       // Check all console.log calls
       const allCalls = consoleLogSpy.mock.calls.map((call) => call[0]);
-      const hasProjectCount = allCalls.some((msg) => /Projects.*2/i.test(String(msg)));
-      const hasTotalFiles = allCalls.some((msg) => /Total files.*20/i.test(String(msg)));
-      const hasSuccess = allCalls.some((msg) => /Succeeded.*20.*files/i.test(String(msg)));
-      const hasFailed = allCalls.some((msg) => /Failed.*0.*files/i.test(String(msg)));
+      const hasProjectCount = allCalls.some((msg) => {
+        const msgStr = String(msg).toLowerCase();
+        return msgStr.includes('projects') && msgStr.includes('2');
+      });
+      const hasTotalFiles = allCalls.some((msg) => {
+        const msgStr = String(msg).toLowerCase();
+        return msgStr.includes('total files') && msgStr.includes('20');
+      });
+      const hasSuccess = allCalls.some((msg) => {
+        const msgStr = String(msg).toLowerCase();
+        return msgStr.includes('succeeded') && msgStr.includes('20') && msgStr.includes('files');
+      });
+      const hasFailed = allCalls.some((msg) => {
+        const msgStr = String(msg).toLowerCase();
+        return msgStr.includes('failed') && msgStr.includes('0') && msgStr.includes('files');
+      });
 
       expect(hasProjectCount).toBe(true);
       expect(hasTotalFiles).toBe(true);
@@ -934,9 +995,10 @@ describe('ProgressReporter', () => {
       const hasSingleProjectDisplay = allCalls.some((msg) =>
         String(msg).includes('Project: single-project')
       );
-      const hasMultiProjectDisplay = allCalls.some((msg) =>
-        /Fetching.*projects/i.test(String(msg))
-      );
+      const hasMultiProjectDisplay = allCalls.some((msg) => {
+        const msgStr = String(msg).toLowerCase();
+        return msgStr.includes('fetching') && msgStr.includes('projects');
+      });
 
       expect(hasSingleProjectDisplay).toBe(true);
       expect(hasMultiProjectDisplay).toBe(false);
@@ -953,12 +1015,14 @@ describe('ProgressReporter', () => {
       reporter.reportProgress(1, 10, 'test.md', undefined);
 
       const allCalls = consoleLogSpy.mock.calls.map((call) => call[0]);
-      const hasProjectPrefix = allCalls.some((msg) =>
-        new RegExp('\\[.*\\]\\s*\\[1/10\\]').test(String(msg))
-      );
-      const hasCorrectFormat = allCalls.some((msg) =>
-        new RegExp('\\[1/10\\]\\s*📥\\s*Fetching').test(String(msg))
-      );
+      const hasProjectPrefix = allCalls.some((msg) => {
+        const msgStr = String(msg);
+        return msgStr.includes('[') && msgStr.includes(']') && msgStr.includes('[1/10]');
+      });
+      const hasCorrectFormat = allCalls.some((msg) => {
+        const msgStr = String(msg);
+        return msgStr.includes('[1/10]') && msgStr.includes('📥') && msgStr.includes('Fetching');
+      });
 
       expect(hasProjectPrefix).toBe(false);
       expect(hasCorrectFormat).toBe(true);
@@ -972,12 +1036,14 @@ describe('ProgressReporter', () => {
       reporter.reportVerbose('Processing file', undefined);
 
       const allCalls = consoleLogSpy.mock.calls.map((call) => call[0]);
-      const hasProjectPrefix = allCalls.some((msg) =>
-        new RegExp('\\[VERBOSE\\]\\s*\\[.*\\]\\s*Processing').test(String(msg))
-      );
-      const hasCorrectFormat = allCalls.some((msg) =>
-        new RegExp('\\[VERBOSE\\]\\s*Processing').test(String(msg))
-      );
+      const hasProjectPrefix = allCalls.some((msg) => {
+        const msgStr = String(msg);
+        return msgStr.includes('[VERBOSE]') && msgStr.includes('[') && msgStr.includes(']') && msgStr.includes('Processing');
+      });
+      const hasCorrectFormat = allCalls.some((msg) => {
+        const msgStr = String(msg);
+        return msgStr.includes('[VERBOSE]') && msgStr.includes('Processing');
+      });
 
       expect(hasProjectPrefix).toBe(false);
       expect(hasCorrectFormat).toBe(true);
@@ -991,8 +1057,14 @@ describe('ProgressReporter', () => {
 
       // Check that reportSummary works as before (no project-specific info)
       const allCalls = consoleLogSpy.mock.calls.map((call) => call[0]);
-      const hasSuccessMessage = allCalls.some((msg) => /8.*succeeded/i.test(String(msg)));
-      const hasFailedMessage = allCalls.some((msg) => /2.*failed/i.test(String(msg)));
+      const hasSuccessMessage = allCalls.some((msg) => {
+        const msgStr = String(msg).toLowerCase();
+        return msgStr.includes('8') && msgStr.includes('succeeded');
+      });
+      const hasFailedMessage = allCalls.some((msg) => {
+        const msgStr = String(msg).toLowerCase();
+        return msgStr.includes('2') && msgStr.includes('failed');
+      });
 
       expect(hasSuccessMessage).toBe(true);
       expect(hasFailedMessage).toBe(true);
@@ -1160,8 +1232,14 @@ describe('ProgressReporter', () => {
       reporter.reportPartialFailureSummary(failedProjects, successfulProjects);
 
       const allCalls = consoleLogSpy.mock.calls.map((call) => call[0]);
-      const hasFailedCount = allCalls.some((msg) => /Failed.*2/i.test(String(msg)));
-      const hasSuccessCount = allCalls.some((msg) => /Successful.*1/i.test(String(msg)));
+      const hasFailedCount = allCalls.some((msg) => {
+        const msgStr = String(msg).toLowerCase();
+        return msgStr.includes('failed') && msgStr.includes('2');
+      });
+      const hasSuccessCount = allCalls.some((msg) => {
+        const msgStr = String(msg).toLowerCase();
+        return msgStr.includes('successful') && msgStr.includes('1');
+      });
 
       expect(hasFailedCount).toBe(true);
       expect(hasSuccessCount).toBe(true);

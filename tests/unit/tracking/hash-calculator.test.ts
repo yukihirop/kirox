@@ -44,7 +44,7 @@ describe('HashCalculator - calculateHash', () => {
       // SHA-256ハッシュは64文字の16進数
       expect(hash).toHaveLength(64);
       // Check that all characters are lowercase hex digits
-      expect(hash.split('').every((c) => /[a-f0-9]/.test(c))).toBe(true);
+      expect(hash.split('').every((c) => '0123456789abcdef'.includes(c))).toBe(true);
     });
 
     it('大容量テキストのハッシュを計算できる', () => {
@@ -57,7 +57,7 @@ describe('HashCalculator - calculateHash', () => {
       // Assert
       expect(hash).toHaveLength(64);
       // Check that all characters are lowercase hex digits
-      expect(hash.split('').every((c) => /[a-f0-9]/.test(c))).toBe(true);
+      expect(hash.split('').every((c) => '0123456789abcdef'.includes(c))).toBe(true);
     });
 
     it('特殊文字を含むテキストのハッシュを計算できる', () => {
@@ -70,7 +70,7 @@ describe('HashCalculator - calculateHash', () => {
       // Assert
       expect(hash).toHaveLength(64);
       // Check that all characters are lowercase hex digits
-      expect(hash.split('').every((c) => /[a-f0-9]/.test(c))).toBe(true);
+      expect(hash.split('').every((c) => '0123456789abcdef'.includes(c))).toBe(true);
     });
 
     it('改行を含むテキストのハッシュを計算できる', () => {
@@ -83,7 +83,7 @@ describe('HashCalculator - calculateHash', () => {
       // Assert
       expect(hash).toHaveLength(64);
       // Check that all characters are lowercase hex digits
-      expect(hash.split('').every((c) => /[a-f0-9]/.test(c))).toBe(true);
+      expect(hash.split('').every((c) => '0123456789abcdef'.includes(c))).toBe(true);
     });
   });
 
@@ -127,7 +127,7 @@ describe('HashCalculator - calculateHash', () => {
       // Assert
       expect(hash).toHaveLength(64);
       // Check that all characters are lowercase hex digits
-      expect(hash.split('').every((c) => /[a-f0-9]/.test(c))).toBe(true);
+      expect(hash.split('').every((c) => '0123456789abcdef'.includes(c))).toBe(true);
     });
 
     it('小文字の16進数を返す', () => {
@@ -139,7 +139,7 @@ describe('HashCalculator - calculateHash', () => {
 
       // Assert
       expect(hash).toBe(hash.toLowerCase());
-      expect(hash.split('').every((c) => c === c.toLowerCase() && /[a-f0-9]/.test(c))).toBe(true);
+      expect(hash.split('').every((c) => c === c.toLowerCase() && '0123456789abcdef'.includes(c))).toBe(true);
     });
   });
 });
@@ -194,7 +194,7 @@ describe('HashCalculator - calculateFileHash', () => {
       // Assert
       expect(hash).toHaveLength(64);
       // Check that all characters are lowercase hex digits
-      expect(hash.split('').every((c) => /[a-f0-9]/.test(c))).toBe(true);
+      expect(hash.split('').every((c) => '0123456789abcdef'.includes(c))).toBe(true);
     });
 
     it('大容量ファイル（1MB）のハッシュを計算できる', async () => {
@@ -211,7 +211,7 @@ describe('HashCalculator - calculateFileHash', () => {
       // Assert
       expect(hash).toHaveLength(64);
       // Check that all characters are lowercase hex digits
-      expect(hash.split('').every((c) => /[a-f0-9]/.test(c))).toBe(true);
+      expect(hash.split('').every((c) => '0123456789abcdef'.includes(c))).toBe(true);
       expect(duration).toBeLessThan(1000); // 1秒以内
     });
 
@@ -226,7 +226,7 @@ describe('HashCalculator - calculateFileHash', () => {
       // Assert
       expect(hash).toHaveLength(64);
       // Check that all characters are lowercase hex digits
-      expect(hash.split('').every((c) => /[a-f0-9]/.test(c))).toBe(true);
+      expect(hash.split('').every((c) => '0123456789abcdef'.includes(c))).toBe(true);
     });
   });
 

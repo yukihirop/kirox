@@ -712,9 +712,11 @@ describe('ParallelFileFetcher', () => {
         // Should show approximately 30 minutes (allow ±1 minute for test execution time)
         expect(results.failed?.[0]?.error).toContain('Please wait');
         expect(results.failed?.[0]?.error).toContain('minutes');
-        const minutesMatch = results.failed?.[0]?.error.match(/\d+/);
-        expect(minutesMatch).toBeDefined();
-        const minutes = parseInt(minutesMatch![0], 10);
+        // Extract number from error message
+        const errorMsg = results.failed?.[0]?.error || '';
+        const numberStr = errorMsg.split('').filter(c => '0123456789'.includes(c)).join('');
+        expect(numberStr.length).toBeGreaterThan(0);
+        const minutes = parseInt(numberStr, 10);
         expect(minutes).toBeGreaterThanOrEqual(29);
         expect(minutes).toBeLessThanOrEqual(31);
       });

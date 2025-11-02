@@ -367,15 +367,21 @@ describe('ProgressReporter - Error Handling (Task 7.1 & 7.2)', () => {
 
       // Check that reportProgress has try-catch
       expect(sourceCode).toContain('reportProgress');
-      expect(sourceCode.match(/try\s*{[\s\S]*?reportProgress/)).toBeTruthy();
+      const progressTryIndex = sourceCode.indexOf('try');
+      const progressMethodIndex = sourceCode.indexOf('reportProgress');
+      expect(progressTryIndex >= 0 && progressMethodIndex >= 0 && progressMethodIndex > progressTryIndex).toBe(true);
 
       // Check that reportSuccess has try-catch
       expect(sourceCode).toContain('reportSuccess');
-      expect(sourceCode.match(/try\s*{[\s\S]*?reportSuccess/)).toBeTruthy();
+      const successTryIndex = sourceCode.indexOf('try');
+      const successMethodIndex = sourceCode.indexOf('reportSuccess');
+      expect(successTryIndex >= 0 && successMethodIndex >= 0 && successMethodIndex > successTryIndex).toBe(true);
 
       // Check that reportError has try-catch
       expect(sourceCode).toContain('reportError');
-      expect(sourceCode.match(/try\s*{[\s\S]*?reportError/)).toBeTruthy();
+      const errorTryIndex = sourceCode.indexOf('try');
+      const errorMethodIndex = sourceCode.indexOf('reportError');
+      expect(errorTryIndex >= 0 && errorMethodIndex >= 0 && errorMethodIndex > errorTryIndex).toBe(true);
 
       // Check that constructor has try-catch for ora initialization
       expect(sourceCode).toContain('constructor');

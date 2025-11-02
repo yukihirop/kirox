@@ -37,9 +37,17 @@ describe('Interactive Prompt Help Text (task 13.2)', () => {
 
     it('should have promptProject function with message parameter', () => {
       // Verify: promptProject function exists and has message
-      const hasPromptProjectFunction = /export async function promptProject/.test(promptSource);
-      // Updated regex to handle Chalk styling (e.g., chalk.bold.cyan(...))
-      const hasMessageParam = /message:\s*(?:['"](.*?)['"]|chalk\.[a-z.]+\()/s.test(promptSource);
+      const hasPromptProjectFunction = promptSource.includes('export async function promptProject');
+      // Check for message parameter with or without chalk styling
+      const functionIndex = promptSource.indexOf('export async function promptProject');
+      if (functionIndex >= 0) {
+        const functionBody = promptSource.substring(functionIndex, functionIndex + 1000);
+        const hasMessageParam = functionBody.includes('message:') && 
+          (functionBody.includes('message:\'') || functionBody.includes('message:"') || functionBody.includes('message: chalk.'));
+        expect(hasMessageParam).toBe(true);
+      } else {
+        expect(false).toBe(true);
+      }
 
       expect(hasPromptProjectFunction).toBe(true);
       expect(hasMessageParam).toBe(true);

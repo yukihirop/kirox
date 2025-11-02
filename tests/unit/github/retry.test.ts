@@ -215,7 +215,7 @@ describe('Retry Logic', () => {
 
       // Check for HH:MM format - message should contain colon and numbers
       expect(error.message).toContain(':');
-      expect(error.message.split('').some((c) => /[0-9]/.test(c))).toBe(true);
+      expect(error.message.split('').some((c) => '0123456789'.includes(c))).toBe(true);
     });
   });
 
