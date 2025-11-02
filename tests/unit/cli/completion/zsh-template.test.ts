@@ -227,24 +227,24 @@ describe('Zsh Template', () => {
       const script = generateCompletionScript('zsh', sampleMetadata);
 
       // Zsh format: '--flag[description]'
-      expect(script).toMatch(/'--force\[Force operation\]'/);
-      expect(script).toMatch(/'--dry-run\[Preview without executing\]'/);
-      expect(script).toMatch(/'--verbose\[Verbose output\]'/);
+      expect(script).toMatch(new RegExp("'--force\\[Force operation\\]'"));
+      expect(script).toMatch(new RegExp("'--dry-run\\[Preview without executing\\]'"));
+      expect(script).toMatch(new RegExp("'--verbose\\[Verbose output\\]'"));
     });
 
     it('should handle short and long flag combinations', () => {
       const script = generateCompletionScript('zsh', sampleMetadata);
 
       // For '-h, --help', should have format like '-h[--help[description]]'
-      expect(script).toMatch(/-h\[/);
+      expect(script).toMatch(new RegExp('-h\\['));
       expect(script).toContain('Display help');
     });
 
     it('should handle options with no short flag', () => {
       const script = generateCompletionScript('zsh', sampleMetadata);
 
-      expect(script).toMatch(/'--force\[Force operation\]'/);
-      expect(script).toMatch(/'--dry-run\[Preview without executing\]'/);
+      expect(script).toMatch(new RegExp("'--force\\[Force operation\\]'"));
+      expect(script).toMatch(new RegExp("'--dry-run\\[Preview without executing\\]'"));
     });
 
     it('should include option descriptions', () => {
