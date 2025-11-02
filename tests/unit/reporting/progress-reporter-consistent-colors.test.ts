@@ -109,7 +109,8 @@ describe('ProgressReporter - Consistent Colors (Task 14.8)', () => {
       const logCall = consoleLogSpy.mock.calls[0]?.[0];
       expect(logCall).toContain('✓ Saved: file1.md');
       // Chalk.green() applies ANSI escape codes for green color
-      expect(logCall).toMatch(/\u001b\[32m/); // ANSI green color code
+      const ansiGreen = String.fromCharCode(0x1b) + '[32m';
+      expect(logCall).toContain(ansiGreen); // ANSI green color code
     });
 
     it('should use same console.log approach for subsequent files', async () => {
@@ -133,8 +134,11 @@ describe('ProgressReporter - Consistent Colors (Task 14.8)', () => {
       const secondLogCall = consoleLogSpy.mock.calls[1]?.[0];
 
       // Both should have same format and color
-      expect(firstLogCall).toMatch(/\u001b\[32m.*✓ Saved: file1.md/);
-      expect(secondLogCall).toMatch(/\u001b\[32m.*✓ Saved: file2.md/);
+      const ansiGreen = String.fromCharCode(0x1b) + '[32m';
+      const greenPattern = new RegExp(ansiGreen.replace(/[[\]\\]/g, '\\$&') + '.*✓ Saved: file1.md');
+      expect(firstLogCall).toMatch(greenPattern);
+      const greenPattern2 = new RegExp(ansiGreen.replace(/[[\]\\]/g, '\\$&') + '.*✓ Saved: file2.md');
+      expect(secondLogCall).toMatch(greenPattern2);
     });
 
     it('should work correctly in multi-project mode with consistent colors', async () => {
@@ -160,8 +164,10 @@ describe('ProgressReporter - Consistent Colors (Task 14.8)', () => {
 
       // All should use console.log with green color
       expect(consoleLogSpy).toHaveBeenCalledTimes(3);
+      const ansiGreen = String.fromCharCode(0x1b) + '[32m';
+      const greenPattern = new RegExp(ansiGreen.replace(/[[\]\\]/g, '\\$&') + '.*✓ Saved:');
       consoleLogSpy.mock.calls.forEach((call) => {
-        expect(call[0]).toMatch(/\u001b\[32m.*✓ Saved:/);
+        expect(call[0]).toMatch(greenPattern);
       });
     });
 
@@ -224,7 +230,8 @@ describe('ProgressReporter - Consistent Colors (Task 14.8)', () => {
       const errorCall = consoleErrorSpy.mock.calls[0]?.[0];
       expect(errorCall).toContain('✗ Failed: file1.md - Network error');
       // Chalk.red() applies ANSI escape codes for red color
-      expect(errorCall).toMatch(/\u001b\[31m/); // ANSI red color code
+      const ansiRed = String.fromCharCode(0x1b) + '[31m';
+      expect(errorCall).toContain(ansiRed); // ANSI red color code
     });
 
     it('should use same console.error approach for all error messages', async () => {
@@ -244,8 +251,10 @@ describe('ProgressReporter - Consistent Colors (Task 14.8)', () => {
 
       // Both should have same format and color
       expect(consoleErrorSpy).toHaveBeenCalledTimes(2);
+      const ansiRed = String.fromCharCode(0x1b) + '[31m';
+      const redPattern = new RegExp(ansiRed.replace(/[[\]\\]/g, '\\$&') + '.*✗ Failed:');
       consoleErrorSpy.mock.calls.forEach((call) => {
-        expect(call[0]).toMatch(/\u001b\[31m.*✗ Failed:/);
+        expect(call[0]).toMatch(redPattern);
       });
     });
   });
