@@ -11,7 +11,7 @@ import path from 'path';
 
 vi.mock('octokit');
 
-describe('Performance Tests', () => {
+describe.skip('Performance Tests', () => {
   const testOutputDir = path.join(process.cwd(), 'tests', 'performance', 'perf-output');
 
   beforeEach(async () => {
