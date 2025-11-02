@@ -34,7 +34,7 @@ interface MetadataFetchError {
 /**
  * Result of fetching multiple file metadata
  */
-export interface MetadataFetchResult {
+interface MetadataFetchResult {
   /** Successfully fetched metadata */
   successful: FileMetadata[];
   /** Failed fetches with error information */
