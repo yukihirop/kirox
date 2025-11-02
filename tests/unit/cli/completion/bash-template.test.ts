@@ -304,11 +304,12 @@ describe('Bash Template (Task 4.1)', () => {
 
       const lines = script.split('\n');
 
-      // Check each non-empty line doesn't end with whitespace
+      // Check each non-empty line doesn't end with trailing whitespace
       lines
         .filter((line) => line.length > 0)
         .forEach((line) => {
-          expect(line.trim()).toBe(line);
+          // Only check trailing whitespace, not leading whitespace (indentation is allowed)
+          expect(line.trimEnd()).toBe(line);
         });
     });
 

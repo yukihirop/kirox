@@ -77,7 +77,7 @@ describe('Zsh Template', () => {
     it('should call the completion function at the end', () => {
       const script = generateCompletionScript('zsh', sampleMetadata);
 
-      const lines = script.split('\n');
+      const lines = script.split('\n').filter((line) => line.trim().length > 0);
       expect(lines[lines.length - 1]?.trim()).toBe('_kirox');
     });
 
@@ -127,7 +127,7 @@ describe('Zsh Template', () => {
     it('should inject program name into function call', () => {
       const script = generateCompletionScript('zsh', sampleMetadata);
 
-      const lines = script.split('\n');
+      const lines = script.split('\n').filter((line) => line.trim().length > 0);
       expect(lines[lines.length - 1]?.trim()).toBe('_kirox');
     });
 
@@ -290,9 +290,10 @@ describe('Zsh Template', () => {
     it('should end function definition properly', () => {
       const script = generateCompletionScript('zsh', sampleMetadata);
 
-      const lines = script.split('\n');
-      const lastLine = lines[lines.length - 1];
-      expect(lastLine?.trim()).toContain('}');
+      const lines = script.split('\n').filter((line) => line.trim().length > 0);
+      // The function definition should end with '}', which is on the line before the function call
+      const functionEndLine = lines[lines.length - 2];
+      expect(functionEndLine?.trim()).toContain('}');
     });
   });
 
@@ -450,7 +451,7 @@ describe('Zsh Template', () => {
     it('should end with function call', () => {
       const script = generateCompletionScript('zsh', sampleMetadata);
 
-      const lines = script.split('\n');
+      const lines = script.split('\n').filter((line) => line.trim().length > 0);
       expect(lines[lines.length - 1]?.trim()).toBe('_kirox');
     });
   });
