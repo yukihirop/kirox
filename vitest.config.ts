@@ -20,7 +20,13 @@ export default defineConfig({
         '**/*.config.ts',
       ],
     },
-    isolate: true,
+    isolate: false,
+    pool: 'threads',
+    poolOptions: {
+      threads: {
+        singleThread: false,
+      },
+    },
   },
   resolve: {
     alias: {
