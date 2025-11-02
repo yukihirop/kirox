@@ -101,7 +101,9 @@ describe('FileUpdater', () => {
 
       expect(result.success).toBe(true);
       expect(result.newHash).toBeDefined();
-      expect(result.newHash).toMatch(/^[a-f0-9]{64}$/); // SHA-256 hash format
+      // SHA-256 hash format - 64 characters, all lowercase hex digits
+      expect(result.newHash).toHaveLength(64);
+      expect(result.newHash.split('').every((c) => /[a-f0-9]/.test(c))).toBe(true);
     });
 
     it('書き込み成功後にメタデータを更新する', async () => {

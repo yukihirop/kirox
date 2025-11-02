@@ -77,8 +77,8 @@ describe('Generator', () => {
       expect(script.length).toBeGreaterThan(0);
 
       // Should contain bash-specific syntax
-      expect(script).toMatch(/#!/);
-      expect(script).toMatch(/complete/i);
+      expect(script).toContain('#!');
+      expect(script.toLowerCase()).toContain('complete');
     });
 
     it('should include program name in bash script', () => {
@@ -110,7 +110,7 @@ describe('Generator', () => {
       expect(script.length).toBeGreaterThan(0);
 
       // Should contain zsh-specific syntax
-      expect(script).toMatch(/#compdef|_arguments/);
+      expect(script.includes('#compdef') || script.includes('_arguments')).toBe(true);
     });
 
     it('should include program name in zsh script', () => {
@@ -134,7 +134,7 @@ describe('Generator', () => {
       expect(script.length).toBeGreaterThan(0);
 
       // Should contain fish-specific syntax
-      expect(script).toMatch(/complete -c/);
+      expect(script).toContain('complete -c');
     });
 
     it('should include program name in fish script', () => {
@@ -158,7 +158,8 @@ describe('Generator', () => {
       expect(script.length).toBeGreaterThan(0);
 
       // Should contain PowerShell-specific syntax
-      expect(script).toMatch(/Register-ArgumentCompleter|param/i);
+      const lowerScript = script.toLowerCase();
+      expect(lowerScript.includes('register-argumentcompleter') || lowerScript.includes('param')).toBe(true);
     });
 
     it('should include program name in powershell script', () => {
@@ -182,7 +183,7 @@ describe('Generator', () => {
       expect(script.length).toBeGreaterThan(0);
 
       // Should contain Elvish-specific syntax
-      expect(script).toMatch(/edit:completion:arg-completer|fn/);
+      expect(script.includes('edit:completion:arg-completer') || script.includes('fn')).toBe(true);
     });
 
     it('should include program name in elvish script', () => {

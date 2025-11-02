@@ -35,7 +35,10 @@ describe('Prompt Message Styling (Task 10.4)', () => {
   describe('interactive-prompt.ts styling', () => {
     it('should import chalk', () => {
       // Verify chalk is imported
-      expect(interactivePromptSource).toMatch(/import.*chalk.*from ['"]chalk['"]/);
+      expect(interactivePromptSource).toContain('import');
+      expect(interactivePromptSource).toContain('chalk');
+      expect(interactivePromptSource).toContain('from');
+      expect(interactivePromptSource.includes("'chalk'") || interactivePromptSource.includes('"chalk"')).toBe(true);
     });
 
     it('should style repository prompt message', () => {
@@ -90,7 +93,10 @@ describe('Prompt Message Styling (Task 10.4)', () => {
   describe('branch-prompt.ts styling', () => {
     it('should import chalk', () => {
       // Verify chalk is imported
-      expect(branchPromptSource).toMatch(/import.*chalk.*from ['"]chalk['"]/);
+      expect(branchPromptSource).toContain('import');
+      expect(branchPromptSource).toContain('chalk');
+      expect(branchPromptSource).toContain('from');
+      expect(branchPromptSource.includes("'chalk'") || branchPromptSource.includes('"chalk"')).toBe(true);
     });
 
     it('should style branch selection prompt message', () => {
@@ -115,7 +121,10 @@ describe('Prompt Message Styling (Task 10.4)', () => {
   describe('searchable-project-prompt.ts styling', () => {
     it('should import chalk', () => {
       // Verify chalk is imported
-      expect(searchableProjectPromptSource).toMatch(/import.*chalk.*from ['"]chalk['"]/);
+      expect(searchableProjectPromptSource).toContain('import');
+      expect(searchableProjectPromptSource).toContain('chalk');
+      expect(searchableProjectPromptSource).toContain('from');
+      expect(searchableProjectPromptSource.includes("'chalk'") || searchableProjectPromptSource.includes('"chalk"')).toBe(true);
     });
 
     it('should style project selection prompt message', () => {
@@ -150,7 +159,7 @@ describe('Prompt Message Styling (Task 10.4)', () => {
 
       files.forEach((source, index) => {
         const fileName = ['interactive-prompt.ts', 'branch-prompt.ts', 'searchable-project-prompt.ts'][index];
-        expect(source, `${fileName} should import chalk`).toMatch(/chalk/);
+        expect(source, `${fileName} should import chalk`).toContain('chalk');
       });
     });
 

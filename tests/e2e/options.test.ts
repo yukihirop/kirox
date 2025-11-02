@@ -371,8 +371,8 @@ describe('E2E CLI Options', () => {
       process.stdout.write = originalWrite;
 
       // Verify help message includes branch format
-      expect(helpOutput).toMatch(/owner\/repo#branch/i);
-      expect(helpOutput).toMatch(/owner\/repo/);
+      expect(helpOutput.toLowerCase()).toContain('owner/repo#branch');
+      expect(helpOutput).toContain('owner/repo');
     });
 
     it('should display branch usage examples in help message', async () => {
@@ -395,8 +395,8 @@ describe('E2E CLI Options', () => {
       process.stdout.write = originalWrite;
 
       // Verify help message includes usage examples with branch
-      expect(helpOutput).toMatch(/npx kirox owner\/repo#feature\/new-api -p my-project/i);
-      expect(helpOutput).toMatch(/owner\/repo#develop/i);
+      expect(helpOutput.toLowerCase()).toContain('npx kirox owner/repo#feature/new-api -p my-project');
+      expect(helpOutput).toContain('owner/repo#develop');
     });
 
     it('should display branch specification explanation in help message', async () => {
@@ -419,7 +419,11 @@ describe('E2E CLI Options', () => {
       process.stdout.write = originalWrite;
 
       // Verify help message includes explanation about branch specification (English after Task 10.3)
-      expect(helpOutput).toMatch(/branch.*after.*#|specify.*branch.*#/i);
+      const lowerOutput = helpOutput.toLowerCase();
+      expect(
+        (lowerOutput.includes('branch') && lowerOutput.includes('after') && lowerOutput.includes('#')) ||
+        (lowerOutput.includes('specify') && lowerOutput.includes('branch') && lowerOutput.includes('#'))
+      ).toBe(true);
     });
   });
 });

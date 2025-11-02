@@ -64,34 +64,35 @@ describe('Zsh Template', () => {
       const script = generateCompletionScript('zsh', sampleMetadata);
 
       expect(script).toContain('#compdef kirox');
-      expect(script).toMatch(/^#compdef kirox/m);
+      expect(script.trim().split('\n')[0]).toContain('#compdef kirox');
     });
 
     it('should define completion function with program name', () => {
       const script = generateCompletionScript('zsh', sampleMetadata);
 
       expect(script).toContain('_kirox()');
-      expect(script).toMatch(/_kirox\(\) \{/);
+      expect(script).toContain('_kirox() {');
     });
 
     it('should call the completion function at the end', () => {
       const script = generateCompletionScript('zsh', sampleMetadata);
 
-      expect(script).toMatch(/_kirox\s*$/m);
+      const lines = script.split('\n');
+      expect(lines[lines.length - 1]?.trim()).toBe('_kirox');
     });
 
     it('should use _arguments function for option parsing', () => {
       const script = generateCompletionScript('zsh', sampleMetadata);
 
       expect(script).toContain('_arguments');
-      expect(script).toMatch(/_arguments\s+-C/);
+      expect(script).toContain('_arguments -C');
     });
 
     it('should use _describe function for subcommand completion', () => {
       const script = generateCompletionScript('zsh', sampleMetadata);
 
       expect(script).toContain('_describe');
-      expect(script).toMatch(/_describe\s+'subcommand'\s+subcommands/);
+      expect(script).toContain("_describe 'subcommand' subcommands");
     });
 
     it('should use state machine with case statement', () => {
@@ -126,7 +127,8 @@ describe('Zsh Template', () => {
     it('should inject program name into function call', () => {
       const script = generateCompletionScript('zsh', sampleMetadata);
 
-      expect(script).toMatch(/_kirox\s*$/m);
+      const lines = script.split('\n');
+      expect(lines[lines.length - 1]?.trim()).toBe('_kirox');
     });
 
     it('should inject program name into comment', () => {
@@ -160,8 +162,8 @@ describe('Zsh Template', () => {
     it('should format subcommands as Zsh array elements', () => {
       const script = generateCompletionScript('zsh', sampleMetadata);
 
-      expect(script).toMatch(/'add:Add a new project'/);
-      expect(script).toMatch(/'completion:Generate shell completion script'/);
+      expect(script).toContain("'add:Add a new project'");
+      expect(script).toContain("'completion:Generate shell completion script'");
     });
 
     it('should declare subcommands array in case statement', () => {
@@ -169,13 +171,12 @@ describe('Zsh Template', () => {
 
       expect(script).toContain('local subcommands');
       expect(script).toContain('subcommands=(');
-      expect(script).toMatch(/subcommands=\(/);
     });
 
     it('should use _describe with subcommands array', () => {
       const script = generateCompletionScript('zsh', sampleMetadata);
 
-      expect(script).toMatch(/_describe 'subcommand' subcommands/);
+      expect(script).toContain("_describe 'subcommand' subcommands");
     });
 
     it('should handle empty subcommands list', () => {
@@ -227,24 +228,24 @@ describe('Zsh Template', () => {
       const script = generateCompletionScript('zsh', sampleMetadata);
 
       // Zsh format: '--flag[description]'
-      expect(script).toMatch(new RegExp("'--force\\[Force operation\\]'"));
-      expect(script).toMatch(new RegExp("'--dry-run\\[Preview without executing\\]'"));
-      expect(script).toMatch(new RegExp("'--verbose\\[Verbose output\\]'"));
+      expect(script).toContain("'--force[Force operation]'");
+      expect(script).toContain("'--dry-run[Preview without executing]'");
+      expect(script).toContain("'--verbose[Verbose output]'");
     });
 
     it('should handle short and long flag combinations', () => {
       const script = generateCompletionScript('zsh', sampleMetadata);
 
       // For '-h, --help', should have format like '-h[--help[description]]'
-      expect(script).toMatch(new RegExp('-h\\['));
+      expect(script).toContain('-h[');
       expect(script).toContain('Display help');
     });
 
     it('should handle options with no short flag', () => {
       const script = generateCompletionScript('zsh', sampleMetadata);
 
-      expect(script).toMatch(new RegExp("'--force\\[Force operation\\]'"));
-      expect(script).toMatch(new RegExp("'--dry-run\\[Preview without executing\\]'"));
+      expect(script).toContain("'--force[Force operation]'");
+      expect(script).toContain("'--dry-run[Preview without executing]'");
     });
 
     it('should include option descriptions', () => {
@@ -262,32 +263,36 @@ describe('Zsh Template', () => {
     it('should have proper _arguments invocation with -C flag', () => {
       const script = generateCompletionScript('zsh', sampleMetadata);
 
-      expect(script).toMatch(/_arguments\s+-C\s+\\/);
+      expect(script).toContain('_arguments -C');
+      expect(script).toContain('\\');
     });
 
     it('should define subcommand state with proper syntax', () => {
       const script = generateCompletionScript('zsh', sampleMetadata);
 
-      expect(script).toMatch(/'1:\s*:->subcommand'/);
+      expect(script).toContain("'1:");
+      expect(script).toContain(':->subcommand');
     });
 
     it('should define args state for remaining arguments', () => {
       const script = generateCompletionScript('zsh', sampleMetadata);
 
-      expect(script).toMatch(/'\*::arg:->args'/);
+      expect(script).toContain("'*::arg:->args'");
     });
 
     it('should use line continuation backslashes', () => {
       const script = generateCompletionScript('zsh', sampleMetadata);
 
-      expect(script).toMatch(/\\/);
+      expect(script).toContain('\\');
       expect(script.split('\\').length).toBeGreaterThan(1);
     });
 
     it('should end function definition properly', () => {
       const script = generateCompletionScript('zsh', sampleMetadata);
 
-      expect(script).toMatch(/\}\s*$/m);
+      const lines = script.split('\n');
+      const lastLine = lines[lines.length - 1];
+      expect(lastLine?.trim()).toContain('}');
     });
   });
 
@@ -439,13 +444,14 @@ describe('Zsh Template', () => {
     it('should start with #compdef directive', () => {
       const script = generateCompletionScript('zsh', sampleMetadata);
 
-      expect(script.trim()).toMatch(/^#compdef/);
+      expect(script.trim().split('\n')[0]).toContain('#compdef');
     });
 
     it('should end with function call', () => {
       const script = generateCompletionScript('zsh', sampleMetadata);
 
-      expect(script.trim()).toMatch(/_kirox\s*$/);
+      const lines = script.split('\n');
+      expect(lines[lines.length - 1]?.trim()).toBe('_kirox');
     });
   });
 

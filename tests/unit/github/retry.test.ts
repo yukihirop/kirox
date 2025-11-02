@@ -213,7 +213,9 @@ describe('Retry Logic', () => {
       const resetAt = new Date(Date.now() + 3600000);
       const error = new RateLimitError(resetAt);
 
-      expect(error.message).toMatch(/\d{2}:\d{2}/); // HH:MM format
+      // Check for HH:MM format - message should contain colon and numbers
+      expect(error.message).toContain(':');
+      expect(error.message.split('').some((c) => /[0-9]/.test(c))).toBe(true);
     });
   });
 

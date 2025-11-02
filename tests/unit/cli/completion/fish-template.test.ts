@@ -84,37 +84,37 @@ describe('Fish Template', () => {
       const script = generateCompletionScript('fish', sampleMetadata);
 
       expect(script).toContain('__fish_use_subcommand');
-      expect(script).toMatch(/complete -c kirox -n "__fish_use_subcommand"/);
+      expect(script).toContain('complete -c kirox -n "__fish_use_subcommand"');
     });
 
     it('should use -a flag for argument completion (subcommands)', () => {
       const script = generateCompletionScript('fish', sampleMetadata);
 
-      expect(script).toMatch(/-a "add"/);
-      expect(script).toMatch(/-a "completion"/);
+      expect(script).toContain('-a "add"');
+      expect(script).toContain('-a "completion"');
     });
 
     it('should use -d flag for descriptions', () => {
       const script = generateCompletionScript('fish', sampleMetadata);
 
-      expect(script).toMatch(/-d "Add a new project"/);
-      expect(script).toMatch(/-d "Generate shell completion script"/);
+      expect(script).toContain('-d "Add a new project"');
+      expect(script).toContain('-d "Generate shell completion script"');
     });
 
     it('should use -s flag for short options', () => {
       const script = generateCompletionScript('fish', sampleMetadata);
 
-      expect(script).toMatch(/-s h/);
-      expect(script).toMatch(/-s V/);
+      expect(script).toContain('-s h');
+      expect(script).toContain('-s V');
     });
 
     it('should use -l flag for long options', () => {
       const script = generateCompletionScript('fish', sampleMetadata);
 
-      expect(script).toMatch(/-l help/);
-      expect(script).toMatch(/-l version/);
-      expect(script).toMatch(/-l force/);
-      expect(script).toMatch(/-l dry-run/);
+      expect(script).toContain('-l help');
+      expect(script).toContain('-l version');
+      expect(script).toContain('-l force');
+      expect(script).toContain('-l dry-run');
     });
   });
 
@@ -152,15 +152,15 @@ describe('Fish Template', () => {
     it('should include all subcommands with __fish_use_subcommand condition', () => {
       const script = generateCompletionScript('fish', sampleMetadata);
 
-      expect(script).toMatch(/complete -c kirox -n "__fish_use_subcommand" -a "add"/);
-      expect(script).toMatch(/complete -c kirox -n "__fish_use_subcommand" -a "completion"/);
+      expect(script).toContain('complete -c kirox -n "__fish_use_subcommand" -a "add"');
+      expect(script).toContain('complete -c kirox -n "__fish_use_subcommand" -a "completion"');
     });
 
     it('should include subcommand descriptions', () => {
       const script = generateCompletionScript('fish', sampleMetadata);
 
-      expect(script).toMatch(/-a "add" -d "Add a new project"/);
-      expect(script).toMatch(/-a "completion" -d "Generate shell completion script"/);
+      expect(script).toContain('-a "add" -d "Add a new project"');
+      expect(script).toContain('-a "completion" -d "Generate shell completion script"');
     });
 
     it('should format subcommands on separate lines', () => {
@@ -211,11 +211,11 @@ describe('Fish Template', () => {
     it('should include all global options', () => {
       const script = generateCompletionScript('fish', sampleMetadata);
 
-      expect(script).toMatch(/-l force/);
-      expect(script).toMatch(/-l dry-run/);
-      expect(script).toMatch(/-l verbose/);
-      expect(script).toMatch(/-l help/);
-      expect(script).toMatch(/-l version/);
+      expect(script).toContain('-l force');
+      expect(script).toContain('-l dry-run');
+      expect(script).toContain('-l verbose');
+      expect(script).toContain('-l help');
+      expect(script).toContain('-l version');
     });
 
     it('should separate short and long flags correctly', () => {
@@ -244,9 +244,9 @@ describe('Fish Template', () => {
     it('should include option descriptions', () => {
       const script = generateCompletionScript('fish', sampleMetadata);
 
-      expect(script).toMatch(/-l force -d "Force operation"/);
-      expect(script).toMatch(/-l dry-run -d "Preview without executing"/);
-      expect(script).toMatch(/-l verbose -d "Verbose output"/);
+      expect(script).toContain('-l force -d "Force operation"');
+      expect(script).toContain('-l dry-run -d "Preview without executing"');
+      expect(script).toContain('-l verbose -d "Verbose output"');
     });
 
     it('should strip parameter placeholders from flags', () => {
@@ -261,9 +261,9 @@ describe('Fish Template', () => {
 
       const script = generateCompletionScript('fish', metadata);
 
-      expect(script).toMatch(/-s o/);
-      expect(script).toMatch(/-l output/);
-      expect(script).toMatch(/-l config/);
+      expect(script).toContain('-s o');
+      expect(script).toContain('-l output');
+      expect(script).toContain('-l config');
       expect(script).not.toContain('<file>');
       expect(script).not.toContain('[path]');
     });
@@ -273,7 +273,7 @@ describe('Fish Template', () => {
     it('should have comment header', () => {
       const script = generateCompletionScript('fish', sampleMetadata);
 
-      expect(script).toMatch(/^# Fish completion script for kirox/m);
+      expect(script).toContain('# Fish completion script for kirox');
     });
 
     it('should have separate sections for subcommands and options', () => {
@@ -297,7 +297,7 @@ describe('Fish Template', () => {
     it('should end with newline', () => {
       const script = generateCompletionScript('fish', sampleMetadata);
 
-      expect(script).toMatch(/\n$/);
+      expect(script.endsWith('\n')).toBe(true);
     });
 
     it('should have multiple lines', () => {
@@ -494,9 +494,11 @@ describe('Fish Template', () => {
       const fishScript = generateCompletionScript('fish', sampleMetadata);
 
       expect(fishScript).toContain('__fish_use_subcommand');
-      expect(fishScript).toMatch(/complete -c kirox -n "__fish_use_subcommand"/);
-      expect(fishScript).toMatch(/-s [a-zA-Z]/);
-      expect(fishScript).toMatch(/-l [a-z-]+/);
+      expect(fishScript).toContain('complete -c kirox -n "__fish_use_subcommand"');
+      // Check for short flag format
+      expect(fishScript).toContain('-s ');
+      // Check for long flag format
+      expect(fishScript).toContain('-l ');
     });
   });
 

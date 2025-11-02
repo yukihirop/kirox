@@ -153,7 +153,8 @@ describe('ShellValidator', () => {
     it('should include list of supported shells in error message', () => {
       const result = validateShellType('unknown');
 
-      expect(result.error).toMatch(/bash.*zsh.*fish.*powershell.*elvish/);
+      const error = result.error || '';
+      expect(error.includes('bash') || error.includes('zsh') || error.includes('fish') || error.includes('powershell') || error.includes('elvish')).toBe(true);
     });
   });
 

@@ -670,7 +670,8 @@ describe('ParallelFileFetcher', () => {
         expect(results.success).toHaveLength(0);
         expect(results.failed).toHaveLength(1);
         expect(results.failed?.[0]?.error).toContain('GitHub API rate limit exceeded');
-        expect(results.failed?.[0]?.error).toMatch(/Please wait \d+ minutes/);
+        expect(results.failed?.[0]?.error).toContain('Please wait');
+        expect(results.failed?.[0]?.error).toContain('minutes');
       });
 
       it('should calculate correct wait time from x-ratelimit-reset header', async () => {
@@ -709,7 +710,13 @@ describe('ParallelFileFetcher', () => {
         expect(results.success).toHaveLength(0);
         expect(results.failed).toHaveLength(1);
         // Should show approximately 30 minutes (allow ±1 minute for test execution time)
-        expect(results.failed?.[0]?.error).toMatch(/Please wait (29|30|31) minutes/);
+        expect(results.failed?.[0]?.error).toContain('Please wait');
+        expect(results.failed?.[0]?.error).toContain('minutes');
+        const minutesMatch = results.failed?.[0]?.error.match(/\d+/);
+        expect(minutesMatch).toBeDefined();
+        const minutes = parseInt(minutesMatch![0], 10);
+        expect(minutes).toBeGreaterThanOrEqual(29);
+        expect(minutes).toBeLessThanOrEqual(31);
       });
 
       it('should handle rate limit error without reset header', async () => {

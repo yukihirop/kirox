@@ -128,7 +128,9 @@ describe('BatchFileUpdater', () => {
       expect(updated?.newSha).toBe('new-sha-xyz');
       expect(updated?.newSize).toBe(200);
       expect(updated?.newHash).toBeDefined();
-      expect(updated?.newHash).toMatch(/^[a-f0-9]{64}$/); // SHA-256 format
+      // SHA-256 format - 64 characters, all lowercase hex digits
+      expect(updated?.newHash).toHaveLength(64);
+      expect(updated?.newHash.split('').every((c) => /[a-f0-9]/.test(c))).toBe(true);
     });
   });
 

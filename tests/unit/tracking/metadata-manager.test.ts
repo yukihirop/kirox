@@ -304,7 +304,7 @@ describe('MetadataManager - saveMetadata', () => {
       const savedContent = await fs.readFile(testMetadataPath, 'utf-8');
       expect(savedContent).toContain('\n');
       expect(savedContent).toContain('  ');
-      expect(savedContent).toMatch(/"version": "1.0"/);
+      expect(savedContent).toContain('"version": "1.0"');
     });
 
     it('ファイルパーミッション644で書き込む', async () => {

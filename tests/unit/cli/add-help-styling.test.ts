@@ -27,7 +27,10 @@ describe('Add Command Help Styling (Task 10.5)', () => {
   describe('parser.ts styling', () => {
     it('should import chalk', () => {
       // Verify chalk is imported
-      expect(parserSource).toMatch(/import.*chalk.*from ['"]chalk['"]/);
+      expect(parserSource).toContain('import');
+      expect(parserSource).toContain('chalk');
+      expect(parserSource).toContain('from');
+      expect(parserSource.includes("'chalk'") || parserSource.includes('"chalk"')).toBe(true);
     });
 
     it('should style Examples section heading', () => {

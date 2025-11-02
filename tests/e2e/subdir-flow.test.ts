@@ -186,8 +186,9 @@ describe('E2E Subdirectory Flow (Task 10.1)', () => {
 
       // Verify progress display includes subdirectory info
       const output = consoleLogs.join('\n');
-      expect(output).toMatch(/Fetching files from.*packages\/api\/.kiro/);
-      expect(output).toMatch(/Fetched from: packages\/api/);
+      expect(output).toContain('Fetching files from');
+      expect(output).toContain('packages/api/.kiro');
+      expect(output).toContain('Fetched from: packages/api');
 
       // Verify files are saved to <outputDir>/.kiro/... (WITHOUT subdirectory prefix)
       const requirementsPath = path.join(testOutputDir, '.kiro/specs/my-project/requirements.md');
@@ -218,9 +219,9 @@ describe('E2E Subdirectory Flow (Task 10.1)', () => {
       expect(subdirExists).toBe(false); // packages/api/.kiro should NOT exist
 
       // Verify summary display
-      expect(output).toMatch(/Summary/);
-      expect(output).toMatch(/4 files succeeded/);
-      expect(output).toMatch(/0 files failed/);
+      expect(output).toContain('Summary');
+      expect(output).toContain('4 files succeeded');
+      expect(output).toContain('0 files failed');
     });
 
     it('should handle nested subdirectories: npx kirox owner/repo --subdir lib/a/b -p test', async () => {

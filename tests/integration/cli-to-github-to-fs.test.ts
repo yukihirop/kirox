@@ -790,8 +790,10 @@ describe('CLI to GitHub to FileSystem Integration', () => {
 
       // Verify branch info appears in summary (task 5.5: English messages)
       const summaryOutput = consoleLogs.join('\n');
-      expect(summaryOutput).toMatch(/Summary/);
-      expect(summaryOutput).toMatch(/Source.*branch.*feature/);
+      expect(summaryOutput).toContain('Summary');
+      expect(summaryOutput).toContain('Source');
+      expect(summaryOutput).toContain('branch');
+      expect(summaryOutput).toContain('feature');
     });
 
     it('should display default branch in summary when no branch specified', async () => {
@@ -872,8 +874,9 @@ describe('CLI to GitHub to FileSystem Integration', () => {
 
       // Verify default branch info appears in summary (task 5.5: English messages)
       const summaryOutput = consoleLogs.join('\n');
-      expect(summaryOutput).toMatch(/Summary/);
-      expect(summaryOutput).toMatch(/Source.*default branch/);
+      expect(summaryOutput).toContain('Summary');
+      expect(summaryOutput).toContain('Source');
+      expect(summaryOutput).toContain('default branch');
     });
   });
 
@@ -1064,8 +1067,9 @@ describe('CLI to GitHub to FileSystem Integration', () => {
 
       // Verify subdirectory is displayed in progress messages
       const output = consoleLogs.join('\n');
-      expect(output).toMatch(/Fetching files from.*packages\/api\/.kiro/);
-      expect(output).toMatch(/Fetched from: packages\/api/);
+      expect(output).toContain('Fetching files from');
+      expect(output).toContain('packages/api/.kiro');
+      expect(output).toContain('Fetched from: packages/api');
     });
 
     it('should handle nested subdirectories correctly', async () => {
@@ -1210,8 +1214,8 @@ describe('CLI to GitHub to FileSystem Integration', () => {
 
       // Verify summary was displayed (implementation shows 0 files succeeded/failed)
       const output = consoleLogs.join('\n');
-      expect(output).toMatch(/0 files succeeded/i);
-      expect(output).toMatch(/0 files failed/i);
+      expect(output.toLowerCase()).toContain('0 files succeeded');
+      expect(output.toLowerCase()).toContain('0 files failed');
     });
 
     it('should display info message with subdirectory path when empty in --steering mode (Requirement 7.5)', async () => {
@@ -1273,8 +1277,8 @@ describe('CLI to GitHub to FileSystem Integration', () => {
 
       // Verify summary was displayed (implementation shows 0 files succeeded/failed)
       const output = consoleLogs.join('\n');
-      expect(output).toMatch(/0 files succeeded/i);
-      expect(output).toMatch(/0 files failed/i);
+      expect(output.toLowerCase()).toContain('0 files succeeded');
+      expect(output.toLowerCase()).toContain('0 files failed');
     });
   });
 

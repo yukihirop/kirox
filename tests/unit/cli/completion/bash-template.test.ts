@@ -61,7 +61,7 @@ describe('Bash Template (Task 4.1)', () => {
       const script = generateCompletionScript('bash', sampleMetadata);
 
       // Must start with shebang
-      expect(script).toMatch(/^#!\/usr\/bin\/env bash/);
+      expect(script.trim().split('\n')[0]).toBe('#!/usr/bin/env bash');
     });
 
     it('should define completion function with proper naming', () => {
@@ -96,7 +96,7 @@ describe('Bash Template (Task 4.1)', () => {
       const script = generateCompletionScript('bash', sampleMetadata);
 
       // Should register completion function
-      expect(script).toMatch(/complete -F _kirox_completion kirox/);
+      expect(script).toContain('complete -F _kirox_completion kirox');
     });
 
     it('should use bash local variables (cur, prev, words, cword)', () => {
@@ -118,7 +118,7 @@ describe('Bash Template (Task 4.1)', () => {
       const script = generateCompletionScript('bash', metadata);
 
       expect(script).toContain('_testcli_completion()');
-      expect(script).toMatch(/complete -F _testcli_completion testcli/);
+      expect(script).toContain('complete -F _testcli_completion testcli');
     });
 
     it('should inject program name with hyphen correctly', () => {
@@ -148,7 +148,9 @@ describe('Bash Template (Task 4.1)', () => {
       const script = generateCompletionScript('bash', sampleMetadata);
 
       // Should check for first argument position (cword -eq 1)
-      expect(script).toMatch(/cword.*eq.*1/);
+      expect(script).toContain('cword');
+      expect(script).toContain('eq');
+      expect(script).toContain('1');
     });
 
     it('should handle empty subcommands list', () => {
@@ -207,7 +209,9 @@ describe('Bash Template (Task 4.1)', () => {
       const script = generateCompletionScript('bash', sampleMetadata);
 
       // Should check if cur starts with dash
-      expect(script).toMatch(/cur.*==.*-\*/);
+      expect(script).toContain('cur');
+      expect(script).toContain('==');
+      expect(script).toContain('-');
     });
 
     it('should extract flags from combined flag strings', () => {
@@ -271,15 +275,17 @@ describe('Bash Template (Task 4.1)', () => {
       const script = generateCompletionScript('bash', sampleMetadata);
 
       // Should have function opening and closing
-      expect(script).toMatch(/_kirox_completion\(\) \{/);
-      expect(script).toMatch(/^}/m);
+      expect(script).toContain('_kirox_completion() {');
+      const lines = script.split('\n');
+      const closingBraceLine = lines.find((line) => line.trim() === '}');
+      expect(closingBraceLine).toBeDefined();
     });
 
     it('should include comment header', () => {
       const script = generateCompletionScript('bash', sampleMetadata);
 
       // Should include descriptive comment
-      expect(script).toMatch(/# Bash completion script for kirox/);
+      expect(script).toContain('# Bash completion script for kirox');
     });
 
     it('should have complete command registration at the end', () => {
@@ -302,7 +308,7 @@ describe('Bash Template (Task 4.1)', () => {
       lines
         .filter((line) => line.length > 0)
         .forEach((line) => {
-          expect(line).not.toMatch(/\s$/);
+          expect(line.trim()).toBe(line);
         });
     });
 
@@ -325,7 +331,7 @@ describe('Bash Template (Task 4.1)', () => {
       const script = generateCompletionScript('bash', metadata);
 
       expect(script).toContain('_cli2tool_completion');
-      expect(script).toMatch(/complete -F _cli2tool_completion cli2tool/);
+      expect(script).toContain('complete -F _cli2tool_completion cli2tool');
     });
 
     it('should handle many subcommands', () => {

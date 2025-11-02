@@ -279,7 +279,9 @@ describe('ProgressReporter', () => {
       reporter.reportProgress(3, 10, 'example.md', 'proj1');
 
       const call = consoleLogSpy.mock.calls[0]?.[0];
-      expect(String(call)).toMatch(new RegExp('\\[proj1\\].*\\[3/10\\].*example\\.md'));
+      expect(String(call)).toContain('[proj1]');
+      expect(String(call)).toContain('[3/10]');
+      expect(String(call)).toContain('Fetching example.md...');
     });
 
     it('should not display project prefix when project is undefined (task 8.2)', () => {
@@ -322,7 +324,8 @@ describe('ProgressReporter', () => {
       reporter.reportProgress(1, 8, 'lib/a/.kiro/specs/project/requirements.md');
 
       const call = consoleLogSpy.mock.calls[0]?.[0];
-      expect(String(call)).toMatch(new RegExp('\\[1/8\\].*Fetching \\.kiro/specs/project/requirements\\.md'));
+      expect(String(call)).toContain('[1/8]');
+      expect(String(call)).toContain('Fetching .kiro/specs/project/requirements.md');
       expect(String(call)).not.toContain('lib/a/.kiro');
     });
 
@@ -338,7 +341,8 @@ describe('ProgressReporter', () => {
       reporter.reportProgress(2, 5, 'packages/api/v2/.kiro/steering/tech.md');
 
       const call = consoleLogSpy.mock.calls[0]?.[0];
-      expect(String(call)).toMatch(new RegExp('\\[2/5\\].*Fetching \\.kiro/steering/tech\\.md'));
+      expect(String(call)).toContain('[2/5]');
+      expect(String(call)).toContain('Fetching .kiro/steering/tech.md');
       expect(String(call)).not.toContain('packages/api/v2');
     });
 
@@ -354,7 +358,8 @@ describe('ProgressReporter', () => {
       reporter.reportProgress(3, 10, '.kiro/specs/project/tasks.md');
 
       const call = consoleLogSpy.mock.calls[0]?.[0];
-      expect(String(call)).toMatch(new RegExp('\\[3/10\\].*Fetching \\.kiro/specs/project/tasks\\.md'));
+      expect(String(call)).toContain('[3/10]');
+      expect(String(call)).toContain('Fetching .kiro/specs/project/tasks.md');
     });
 
     it('should show different messages for different progress states', () => {
@@ -435,7 +440,7 @@ describe('ProgressReporter', () => {
       reporter.reportSuccess('Saved: lib/a/.kiro/specs/project/requirements.md');
 
       const call = consoleLogSpy.mock.calls[0]?.[0];
-      expect(String(call)).toMatch(/✓ Saved: \.kiro\/specs\/project\/requirements\.md/);
+      expect(String(call)).toContain('✓ Saved: .kiro/specs/project/requirements.md');
       expect(String(call)).not.toContain('lib/a/.kiro');
     });
 
@@ -446,7 +451,7 @@ describe('ProgressReporter', () => {
       reporter.reportSuccess('Saved: packages/api/v2/.kiro/steering/tech.md');
 
       const call = consoleLogSpy.mock.calls[0]?.[0];
-      expect(String(call)).toMatch(/✓ Saved: \.kiro\/steering\/tech\.md/);
+      expect(String(call)).toContain('✓ Saved: .kiro/steering/tech.md');
       expect(String(call)).not.toContain('packages/api/v2');
     });
 
@@ -457,7 +462,7 @@ describe('ProgressReporter', () => {
       reporter.reportSuccess('Operation completed successfully');
 
       const call = consoleLogSpy.mock.calls[0]?.[0];
-      expect(String(call)).toMatch(/✓ Operation completed successfully/);
+      expect(String(call)).toContain('✓ Operation completed successfully');
     });
   });
 
@@ -703,7 +708,8 @@ describe('ProgressReporter', () => {
       reporter.reportVerbose('取得中: file.md', undefined);
 
       const call = consoleLogSpy.mock.calls[0]?.[0];
-      expect(String(call)).toMatch(/取得中.*file\.md/);
+      expect(String(call)).toContain('取得中');
+      expect(String(call)).toContain('file.md');
       expect(String(call)).not.toContain('[undefined]');
     });
 

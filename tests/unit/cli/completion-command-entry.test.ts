@@ -129,7 +129,14 @@ describe('Completion Command Entry', () => {
 
       // Error message should mention supported shells
       const errorOutput = consoleErrorSpy.mock.calls.map(call => call.join(' ')).join('\n');
-      expect(errorOutput).toMatch(/bash|zsh|fish|powershell|elvish/i);
+      const lowerOutput = errorOutput.toLowerCase();
+      expect(
+        lowerOutput.includes('bash') ||
+        lowerOutput.includes('zsh') ||
+        lowerOutput.includes('fish') ||
+        lowerOutput.includes('powershell') ||
+        lowerOutput.includes('elvish')
+      ).toBe(true);
     });
 
     it('should not output to stderr on success', async () => {
@@ -159,7 +166,8 @@ describe('Completion Command Entry', () => {
       // Error message should be helpful
       const errorOutput = consoleErrorSpy.mock.calls.map(call => call.join(' ')).join('\n');
       expect(errorOutput).toContain('unknown-shell');
-      expect(errorOutput).toMatch(/supported|available/i);
+      const lowerOutput = errorOutput.toLowerCase();
+      expect(lowerOutput.includes('supported') || lowerOutput.includes('available')).toBe(true);
     });
   });
 

@@ -166,9 +166,9 @@ describe('Project Suggestion GitHub API Integration', () => {
 
       // Project names should not contain path separators or special characters
       result.projects.forEach((project) => {
-        expect(project).not.toMatch(/\//); // No slashes
-        expect(project).not.toMatch(/\\/); // No backslashes
-        expect(project).not.toMatch(/\.\./); // No parent directory references
+        expect(project).not.toContain('/'); // No slashes
+        expect(project).not.toContain('\\'); // No backslashes
+        expect(project).not.toContain('..'); // No parent directory references
       });
     });
   });
