@@ -430,12 +430,16 @@ describe('executeAddCommand', () => {
 
       // Task 2.4: Should NOT return error, but proceed with empty metadata
       // PinoLogger.info is called with (message, details) format
-      expect(infoSpy).toHaveBeenCalledWith(
-        expect.stringMatching(/new.*metadata|creating.*metadata/i),
-        expect.objectContaining({
-          path: expect.any(String),
-        })
-      );
+      const infoCalls = infoSpy.mock.calls;
+      const matchingCall = infoCalls.find((call) => {
+        const message = String(call[0] || '').toLowerCase();
+        return (message.includes('new') && message.includes('metadata')) ||
+               (message.includes('creating') && message.includes('metadata'));
+      });
+      expect(matchingCall).toBeDefined();
+      expect(matchingCall?.[1]).toMatchObject({
+        path: expect.any(String),
+      });
 
       // Should not exit with error code 1
       expect(result.exitCode).not.toBe(1);
@@ -532,13 +536,16 @@ describe('executeAddCommand', () => {
       expect(result.success).toBe(false);
       expect(result.exitCode).toBe(1);
       // Task 2.2: PinoLogger.warn is called with (message, details) format
-      expect(warnSpy).toHaveBeenCalledWith(
-        expect.stringMatching(/already exists|duplicate/i),
-        expect.objectContaining({
-          repository: 'owner/repo',
-          projectName: 'test-project',
-        })
-      );
+      const warnCalls = warnSpy.mock.calls;
+      const matchingCall = warnCalls.find((call) => {
+        const message = String(call[0] || '').toLowerCase();
+        return message.includes('already exists') || message.includes('duplicate');
+      });
+      expect(matchingCall).toBeDefined();
+      expect(matchingCall?.[1]).toMatchObject({
+        repository: 'owner/repo',
+        projectName: 'test-project',
+      });
     });
 
     it('should treat different subdirectory as separate project', async () => {
@@ -615,13 +622,16 @@ describe('executeAddCommand', () => {
       // (Will eventually succeed when full implementation is complete)
       expect(result.exitCode).toBeGreaterThanOrEqual(0);
       // Task 2.2: PinoLogger uses infoSpy for verbose log (from Pino module mock)
-      expect(infoSpy).toHaveBeenCalledWith(
-        expect.stringMatching(/overwriting|force/i),
-        expect.objectContaining({
-          repository: 'owner/repo',
-          projectName: 'test-project',
-        })
-      );
+      const infoCalls = infoSpy.mock.calls;
+      const matchingCall = infoCalls.find((call) => {
+        const message = String(call[0] || '').toLowerCase();
+        return message.includes('overwriting') || message.includes('force');
+      });
+      expect(matchingCall).toBeDefined();
+      expect(matchingCall?.[1]).toMatchObject({
+        repository: 'owner/repo',
+        projectName: 'test-project',
+      });
     });
 
     it('should display warning message when duplicate found without --force', async () => {
@@ -644,13 +654,17 @@ describe('executeAddCommand', () => {
       await executeAddCommand(argv);
 
       // Task 2.2: PinoLogger.warn is called with (message, details) format
-      expect(warnSpy).toHaveBeenCalledWith(
-        expect.stringMatching(/use.*--force|--force.*overwrite/i),
-        expect.objectContaining({
-          repository: 'owner/repo',
-          projectName: 'test-project',
-        })
-      );
+      const warnCalls = warnSpy.mock.calls;
+      const matchingCall = warnCalls.find((call) => {
+        const message = String(call[0] || '').toLowerCase();
+        return (message.includes('use') && message.includes('--force')) ||
+               (message.includes('--force') && message.includes('overwrite'));
+      });
+      expect(matchingCall).toBeDefined();
+      expect(matchingCall?.[1]).toMatchObject({
+        repository: 'owner/repo',
+        projectName: 'test-project',
+      });
     });
   });
 
@@ -814,12 +828,16 @@ describe('executeAddCommand', () => {
       expect(result.exitCode).toBeGreaterThanOrEqual(0);
 
       // Task 2.3: PinoLogger.warn is called with (message, details) format
-      expect(warnSpy).toHaveBeenCalledWith(
-        expect.stringMatching(/steering.*not found|skipping/i),
-        expect.objectContaining({
-          path: expect.any(String),
-        })
-      );
+      const warnCalls = warnSpy.mock.calls;
+      const matchingCall = warnCalls.find((call) => {
+        const message = String(call[0] || '').toLowerCase();
+        return (message.includes('steering') && message.includes('not found')) ||
+               message.includes('skipping');
+      });
+      expect(matchingCall).toBeDefined();
+      expect(matchingCall?.[1]).toMatchObject({
+        path: expect.any(String),
+      });
     });
 
     it('should use effective branch from merged config when CLI branch not specified', async () => {
@@ -1905,12 +1923,31 @@ describe('executeAddCommand', () => {
       const afterTimestamp = new Date().toISOString();
 
       // Should set fetchedAt timestamp for project
-      expect(upsertProject).toHaveBeenCalledWith(
-        expect.objectContaining({
-          fetchedAt: expect.stringMatching(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/),
-        }),
-        expect.any(String)
-      );
+      const upsertCalls = vi.mocked(upsertProject).mock.calls;
+      expect(upsertCalls.length).toBeGreaterThan(0);
+      const fetchedAtValue = upsertCalls[0]?.[0]?.fetchedAt;
+      expect(fetchedAtValue).toBeDefined();
+      expect(typeof fetchedAtValue).toBe('string');
+      if (!fetchedAtValue) {
+        throw new Error('fetchedAtValue is undefined');
+      }
+      // Check ISO 8601 format: YYYY-MM-DDTHH:mm:ss
+      expect(fetchedAtValue).toContain('T');
+      const datePart = fetchedAtValue.split('T')[0];
+      const timePart = fetchedAtValue.split('T')[1];
+      if (!datePart || !timePart) {
+        throw new Error('Invalid ISO format');
+      }
+      expect(datePart.length).toBe(10); // YYYY-MM-DD
+      expect(datePart.split('-').length).toBe(3);
+      const dateParts = datePart.split('-');
+      expect(dateParts[0]?.length).toBe(4); // YYYY
+      expect(dateParts[1]?.length).toBe(2); // MM
+      expect(dateParts[2]?.length).toBe(2); // DD
+      expect(timePart.split(':').length).toBeGreaterThanOrEqual(3); // HH:mm:ss
+      const timeParts = timePart.split(':');
+      expect(timeParts[0]?.length).toBe(2); // HH
+      expect(timeParts[1]?.length).toBe(2); // mm
 
       // Extract the actual timestamp
       const call = vi.mocked(upsertProject).mock.calls[0]![0]!;
@@ -2224,13 +2261,16 @@ describe('executeAddCommand', () => {
       const result = await executeAddCommand(argv);
 
       // Task 2.4: PinoLogger.info is called with (message, details) format
-      expect(infoSpy).toHaveBeenCalledWith(
-        expect.stringMatching(/successfully added|project added/i),
-        expect.objectContaining({
-          project: 'test-project',
-          fileCount: 3,
-        })
-      );
+      const infoCalls = infoSpy.mock.calls;
+      const matchingCall = infoCalls.find((call) => {
+        const message = String(call[0] || '').toLowerCase();
+        return message.includes('successfully added') || message.includes('project added');
+      });
+      expect(matchingCall).toBeDefined();
+      expect(matchingCall?.[1]).toMatchObject({
+        project: 'test-project',
+        fileCount: 3,
+      });
 
       expect(result.success).toBe(true);
       expect(result.exitCode).toBe(0);

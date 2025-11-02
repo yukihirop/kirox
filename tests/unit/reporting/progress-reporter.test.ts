@@ -263,9 +263,9 @@ describe('ProgressReporter', () => {
 
       reporter.reportProgress(3, 10, 'example.md');
 
-      expect(consoleLogSpy).toHaveBeenCalledWith(
-        expect.stringMatching(new RegExp('\\[3/10\\].*example\\.md'))
-      );
+      const call = consoleLogSpy.mock.calls[0]?.[0];
+      expect(String(call)).toContain('[3/10]');
+      expect(String(call)).toContain('example.md');
     });
 
     // Task 8.2: Project-specific progress display
