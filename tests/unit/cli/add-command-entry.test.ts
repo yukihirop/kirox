@@ -2812,6 +2812,7 @@ describe('executeAddCommand', () => {
           track: false,
           checkUpdates: false,
           update: false,
+          steering: false,
         };
         const shouldEnter = shouldEnterInteractiveMode(mockArgs);
         expect(shouldEnter).toBe(false); // Complete arguments should skip interactive mode

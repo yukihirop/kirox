@@ -199,10 +199,10 @@ describe('Add Command Ctrl+C Interrupt Handling (Task 8.4)', () => {
         version: '1.0',
         projects: [
           {
-            name: 'existing-project',
             repository: 'owner/repo',
-            branch: 'main',
+            projectName: 'existing-project',
             subdir: '',
+            fetchedAt: '2025-01-01T00:00:00Z',
             files: [
               {
                 path: '.kiro/specs/existing-project/requirements.md',

@@ -259,7 +259,7 @@ describe('execute - Interactive Mode Integration', () => {
     it('非TTY環境で対話モードが必要な場合、適切なエラーを返す', async () => {
       const mockIncompleteArgs = {
         repository: '',
-        project: '',
+        projects: [],
         output: '.',
         force: false,
         dryRun: false,
@@ -267,6 +267,7 @@ describe('execute - Interactive Mode Integration', () => {
         track: false,
         checkUpdates: false,
         update: false,
+        steering: false,
       };
 
       vi.mocked(parser.parseArguments).mockReturnValue(mockIncompleteArgs);
@@ -289,7 +290,7 @@ describe('execute - Interactive Mode Integration', () => {
     it('対話モードで引数を補完後、通常のexecuteフローを実行', async () => {
       const mockIncompleteArgs = {
         repository: '',
-        project: '',
+        projects: [],
         output: '.',
         force: false,
         dryRun: false,
@@ -297,11 +298,12 @@ describe('execute - Interactive Mode Integration', () => {
         track: false,
         checkUpdates: false,
         update: false,
+        steering: false,
       };
 
       const mockCompletedArgs = {
         repository: 'owner/repo',
-        project: 'my-project',
+        projects: ['my-project'],
         output: '.',
         force: false,
         dryRun: false,
@@ -309,6 +311,7 @@ describe('execute - Interactive Mode Integration', () => {
         track: false,
         checkUpdates: false,
         update: false,
+        steering: false,
       };
 
       vi.mocked(parser.parseArguments).mockReturnValue(mockIncompleteArgs);
