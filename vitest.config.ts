@@ -20,6 +20,7 @@ export default defineConfig({
         '**/*.config.ts',
       ],
     },
+    isolate: true,
   },
   resolve: {
     alias: {
