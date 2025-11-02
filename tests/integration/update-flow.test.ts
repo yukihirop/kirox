@@ -4,7 +4,7 @@ import * as metadataManager from '@/tracking/metadata-manager.js';
 import * as batchChecker from '@/tracking/batch-update-checker.js';
 import * as batchUpdater from '@/tracking/batch-file-updater.js';
 import type { Metadata } from '@/tracking/types.js';
-import type { UpdateStatus } from '@/tracking/types.js';
+import type { UpdateStatus } from '@/tracking/update-checker.js';
 
 // Unmock PinoLogger to allow actual implementation
 vi.unmock('@/reporting/pino-logger.js');

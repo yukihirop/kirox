@@ -3,7 +3,7 @@ import { execute } from '@/cli/entry.js';
 import * as metadataManager from '@/tracking/metadata-manager.js';
 import * as batchChecker from '@/tracking/batch-update-checker.js';
 import type { Metadata } from '@/tracking/types.js';
-import type { UpdateStatus } from '@/tracking/types.js';
+import { UpdateStatus } from '@/tracking/update-checker.js';
 
 // Unmock PinoLogger to allow actual implementation
 vi.unmock('@/reporting/pino-logger.js');
@@ -38,26 +38,26 @@ describe('--check-updates Command Flow Integration', () => {
 
       // Mock update check results
       const mockCheckResult = {
-        updates: [
+        totalFiles: 1,
+        upToDate: 1,
+        updatable: 0,
+        localEdited: 0,
+        conflict: 0,
+        localDeleted: 0,
+        remoteDeleted: 0,
+        errors: 0,
+        files: [
           {
             path: '.kiro/specs/test-project/file1.md',
-            status: 'UP_TO_DATE' as UpdateStatus,
-            currentSha: 'abc123',
+            status: UpdateStatus.UP_TO_DATE,
+            recordedSha: 'abc123',
             remoteSha: 'abc123',
-            localHash: 'hash123',
-            hasLocalEdits: false,
+            recordedHash: 'hash123',
+            currentHash: 'hash123',
+            hasLocalEdit: false,
+            hasRemoteUpdate: false,
           },
         ],
-        summary: {
-          totalFiles: 1,
-          upToDate: 1,
-          remoteUpdated: 0,
-          localEdited: 0,
-          conflict: 0,
-          localDeleted: 0,
-          remoteDeleted: 0,
-          error: 0,
-        },
       };
 
       vi.spyOn(metadataManager, 'loadMetadata').mockResolvedValue(mockMetadata);
@@ -100,34 +100,36 @@ describe('--check-updates Command Flow Integration', () => {
       };
 
       const mockCheckResult = {
-        updates: [
+        totalFiles: 2,
+        upToDate: 1,
+        updatable: 1,
+        localEdited: 0,
+        conflict: 0,
+        localDeleted: 0,
+        remoteDeleted: 0,
+        errors: 0,
+        files: [
           {
             path: '.kiro/specs/test-project/file1.md',
-            status: 'UP_TO_DATE' as UpdateStatus,
-            currentSha: 'abc123',
+            status: UpdateStatus.UP_TO_DATE,
+            recordedSha: 'abc123',
             remoteSha: 'abc123',
-            localHash: 'hash123',
-            hasLocalEdits: false,
+            recordedHash: 'hash123',
+            currentHash: 'hash123',
+            hasLocalEdit: false,
+            hasRemoteUpdate: false,
           },
           {
             path: '.kiro/specs/test-project/file2.md',
-            status: 'REMOTE_UPDATED' as UpdateStatus,
-            currentSha: 'def456',
+            status: UpdateStatus.REMOTE_UPDATED,
+            recordedSha: 'def456',
             remoteSha: 'xyz789',
-            localHash: 'hash456',
-            hasLocalEdits: false,
+            recordedHash: 'hash456',
+            currentHash: 'hash456',
+            hasLocalEdit: false,
+            hasRemoteUpdate: true,
           },
         ],
-        summary: {
-          totalFiles: 2,
-          upToDate: 1,
-          remoteUpdated: 1,
-          localEdited: 0,
-          conflict: 0,
-          localDeleted: 0,
-          remoteDeleted: 0,
-          error: 0,
-        },
       };
 
       vi.spyOn(metadataManager, 'loadMetadata').mockResolvedValue(mockMetadata);

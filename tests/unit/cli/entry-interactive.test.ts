@@ -71,7 +71,7 @@ describe('execute - Interactive Mode Integration', () => {
     it('リポジトリとプロジェクトが両方指定されている場合、対話モードをスキップ', async () => {
       const mockArgs = {
         repository: 'owner/repo',
-        project: 'my-project',
+        projects: ['my-project'],
         output: '.',
         force: false,
         dryRun: false,
@@ -79,6 +79,7 @@ describe('execute - Interactive Mode Integration', () => {
         track: false,
         checkUpdates: false,
         update: false,
+        steering: false,
       };
 
       vi.mocked(parser.parseArguments).mockReturnValue(mockArgs);
@@ -100,7 +101,7 @@ describe('execute - Interactive Mode Integration', () => {
     it('リポジトリが欠落している場合、対話モードを起動', async () => {
       const mockIncompleteArgs = {
         repository: '',
-        project: '',
+        projects: [],
         output: '.',
         force: false,
         dryRun: false,
@@ -108,11 +109,12 @@ describe('execute - Interactive Mode Integration', () => {
         track: false,
         checkUpdates: false,
         update: false,
+        steering: false,
       };
 
       const mockCompletedArgs = {
         repository: 'owner/repo',
-        project: 'my-project',
+        projects: ['my-project'],
         output: '.',
         force: false,
         dryRun: false,
@@ -120,6 +122,7 @@ describe('execute - Interactive Mode Integration', () => {
         track: false,
         checkUpdates: false,
         update: false,
+        steering: false,
       };
 
       vi.mocked(parser.parseArguments).mockReturnValue(mockIncompleteArgs);
@@ -172,7 +175,7 @@ describe('execute - Interactive Mode Integration', () => {
     it('ExitPromptErrorがスローされた場合、exitCode 130を返す', async () => {
       const mockIncompleteArgs = {
         repository: '',
-        project: '',
+        projects: [],
         output: '.',
         force: false,
         dryRun: false,
@@ -180,6 +183,7 @@ describe('execute - Interactive Mode Integration', () => {
         track: false,
         checkUpdates: false,
         update: false,
+        steering: false,
       };
 
       const exitError = new Error('User force closed the prompt');
@@ -202,7 +206,7 @@ describe('execute - Interactive Mode Integration', () => {
     it('確認キャンセルエラーの場合、exitCode 0を返す', async () => {
       const mockIncompleteArgs = {
         repository: '',
-        project: '',
+        projects: [],
         output: '.',
         force: false,
         dryRun: false,
@@ -210,6 +214,7 @@ describe('execute - Interactive Mode Integration', () => {
         track: false,
         checkUpdates: false,
         update: false,
+        steering: false,
       };
 
       const cancelError = new Error('処理を中断しました');
@@ -231,7 +236,7 @@ describe('execute - Interactive Mode Integration', () => {
     it('その他のエラーの場合、既存のエラーハンドリングを使用', async () => {
       const mockIncompleteArgs = {
         repository: '',
-        project: '',
+        projects: [],
         output: '.',
         force: false,
         dryRun: false,
@@ -239,6 +244,7 @@ describe('execute - Interactive Mode Integration', () => {
         track: false,
         checkUpdates: false,
         update: false,
+        steering: false,
       };
 
       const genericError = new Error('Some generic error');

@@ -734,6 +734,8 @@ describe('executeAddCommand', () => {
         track: true,
         checkUpdates: false,
         update: false,
+        concurrency: 5,
+        outputDirectory: process.cwd(),
       }));
 
       vi.mocked(fetchDirectoryContents).mockResolvedValue([]);
