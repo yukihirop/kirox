@@ -8,6 +8,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { promptMissingArguments } from '@/cli/interactive-prompt.js';
 import type { ParsedArguments } from '@/cli/types.js';
+import type { PinoLogger } from '@/reporting/pino-logger.js';
 
 // Mock @inquirer/prompts
 vi.mock('@inquirer/prompts', () => ({
@@ -182,12 +183,11 @@ describe('promptMissingArguments', () => {
       await promptMissingArguments(args);
 
       expect(mockConfirm).toHaveBeenCalledTimes(1);
-      expect(mockConfirm).toHaveBeenCalledWith(
-        expect.objectContaining({
-          message: expect.stringMatching(/実行|execute/i),
-          default: false,
-        })
-      );
+      const confirmCall = mockConfirm.mock.calls[0]?.[0];
+      expect(confirmCall).toBeDefined();
+      const message = String(confirmCall?.message || '').toLowerCase();
+      expect(message.includes('実行') || message.includes('execute')).toBe(true);
+      expect(confirmCall?.default).toBe(false);
     });
 
     it('ユーザーが確認を承認した場合、補完された引数を返す', async () => {
@@ -327,7 +327,8 @@ describe('promptMissingArguments', () => {
         warn: vi.fn(),
         error: vi.fn(),
         verbose: vi.fn(),
-      };
+        debug: vi.fn(),
+      } as unknown as PinoLogger;
 
       mockInput
         .mockResolvedValueOnce('owner/repo')
@@ -360,7 +361,8 @@ describe('promptMissingArguments', () => {
         warn: vi.fn(),
         error: vi.fn(),
         verbose: vi.fn(),
-      };
+        debug: vi.fn(),
+      } as unknown as PinoLogger;
 
       mockInput
         .mockResolvedValueOnce('owner/repo')

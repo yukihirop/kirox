@@ -1,0 +1,265 @@
+# The configurations that used for the recording, feel free to edit them
+config:
+
+  # Specify a command to be executed
+  # like `/bin/bash -l`, `ls`, or any other commands
+  # the default is bash for Linux
+  # or powershell.exe for Windows
+  command: bash -l
+  
+  # Specify the current working directory path
+  # the default is the current working directory path
+  cwd: /Users/yukihirop/JavaScriptProjects/kirox
+  
+  # Export additional ENV variables
+  env:
+    recording: true
+  
+  # Explicitly set the number of columns
+  # or use `auto` to take the current
+  # number of columns of your shell
+  cols: 184
+  
+  # Explicitly set the number of rows
+  # or use `auto` to take the current
+  # number of rows of your shell
+  rows: 49
+  
+  # Amount of times to repeat GIF
+  # If value is -1, play once
+  # If value is 0, loop indefinitely
+  # If value is a positive number, loop n times
+  repeat: 0
+  
+  # Quality
+  # 1 - 100
+  quality: 100
+  
+  # Delay between frames in ms
+  # If the value is `auto` use the actual recording delays
+  frameDelay: auto
+  
+  # Maximum delay between frames in ms
+  # Ignored if the `frameDelay` isn't set to `auto`
+  # Set to `auto` to prevent limiting the max idle time
+  maxIdleTime: 2000
+  
+  # The surrounding frame box
+  # The `type` can be null, window, floating, or solid`
+  # To hide the title use the value null
+  # Don't forget to add a backgroundColor style with a null as type
+  frameBox:
+    type: floating
+    title: Terminalizer
+    style:
+      border: 0px black solid
+      # boxShadow: none
+      # margin: 0px
+  
+  # Add a watermark image to the rendered gif
+  # You need to specify an absolute path for
+  # the image on your machine or a URL, and you can also
+  # add your own CSS styles
+  watermark:
+    imagePath: null
+    style:
+      position: absolute
+      right: 15px
+      bottom: 15px
+      width: 100px
+      opacity: 0.9
+  
+  # Cursor style can be one of
+  # `block`, `underline`, or `bar`
+  cursorStyle: block
+  
+  # Font family
+  # You can use any font that is installed on your machine
+  # in CSS-like syntax
+  fontFamily: "Monaco, Lucida Console, Ubuntu Mono, Monospace"
+  
+  # The size of the font
+  fontSize: 12
+  
+  # The height of lines
+  lineHeight: 1
+  
+  # The spacing between letters
+  letterSpacing: 0
+  
+  # Theme
+  theme:
+    background: "transparent"
+    foreground: "#afafaf"
+    cursor: "#c7c7c7"
+    black: "#232628"
+    red: "#fc4384"
+    green: "#b3e33b"
+    yellow: "#ffa727"
+    blue: "#75dff2"
+    magenta: "#ae89fe"
+    cyan: "#708387"
+    white: "#d5d5d0"
+    brightBlack: "#626566"
+    brightRed: "#ff7fac"
+    brightGreen: "#c8ed71"
+    brightYellow: "#ebdf86"
+    brightBlue: "#75dff2"
+    brightMagenta: "#ae89fe"
+    brightCyan: "#b1c6ca"
+    brightWhite: "#f9f9f4"
+  
+# Records, feel free to edit them
+records:
+  - delay: 94
+    content: "\e[?2004hMac:kirox yukihirop$ "
+  - delay: 1261
+    content: 'n'
+  - delay: 216
+    content: p
+  - delay: 273
+    content: x
+  - delay: 281
+    content: ' '
+  - delay: 261
+    content: k
+  - delay: 210
+    content: i
+  - delay: 216
+    content: r
+  - delay: 80
+    content: o
+  - delay: 248
+    content: x
+  - delay: 407
+    content: "\r\n\e[?2004l\r"
+  - delay: 292
+    content: "\e[1G\e[0K⠙"
+  - delay: 81
+    content: "\e[1G\e[0K⠹"
+  - delay: 82
+    content: "\e[1G\e[0K⠸"
+  - delay: 43
+    content: "\e[1G\e[0K"
+  - delay: 208
+    content: "\e[34m?\e[39m \e[1m\e[1m\e[36m\U0001F4E6 Enter GitHub repository (owner/repo or owner/repo#branch)\e[39m\e[22m\e[1m\e[22m\e[64G"
+  - delay: 959
+    content: "\e[65G\e[2K\e[G\e[34m?\e[39m \e[1m\e[1m\e[36m\U0001F4E6 Enter GitHub repository (owner/repo or owner/repo#branch)\e[39m\e[22m\e[1m\e[22m y\e[65G"
+  - delay: 106
+    content: "\e[66G\e[2K\e[G\e[34m?\e[39m \e[1m\e[1m\e[36m\U0001F4E6 Enter GitHub repository (owner/repo or owner/repo#branch)\e[39m\e[22m\e[1m\e[22m yu\e[66G"
+  - delay: 232
+    content: "\e[67G\e[2K\e[G\e[34m?\e[39m \e[1m\e[1m\e[36m\U0001F4E6 Enter GitHub repository (owner/repo or owner/repo#branch)\e[39m\e[22m\e[1m\e[22m yuk\e[67G"
+  - delay: 189
+    content: "\e[68G\e[2K\e[G\e[34m?\e[39m \e[1m\e[1m\e[36m\U0001F4E6 Enter GitHub repository (owner/repo or owner/repo#branch)\e[39m\e[22m\e[1m\e[22m yuki\e[68G"
+  - delay: 235
+    content: "\e[69G\e[2K\e[G\e[34m?\e[39m \e[1m\e[1m\e[36m\U0001F4E6 Enter GitHub repository (owner/repo or owner/repo#branch)\e[39m\e[22m\e[1m\e[22m yukih\e[69G"
+  - delay: 75
+    content: "\e[70G\e[2K\e[G\e[34m?\e[39m \e[1m\e[1m\e[36m\U0001F4E6 Enter GitHub repository (owner/repo or owner/repo#branch)\e[39m\e[22m\e[1m\e[22m yukihi\e[70G"
+  - delay: 179
+    content: "\e[71G\e[2K\e[G\e[34m?\e[39m \e[1m\e[1m\e[36m\U0001F4E6 Enter GitHub repository (owner/repo or owner/repo#branch)\e[39m\e[22m\e[1m\e[22m yukihir\e[71G"
+  - delay: 126
+    content: "\e[72G\e[2K\e[G\e[34m?\e[39m \e[1m\e[1m\e[36m\U0001F4E6 Enter GitHub repository (owner/repo or owner/repo#branch)\e[39m\e[22m\e[1m\e[22m yukihiro\e[72G"
+  - delay: 248
+    content: "\e[73G\e[2K\e[G\e[34m?\e[39m \e[1m\e[1m\e[36m\U0001F4E6 Enter GitHub repository (owner/repo or owner/repo#branch)\e[39m\e[22m\e[1m\e[22m yukihirop\e[73G"
+  - delay: 256
+    content: "\e[74G\e[2K\e[G\e[34m?\e[39m \e[1m\e[1m\e[36m\U0001F4E6 Enter GitHub repository (owner/repo or owner/repo#branch)\e[39m\e[22m\e[1m\e[22m yukihirop/\e[74G"
+  - delay: 200
+    content: "\e[75G\e[2K\e[G\e[34m?\e[39m \e[1m\e[1m\e[36m\U0001F4E6 Enter GitHub repository (owner/repo or owner/repo#branch)\e[39m\e[22m\e[1m\e[22m yukihirop/e\e[75G"
+  - delay: 162
+    content: "\e[76G\e[2K\e[G\e[34m?\e[39m \e[1m\e[1m\e[36m\U0001F4E6 Enter GitHub repository (owner/repo or owner/repo#branch)\e[39m\e[22m\e[1m\e[22m yukihirop/eg\e[76G"
+  - delay: 196
+    content: "\e[77G\e[2K\e[G\e[34m?\e[39m \e[1m\e[1m\e[36m\U0001F4E6 Enter GitHub repository (owner/repo or owner/repo#branch)\e[39m\e[22m\e[1m\e[22m yukihirop/eg-\e[77G"
+  - delay: 225
+    content: "\e[78G\e[2K\e[G\e[34m?\e[39m \e[1m\e[1m\e[36m\U0001F4E6 Enter GitHub repository (owner/repo or owner/repo#branch)\e[39m\e[22m\e[1m\e[22m yukihirop/eg-k\e[78G"
+  - delay: 78
+    content: "\e[79G\e[2K\e[G\e[34m?\e[39m \e[1m\e[1m\e[36m\U0001F4E6 Enter GitHub repository (owner/repo or owner/repo#branch)\e[39m\e[22m\e[1m\e[22m yukihirop/eg-ka\e[79G"
+  - delay: 501
+    content: "\e[80G\e[2K\e[G\e[34m?\e[39m \e[1m\e[1m\e[36m\U0001F4E6 Enter GitHub repository (owner/repo or owner/repo#branch)\e[39m\e[22m\e[1m\e[22m yukihirop/eg-kan\e[80G"
+  - delay: 188
+    content: "\e[81G\e[2K\e[G\e[34m?\e[39m \e[1m\e[1m\e[36m\U0001F4E6 Enter GitHub repository (owner/repo or owner/repo#branch)\e[39m\e[22m\e[1m\e[22m yukihirop/eg-kanb\e[81G"
+  - delay: 67
+    content: "\e[82G\e[2K\e[G\e[34m?\e[39m \e[1m\e[1m\e[36m\U0001F4E6 Enter GitHub repository (owner/repo or owner/repo#branch)\e[39m\e[22m\e[1m\e[22m yukihirop/eg-kanba\e[82G"
+  - delay: 239
+    content: "\e[83G\e[2K\e[G\e[34m?\e[39m \e[1m\e[1m\e[36m\U0001F4E6 Enter GitHub repository (owner/repo or owner/repo#branch)\e[39m\e[22m\e[1m\e[22m yukihirop/eg-kanban\e[83G"
+  - delay: 434
+    content: "\e[64G\e[2K\e[G\e[34m?\e[39m \e[1m\e[1m\e[36m\U0001F4E6 Enter GitHub repository (owner/repo or owner/repo#branch)\e[39m\e[22m\e[1m\e[22m yukihirop/eg-kanban\e[83G\e[2K\e[G\e[32m✔\e[39m \e[1m\e[1m\e[36m\U0001F4E6 Enter GitHub repository (owner/repo or owner/repo#branch)\e[39m\e[22m\e[1m\e[22m \e[36myukihirop/eg-kanban\e[39m\e[83G\r\n\e[?25h"
+  - delay: 341
+    content: "\e[36m\e[39m\r\n\e[36mFetching branches...\e[39m\r\n"
+  - delay: 237
+    content: "\e[34m?\e[39m \e[1m\e[1m\e[36m\U0001F33F Select branch\e[39m\e[22m\e[1m\e[2m (type to filter, space to select, enter to confirm)\e[22m\e[1m\e[22m\r\n\e[36m\e[36m❯\e[39m\e[36m◯ \e[32mmain\e[39m\e[36m\e[2m (default)\e[22m\e[39m\r\n ◯ test\e[2m\e[22m\r\n\e[2m(Press space to select, enter to proceed)\e[22m\e[?25l\e[42G"
+  - delay: 929
+    content: "\e[43G\e[2K\e[1A\e[2K\e[1A\e[2K\e[1A\e[2K\e[G\e[34m?\e[39m \e[1m\e[1m\e[36m\U0001F33F Select branch\e[39m\e[22m\e[1m\e[2m (type to filter, space to select, enter to confirm)\e[22m\e[1m\e[22m\e[2m (Search: \"t\")\e[22m\r\n\e[36m\e[36m❯\e[39m\e[36m◯ \e[32mmain\e[39m\e[36m\e[2m (default)\e[22m\e[39m\r\n ◯ test\e[2m\e[22m\r\n\e[2m(Press space to select, enter to proceed)\e[22m\e[?25l\e[42G"
+  - delay: 42
+    content: "\e[43G\e[2K\e[1A\e[2K\e[1A\e[2K\e[1A\e[2K\e[G\e[34m?\e[39m \e[1m\e[1m\e[36m\U0001F33F Select branch\e[39m\e[22m\e[1m\e[2m (type to filter, space to select, enter to confirm)\e[22m\e[1m\e[22m\e[2m (Search: \"te\")\e[22m\r\n\e[36m\e[36m❯\e[39m\e[36m◯ test\e[39m\e[2m\e[22m\r\n\e[2m(Press space to select, enter to proceed)\e[22m\e[?25l\e[42G"
+  - delay: 125
+    content: "\e[43G\e[2K\e[1A\e[2K\e[1A\e[2K\e[G\e[34m?\e[39m \e[1m\e[1m\e[36m\U0001F33F Select branch\e[39m\e[22m\e[1m\e[2m (type to filter, space to select, enter to confirm)\e[22m\e[1m\e[22m\e[2m (Search: \"tes\")\e[22m\r\n\e[36m\e[36m❯\e[39m\e[36m◯ test\e[39m\e[2m\e[22m\r\n\e[2m(Press space to select, enter to proceed)\e[22m\e[?25l\e[42G"
+  - delay: 178
+    content: "\e[43G\e[2K\e[1A\e[2K\e[1A\e[2K\e[G\e[34m?\e[39m \e[1m\e[1m\e[36m\U0001F33F Select branch\e[39m\e[22m\e[1m\e[2m (type to filter, space to select, enter to confirm)\e[22m\e[1m\e[22m\e[2m (Search: \"test\")\e[22m\r\n\e[36m\e[36m❯\e[39m\e[36m◯ test\e[39m\e[2m\e[22m\r\n\e[2m(Press space to select, enter to proceed)\e[22m\e[?25l\e[42G"
+  - delay: 809
+    content: "\e[43G\e[2K\e[1A\e[2K\e[1A\e[2K\e[G\e[34m?\e[39m \e[1m\e[1m\e[36m\U0001F33F Select branch\e[39m\e[22m\e[1m\e[2m (type to filter, space to select, enter to confirm)\e[22m\e[1m\e[22m\e[2m (Search: \"test\")\e[22m\r\n\e[36m\e[36m❯\e[39m\e[36m\e[32m◉\e[39m\e[36m test\e[39m\e[2m\e[22m\r\n\e[2m(Press space to select, enter to proceed)\e[22m\e[?25l\e[42G"
+  - delay: 230
+    content: "\e[37G\e[2K\e[1A\e[2K\e[1A\e[2K\e[G\e[32m✔\e[39m \e[1m\e[1m\e[36m\U0001F33F Select branch\e[39m\e[22m\e[1m\e[2m (type to filter, space to select, enter to confirm)\e[22m\e[1m\e[22m \e[36mtest\e[39m\e[76G\r\n\e[?25h\e[36m\e[39m\r\n\e[36mScanning repository for projects...\e[39m\r\n"
+  - delay: 512
+    content: "\e[32mFound 4 projects across 3 subdirectories\e[39m\r\n\e[32m\e[39m\r\n\e[34m?\e[39m \e[1m\e[1m\e[36m\U0001F4CB Select projects\e[39m\e[22m\e[1m\e[2m (type to filter, space to select, enter to confirm)\e[22m\e[1m\e[22m\r\n\e[36m\e[36m❯\e[39m\e[36m◯ simple-kanban-board\e[39m\r\n ◯ lib/a/simple-kanban-board-a\r\n ◯ lib/a/simple-kanban-board-b\r\n ◯ lib/sample/simple-kanban-board-2\e[2m\e[22m\r\n\e[2m(Press space to select, enter to proceed)\e[22m\e[?25l\e[42G"
+  - delay: 464
+    content: "\e[43G\e[2K\e[1A\e[2K\e[1A\e[2K\e[1A\e[2K\e[1A\e[2K\e[1A\e[2K\e[G\e[34m?\e[39m \e[1m\e[1m\e[36m\U0001F4CB Select projects\e[39m\e[22m\e[1m\e[2m (type to filter, space to select, enter to confirm)\e[22m\e[1m\e[22m\e[2m (Search: \"l\")\e[22m\r\n\e[36m\e[36m❯\e[39m\e[36m◯ simple-kanban-board\e[39m\r\n ◯ lib/a/simple-kanban-board-a\r\n ◯ lib/a/simple-kanban-board-b\r\n ◯ lib/sample/simple-kanban-board-2\e[2m\e[22m\r\n\e[2m(Press space to select, enter to proceed)\e[22m\e[?25l\e[42G"
+  - delay: 145
+    content: "\e[43G\e[2K\e[1A\e[2K\e[1A\e[2K\e[1A\e[2K\e[1A\e[2K\e[1A\e[2K\e[G\e[34m?\e[39m \e[1m\e[1m\e[36m\U0001F4CB Select projects\e[39m\e[22m\e[1m\e[2m (type to filter, space to select, enter to confirm)\e[22m\e[1m\e[22m\e[2m (Search: \"li\")\e[22m\r\n\e[36m\e[36m❯\e[39m\e[36m◯ lib/a/simple-kanban-board-a\e[39m\r\n ◯ lib/a/simple-kanban-board-b\r\n ◯ lib/sample/simple-kanban-board-2\e[2m\e[22m\r\n\e[2m(Press space to select, enter to proceed)\e[22m\e[?25l\e[42G"
+  - delay: 102
+    content: "\e[43G\e[2K\e[1A\e[2K\e[1A\e[2K\e[1A\e[2K\e[1A\e[2K\e[G\e[34m?\e[39m \e[1m\e[1m\e[36m\U0001F4CB Select projects\e[39m\e[22m\e[1m\e[2m (type to filter, space to select, enter to confirm)\e[22m\e[1m\e[22m\e[2m (Search: \"lib\")\e[22m\r\n\e[36m\e[36m❯\e[39m\e[36m◯ lib/a/simple-kanban-board-a\e[39m\r\n ◯ lib/a/simple-kanban-board-b\r\n ◯ lib/sample/simple-kanban-board-2\e[2m\e[22m\r\n\e[2m(Press space to select, enter to proceed)\e[22m\e[?25l\e[42G"
+  - delay: 186
+    content: "\e[43G\e[2K\e[1A\e[2K\e[1A\e[2K\e[1A\e[2K\e[1A\e[2K\e[G\e[34m?\e[39m \e[1m\e[1m\e[36m\U0001F4CB Select projects\e[39m\e[22m\e[1m\e[2m (type to filter, space to select, enter to confirm)\e[22m\e[1m\e[22m\e[2m (Search: \"lib/\")\e[22m\r\n\e[36m\e[36m❯\e[39m\e[36m◯ lib/a/simple-kanban-board-a\e[39m\r\n ◯ lib/a/simple-kanban-board-b\r\n ◯ lib/sample/simple-kanban-board-2\e[2m\e[22m\r\n\e[2m(Press space to select, enter to proceed)\e[22m\e[?25l\e[42G"
+  - delay: 102
+    content: "\e[43G\e[2K\e[1A\e[2K\e[1A\e[2K\e[1A\e[2K\e[1A\e[2K\e[G\e[34m?\e[39m \e[1m\e[1m\e[36m\U0001F4CB Select projects\e[39m\e[22m\e[1m\e[2m (type to filter, space to select, enter to confirm)\e[22m\e[1m\e[22m\e[2m (Search: \"lib/a\")\e[22m\r\n\e[36m\e[36m❯\e[39m\e[36m◯ lib/a/simple-kanban-board-a\e[39m\r\n ◯ lib/a/simple-kanban-board-b\e[2m\e[22m\r\n\e[2m(Press space to select, enter to proceed)\e[22m\e[?25l\e[42G"
+  - delay: 584
+    content: "\e[43G\e[2K\e[1A\e[2K\e[1A\e[2K\e[1A\e[2K\e[G\e[34m?\e[39m \e[1m\e[1m\e[36m\U0001F4CB Select projects\e[39m\e[22m\e[1m\e[2m (type to filter, space to select, enter to confirm)\e[22m\e[1m\e[22m\e[2m (Search: \"lib/a\")\e[22m\r\n\e[36m\e[36m❯\e[39m\e[36m\e[32m◉\e[39m\e[36m lib/a/simple-kanban-board-a\e[39m\r\n ◯ lib/a/simple-kanban-board-b\e[2m\e[22m\r\n\e[2m(Press space to select, enter to proceed)\e[22m\e[?25l\e[42G"
+  - delay: 292
+    content: "\e[2K\e[1A\e[2K\e[1A\e[2K\e[1A\e[2K\e[G\e[34m?\e[39m \e[1m\e[1m\e[36m\U0001F4CB Select projects\e[39m\e[22m\e[1m\e[2m (type to filter, space to select, enter to confirm)\e[22m\e[1m\e[22m\e[2m (Search: \"lib/a\")\e[22m\r\n \e[32m◉\e[39m lib/a/simple-kanban-board-a\r\n\e[36m\e[36m❯\e[39m\e[36m◯ lib/a/simple-kanban-board-b\e[39m\e[2m\e[22m\r\n\e[2m(Press space to select, enter to proceed)\e[22m\e[?25l\e[42G"
+  - delay: 140
+    content: "\e[43G\e[2K\e[1A\e[2K\e[1A\e[2K\e[1A\e[2K\e[G\e[34m?\e[39m \e[1m\e[1m\e[36m\U0001F4CB Select projects\e[39m\e[22m\e[1m\e[2m (type to filter, space to select, enter to confirm)\e[22m\e[1m\e[22m\e[2m (Search: \"lib/a\")\e[22m\r\n \e[32m◉\e[39m lib/a/simple-kanban-board-a\r\n\e[36m\e[36m❯\e[39m\e[36m\e[32m◉\e[39m\e[36m lib/a/simple-kanban-board-b\e[39m\e[2m\e[22m\r\n\e[2m(Press space to select, enter to proceed)\e[22m\e[?25l\e[42G"
+  - delay: 343
+    content: "\e[39G\e[2K\e[1A\e[2K\e[1A\e[2K\e[1A\e[2K\e[G\e[32m✔\e[39m \e[1m\e[1m\e[36m\U0001F4CB Select projects\e[39m\e[22m\e[1m\e[2m (type to filter, space to select, enter to confirm)\e[22m\e[1m\e[22m \e[36mlib/a/simple-kanban-board-a, lib/a/simple-kanban-board-b\e[39m\e[130G\r\n\e[?25h\e[34m?\e[39m \e[1m\e[1m\e[36m\U0001F4C2 Enter output directory\e[39m\e[22m\e[1m\e[2m (default: .)\e[22m\e[1m\e[22m \e[2m(.)\e[22m\e[46G"
+  - delay: 804
+    content: "\e[47G\e[2K\e[G\e[34m?\e[39m \e[1m\e[1m\e[36m\U0001F4C2 Enter output directory\e[39m\e[22m\e[1m\e[2m (default: .)\e[22m\e[1m\e[22m t\e[43G"
+  - delay: 103
+    content: "\e[44G\e[2K\e[G\e[34m?\e[39m \e[1m\e[1m\e[36m\U0001F4C2 Enter output directory\e[39m\e[22m\e[1m\e[2m (default: .)\e[22m\e[1m\e[22m tm\e[44G"
+  - delay: 160
+    content: "\e[45G\e[2K\e[G\e[34m?\e[39m \e[1m\e[1m\e[36m\U0001F4C2 Enter output directory\e[39m\e[22m\e[1m\e[2m (default: .)\e[22m\e[1m\e[22m tmp\e[45G"
+  - delay: 491
+    content: "\e[42G\e[2K\e[G\e[34m?\e[39m \e[1m\e[1m\e[36m\U0001F4C2 Enter output directory\e[39m\e[22m\e[1m\e[2m (default: .)\e[22m\e[1m\e[22m tmp\e[45G\e[2K\e[G\e[32m✔\e[39m \e[1m\e[1m\e[36m\U0001F4C2 Enter output directory\e[39m\e[22m\e[1m\e[2m (default: .)\e[22m\e[1m\e[22m \e[36mtmp\e[39m\e[45G\r\n\e[?25h\r\n\e[1m\e[34mConfiguration:\e[39m\e[22m\r\n\e[36m  Repository: \e[39m\e[32myukihirop/eg-kanban#test\e[39m\r\n\e[36m  Project: \e[39m\e[32msimple-kanban-board-a, simple-kanban-board-b\e[39m\r\n\e[36m  Output: \e[39m\e[32mtmp\e[39m\r\n\e[36m  Subdirectory: \e[39m\e[32mlib/a\e[39m\r\n\e[34m?\e[39m \e[1m\e[1m\e[33m\U0001F680 Execute with this configuration?\e[39m\e[22m\e[1m\e[22m \e[2m(y/N)\e[22m\e[45G"
+  - delay: 464
+    content: "\e[46G\e[2K\e[G\e[34m?\e[39m \e[1m\e[1m\e[33m\U0001F680 Execute with this configuration?\e[39m\e[22m\e[1m\e[22m \e[2m(y/N)\e[22m y\e[46G"
+  - delay: 221
+    content: "\e[45G\e[2K\e[G\e[32m✔\e[39m \e[1m\e[1m\e[33m\U0001F680 Execute with this configuration?\e[39m\e[22m\e[1m\e[22m \e[36mYes\e[39m\e[42G\r\n\e[?25h"
+  - delay: 5
+    content: "\e[1G\e[?25h\e[36mFetching files from yukihirop/eg-kanban#test/lib/a/.kiro\e[39m\r\n\e[36mFetching 2 projects: simple-kanban-board-a, simple-kanban-board-b\e[39m\r\n\e[36mSource: yukihirop/eg-kanban (branch: test)\e[39m\r\n"
+  - delay: 582
+    content: "\e[?25l\e[1G⠋ [simple-kanban-board-a] [1/8] \U0001F4E5 Fetching .kiro/specs/simple-kanban-board-a/design.md..."
+  - delay: 81
+    content: "\e[1G\e[0K⠙ [simple-kanban-board-a] [5/8] \U0001F4E5 Fetching .kiro/steering/product.md..."
+  - delay: 81
+    content: "\e[1G\e[0K⠹ [simple-kanban-board-a] [5/8] \U0001F4E5 Fetching .kiro/steering/product.md..."
+  - delay: 79
+    content: "\e[1G\e[0K⠹ [simple-kanban-board-a] [5/8] \U0001F4E5 Fetching .kiro/steering/product.md..."
+  - delay: 81
+    content: "\e[1G\e[0K⠸ [simple-kanban-board-a] [8/8] \U0001F4E5 Fetching .kiro/steering/testing.md..."
+  - delay: 82
+    content: "\e[1G\e[0K⠼ [simple-kanban-board-a] [8/8] \U0001F4E5 Fetching .kiro/steering/testing.md..."
+  - delay: 78
+    content: "\e[1G\e[0K⠼ [simple-kanban-board-a] [8/8] \U0001F4E5 Fetching .kiro/steering/testing.md..."
+  - delay: 41
+    content: "\e[1G\e[0K\e[?25h\e[32m✓ Saved: .kiro/specs/simple-kanban-board-a/design.md\e[39m\r\n\e[32m✓ Saved: .kiro/specs/simple-kanban-board-a/tasks.md\e[39m\r\n\e[32m✓ Saved: .kiro/specs/simple-kanban-board-a/spec.json\e[39m\r\n\e[32m✓ Saved: .kiro/specs/simple-kanban-board-a/requirements.md\e[39m\r\n\e[32m✓ Saved: .kiro/steering/product.md\e[39m\r\n\e[32m✓ Saved: .kiro/steering/structure.md\e[39m\r\n\e[32m✓ Saved: .kiro/steering/testing.md\e[39m\r\n\e[32m✓ Saved: .kiro/steering/tech.md\e[39m\r\n\e[36m[simple-kanban-board-a] Completed: 8 files succeeded, 0 files failed\e[39m\r\n"
+  - delay: 342
+    content: "\e[?25l\e[1G⠋ [simple-kanban-board-b] [1/4] \U0001F4E5 Fetching .kiro/specs/simple-kanban-board-b/design.md..."
+  - delay: 83
+    content: "\e[1G\e[0K⠙ [simple-kanban-board-b] [4/4] \U0001F4E5 Fetching .kiro/specs/simple-kanban-board-b/tasks.md..."
+  - delay: 79
+    content: "\e[1G\e[0K⠹ [simple-kanban-board-b] [4/4] \U0001F4E5 Fetching .kiro/specs/simple-kanban-board-b/tasks.md..."
+  - delay: 79
+    content: "\e[1G\e[0K⠸ [simple-kanban-board-b] [4/4] \U0001F4E5 Fetching .kiro/specs/simple-kanban-board-b/tasks.md..."
+  - delay: 18
+    content: "\e[1G\e[0K\e[?25h\e[32m✓ Saved: .kiro/specs/simple-kanban-board-b/design.md\e[39m\r\n\e[32m✓ Saved: .kiro/specs/simple-kanban-board-b/tasks.md\e[39m\r\n\e[32m✓ Saved: .kiro/specs/simple-kanban-board-b/spec.json\e[39m\r\n\e[32m✓ Saved: .kiro/specs/simple-kanban-board-b/requirements.md\e[39m\r\n\e[36m[simple-kanban-board-b] Completed: 4 files succeeded, 0 files failed\e[39m\r\n\r\nSummary:\r\n\e[36m  Fetched from: lib/a\e[39m\r\n\e[36m  Source: (branch: test)\e[39m\r\n\e[32m  12 files succeeded\e[39m\r\n\e[31m  0 files failed\e[39m\r\n\e[36m\e[39m\r\n\e[36m=== Overall Summary ===\e[39m\r\n\e[36mProjects: 2\e[39m\r\n\e[36mTotal files: 12\e[39m\r\n\e[36mSucceeded: 12 files\e[39m\r\n\e[36mFailed: 0 files\e[39m\r\n\e[?25h"
+  - delay: 7
+    content: "\e[1G\e[0K⠙\e[1G\e[0K\e[?2004hMac:kirox yukihirop$ "
+  - delay: 2206
+    content: "\e[?2004l\r\r\nlogout\r\n"

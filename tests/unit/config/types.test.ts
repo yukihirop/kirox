@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import type { KiroxConfig, MergedConfig } from '@/config/types';
+import type { KiroxConfig, MergedConfig } from '@/config/types.js';
 
 describe('Config Types', () => {
   describe('KiroxConfig', () => {

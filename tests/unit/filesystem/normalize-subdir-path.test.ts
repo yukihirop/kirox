@@ -3,7 +3,7 @@
  */
 
 import { describe, it, expect } from 'vitest';
-import { normalizeSubdirPath } from '@/filesystem/path-utils';
+import { normalizeSubdirPath } from '@/filesystem/path-utils.js';
 
 describe('normalizeSubdirPath', () => {
   describe('Leading character removal', () => {

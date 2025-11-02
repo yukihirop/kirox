@@ -4,8 +4,8 @@
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { promises as fs } from 'fs';
-import { ensureDirectory, checkFileExists, writeFile } from '@/filesystem/writer';
-import type { WriteOptions } from '@/filesystem/types';
+import { ensureDirectory, checkFileExists, writeFile } from '@/filesystem/writer.js';
+import type { WriteOptions } from '@/filesystem/types.js';
 
 // Mock fs/promises
 vi.mock('fs', () => ({
@@ -20,7 +20,7 @@ vi.mock('fs', () => ({
 }));
 
 // Mock prompt service
-vi.mock('@/filesystem/prompt', () => ({
+vi.mock('@/filesystem/prompt.js', () => ({
   confirm: vi.fn(),
 }));
 
@@ -132,7 +132,7 @@ describe('FileWriter', () => {
   describe('writeFile', () => {
     beforeEach(async () => {
       // Import confirm after mock is set up
-      const { confirm } = await import('@/filesystem/prompt');
+      const { confirm } = await import('@/filesystem/prompt.js');
       vi.mocked(confirm).mockResolvedValue(true);
     });
 
@@ -173,7 +173,7 @@ describe('FileWriter', () => {
     });
 
     it('should prompt user when file exists and force is false', async () => {
-      const { confirm } = await import('@/filesystem/prompt');
+      const { confirm } = await import('@/filesystem/prompt.js');
 
       vi.mocked(fs.access).mockResolvedValue(undefined); // File exists
       vi.mocked(confirm).mockResolvedValue(true);
@@ -193,7 +193,7 @@ describe('FileWriter', () => {
     });
 
     it('should skip file when user declines overwrite', async () => {
-      const { confirm } = await import('@/filesystem/prompt');
+      const { confirm } = await import('@/filesystem/prompt.js');
 
       vi.mocked(fs.access).mockResolvedValue(undefined);
       vi.mocked(confirm).mockResolvedValue(false);
@@ -214,7 +214,7 @@ describe('FileWriter', () => {
     });
 
     it('should not prompt when force option is true', async () => {
-      const { confirm } = await import('@/filesystem/prompt');
+      const { confirm } = await import('@/filesystem/prompt.js');
 
       vi.mocked(fs.access).mockResolvedValue(undefined);
       vi.mocked(fs.writeFile).mockResolvedValue(undefined);
@@ -250,7 +250,7 @@ describe('FileWriter', () => {
     });
 
     it('should not prompt when prompt option is false', async () => {
-      const { confirm } = await import('@/filesystem/prompt');
+      const { confirm } = await import('@/filesystem/prompt.js');
 
       vi.mocked(fs.access).mockResolvedValue(undefined);
       vi.mocked(fs.writeFile).mockResolvedValue(undefined);
@@ -365,7 +365,7 @@ describe('FileWriter', () => {
     });
 
     it('should return file path in result when skipped', async () => {
-      const { confirm } = await import('@/filesystem/prompt');
+      const { confirm } = await import('@/filesystem/prompt.js');
 
       vi.mocked(fs.access).mockResolvedValue(undefined);
       vi.mocked(confirm).mockResolvedValue(false);

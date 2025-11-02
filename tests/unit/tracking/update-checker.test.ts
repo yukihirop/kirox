@@ -8,7 +8,6 @@ import path from 'path';
 import type { Octokit } from 'octokit';
 import {
   checkFileUpdate,
-  UpdateCheckResult,
   UpdateStatus,
 } from '../../../src/tracking/update-checker.js';
 import type { FileMetadata } from '../../../src/tracking/types.js';
@@ -148,7 +147,8 @@ describe('UpdateChecker - checkFileUpdate', () => {
       const recordedMetadata: FileMetadata = {
         path: '.kiro/steering/tech.md',
         sha: 'remote-sha-abc',
-        hash: originalHash, // Hash of original content
+        localHash: originalHash, // Hash of original content
+        size: 1024,
         fetchedAt: '2025-01-01T00:00:00Z',
       };
 
@@ -198,7 +198,8 @@ describe('UpdateChecker - checkFileUpdate', () => {
       const recordedMetadata: FileMetadata = {
         path: '.kiro/specs/feature/tasks.md',
         sha: 'old-remote-sha',
-        hash: originalHash,
+        localHash: originalHash,
+        size: 1024,
         fetchedAt: '2025-01-01T00:00:00Z',
       };
 

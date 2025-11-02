@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { parseArguments } from '@/cli/parser';
+import { parseArguments } from '@/cli/parser.js';
 
 /**
  * Tests for 'completion' subcommand argument parsing

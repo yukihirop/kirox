@@ -4,7 +4,7 @@
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { createInterface } from 'readline';
-import { confirm } from '@/filesystem/prompt';
+import { confirm } from '@/filesystem/prompt.js';
 
 // Mock readline module
 vi.mock('readline', () => ({
@@ -32,7 +32,7 @@ describe('PromptService', () => {
 
   describe('confirm', () => {
     it('should return true when user inputs "y"', async () => {
-      mockRl.question.mockImplementation((question: string, callback: (answer: string) => void) => {
+      mockRl.question.mockImplementation((_question: string, callback: (answer: string) => void) => {
         callback('y');
       });
 
@@ -44,7 +44,7 @@ describe('PromptService', () => {
     });
 
     it('should return true when user inputs "Y"', async () => {
-      mockRl.question.mockImplementation((question: string, callback: (answer: string) => void) => {
+      mockRl.question.mockImplementation((_question: string, callback: (answer: string) => void) => {
         callback('Y');
       });
 
@@ -54,7 +54,7 @@ describe('PromptService', () => {
     });
 
     it('should return true when user inputs "yes"', async () => {
-      mockRl.question.mockImplementation((question: string, callback: (answer: string) => void) => {
+      mockRl.question.mockImplementation((_question: string, callback: (answer: string) => void) => {
         callback('yes');
       });
 
@@ -64,7 +64,7 @@ describe('PromptService', () => {
     });
 
     it('should return false when user inputs "n"', async () => {
-      mockRl.question.mockImplementation((question: string, callback: (answer: string) => void) => {
+      mockRl.question.mockImplementation((_question: string, callback: (answer: string) => void) => {
         callback('n');
       });
 
@@ -74,7 +74,7 @@ describe('PromptService', () => {
     });
 
     it('should return false when user inputs "N"', async () => {
-      mockRl.question.mockImplementation((question: string, callback: (answer: string) => void) => {
+      mockRl.question.mockImplementation((_question: string, callback: (answer: string) => void) => {
         callback('N');
       });
 
@@ -84,7 +84,7 @@ describe('PromptService', () => {
     });
 
     it('should return false when user inputs "no"', async () => {
-      mockRl.question.mockImplementation((question: string, callback: (answer: string) => void) => {
+      mockRl.question.mockImplementation((_question: string, callback: (answer: string) => void) => {
         callback('no');
       });
 
@@ -94,7 +94,7 @@ describe('PromptService', () => {
     });
 
     it('should return false for empty input', async () => {
-      mockRl.question.mockImplementation((question: string, callback: (answer: string) => void) => {
+      mockRl.question.mockImplementation((_question: string, callback: (answer: string) => void) => {
         callback('');
       });
 
@@ -104,7 +104,7 @@ describe('PromptService', () => {
     });
 
     it('should return false for invalid input', async () => {
-      mockRl.question.mockImplementation((question: string, callback: (answer: string) => void) => {
+      mockRl.question.mockImplementation((_question: string, callback: (answer: string) => void) => {
         callback('maybe');
       });
 
@@ -114,7 +114,7 @@ describe('PromptService', () => {
     });
 
     it('should close readline interface after getting answer', async () => {
-      mockRl.question.mockImplementation((question: string, callback: (answer: string) => void) => {
+      mockRl.question.mockImplementation((_question: string, callback: (answer: string) => void) => {
         callback('y');
       });
 

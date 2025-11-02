@@ -3,8 +3,8 @@
  */
 
 import { describe, it, expect } from 'vitest';
-import { ErrorHandler } from '@/reporting/error-handler';
-import type { ErrorContext } from '@/reporting/types';
+import { ErrorHandler } from '@/reporting/error-handler.js';
+import type { ErrorContext } from '@/reporting/types.js';
 
 describe('ErrorHandler', () => {
   const handler = new ErrorHandler();

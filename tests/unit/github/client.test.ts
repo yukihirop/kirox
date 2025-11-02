@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { createGitHubClient, getRateLimit } from '@/github/client';
+import { createGitHubClient, getRateLimit } from '@/github/client.js';
 
 describe('GitHubClient', () => {
   let originalEnv: NodeJS.ProcessEnv;
@@ -134,7 +134,7 @@ describe('GitHubClient', () => {
         },
       });
 
-      client.rest.repos.get = mockGet;
+      (client.rest.repos.get as any) = mockGet;
 
       const result = await client.rest.repos.get({
         owner: 'octocat',

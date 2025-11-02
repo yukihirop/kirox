@@ -33,9 +33,9 @@ describe('UpdateFilter', () => {
       const filtered = filterUpdatableFiles(results);
 
       expect(filtered.updatable).toHaveLength(1);
-      expect(filtered.updatable[0].status).toBe(UpdateStatus.REMOTE_UPDATED);
+      expect(filtered?.updatable?.[0]?.status).toBe(UpdateStatus.REMOTE_UPDATED);
       expect(filtered.skipped).toHaveLength(1);
-      expect(filtered.skipped[0].result.status).toBe(UpdateStatus.UP_TO_DATE);
+      expect(filtered?.skipped?.[0]?.result?.status).toBe(UpdateStatus.UP_TO_DATE);
     });
 
     it('複数のREMOTE_UPDATEDファイルを抽出する', () => {
@@ -94,7 +94,7 @@ describe('UpdateFilter', () => {
 
       expect(filtered.updatable).toHaveLength(0);
       expect(filtered.skipped).toHaveLength(1);
-      expect(filtered.skipped[0].reason).toBe('up-to-date');
+      expect(filtered?.skipped?.[0]?.reason).toBe('up-to-date');
     });
 
     it('LOCAL_EDITEDステータスのファイルをスキップする', () => {
@@ -114,7 +114,7 @@ describe('UpdateFilter', () => {
 
       expect(filtered.updatable).toHaveLength(0);
       expect(filtered.skipped).toHaveLength(1);
-      expect(filtered.skipped[0].reason).toBe('local-edit');
+      expect(filtered?.skipped?.[0]?.reason).toBe('local-edit');
     });
 
     it('CONFLICTステータスのファイルをスキップする', () => {
@@ -134,7 +134,7 @@ describe('UpdateFilter', () => {
 
       expect(filtered.updatable).toHaveLength(0);
       expect(filtered.skipped).toHaveLength(1);
-      expect(filtered.skipped[0].reason).toBe('conflict');
+      expect(filtered?.skipped?.[0]?.reason).toBe('conflict');
     });
 
     it('LOCAL_DELETEDステータスのファイルをスキップする', () => {
@@ -153,7 +153,7 @@ describe('UpdateFilter', () => {
 
       expect(filtered.updatable).toHaveLength(0);
       expect(filtered.skipped).toHaveLength(1);
-      expect(filtered.skipped[0].reason).toBe('local-deleted');
+      expect(filtered?.skipped?.[0]?.reason).toBe('local-deleted');
     });
 
     it('REMOTE_DELETEDステータスのファイルをスキップする', () => {
@@ -172,7 +172,7 @@ describe('UpdateFilter', () => {
 
       expect(filtered.updatable).toHaveLength(0);
       expect(filtered.skipped).toHaveLength(1);
-      expect(filtered.skipped[0].reason).toBe('remote-deleted');
+      expect(filtered?.skipped?.[0]?.reason).toBe('remote-deleted');
     });
 
     it('ERRORステータスのファイルをスキップする', () => {
@@ -191,7 +191,7 @@ describe('UpdateFilter', () => {
 
       expect(filtered.updatable).toHaveLength(0);
       expect(filtered.skipped).toHaveLength(1);
-      expect(filtered.skipped[0].reason).toBe('error');
+      expect(filtered?.skipped?.[0]?.reason).toBe('error');
     });
   });
 
@@ -213,7 +213,7 @@ describe('UpdateFilter', () => {
 
       expect(filtered.updatable).toHaveLength(0);
       expect(filtered.skipped).toHaveLength(1);
-      expect(filtered.skipped[0].reason).toBe('local-edit');
+      expect(filtered?.skipped?.[0]?.reason).toBe('local-edit');
     });
 
     it('forceオプション指定時にCONFLICTファイルを更新可能にする', () => {
@@ -233,7 +233,7 @@ describe('UpdateFilter', () => {
       const filtered = filterUpdatableFiles(results, options);
 
       expect(filtered.updatable).toHaveLength(1);
-      expect(filtered.updatable[0].status).toBe(UpdateStatus.CONFLICT);
+      expect(filtered?.updatable?.[0]?.status).toBe(UpdateStatus.CONFLICT);
       expect(filtered.skipped).toHaveLength(0);
     });
 
@@ -255,7 +255,7 @@ describe('UpdateFilter', () => {
 
       expect(filtered.updatable).toHaveLength(0);
       expect(filtered.skipped).toHaveLength(1);
-      expect(filtered.skipped[0].reason).toBe('up-to-date');
+      expect(filtered?.skipped?.[0]?.reason).toBe('up-to-date');
     });
 
     it('forceオプション指定時でもERRORファイルはスキップする', () => {
@@ -275,7 +275,7 @@ describe('UpdateFilter', () => {
 
       expect(filtered.updatable).toHaveLength(0);
       expect(filtered.skipped).toHaveLength(1);
-      expect(filtered.skipped[0].reason).toBe('error');
+      expect(filtered?.skipped?.[0]?.reason).toBe('error');
     });
 
     it('forceオプション指定時でもLOCAL_DELETEDファイルはスキップする', () => {
@@ -295,7 +295,7 @@ describe('UpdateFilter', () => {
 
       expect(filtered.updatable).toHaveLength(0);
       expect(filtered.skipped).toHaveLength(1);
-      expect(filtered.skipped[0].reason).toBe('local-deleted');
+      expect(filtered?.skipped?.[0]?.reason).toBe('local-deleted');
     });
   });
 
@@ -351,7 +351,7 @@ describe('UpdateFilter', () => {
       const filtered = filterUpdatableFiles(results);
 
       expect(filtered.updatable).toHaveLength(1);
-      expect(filtered.updatable[0].status).toBe(UpdateStatus.REMOTE_UPDATED);
+      expect(filtered?.updatable?.[0]?.status).toBe(UpdateStatus.REMOTE_UPDATED);
       expect(filtered.skipped).toHaveLength(4);
 
       // スキップ理由の確認
@@ -397,10 +397,10 @@ describe('UpdateFilter', () => {
       const filtered = filterUpdatableFiles(results, options);
 
       expect(filtered.updatable).toHaveLength(2);
-      expect(filtered.updatable[0].status).toBe(UpdateStatus.REMOTE_UPDATED);
-      expect(filtered.updatable[1].status).toBe(UpdateStatus.CONFLICT);
+      expect(filtered?.updatable?.[0]?.status).toBe(UpdateStatus.REMOTE_UPDATED);
+      expect(filtered?.updatable?.[1]?.status).toBe(UpdateStatus.CONFLICT);
       expect(filtered.skipped).toHaveLength(1);
-      expect(filtered.skipped[0].reason).toBe('up-to-date');
+      expect(filtered?.skipped?.[0]?.reason).toBe('up-to-date');
     });
   });
 
@@ -520,7 +520,7 @@ describe('UpdateFilter', () => {
       expect(filtered.skipped).toHaveLength(1);
       expect(filtered.skipped[0]).toHaveProperty('result');
       expect(filtered.skipped[0]).toHaveProperty('reason');
-      expect(filtered.skipped[0].reason).toBe('up-to-date');
+      expect(filtered?.skipped?.[0]?.reason).toBe('up-to-date');
     });
   });
 });

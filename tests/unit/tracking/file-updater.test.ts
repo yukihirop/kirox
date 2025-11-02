@@ -6,7 +6,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { promises as fs } from 'fs';
 import path from 'path';
 import type { Octokit } from 'octokit';
-import { updateFile, type UpdateResult } from '../../../src/tracking/file-updater.js';
+import { updateFile } from '../../../src/tracking/file-updater.js';
 import type { FileMetadata } from '../../../src/tracking/types.js';
 
 describe('FileUpdater', () => {
@@ -101,7 +101,9 @@ describe('FileUpdater', () => {
 
       expect(result.success).toBe(true);
       expect(result.newHash).toBeDefined();
-      expect(result.newHash).toMatch(/^[a-f0-9]{64}$/); // SHA-256 hash format
+      // SHA-256 hash format - 64 characters, all lowercase hex digits
+      expect(result.newHash).toHaveLength(64);
+      expect(result.newHash!.split('').every((c) => '0123456789abcdef'.includes(c))).toBe(true);
     });
 
     it('書き込み成功後にメタデータを更新する', async () => {

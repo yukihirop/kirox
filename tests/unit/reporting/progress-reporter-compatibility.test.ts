@@ -23,7 +23,7 @@ function createMockSpinner() {
   const spinner = {
     text: '',
     isSpinning: false,
-    color: 'cyan',
+    color: 'cyan' as string | false,
     start: vi.fn(),
     stop: vi.fn(),
     succeed: vi.fn(),

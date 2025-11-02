@@ -29,6 +29,7 @@ describe('Interactive Error Handling', () => {
     track: false,
     checkUpdates: false,
     update: false,
+    steering: false,
   });
 
   beforeEach(async () => {

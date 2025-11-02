@@ -35,7 +35,7 @@ interface FailedFileInfo {
 /**
  * Apply summary
  */
-export interface ApplySummary {
+interface ApplySummary {
   /** Total number of files processed */
   totalFiles: number;
   /** Number of successfully updated files */

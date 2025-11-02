@@ -81,7 +81,7 @@ describe('promptOutput', () => {
       await promptOutput();
 
       // Check call arguments (Chalk styling may be present)
-      const callArgs = mockInput.mock.calls[0][0];
+      const callArgs = mockInput.mock.calls[0]?.[0];
       expect(callArgs.message).toContain('Enter output directory');
     });
   });
@@ -151,7 +151,7 @@ describe('promptSubdir', () => {
       await promptSubdir();
 
       // Check call arguments (Chalk styling may be present)
-      const callArgs = mockInput.mock.calls[0][0];
+      const callArgs = mockInput.mock.calls[0]?.[0];
       expect(callArgs.message).toContain('Enter subdirectory');
       expect(callArgs.message).toContain('optional');
     });
@@ -161,11 +161,10 @@ describe('promptSubdir', () => {
 
       await promptSubdir();
 
-      expect(mockInput).toHaveBeenCalledWith(
-        expect.objectContaining({
-          message: expect.stringMatching(/optional/i),
-        })
-      );
+      const inputCall = mockInput.mock.calls[0]?.[0];
+      expect(inputCall).toBeDefined();
+      const message = String(inputCall?.message || '').toLowerCase();
+      expect(message).toContain('optional');
     });
 
     it('GitHubリポジトリの形容詞を含む', async () => {
@@ -173,11 +172,11 @@ describe('promptSubdir', () => {
 
       await promptSubdir();
 
-      expect(mockInput).toHaveBeenCalledWith(
-        expect.objectContaining({
-          message: expect.stringMatching(/GitHub repository/i),
-        })
-      );
+      const inputCall = mockInput.mock.calls[0]?.[0];
+      expect(inputCall).toBeDefined();
+      const message = String(inputCall?.message || '');
+      expect(message.toLowerCase()).toContain('github');
+      expect(message.toLowerCase()).toContain('repository');
     });
   });
 

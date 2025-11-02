@@ -16,7 +16,7 @@ import chalk from 'chalk';
 import type { ParsedArguments } from './types.js';
 import { validateRepositoryFormat, validateProjectName } from './validator.js';
 import { parseProjects } from './project-name-parser.js';
-import type { Logger } from '../reporting/logger.js';
+import { PinoLogger } from '../reporting/pino-logger.js';
 import type { KiroxConfig } from '../config/types.js';
 import type { Metadata } from '../tracking/types.js';
 import {
@@ -133,7 +133,7 @@ export async function promptProject(
   repository?: string,
   subdir?: string,
   client?: Octokit | undefined,
-  logger?: Logger,
+  logger?: PinoLogger,
   verbose?: boolean
 ): Promise<string> {
   // Skip prompt if value is already provided (non-empty after trim)
@@ -333,7 +333,7 @@ export async function confirmExecution(args: ParsedArguments): Promise<boolean> 
 export async function promptMissingArguments(
   args: ParsedArguments,
   configFile?: KiroxConfig,
-  logger?: Logger,
+  logger?: PinoLogger,
   verbose?: boolean,
   metadata?: Metadata
 ): Promise<ParsedArguments> {
@@ -355,11 +355,9 @@ export async function promptMissingArguments(
     } catch (error) {
       // If Octokit initialization fails, continue without suggestion feature
       // Both Tree API and promptProject will fall back to manual input
-      if (verbose) {
-        logger.warn('Failed to initialize GitHub client for project suggestion', {
-          error: error instanceof Error ? error.message : String(error),
-        });
-      }
+      logger.debug('Failed to initialize GitHub client for project suggestion', {
+        error: error instanceof Error ? error.message : String(error),
+      });
     }
   }
 
@@ -378,16 +376,12 @@ export async function promptMissingArguments(
       let defaultBranch: string | undefined;
       try {
         defaultBranch = await fetchDefaultBranch(client, repositoryRef.owner, repositoryRef.repo);
-        if (verbose) {
-          logger.verbose('Default branch detected', { defaultBranch });
-        }
+        logger.debug('Default branch detected', { defaultBranch });
       } catch (error) {
         // Log error but continue without default branch
-        if (verbose) {
-          logger.warn('Failed to fetch default branch', {
-            error: error instanceof Error ? error.message : String(error),
-          });
-        }
+        logger.debug('Failed to fetch default branch', {
+          error: error instanceof Error ? error.message : String(error),
+        });
       }
 
       // 2.5.2 Fetch branches
@@ -395,9 +389,9 @@ export async function promptMissingArguments(
         console.log(chalk.cyan('\nFetching branches...'));
         const branches = await fetchBranches(client, repositoryRef.owner, repositoryRef.repo);
 
-        // Task 3.3: Requirement 11.1, 11.2 - Log branch count in verbose mode
-        if (verbose && branches.length > 0) {
-          logger.verbose('Fetched branches', { count: branches.length });
+        // Task 3.3: Requirement 11.1, 11.2 - Log branch count
+        if (branches.length > 0) {
+          logger.debug('Fetched branches', { count: branches.length });
         }
 
         if (branches.length === 0) {
@@ -411,18 +405,14 @@ export async function promptMissingArguments(
           const branchToUse = selectedBranch || defaultBranch;
           if (branchToUse) {
             completedArgs.repository = `${completedArgs.repository}#${branchToUse}`;
-            if (verbose) {
-              logger.verbose('Branch selected', { branch: branchToUse });
-            }
+            logger.debug('Branch selected', { branch: branchToUse });
           }
         }
       } catch (error) {
         // Log error and continue without branch selection
-        if (verbose) {
-          logger.warn('Failed to fetch branches', {
-            error: error instanceof Error ? error.message : String(error),
-          });
-        }
+        logger.debug('Failed to fetch branches', {
+          error: error instanceof Error ? error.message : String(error),
+        });
         console.error(chalk.red('\n✗ Failed to fetch branches. Continuing with default branch...'));
 
         // Fallback to default branch if available
@@ -432,8 +422,8 @@ export async function promptMissingArguments(
       }
     } catch (error) {
       // Catch-all for unexpected errors - continue without branch
-      if (verbose && logger) {
-        logger.error('Unexpected error in branch selection', {
+      if (logger) {
+        logger.debug('Unexpected error in branch selection', {
           error: error instanceof Error ? error.message : String(error),
         });
       }
@@ -497,9 +487,9 @@ export async function promptMissingArguments(
       }
     } catch (error) {
       // Tree API failed, fall through to existing workflow
-      // Log error if verbose mode is enabled
-      if (verbose && logger) {
-        logger.verbose('Tree API search failed, falling back to existing workflow', {
+      // Log error
+      if (logger) {
+        logger.debug('Tree API search failed, falling back to existing workflow', {
           error: error instanceof Error ? error.message : String(error),
         });
       }
@@ -541,7 +531,7 @@ export async function promptMissingArguments(
       // Check if Tree API succeeded (Requirement 9.7: Success path)
       if (scanResult.success) {
         // Display truncated warning if applicable
-        if (scanResult.truncated && verbose) {
+        if (scanResult.truncated) {
           console.log(chalk.yellow('⚠️  Large repository: Some directories may not be shown'));
           console.log(chalk.dim('   (GitHub API response was truncated)\n'));
         }
@@ -565,9 +555,9 @@ export async function promptMissingArguments(
       }
     } catch (error) {
       // Requirement 9.7: Exception handling
-      // Log error if verbose mode is enabled
-      if (verbose && logger) {
-        logger.verbose('Tree API subdirectory scan failed, falling back to text input', {
+      // Log error
+      if (logger) {
+        logger.debug('Tree API subdirectory scan failed, falling back to text input', {
           error: error instanceof Error ? error.message : String(error),
         });
       }
@@ -650,7 +640,7 @@ interface TTYCheckResult {
  * @param logger - Logger instance for recording events
  * @returns TTY check result with success flag and exit code
  */
-export function checkTTYEnvironment(logger: Logger): TTYCheckResult {
+export function checkTTYEnvironment(logger: PinoLogger): TTYCheckResult {
   // Check if stdin is a TTY (terminal)
   if (!process.stdin.isTTY) {
     // Display error message
@@ -694,7 +684,7 @@ export function checkTTYEnvironment(logger: Logger): TTYCheckResult {
  */
 export function handleInteractiveError(
   error: unknown,
-  logger: Logger
+  logger: PinoLogger
 ): InteractiveErrorResult {
   if (error instanceof Error) {
     // Case 1: ExitPromptError (Ctrl+C by user)

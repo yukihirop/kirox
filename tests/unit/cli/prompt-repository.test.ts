@@ -70,7 +70,7 @@ describe('promptRepository', () => {
       await promptRepository('');
 
       // Message includes chalk styling, so check if it contains the expected text
-      const callArgs = mockInput.mock.calls[0][0];
+      const callArgs = mockInput.mock.calls[0]?.[0];
       expect(callArgs.message).toContain('Enter GitHub repository');
       expect(callArgs.message).toContain('owner/repo');
       expect(callArgs.message).toContain('branch');
@@ -81,7 +81,7 @@ describe('promptRepository', () => {
 
       await promptRepository('');
 
-      const callArgs = mockInput.mock.calls[0][0];
+      const callArgs = mockInput.mock.calls[0]?.[0];
       expect(callArgs).toHaveProperty('validate');
       expect(typeof callArgs.validate).toBe('function');
     });
@@ -93,7 +93,7 @@ describe('promptRepository', () => {
 
       await promptRepository('');
 
-      const callArgs = mockInput.mock.calls[0][0];
+      const callArgs = mockInput.mock.calls[0]?.[0];
       const validate = callArgs.validate;
 
       expect(validate('facebook/react')).toBe(true);
@@ -105,7 +105,7 @@ describe('promptRepository', () => {
 
       await promptRepository('');
 
-      const callArgs = mockInput.mock.calls[0][0];
+      const callArgs = mockInput.mock.calls[0]?.[0];
       const validate = callArgs.validate;
 
       const result = validate('invalid-repo');
@@ -118,7 +118,7 @@ describe('promptRepository', () => {
 
       await promptRepository('');
 
-      const callArgs = mockInput.mock.calls[0][0];
+      const callArgs = mockInput.mock.calls[0]?.[0];
       const validate = callArgs.validate;
 
       const result = validate('');
@@ -130,7 +130,7 @@ describe('promptRepository', () => {
 
       await promptRepository('');
 
-      const callArgs = mockInput.mock.calls[0][0];
+      const callArgs = mockInput.mock.calls[0]?.[0];
       const validate = callArgs.validate;
 
       const result = validate('facebook');
@@ -142,7 +142,7 @@ describe('promptRepository', () => {
 
       await promptRepository('');
 
-      const callArgs = mockInput.mock.calls[0][0];
+      const callArgs = mockInput.mock.calls[0]?.[0];
       const validate = callArgs.validate;
 
       const result = validate('/repo');
@@ -154,7 +154,7 @@ describe('promptRepository', () => {
 
       await promptRepository('');
 
-      const callArgs = mockInput.mock.calls[0][0];
+      const callArgs = mockInput.mock.calls[0]?.[0];
       const validate = callArgs.validate;
 
       const result = validate('owner/');
@@ -205,7 +205,7 @@ describe('promptRepository', () => {
       await promptRepository('', metadata);
 
       // Should call input with default value set to the last repository
-      const callArgs = mockInput.mock.calls[0][0];
+      const callArgs = mockInput.mock.calls[0]?.[0];
       expect(callArgs.message).toContain('Enter GitHub repository');
       expect(callArgs.default).toBe('owner/repo2');
     });
@@ -221,7 +221,7 @@ describe('promptRepository', () => {
       await promptRepository('', metadata);
 
       // Should call input without default value
-      const callArgs = mockInput.mock.calls[0][0];
+      const callArgs = mockInput.mock.calls[0]?.[0];
       expect(callArgs.message).toContain('Enter GitHub repository');
 
       // Verify default is not set
@@ -234,7 +234,7 @@ describe('promptRepository', () => {
       await promptRepository('');
 
       // Should call input without default value
-      const callArgs = mockInput.mock.calls[0][0];
+      const callArgs = mockInput.mock.calls[0]?.[0];
       expect(callArgs.message).toContain('Enter GitHub repository');
 
       // Verify default is not set

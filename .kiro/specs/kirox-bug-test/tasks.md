@@ -131,19 +131,18 @@
   - 成功確認: `tests/e2e/options.test.ts`の`--help`関連テストがグリーン
   - _Requirements: 4.1, 4.3_
 
-- [ ] 6.4 add-duplicate-detection.test.ts Requirement 3.2の失敗を修正
-  - 問題分析: 「should not detect duplicate for different repositories」が失敗（`result.success` が `false`）。異なる`repository`同士でも重複扱いになっている
-  - 想定原因:
-    - 当該テストケースのargvに`'--track'`未指定で、メタデータ更新が行われず期待ロジックと乖離
-    - もしくは前テストのモック状態（`loadMetadata`/`upsertProject`）やメタデータ内容が残存し、異なる`repository`でも一致扱いされている
-  - 対応方針:
-    - 当該テストのargvに`'--track'`を明示的に付与（他の重複検出系と整合）
-    - `beforeEach`で`vi.clearAllMocks()`と`vi.unstubAllGlobals()`を実施し、`loadMetadata`/`mergeConfig`/`upsertProject`のデフォルトモックを再適用
-    - メタデータモックで`projects`内に比較対象の`repository`が明確に異なる値になるよう設定（例: `owner/repoA` vs `owner/repoB`）
-    - 比較キーは`repository`+`projectName`+`subdir`である前提に基づき、期待値が実装に整合するか確認（必要なら説明コメント更新）
-  - 成功基準:
-    - `npm test tests/unit/cli/add-duplicate-detection.test.ts`が成功
-    - 全体テスト（unit/integration/e2e）が成功
+- [x] 6.4 add-duplicate-detection.test.ts Requirement 3.2の失敗を修正
+  - 問題分析: 3つのテストが失敗（ログメッセージ検証の問題）。`console.log`のモックではPinoの構造化ログをキャプチャできない
+  - 根本原因:
+    - PinoLoggerはJSON形式の構造化ログを出力するため、`console.log`/`console.warn`のモックでは不十分
+    - テストで`logger.warn()`や`logger.info()`の呼び出しを直接検証する必要がある
+  - 対応内容:
+    - `PinoLogger.prototype.warn()`と`PinoLogger.prototype.info()`をvi.spyOnでモック
+    - 3つの失敗テストのログメッセージ検証を`mockLoggerWarn`/`mockLoggerInfo`のアサーションに変更
+    - `expect.stringContaining()`と`expect.objectContaining()`で構造化ログの内容を検証
+  - 成功結果:
+    - `npm test tests/unit/cli/add-duplicate-detection.test.ts`: 13テスト全て成功 ✅
+    - 失敗していた3つのテストケースが全て合格
   - _Requirements: 2.1, 2.3, 5.3, 4.1, 4.3_
 
 ## Implementation Notes

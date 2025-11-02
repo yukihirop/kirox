@@ -8,7 +8,7 @@
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import type { Octokit } from 'octokit';
-import type { Logger } from '@/reporting/logger.js';
+import type { PinoLogger } from '@/reporting/pino-logger.js';
 
 // Mock fetchDirectoryContents
 vi.mock('@/github/fetcher.js', () => ({
@@ -23,7 +23,7 @@ vi.mock('@inquirer/prompts', () => ({
 
 describe('ProjectSuggester', () => {
   let mockClient: Octokit;
-  let mockLogger: Logger;
+  let mockLogger: PinoLogger;
   let mockFetchDirectoryContents: ReturnType<typeof vi.fn>;
   let mockSelect: ReturnType<typeof vi.fn>;
   let mockCheckbox: ReturnType<typeof vi.fn>;
@@ -36,7 +36,7 @@ describe('ProjectSuggester', () => {
       error: vi.fn(),
       warn: vi.fn(),
       debug: vi.fn(),
-    } as unknown as Logger;
+    } as unknown as PinoLogger;
 
     // Import and setup mocks
     const fetcher = await import('@/github/fetcher.js');
@@ -318,7 +318,7 @@ describe('ProjectSuggester', () => {
       });
 
       // Assert
-      expect(mockLogger.info).toHaveBeenCalledWith(
+      expect(mockLogger.debug).toHaveBeenCalledWith(
         expect.stringContaining('Fetching available projects'),
         expect.objectContaining({
           repository: 'test-owner/test-repo',
@@ -345,7 +345,7 @@ describe('ProjectSuggester', () => {
       });
 
       // Assert
-      expect(mockLogger.info).toHaveBeenCalledWith(
+      expect(mockLogger.debug).toHaveBeenCalledWith(
         expect.stringContaining('Successfully fetched projects'),
         expect.objectContaining({
           count: 2,
@@ -370,7 +370,7 @@ describe('ProjectSuggester', () => {
       });
 
       // Assert
-      expect(mockLogger.error).toHaveBeenCalledWith(
+      expect(mockLogger.debug).toHaveBeenCalledWith(
         expect.stringContaining('Failed to fetch projects'),
         expect.objectContaining({
           error: expect.any(String),
@@ -466,7 +466,7 @@ describe('ProjectSuggester', () => {
       await promptSingleProject(projects);
 
       // Assert
-      const callArgs = mockSelect.mock.calls[0][0];
+      const callArgs = mockSelect.mock.calls[0]?.[0];
       const choices = callArgs.choices;
       expect(choices[choices.length - 1]).toEqual({
         name: '[Select multiple projects...]',
@@ -824,7 +824,7 @@ describe('ProjectSuggester', () => {
       );
       // The last call should clear the loading message
       const lastCall = stdoutWriteSpy.mock.calls[stdoutWriteSpy.mock.calls.length - 1];
-      expect(lastCall[0]).toBe('\r\x1b[K'); // Clear line escape sequence
+      expect(lastCall?.[0]).toBe('\r\x1b[K'); // Clear line escape sequence
 
       stdoutWriteSpy.mockRestore();
     });
@@ -887,7 +887,7 @@ describe('ProjectSuggester', () => {
 
       // Assert - Should NOT show additional wait message
       const waitMessages = stdoutWriteSpy.mock.calls.filter(
-        call => call[0] && call[0].includes && call[0].includes('Please wait')
+        call => typeof call[0] === 'string' && call[0].includes('Please wait')
       );
       expect(waitMessages.length).toBe(0);
 
@@ -915,7 +915,7 @@ describe('ProjectSuggester', () => {
         expect.stringContaining('Fetching available projects')
       );
       const lastCall = stdoutWriteSpy.mock.calls[stdoutWriteSpy.mock.calls.length - 1];
-      expect(lastCall[0]).toBe('\r\x1b[K'); // Clear line escape sequence
+      expect(lastCall?.[0]).toBe('\r\x1b[K'); // Clear line escape sequence
 
       stdoutWriteSpy.mockRestore();
     });

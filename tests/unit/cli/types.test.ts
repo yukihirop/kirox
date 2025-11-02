@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import type { ParsedArguments, ValidationError, ValidationResult, ExecutionResult } from '@/cli/types';
+import type { ParsedArguments, ValidationError } from '@/cli/types.js';
 
 describe('CLI Types', () => {
   describe('ParsedArguments', () => {
@@ -15,6 +15,7 @@ describe('CLI Types', () => {
         checkUpdates: false,
         update: false,
         subdir: 'packages/api',
+        steering: false,
       };
 
       expect(args.subdir).toBe('packages/api');
@@ -31,6 +32,7 @@ describe('CLI Types', () => {
         track: true,
         checkUpdates: false,
         update: false,
+        steering: false,
       };
 
       expect(args.subdir).toBeUndefined();
@@ -49,6 +51,7 @@ describe('CLI Types', () => {
         checkUpdates: false,
         update: false,
         subdir: undefined,
+        steering: false,
       };
 
       expect(args.repository).toBe('owner/repo');
@@ -70,6 +73,7 @@ describe('CLI Types', () => {
         track: true,
         checkUpdates: false,
         update: false,
+        steering: false,
       };
 
       expect(args.projects).toHaveLength(3);
@@ -87,6 +91,7 @@ describe('CLI Types', () => {
         track: true,
         checkUpdates: false,
         update: false,
+        steering: false,
       };
 
       expect(args.projects).toHaveLength(1);
@@ -104,6 +109,7 @@ describe('CLI Types', () => {
         track: true,
         checkUpdates: false,
         update: false,
+        steering: false,
       };
 
       expect(args.projects).toEqual([]);

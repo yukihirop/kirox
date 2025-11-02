@@ -6,41 +6,12 @@
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import type { Octokit } from 'octokit';
-import type { Logger } from '../../../src/reporting/logger.js';
+import type { PinoLogger } from '../../../src/reporting/pino-logger.js';
 import type { RepositoryRef } from '../../../src/github/fetcher.js';
-
-// Will be implemented in GREEN phase
-interface TreeScanResult {
-  projects: Array<{
-    name: string;
-    subdir: string;
-    displayName: string;
-    path: string;
-    type: 'tree';
-    mode: string;
-    sha: string;
-    url: string;
-    projectName: string;
-  }>;
-  success: boolean;
-  truncated: boolean;
-  entryCount: number; // Task 2.5: Total number of tree entries
-  errorMessage?: string;
-}
-
-interface TreeScanOptions {
-  repository: RepositoryRef;
-  client: Octokit;
-  logger: Logger;
-  verbose: boolean;
-}
-
-// Function to be implemented
-declare function scanProjectsAcrossSubdirs(options: TreeScanOptions): Promise<TreeScanResult>;
 
 describe('Tree-Based Project Scanner', () => {
   let mockClient: Octokit;
-  let mockLogger: Logger;
+  let mockLogger: PinoLogger;
   let repository: RepositoryRef;
 
   beforeEach(() => {
@@ -64,7 +35,7 @@ describe('Tree-Based Project Scanner', () => {
       error: vi.fn(),
       debug: vi.fn(),
       verbose: vi.fn(),
-    } as unknown as Logger;
+    } as unknown as PinoLogger;
 
     repository = {
       owner: 'test-owner',
@@ -437,8 +408,8 @@ describe('Tree-Based Project Scanner', () => {
           verbose: true,
         });
 
-        // Assert: Should have logged verbose messages
-        expect(mockLogger.verbose).toHaveBeenCalled();
+        // Assert: Should have logged debug messages
+        expect(mockLogger.debug).toHaveBeenCalled();
       });
 
       it('should log Tree SHA, entry count, and .kiro/specs/ directory count when verbose=true (task 2.4)', async () => {
@@ -499,22 +470,22 @@ describe('Tree-Based Project Scanner', () => {
         // Requirement 7.4: Log Tree SHA, entry count, and processing details
 
         // 1. Should log Tree SHA during fetch (using commit SHA from getTreeSha)
-        expect(mockLogger.verbose).toHaveBeenCalledWith(
+        expect(mockLogger.debug).toHaveBeenCalledWith(
           expect.stringContaining('Fetching repository tree (recursive) with SHA: commit-sha-detailed')
         );
 
         // 2. Should log total entry count from tree response
-        expect(mockLogger.verbose).toHaveBeenCalledWith(
+        expect(mockLogger.debug).toHaveBeenCalledWith(
           expect.stringContaining('Parsing tree response (3 entries)')
         );
 
         // 3. Should log count of found .kiro/specs/ directories
-        expect(mockLogger.verbose).toHaveBeenCalledWith(
+        expect(mockLogger.debug).toHaveBeenCalledWith(
           expect.stringContaining('Found 2 .kiro/specs/ directories')
         );
       });
 
-      it('should not log verbose messages when verbose=false', async () => {
+      it('should log debug messages even when verbose=false', async () => {
         // Arrange
         vi.mocked(mockClient.rest.repos.getBranch).mockResolvedValue({
           data: {
@@ -554,8 +525,8 @@ describe('Tree-Based Project Scanner', () => {
           verbose: false,
         });
 
-        // Assert: Should NOT log verbose messages
-        expect(mockLogger.verbose).not.toHaveBeenCalled();
+        // Assert: Should log debug messages (verbose flag no longer controls whether debug is called)
+        expect(mockLogger.debug).toHaveBeenCalled();
       });
 
       it('should log truncation warning when truncated=true and verbose=true (task 2.4)', async () => {
@@ -599,7 +570,7 @@ describe('Tree-Based Project Scanner', () => {
         });
 
         // Assert: Should log truncation warning
-        expect(mockLogger.verbose).toHaveBeenCalledWith(
+        expect(mockLogger.debug).toHaveBeenCalledWith(
           'Warning: Tree response was truncated (>100,000 entries)'
         );
       });
@@ -958,11 +929,11 @@ describe('Tree-Based Project Scanner', () => {
         expect(result.success).toBe(true);
         expect(result.projects).toHaveLength(5);
 
-        expect(result.projects[0].displayName).toBe('root-project');
-        expect(result.projects[1].displayName).toBe('lib/a/alpha');
-        expect(result.projects[2].displayName).toBe('lib/a/gamma');
-        expect(result.projects[3].displayName).toBe('lib/b/beta');
-        expect(result.projects[4].displayName).toBe('packages/z/zebra');
+        expect(result.projects[0]?.displayName).toBe('root-project');
+        expect(result.projects[1]?.displayName).toBe('lib/a/alpha');
+        expect(result.projects[2]?.displayName).toBe('lib/a/gamma');
+        expect(result.projects[3]?.displayName).toBe('lib/b/beta');
+        expect(result.projects[4]?.displayName).toBe('packages/z/zebra');
       });
 
       it('should sort projects within the same subdirectory alphabetically', async () => {
@@ -1018,9 +989,9 @@ describe('Tree-Based Project Scanner', () => {
         expect(result.success).toBe(true);
         expect(result.projects).toHaveLength(3);
 
-        expect(result.projects[0].name).toBe('alpha');
-        expect(result.projects[1].name).toBe('mike');
-        expect(result.projects[2].name).toBe('zulu');
+        expect(result.projects[0]?.name).toBe('alpha');
+        expect(result.projects[1]?.name).toBe('mike');
+        expect(result.projects[2]?.name).toBe('zulu');
       });
     });
   });

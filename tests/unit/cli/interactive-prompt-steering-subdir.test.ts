@@ -8,7 +8,7 @@
 
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { Octokit } from 'octokit';
-import type { Logger } from '../../../src/reporting/logger.js';
+import type { PinoLogger } from '../../../src/reporting/pino-logger.js';
 import type { ParsedArguments } from '../../../src/cli/types.js';
 import { promptMissingArguments } from '../../../src/cli/interactive-prompt.js';
 
@@ -79,8 +79,7 @@ import { promptSubdirSelection } from '../../../src/cli/searchable-subdir-prompt
 import type { DirectoryLocation, DirectoryScanResult } from '../../../src/github/tree-based-dir-scanner.js';
 
 describe('promptMissingArguments --steering subdirectory logic (Task 9.3)', () => {
-  let mockLogger: Logger;
-  let mockOctokit: Octokit;
+  let mockLogger: PinoLogger;
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -92,10 +91,7 @@ describe('promptMissingArguments --steering subdirectory logic (Task 9.3)', () =
       error: vi.fn(),
       verbose: vi.fn(),
       debug: vi.fn(),
-    } as unknown as Logger;
-
-    // Setup mock Octokit
-    mockOctokit = new Octokit();
+    } as unknown as PinoLogger;
 
     // Mock console methods
     vi.spyOn(console, 'log').mockImplementation(() => {});

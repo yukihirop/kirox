@@ -10,7 +10,7 @@ import {
   getSteeringDirectoryPath,
   isValidProjectName,
   resolveOutputPath,
-} from '@/filesystem/path-utils';
+} from '@/filesystem/path-utils.js';
 
 describe('PathUtils', () => {
   describe('isValidProjectName', () => {

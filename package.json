@@ -56,10 +56,12 @@
     "mute-stream": "2.0.0",
     "octokit": "4.0.2",
     "ora": "^9.0.0",
+    "pino": "^10.1.0",
     "yoctocolors-cjs": "2.1.3"
   },
   "devDependencies": {
     "@eslint/js": "^9.37.0",
+    "@tsconfig/node22": "^22.0.2",
     "@types/figlet": "^1.7.0",
     "@types/node": "^20.17.10",
     "@vitest/coverage-v8": "^2.1.8",

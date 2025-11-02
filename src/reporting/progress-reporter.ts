@@ -12,7 +12,7 @@ import type { ReporterOptions } from './types.js';
  * Ora options for spinner configuration
  */
 interface OraOptions {
-  color?: string | false;
+  color?: boolean;
   isEnabled?: boolean;
 }
 
@@ -51,7 +51,7 @@ export class ProgressReporter {
       const testSpinner = ora(this.oraOptions);
       testSpinner.stop(); // Immediately stop test spinner
       this.useFallback = false;
-    } catch (error) {
+    } catch (_error) {
       // Ora initialization failed, use fallback mode
       this.useFallback = true;
 
@@ -232,7 +232,7 @@ export class ProgressReporter {
         } else {
           spinner.text = message;
         }
-      } catch (error) {
+      } catch (_error) {
         // If spinner operation fails, fall back to console.log
         if (this.options.verbose) {
           console.log('[VERBOSE] Spinner operation failed, falling back to console output');
@@ -389,7 +389,7 @@ export class ProgressReporter {
           // No active spinner, fall back to console.log
           console.log(this.chalk.green(formattedMessage));
         }
-      } catch (error) {
+      } catch (_error) {
         // If spinner operation fails, fall back to console.log
         if (this.options.verbose) {
           console.log('[VERBOSE] Spinner operation failed, falling back to console output');
@@ -470,7 +470,7 @@ export class ProgressReporter {
           // No active spinner, fall back to console.error
           console.error(this.chalk.red(formattedMessage));
         }
-      } catch (error) {
+      } catch (_error) {
         // If spinner operation fails, fall back to console.error
         if (this.options.verbose) {
           console.log('[VERBOSE] Spinner operation failed, falling back to console output');
@@ -612,7 +612,7 @@ export class ProgressReporter {
           // Remove spinner from map
           this.spinnerMap.delete(spinnerKey);
         }
-      } catch (error) {
+      } catch (_error) {
         // If spinner cleanup fails, log warning if verbose
         if (this.options.verbose) {
           console.log('[VERBOSE] Spinner cleanup failed for project:', projectName);
@@ -806,7 +806,7 @@ export class ProgressReporter {
       if (spinner && spinner.isSpinning) {
         spinner.stop();
       }
-    } catch (error) {
+    } catch (_error) {
       // Silently ignore errors - spinner pause is optional UX improvement
       if (this.options.verbose) {
         console.log('[VERBOSE] Failed to pause spinner, continuing...');
@@ -849,7 +849,7 @@ export class ProgressReporter {
         // Restart spinner with its current text
         spinner.start(spinner.text);
       }
-    } catch (error) {
+    } catch (_error) {
       // Silently ignore errors - spinner resume is optional UX improvement
       if (this.options.verbose) {
         console.log('[VERBOSE] Failed to resume spinner, continuing...');

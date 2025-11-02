@@ -12,7 +12,7 @@ import type { ProjectMetadata } from './types.js';
 /**
  * Update summary for all files
  */
-export interface UpdateSummary {
+interface UpdateSummary {
   /** Total number of files checked */
   totalFiles: number;
   /** Number of up-to-date files */

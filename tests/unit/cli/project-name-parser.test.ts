@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { parseProjects } from '@/cli/project-name-parser';
+import { parseProjects } from '@/cli/project-name-parser.js';
 
 describe('ProjectNameParser', () => {
   describe('parseProjects', () => {

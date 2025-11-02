@@ -2,8 +2,8 @@
  * Unit tests for Semaphore class
  */
 
-import { describe, it, expect, vi } from 'vitest';
-import { Semaphore } from '@/github/semaphore';
+import { describe, it, expect } from 'vitest';
+import { Semaphore } from '@/github/semaphore.js';
 
 describe('Semaphore', () => {
   describe('constructor', () => {
@@ -98,7 +98,7 @@ describe('Semaphore', () => {
       let currentConcurrent = 0;
       let maxConcurrentObserved = 0;
 
-      const task = async (id: number) => {
+      const task = async (_id: number) => {
         await semaphore.acquire();
         try {
           currentConcurrent++;

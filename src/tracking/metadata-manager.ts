@@ -17,7 +17,7 @@ import {
 /**
  * Default metadata file path
  */
-export const METADATA_PATH = path.join(process.cwd(), '.kiro', '.kirox-meta.json');
+const METADATA_PATH = path.join(process.cwd(), '.kiro', '.kirox-meta.json');
 
 /**
  * Validate metadata schema

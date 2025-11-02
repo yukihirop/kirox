@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { validateInput, validateBranchName } from '@/cli/validator';
-import type { ParsedArguments } from '@/cli/types';
+import { validateInput, validateBranchName } from '@/cli/validator.js';
+import type { ParsedArguments } from '@/cli/types.js';
 
 describe('InputValidator', () => {
   describe('validateInput', () => {
@@ -14,6 +14,7 @@ describe('InputValidator', () => {
       track: false,
       checkUpdates: false,
       update: false,
+      steering: false,
     });
 
     it('should validate correct repository format', () => {
@@ -136,6 +137,7 @@ describe('InputValidator', () => {
       track: false,
       checkUpdates: false,
       update: false,
+      steering: false,
     });
 
     it('should allow --track with repository and project', () => {
@@ -274,6 +276,7 @@ describe('InputValidator', () => {
       track: false,
       checkUpdates: false,
       update: false,
+      steering: false,
     });
 
     it('should accept valid subdirectory path', () => {
@@ -374,8 +377,8 @@ describe('InputValidator', () => {
 
       expect(result.valid).toBe(false);
       expect(result.errors).toHaveLength(2);
-      expect(result.errors.some((e) => e.field === 'repository')).toBe(true);
-      expect(result.errors.some((e) => e.field === 'subdir')).toBe(true);
+      expect(result.errors.some((e: any) => e.field === 'repository')).toBe(true);
+      expect(result.errors.some((e: any) => e.field === 'subdir')).toBe(true);
     });
   });
 
@@ -391,6 +394,7 @@ describe('InputValidator', () => {
       track: false,
       checkUpdates: false,
       update: false,
+      steering: false,
     });
 
     it('should validate multiple project names successfully', () => {
@@ -420,7 +424,7 @@ describe('InputValidator', () => {
 
       expect(result.valid).toBe(false);
       expect(result.errors).toHaveLength(3);
-      expect(result.errors.every((e) => e.field === 'project')).toBe(true);
+      expect(result.errors.every((e: any) => e.field === 'project')).toBe(true);
     });
 
     it('should reject empty string in projects array', () => {
@@ -453,7 +457,7 @@ describe('InputValidator', () => {
 
       expect(result.valid).toBe(false);
       expect(result.errors.length).toBeGreaterThanOrEqual(1);
-      const duplicateError = result.errors.find((e) => e.field === 'projects');
+      const duplicateError = result.errors.find((e: any) => e.field === 'projects');
       expect(duplicateError).toBeDefined();
       expect(duplicateError?.message).toContain('Duplicate');
     });
@@ -653,7 +657,7 @@ describe('InputValidator', () => {
       const result = validateInput(args);
 
       expect(result.valid).toBe(false);
-      expect(result.errors.some((e) => e.field === 'repository')).toBe(true);
+      expect(result.errors.some((e: any) => e.field === 'repository')).toBe(true);
     });
 
     it('should validate repository format in --steering mode', () => {

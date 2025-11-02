@@ -3,7 +3,7 @@
  */
 
 import { describe, it, expect } from 'vitest';
-import { buildRemotePath } from '@/filesystem/path-utils';
+import { buildRemotePath } from '@/filesystem/path-utils.js';
 
 describe('buildRemotePath', () => {
   describe('Specs type with subdirectory', () => {

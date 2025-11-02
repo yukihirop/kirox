@@ -11,7 +11,7 @@ import { existsSync } from 'fs';
 import { Octokit } from 'octokit';
 import { parseArguments } from './parser.js';
 import { validateInput } from './validator.js';
-import { Logger } from '../reporting/logger.js';
+import { PinoLogger } from '../reporting/pino-logger.js';
 import { ErrorHandler } from '../reporting/error-handler.js';
 import { ProgressReporter } from '../reporting/progress-reporter.js';
 import { loadConfig } from '../config/loader.js';
@@ -89,9 +89,12 @@ function isDuplicateProject(
  * ```
  */
 export async function executeAddCommand(argv: string[]): Promise<ExecutionResult> {
-  // Step 1: Initialize reporting components
-  // These are needed for logging and error handling throughout the execution
-  const logger = new Logger();
+  // Step 1: Parse arguments first to get verbose flag for PinoLogger initialization
+  const args = parseArguments(argv);
+
+  // Step 2: Initialize reporting components with verbose flag
+  // PinoLogger requires verbose flag at construction time for log level control
+  const logger = new PinoLogger(args.verbose);
   const errorHandler = new ErrorHandler();
 
   // Task 8.4: Set up signal handlers for Ctrl+C interrupt handling
@@ -110,10 +113,6 @@ export async function executeAddCommand(argv: string[]): Promise<ExecutionResult
   process.on('SIGTERM', handleInterrupt);
 
   try {
-    // Step 2: Parse arguments
-    // Convert command-line arguments into structured ParsedArguments object
-    const args = parseArguments(argv);
-
     // Step 3: Initialize progress reporter
     // ProgressReporter handles user-facing progress messages and summaries
     const reporter = new ProgressReporter({
@@ -411,7 +410,7 @@ export async function executeAddCommand(argv: string[]): Promise<ExecutionResult
     const subdir = config.subdir || '';
 
     if (args.verbose && subdir) {
-      logger.info('Using subdirectory', { subdir });
+      logger.verbose('Using subdirectory', { subdir });
     }
 
     // Track steering directory fetch status to avoid duplication across multiple projects
@@ -430,7 +429,7 @@ export async function executeAddCommand(argv: string[]): Promise<ExecutionResult
 
       try {
         // Step 10.1: Fetch directory listings for current project
-        logger.info('Fetching directory listings from GitHub', {
+        logger.verbose('Fetching directory listings from GitHub', {
           repository: args.repository,
           project: projectName,
           ...(effectiveBranch && { branch: effectiveBranch }),
