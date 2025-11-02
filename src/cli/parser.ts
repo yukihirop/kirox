@@ -7,18 +7,11 @@
 import { Command } from 'commander';
 import chalk from 'chalk';
 import figlet from 'figlet';
-import { readFileSync } from 'node:fs';
-import { fileURLToPath } from 'node:url';
-import { dirname, join } from 'node:path';
 import type { ParsedArguments } from './types.js';
 import { parseProjects } from './project-name-parser.js';
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
-const packageJson = JSON.parse(
-  readFileSync(join(__dirname, '../../package.json'), 'utf-8')
-);
-const VERSION = packageJson.version;
+// Version is injected at build time via tsup define (see src/global.d.ts)
+const VERSION = __KIROX_VERSION__;
 
 /**
  * Generate ASCII art for kirox logo
