@@ -887,7 +887,7 @@ describe('ProjectSuggester', () => {
 
       // Assert - Should NOT show additional wait message
       const waitMessages = stdoutWriteSpy.mock.calls.filter(
-        call => call[0] && call[0]!.includes && call[0]!.includes('Please wait')
+        call => typeof call[0] === 'string' && call[0].includes('Please wait')
       );
       expect(waitMessages.length).toBe(0);
 

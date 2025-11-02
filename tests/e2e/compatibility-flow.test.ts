@@ -431,7 +431,7 @@ describe('E2E Backward Compatibility Flow', () => {
       const callArgs = mockPromptMissingArguments.mock.calls[0];
       expect(callArgs).toBeDefined();
       // The first argument should be ParsedArguments with projects already populated
-      expect(callArgs[0]).toHaveProperty('projects');
+      expect(callArgs?.[0]).toHaveProperty('projects');
     });
   });
 });

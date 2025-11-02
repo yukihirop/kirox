@@ -843,6 +843,8 @@ describe('executeAddCommand', () => {
         track: true,
         checkUpdates: false,
         update: false,
+        concurrency: 5,
+        outputDirectory: process.cwd(),
       }));
 
       vi.mocked(fetchDirectoryContents).mockResolvedValue([]);
@@ -2460,6 +2462,7 @@ describe('executeAddCommand', () => {
         written: true,
         filePath: 'test-file.md',
         size: 100,
+        skipped: false,
       });
 
       vi.mocked(calculateFileHash).mockResolvedValue('local-hash-123');
@@ -2518,6 +2521,7 @@ describe('executeAddCommand', () => {
         written: true,
         filePath: 'test-file.md',
         size: 100,
+        skipped: false,
       });
 
       vi.mocked(calculateFileHash).mockResolvedValue('local-hash-123');

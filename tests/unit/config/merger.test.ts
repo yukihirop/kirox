@@ -23,6 +23,7 @@ describe('Configuration Merger - Multi-Project Support', () => {
     checkUpdates: false,
     update: false,
     subdir: undefined,
+    steering: false,
   });
 
   describe('mergeProjects function', () => {
