@@ -8,7 +8,6 @@ import path from 'path';
 import type { Octokit } from 'octokit';
 import {
   checkAllFiles,
-  UpdateSummary,
 } from '../../../src/tracking/batch-update-checker.js';
 import type { ProjectMetadata } from '../../../src/tracking/types.js';
 import { UpdateStatus } from '../../../src/tracking/update-checker.js';
@@ -84,7 +83,11 @@ describe('BatchUpdateChecker - checkAllFiles', () => {
         ],
       };
 
-      vi.mocked(mockOctokit.rest.repos.getContent).mockImplementation(async ({ path }) => {
+      vi.mocked(mockOctokit.rest.repos.getContent).mockImplementation(async (params) => {
+        const path = params?.path;
+        if (!path) {
+          throw new Error('Path is required');
+        }
         if (path === 'file1.md') {
           return {
             data: { path, sha: 'sha1', size: 100, type: 'file' },
@@ -203,7 +206,11 @@ describe('BatchUpdateChecker - checkAllFiles', () => {
         ],
       };
 
-      vi.mocked(mockOctokit.rest.repos.getContent).mockImplementation(async ({ path }) => {
+      vi.mocked(mockOctokit.rest.repos.getContent).mockImplementation(async (params) => {
+        const path = params?.path;
+        if (!path) {
+          throw new Error('Path is required');
+        }
         if (path === 'up-to-date.md') {
           return {
             data: { path, sha: 'sha-same', size: 100, type: 'file' },
@@ -293,7 +300,11 @@ describe('BatchUpdateChecker - checkAllFiles', () => {
       const remoteDeletedPath = path.join(baseDir, 'remote-deleted.md');
       await fs.writeFile(remoteDeletedPath, 'content', 'utf-8');
 
-      vi.mocked(mockOctokit.rest.repos.getContent).mockImplementation(async ({ path }) => {
+      vi.mocked(mockOctokit.rest.repos.getContent).mockImplementation(async (params) => {
+        const path = params?.path;
+        if (!path) {
+          throw new Error('Path is required');
+        }
         if (path === 'exists.md') {
           return {
             data: { path, sha: 'sha1', size: 100, type: 'file' },
@@ -361,7 +372,11 @@ describe('BatchUpdateChecker - checkAllFiles', () => {
         ],
       };
 
-      vi.mocked(mockOctokit.rest.repos.getContent).mockImplementation(async ({ path }) => {
+      vi.mocked(mockOctokit.rest.repos.getContent).mockImplementation(async (params) => {
+        const path = params?.path;
+        if (!path) {
+          throw new Error('Path is required');
+        }
         if (path === 'ok.md') {
           return {
             data: { path, sha: 'sha1', size: 100, type: 'file' },

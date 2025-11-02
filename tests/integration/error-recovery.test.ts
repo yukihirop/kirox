@@ -3,7 +3,7 @@
  */
 
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { withRetry, isRetryableError } from '@/github/retry';
+import { withRetry, isRetryableError } from '@/github/retry.js';
 import { Octokit } from 'octokit';
 
 vi.mock('octokit');
@@ -145,7 +145,7 @@ describe('Error Recovery Integration', () => {
 
       vi.mocked(Octokit).mockImplementation(() => mockOctokit as any);
 
-      const { checkRateLimit } = await import('@/github/retry');
+      const { checkRateLimit } = await import('@/github/retry.js');
       const client = new Octokit();
 
       await expect(checkRateLimit(client)).rejects.toThrow('Rate limit exceeded');
@@ -172,13 +172,13 @@ describe('Error Recovery Integration', () => {
 
       vi.mocked(Octokit).mockImplementation(() => mockOctokit as any);
 
-      const { checkRateLimit } = await import('@/github/retry');
+      const { checkRateLimit } = await import('@/github/retry.js');
       const client = new Octokit();
 
       await checkRateLimit(client);
 
       expect(consoleWarnSpy).toHaveBeenCalled();
-      expect(consoleWarnSpy.mock.calls[0][0]).toContain('rate limit is low');
+      expect(consoleWarnSpy.mock.calls[0]![0]!).toContain('rate limit is low');
 
       consoleWarnSpy.mockRestore();
     });

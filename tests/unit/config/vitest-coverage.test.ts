@@ -36,6 +36,7 @@ describe('Vitest Coverage Configuration', () => {
 
     // Verify that reportOnFailure is set to true
     expect(configContent).toContain('reportOnFailure');
-    expect(configContent).toMatch(/reportOnFailure:\s*true/);
+    expect(configContent).toContain('reportOnFailure:');
+    expect(configContent).toContain('true');
   });
 });

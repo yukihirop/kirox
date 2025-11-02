@@ -1,10 +1,14 @@
 import { defineConfig } from 'vitest/config';
 import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 export default defineConfig({
   test: {
     globals: true,
     environment: 'node',
+    setupFiles: ['./tests/setup.ts'],
     coverage: {
       provider: 'v8',
       reporter: ['text', 'json', 'json-summary', 'html'],
@@ -14,7 +18,15 @@ export default defineConfig({
         'dist/',
         '**/*.test.ts',
         '**/*.config.ts',
+        'docs/'
       ],
+    },
+    isolate: true,
+    pool: 'threads',
+    poolOptions: {
+      threads: {
+        singleThread: false,
+      },
     },
   },
   resolve: {

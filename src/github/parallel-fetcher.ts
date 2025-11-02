@@ -121,6 +121,13 @@ export async function fetchFileContents(
       params.ref = ref;
     }
 
+    // Development: Add artificial delay to demonstrate spinner animation
+    // Set KIROX_DEMO_DELAY=3000 to enable 3 second delay
+    const demoDelay = process.env.KIROX_DEMO_DELAY;
+    if (demoDelay) {
+      await new Promise(resolve => setTimeout(resolve, parseInt(demoDelay, 10)));
+    }
+
     const response = await client.rest.repos.getContent(params);
 
     // Ensure response is a file (not directory)
@@ -182,13 +189,25 @@ export async function fetchFileContents(
  * @returns Result with successful and failed file fetches
  * @throws Error if total file count exceeds limit
  */
+/**
+ * Progress callback function type for fetchFilesInParallel
+ *
+ * Called before fetching each file to report progress
+ *
+ * @param current - Current file number (1-indexed)
+ * @param total - Total number of files
+ * @param filePath - Path of the file being fetched
+ */
+type ProgressCallback = (current: number, total: number, filePath: string) => void;
+
 export async function fetchFilesInParallel(
   client: Octokit,
   owner: string,
   repo: string,
   filePaths: string[],
   maxConcurrency: number = 5,
-  ref?: string
+  ref?: string,
+  onProgress?: ProgressCallback
 ): Promise<ParallelFetchResult> {
   // Validate total file count
   if (!validateTotalFileCount(filePaths.length)) {
@@ -203,11 +222,19 @@ export async function fetchFilesInParallel(
 
   /**
    * Fetch single file with semaphore control
+   *
+   * Task 14.5: Added progress callback support
    */
-  const fetchWithSemaphore = async (path: string) => {
+  const fetchWithSemaphore = async (path: string, index: number) => {
     await semaphore.acquire();
 
     try {
+      // Task 14.5: Call progress callback before fetching
+      // This allows spinner to display during actual file fetch
+      if (onProgress) {
+        onProgress(index + 1, filePaths.length, path);
+      }
+
       const file = await fetchFileContents(client, owner, repo, path, ref);
       success.push(file);
     } catch (error) {
@@ -281,7 +308,8 @@ export async function fetchFilesInParallel(
   };
 
   // Fetch all files in parallel with semaphore control
-  const fetchPromises = filePaths.map((path) => fetchWithSemaphore(path));
+  // Task 14.5: Pass index to fetchWithSemaphore for progress reporting
+  const fetchPromises = filePaths.map((path, index) => fetchWithSemaphore(path, index));
 
   // Wait for all fetches to complete (using Promise.allSettled for partial failure tolerance)
   await Promise.allSettled(fetchPromises);

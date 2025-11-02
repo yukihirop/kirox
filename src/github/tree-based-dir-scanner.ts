@@ -6,7 +6,7 @@
  */
 
 import type { Octokit } from 'octokit';
-import type { Logger } from '../reporting/logger.js';
+import { PinoLogger } from '../reporting/pino-logger.js';
 import type { RepositoryRef } from './fetcher.js';
 import { getTreeSha } from './tree-sha-fetcher.js';
 
@@ -45,7 +45,7 @@ export interface DirectoryScanOptions {
   /** Octokit client for GitHub API calls */
   client: Octokit;
   /** Logger for reporting scan progress */
-  logger: Logger;
+  logger: PinoLogger;
   /** Enable verbose logging */
   verbose: boolean;
 }
@@ -87,15 +87,13 @@ function extractParentDirectory(steeringPath: string): string {
 export async function scanDirectoriesAcrossRepo(
   options: DirectoryScanOptions
 ): Promise<DirectoryScanResult> {
-  const { repository, client, logger, verbose } = options;
+  const { repository, client, logger } = options;
 
   try {
     // Step 1: Get tree SHA from branch
-    if (verbose) {
-      logger.verbose(
-        `Fetching tree SHA for ${repository.owner}/${repository.repo}#${repository.branch}`
-      );
-    }
+    logger.debug(
+      `Fetching tree SHA for ${repository.owner}/${repository.repo}#${repository.branch}`
+    );
 
     const treeSha = await getTreeSha(
       client,
@@ -105,9 +103,7 @@ export async function scanDirectoriesAcrossRepo(
     );
 
     // Step 2: Call Tree API with recursive=1
-    if (verbose) {
-      logger.verbose(`Fetching repository tree (recursive) with SHA: ${treeSha}`);
-    }
+    logger.debug(`Fetching repository tree (recursive) with SHA: ${treeSha}`);
 
     const treeResponse = await client.rest.git.getTree({
       owner: repository.owner,
@@ -117,9 +113,7 @@ export async function scanDirectoriesAcrossRepo(
     });
 
     // Step 3: Filter tree entries to find .kiro/steering directories
-    if (verbose) {
-      logger.verbose(`Parsing tree response (${treeResponse.data.tree.length} entries)`);
-    }
+    logger.debug(`Parsing tree response (${treeResponse.data.tree.length} entries)`);
 
     // Find all .kiro/steering directories
     const steeringDirs = treeResponse.data.tree
@@ -137,15 +131,13 @@ export async function scanDirectoriesAcrossRepo(
       sha: '', // SHA not needed for parent directories
     }));
 
-    if (verbose) {
-      logger.verbose(`Found ${directories.length} directories with .kiro/steering`);
-    }
+    logger.debug(`Found ${directories.length} directories with .kiro/steering`);
 
     // Step 4: Detect and propagate truncated flag
     const truncated = treeResponse.data.truncated || false;
 
-    if (truncated && verbose) {
-      logger.warn('Repository is very large, some directories may not be shown');
+    if (truncated) {
+      logger.debug('Repository is very large, some directories may not be shown');
     }
 
     return {

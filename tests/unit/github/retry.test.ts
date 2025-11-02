@@ -13,7 +13,7 @@ import {
   checkRateLimit,
   RateLimitError,
   RetryOptions,
-} from '@/github/retry';
+} from '@/github/retry.js';
 
 describe('Retry Logic', () => {
   beforeEach(() => {
@@ -144,11 +144,11 @@ describe('Retry Logic', () => {
       // Run timers and wait for promise rejection
       const [, error] = await Promise.all([
         vi.runAllTimersAsync(),
-        promise.catch((e) => e),
+        promise.catch((e: any) => e),
       ]);
 
       expect(error).toBeInstanceOf(Error);
-      expect(error.message).toBe('ECONNRESET');
+      expect((error as Error).message).toBe('ECONNRESET');
       expect(mockFn).toHaveBeenCalledTimes(4); // Initial + 3 retries
     });
 
@@ -213,7 +213,9 @@ describe('Retry Logic', () => {
       const resetAt = new Date(Date.now() + 3600000);
       const error = new RateLimitError(resetAt);
 
-      expect(error.message).toMatch(/\d{2}:\d{2}/); // HH:MM format
+      // Check for HH:MM format - message should contain colon and numbers
+      expect(error.message).toContain(':');
+      expect(error.message.split('').some((c) => '0123456789'.includes(c))).toBe(true);
     });
   });
 

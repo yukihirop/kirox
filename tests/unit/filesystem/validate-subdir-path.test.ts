@@ -3,7 +3,7 @@
  */
 
 import { describe, it, expect } from 'vitest';
-import { validateSubdirPath } from '@/filesystem/path-utils';
+import { validateSubdirPath } from '@/filesystem/path-utils.js';
 
 describe('validateSubdirPath', () => {
   describe('Valid paths', () => {

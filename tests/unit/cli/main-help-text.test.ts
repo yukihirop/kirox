@@ -45,7 +45,7 @@ describe('Main Command Help Text (Task 10.2)', () => {
 
     it('should show how to get help for add subcommand', () => {
       // Verify that there's information about getting help for add subcommand
-      expect(parserSource).toMatch(/kirox add --help/);
+      expect(parserSource).toContain('kirox add --help');
     });
   });
 

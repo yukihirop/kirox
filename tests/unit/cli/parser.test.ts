@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { parseArguments } from '@/cli/parser';
+import { parseArguments } from '@/cli/parser.js';
 import * as fs from 'fs';
 import * as path from 'path';
 
@@ -239,7 +239,7 @@ describe('ArgumentParser', () => {
 
       try {
         parseArguments(argv);
-      } catch (error) {
+      } catch (_error) {
         // Commander.js exits on --help, which throws in our test environment
         // We'll verify the help text is configured correctly by checking the source
       }
@@ -448,14 +448,33 @@ describe('ArgumentParser', () => {
         'utf-8'
       );
 
-      // Check for Japanese characters (Hiragana, Katakana, Kanji)
-      const japaneseRegex = /[\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FAF]/;
-
-      // Find all Japanese text in help sections
-      const helpTextMatches = parserSource.match(/addHelpText\('after',[\s\S]*?`\s*\)/g) || [];
+      // Find all help text sections (between addHelpText('after', and closing `))
+      const helpTextMatches: string[] = [];
+      let startIndex = 0;
+      while (true) {
+        const addHelpTextIndex = parserSource.indexOf('addHelpText(\'after\',', startIndex);
+        if (addHelpTextIndex === -1) break;
+        
+        const backtickIndex = parserSource.indexOf('`', addHelpTextIndex);
+        if (backtickIndex === -1) break;
+        
+        const closingParenIndex = parserSource.indexOf(')', backtickIndex);
+        if (closingParenIndex === -1) break;
+        
+        helpTextMatches.push(parserSource.substring(addHelpTextIndex, closingParenIndex + 1));
+        startIndex = closingParenIndex + 1;
+      }
 
       for (const helpSection of helpTextMatches) {
-        const hasJapanese = japaneseRegex.test(helpSection);
+        // Check for Japanese characters using charCodeAt
+        const hasJapanese = helpSection.split('').some((char) => {
+          const code = char.charCodeAt(0);
+          return (
+            (code >= 0x3040 && code <= 0x309F) || // Hiragana
+            (code >= 0x30A0 && code <= 0x30FF) || // Katakana
+            (code >= 0x4E00 && code <= 0x9FAF)    // Kanji
+          );
+        });
         expect(hasJapanese).toBe(false);
       }
     });

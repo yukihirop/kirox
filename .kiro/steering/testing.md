@@ -4,6 +4,27 @@
 
 This document defines testing standards, TDD methodology, and external API mocking strategies for the Kirox project.
 
+## Testing Approach
+
+### Using vitest-testing Skill
+
+**IMPORTANT**: When writing tests, always use the `vitest-testing` skill to ensure tests follow best practices.
+
+The `vitest-testing` skill provides:
+- Comprehensive guidance for unit, integration, E2E, and performance tests
+- Best practices for writing readable tests (under 30 lines per test)
+- Test patterns and templates for different test types
+- Mocking strategies and common patterns
+
+**How to use**:
+1. Before writing tests, invoke the `vitest-testing` skill
+2. Follow the patterns and guidelines provided by the skill
+3. Refer to the skill's references for detailed examples and best practices
+
+**Skill invocation**: Use the Skill tool with `command: "vitest-testing"`
+
+This ensures consistency across all test files and adherence to project testing standards.
+
 ## Core Testing Principles
 
 ### 1. Never Call External APIs in Tests

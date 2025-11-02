@@ -10,7 +10,7 @@ import type { Octokit } from 'octokit';
 import { select, checkbox } from '@inquirer/prompts';
 import { fetchDirectoryContents } from '@/github/fetcher.js';
 import type { RepositoryRef } from '@/github/fetcher.js';
-import type { Logger } from '@/reporting/logger.js';
+import { PinoLogger } from '@/reporting/pino-logger.js';
 
 /** Project suggestion result - @internal Internal type - not exported */
 interface ProjectSuggestionResult {
@@ -29,7 +29,7 @@ interface ProjectSuggestionOptions {
   repository: RepositoryRef;
   subdir?: string;
   client: Octokit;
-  logger: Logger;
+  logger: PinoLogger;
   verbose: boolean;
 }
 
@@ -245,7 +245,7 @@ function clearLoadingMessage(): void {
 export async function suggestProjects(
   options: ProjectSuggestionOptions
 ): Promise<ProjectSuggestionResult> {
-  const { repository, subdir, client, logger, verbose } = options;
+  const { repository, subdir, client, logger } = options;
 
   // Build path: {subdir}/.kiro/specs or .kiro/specs (no trailing slash)
   const path = subdir ? `${subdir}/.kiro/specs` : '.kiro/specs';
@@ -261,14 +261,12 @@ export async function suggestProjects(
   }, 3000);
 
   try {
-    // Verbose logging: API call details
-    if (verbose) {
-      logger.info('Fetching available projects from GitHub', {
-        repository: `${repository.owner}/${repository.repo}`,
-        branch: repository.branch || 'default',
-        path,
-      });
-    }
+    // Log API call details
+    logger.debug('Fetching available projects from GitHub', {
+      repository: `${repository.owner}/${repository.repo}`,
+      branch: repository.branch || 'default',
+      path,
+    });
 
     // Fetch directory contents from GitHub
     const contents = await fetchDirectoryContents(
@@ -294,11 +292,9 @@ export async function suggestProjects(
     if (projects.length === 0) {
       const errorMessage = 'No projects found in .kiro/specs/';
       const repoPath = `${repository.owner}/${repository.repo}${repository.branch ? `#${repository.branch}` : ''}`;
-      if (verbose) {
-        logger.error(errorMessage, {
-          repository: repoPath,
-        });
-      }
+      logger.debug(errorMessage, {
+        repository: repoPath,
+      });
       return {
         projects: [],
         success: false,
@@ -311,13 +307,11 @@ export async function suggestProjects(
       };
     }
 
-    // Verbose logging: Success
-    if (verbose) {
-      logger.info('Successfully fetched projects', {
-        count: projects.length,
-        projects,
-      });
-    }
+    // Log success
+    logger.debug('Successfully fetched projects', {
+      count: projects.length,
+      projects,
+    });
 
     return { projects, success: true };
   } catch (error) {
@@ -332,24 +326,22 @@ export async function suggestProjects(
     const repoPath = `${repository.owner}/${repository.repo}${repository.branch ? `#${repository.branch}` : ''}`;
     const actualError = error instanceof Error ? error.message : String(error);
 
-    // Verbose logging: Error details with full error object
-    if (verbose) {
-      const errorObj = error as Error & { debugInfo?: unknown };
-      logger.error('Failed to fetch projects from GitHub', {
-        error: actualError,
-        repository: repoPath,
-        path,
-        // Include debug info if available
-        debugInfo: errorObj.debugInfo,
-        // Include full error object for debugging
-        fullError: error instanceof Error ? {
-          name: error.name,
-          message: error.message,
-          stack: error.stack,
-          ...(error as unknown as Record<string, unknown>),
-        } : error,
-      });
-    }
+    // Log error details with full error object
+    const errorObj = error as Error & { debugInfo?: unknown };
+    logger.debug('Failed to fetch projects from GitHub', {
+      error: actualError,
+      repository: repoPath,
+      path,
+      // Include debug info if available
+      debugInfo: errorObj.debugInfo,
+      // Include full error object for debugging
+      fullError: error instanceof Error ? {
+        name: error.name,
+        message: error.message,
+        stack: error.stack,
+        ...(error as unknown as Record<string, unknown>),
+      } : error,
+    });
 
     // Fallback: Return empty projects with success: false, error message, and details
     return {

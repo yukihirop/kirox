@@ -11,7 +11,7 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { Octokit } from 'octokit';
 import { suggestProjects } from '@/cli/project-suggester.js';
-import type { Logger } from '@/reporting/logger.js';
+import type { PinoLogger } from '@/reporting/pino-logger.js';
 import type { RepositoryRef } from '@/github/fetcher.js';
 
 // Mock Octokit module to avoid external API calls (testing.md requirement)
@@ -35,7 +35,7 @@ describe('Project Suggestion GitHub API Integration', () => {
   const MAIN_BRANCH = 'main';
 
   let client: Octokit;
-  let mockLogger: Logger;
+  let mockLogger: PinoLogger;
   let mockGetContent: ReturnType<typeof vi.fn>;
 
   beforeEach(() => {
@@ -61,7 +61,8 @@ describe('Project Suggestion GitHub API Integration', () => {
       info: vi.fn(),
       error: vi.fn(),
       warn: vi.fn(),
-    } as unknown as Logger;
+      debug: vi.fn(),
+    } as unknown as PinoLogger;
   });
 
   afterEach(() => {
@@ -165,9 +166,9 @@ describe('Project Suggestion GitHub API Integration', () => {
 
       // Project names should not contain path separators or special characters
       result.projects.forEach((project) => {
-        expect(project).not.toMatch(/\//); // No slashes
-        expect(project).not.toMatch(/\\/); // No backslashes
-        expect(project).not.toMatch(/\.\./); // No parent directory references
+        expect(project).not.toContain('/'); // No slashes
+        expect(project).not.toContain('\\'); // No backslashes
+        expect(project).not.toContain('..'); // No parent directory references
       });
     });
   });
@@ -419,13 +420,13 @@ describe('Project Suggestion GitHub API Integration', () => {
         verbose: true, // Enable verbose logging
       });
 
-      // Verify logger was called with API details
-      expect(mockLogger.info).toHaveBeenCalled();
+      // Verify logger.debug was called with API details (implementation uses debug, not info)
+      expect(mockLogger.debug).toHaveBeenCalled();
 
       // Check that the log includes repository and path information
-      const logCalls = (mockLogger.info as ReturnType<typeof vi.fn>).mock.calls;
+      const logCalls = (mockLogger.debug as ReturnType<typeof vi.fn>).mock.calls;
       const apiCallLog = logCalls.find((call) =>
-        call[0].includes('Fetching available projects from GitHub')
+        call[0]?.includes('Fetching available projects from GitHub')
       );
 
       expect(apiCallLog).toBeDefined();
@@ -456,13 +457,13 @@ describe('Project Suggestion GitHub API Integration', () => {
         verbose: true,
       });
 
-      // Verify logger.error was called
-      expect(mockLogger.error).toHaveBeenCalled();
+      // Verify logger.debug was called (implementation uses debug for error logging)
+      expect(mockLogger.debug).toHaveBeenCalled();
 
       // Check that the log includes error details
-      const errorCalls = (mockLogger.error as ReturnType<typeof vi.fn>).mock.calls;
+      const errorCalls = (mockLogger.debug as ReturnType<typeof vi.fn>).mock.calls;
       const errorLog = errorCalls.find((call) =>
-        call[0].includes('Failed to fetch projects from GitHub')
+        call[0]?.includes('Failed to fetch projects from GitHub')
       );
 
       expect(errorLog).toBeDefined();

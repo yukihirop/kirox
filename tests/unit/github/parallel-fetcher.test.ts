@@ -2,7 +2,7 @@
  * Unit tests for parallel file fetching functionality
  */
 
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { Octokit } from 'octokit';
 
 // Placeholder imports - will be implemented in GREEN phase
@@ -13,7 +13,7 @@ import {
   validateFileSize,
   validateTotalFileCount,
   decodeBase64Content,
-} from '@/github/parallel-fetcher';
+} from '@/github/parallel-fetcher.js';
 
 describe('ParallelFileFetcher', () => {
   describe('decodeBase64Content', () => {
@@ -239,7 +239,7 @@ describe('ParallelFileFetcher', () => {
 
       expect(results.success).toHaveLength(2);
       expect(results.failed).toHaveLength(1);
-      expect(results.failed[0].path).toBe('error.md');
+      expect(results.failed?.[0]?.path).toBe('error.md');
     });
 
     it('should throw error if total file count exceeds 100', async () => {
@@ -337,8 +337,8 @@ describe('ParallelFileFetcher', () => {
 
       expect(results.success).toHaveLength(2);
       expect(results.failed).toHaveLength(1);
-      expect(results.failed[0].path).toBe('large.md');
-      expect(results.failed[0].error).toContain('size');
+      expect(results.failed?.[0]?.path).toBe('large.md');
+      expect(results.failed?.[0]?.error).toContain('size');
     });
 
     // Task 8.3: ref parameter tests for fetchFilesInParallel
@@ -501,8 +501,8 @@ describe('ParallelFileFetcher', () => {
 
         expect(results.success).toHaveLength(0);
         expect(results.failed).toHaveLength(1);
-        expect(results.failed[0].error).toContain('Network error:');
-        expect(results.failed[0].error).toContain('Check your internet connection');
+        expect(results.failed?.[0]?.error).toContain('Network error:');
+        expect(results.failed?.[0]?.error).toContain('Check your internet connection');
       });
 
       it('should detect and format network errors (ETIMEDOUT)', async () => {
@@ -529,8 +529,8 @@ describe('ParallelFileFetcher', () => {
 
         expect(results.success).toHaveLength(0);
         expect(results.failed).toHaveLength(1);
-        expect(results.failed[0].error).toContain('Network error:');
-        expect(results.failed[0].error).toContain('Check your internet connection');
+        expect(results.failed?.[0]?.error).toContain('Network error:');
+        expect(results.failed?.[0]?.error).toContain('Check your internet connection');
       });
 
       it('should detect and format network errors (ECONNREFUSED)', async () => {
@@ -557,8 +557,8 @@ describe('ParallelFileFetcher', () => {
 
         expect(results.success).toHaveLength(0);
         expect(results.failed).toHaveLength(1);
-        expect(results.failed[0].error).toContain('Network error:');
-        expect(results.failed[0].error).toContain('Check your internet connection');
+        expect(results.failed?.[0]?.error).toContain('Network error:');
+        expect(results.failed?.[0]?.error).toContain('Check your internet connection');
       });
 
       it('should handle partial success with network errors', async () => {
@@ -601,8 +601,8 @@ describe('ParallelFileFetcher', () => {
         // Should continue processing other files despite network error
         expect(results.success).toHaveLength(2);
         expect(results.failed).toHaveLength(1);
-        expect(results.failed[0].path).toBe('error.md');
-        expect(results.failed[0].error).toContain('Network error:');
+        expect(results.failed?.[0]?.path).toBe('error.md');
+        expect(results.failed?.[0]?.error).toContain('Network error:');
       });
 
       it('should not format non-network errors as network errors', async () => {
@@ -629,8 +629,8 @@ describe('ParallelFileFetcher', () => {
         expect(results.success).toHaveLength(0);
         expect(results.failed).toHaveLength(1);
         // Should not contain "Network error:" prefix for non-network errors
-        expect(results.failed[0].error).not.toContain('Network error:');
-        expect(results.failed[0].error).toBe('Repository not found');
+        expect(results.failed?.[0]?.error).not.toContain('Network error:');
+        expect(results.failed?.[0]?.error).toBe('Repository not found');
       });
     });
 
@@ -669,8 +669,9 @@ describe('ParallelFileFetcher', () => {
 
         expect(results.success).toHaveLength(0);
         expect(results.failed).toHaveLength(1);
-        expect(results.failed[0].error).toContain('GitHub API rate limit exceeded');
-        expect(results.failed[0].error).toMatch(/Please wait \d+ minutes/);
+        expect(results.failed?.[0]?.error).toContain('GitHub API rate limit exceeded');
+        expect(results.failed?.[0]?.error).toContain('Please wait');
+        expect(results.failed?.[0]?.error).toContain('minutes');
       });
 
       it('should calculate correct wait time from x-ratelimit-reset header', async () => {
@@ -709,7 +710,15 @@ describe('ParallelFileFetcher', () => {
         expect(results.success).toHaveLength(0);
         expect(results.failed).toHaveLength(1);
         // Should show approximately 30 minutes (allow ±1 minute for test execution time)
-        expect(results.failed[0].error).toMatch(/Please wait (29|30|31) minutes/);
+        expect(results.failed?.[0]?.error).toContain('Please wait');
+        expect(results.failed?.[0]?.error).toContain('minutes');
+        // Extract number from error message
+        const errorMsg = results.failed?.[0]?.error || '';
+        const numberStr = errorMsg.split('').filter(c => '0123456789'.includes(c)).join('');
+        expect(numberStr.length).toBeGreaterThan(0);
+        const minutes = parseInt(numberStr, 10);
+        expect(minutes).toBeGreaterThanOrEqual(29);
+        expect(minutes).toBeLessThanOrEqual(31);
       });
 
       it('should handle rate limit error without reset header', async () => {
@@ -743,9 +752,9 @@ describe('ParallelFileFetcher', () => {
 
         expect(results.success).toHaveLength(0);
         expect(results.failed).toHaveLength(1);
-        expect(results.failed[0].error).toContain('GitHub API rate limit exceeded');
+        expect(results.failed?.[0]?.error).toContain('GitHub API rate limit exceeded');
         // Should still provide a generic message even without reset time
-        expect(results.failed[0].error).toContain('Please wait');
+        expect(results.failed?.[0]?.error).toContain('Please wait');
       });
 
       it('should handle partial success with rate limit errors', async () => {
@@ -797,8 +806,8 @@ describe('ParallelFileFetcher', () => {
         // Should continue processing other files despite rate limit error
         expect(results.success).toHaveLength(2);
         expect(results.failed).toHaveLength(1);
-        expect(results.failed[0].path).toBe('rate-limit.md');
-        expect(results.failed[0].error).toContain('GitHub API rate limit exceeded');
+        expect(results.failed?.[0]?.path).toBe('rate-limit.md');
+        expect(results.failed?.[0]?.error).toContain('GitHub API rate limit exceeded');
       });
 
       it('should distinguish rate limit errors from other 403 errors', async () => {
@@ -833,8 +842,8 @@ describe('ParallelFileFetcher', () => {
         expect(results.success).toHaveLength(0);
         expect(results.failed).toHaveLength(1);
         // Should NOT contain rate limit message for non-429 errors
-        expect(results.failed[0].error).not.toContain('rate limit');
-        expect(results.failed[0].error).toBe('Forbidden');
+        expect(results.failed?.[0]?.error).not.toContain('rate limit');
+        expect(results.failed?.[0]?.error).toBe('Forbidden');
       });
     });
   });

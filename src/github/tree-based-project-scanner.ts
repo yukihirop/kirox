@@ -5,7 +5,7 @@
  */
 
 import type { Octokit } from 'octokit';
-import type { Logger } from '../reporting/logger.js';
+import { PinoLogger } from '../reporting/pino-logger.js';
 import type { RepositoryRef } from './fetcher.js';
 import { getTreeSha } from './tree-sha-fetcher.js';
 import { parseTreeResponse, type TreeItem } from './tree-response-parser.js';
@@ -24,7 +24,7 @@ interface TreeScanResult {
 interface TreeScanOptions {
   repository: RepositoryRef;
   client: Octokit;
-  logger: Logger;
+  logger: PinoLogger;
   verbose: boolean;
 }
 
@@ -47,13 +47,11 @@ interface TreeScanOptions {
 export async function scanProjectsAcrossSubdirs(
   options: TreeScanOptions
 ): Promise<TreeScanResult> {
-  const { repository, client, logger, verbose } = options;
+  const { repository, client, logger } = options;
 
   try {
     // Step 1: Get tree SHA from branch
-    if (verbose) {
-      logger.verbose(`Fetching tree SHA for ${repository.owner}/${repository.repo}#${repository.branch}`);
-    }
+    logger.debug(`Fetching tree SHA for ${repository.owner}/${repository.repo}#${repository.branch}`);
 
     const treeSha = await getTreeSha(
       client,
@@ -63,9 +61,7 @@ export async function scanProjectsAcrossSubdirs(
     );
 
     // Step 2: Call Tree API with recursive=1
-    if (verbose) {
-      logger.verbose(`Fetching repository tree (recursive) with SHA: ${treeSha}`);
-    }
+    logger.debug(`Fetching repository tree (recursive) with SHA: ${treeSha}`);
 
     const treeResponse = await client.rest.git.getTree({
       owner: repository.owner,
@@ -77,15 +73,11 @@ export async function scanProjectsAcrossSubdirs(
     // Step 3: Parse tree response to extract .kiro/specs/ directories
     const entryCount = treeResponse.data.tree.length; // Task 2.5: Store entry count
 
-    if (verbose) {
-      logger.verbose(`Parsing tree response (${entryCount} entries)`);
-    }
+    logger.debug(`Parsing tree response (${entryCount} entries)`);
 
     const parsedItems = parseTreeResponse(treeResponse.data.tree as TreeItem[]);
 
-    if (verbose) {
-      logger.verbose(`Found ${parsedItems.length} .kiro/specs/ directories`);
-    }
+    logger.debug(`Found ${parsedItems.length} .kiro/specs/ directories`);
 
     // Step 4: Build ProjectLocation objects with display names
     const projects = buildProjectLocations(parsedItems);
@@ -105,8 +97,8 @@ export async function scanProjectsAcrossSubdirs(
     // Step 5: Detect and propagate truncated flag
     const truncated = treeResponse.data.truncated || false;
 
-    if (truncated && verbose) {
-      logger.verbose('Warning: Tree response was truncated (>100,000 entries)');
+    if (truncated) {
+      logger.debug('Warning: Tree response was truncated (>100,000 entries)');
     }
 
     return {

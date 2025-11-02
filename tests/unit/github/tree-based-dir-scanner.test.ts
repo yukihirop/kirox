@@ -5,7 +5,7 @@
 
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { Octokit } from 'octokit';
-import type { Logger } from '../../../src/reporting/logger.js';
+import type { PinoLogger } from '../../../src/reporting/pino-logger.js';
 import type { RepositoryRef } from '../../../src/github/fetcher.js';
 import {
   scanDirectoriesAcrossRepo,
@@ -18,7 +18,7 @@ vi.mock('octokit');
 
 describe('TreeBasedDirectoryScanner (Task 9.1)', () => {
   let mockOctokit: any;
-  let mockLogger: Logger;
+  let mockLogger: PinoLogger;
   let repository: RepositoryRef;
 
   beforeEach(() => {
@@ -29,7 +29,7 @@ describe('TreeBasedDirectoryScanner (Task 9.1)', () => {
       error: vi.fn(),
       verbose: vi.fn(),
       debug: vi.fn(),
-    } as unknown as Logger;
+    } as unknown as PinoLogger;
 
     // Setup repository reference
     repository = {
@@ -205,12 +205,12 @@ describe('TreeBasedDirectoryScanner (Task 9.1)', () => {
       // Assert
       expect(result.success).toBe(true);
       expect(result.truncated).toBe(true);
-      expect(mockLogger.warn).toHaveBeenCalledWith(
+      expect(mockLogger.debug).toHaveBeenCalledWith(
         'Repository is very large, some directories may not be shown'
       );
     });
 
-    it('should not log warning for truncated response when verbose is false', async () => {
+    it('should log debug warning for truncated response even when verbose is false', async () => {
       // Arrange
       mockOctokit.rest.repos.getBranch.mockResolvedValueOnce({
         data: {
@@ -243,10 +243,12 @@ describe('TreeBasedDirectoryScanner (Task 9.1)', () => {
       // Act
       const result = await scanDirectoriesAcrossRepo(options);
 
-      // Assert
+      // Assert: Truncation warning is now always logged at debug level
       expect(result.success).toBe(true);
       expect(result.truncated).toBe(true);
-      expect(mockLogger.warn).not.toHaveBeenCalled();
+      expect(mockLogger.debug).toHaveBeenCalledWith(
+        'Repository is very large, some directories may not be shown'
+      );
     });
   });
 
@@ -388,15 +390,15 @@ describe('TreeBasedDirectoryScanner (Task 9.1)', () => {
       await scanDirectoriesAcrossRepo(options);
 
       // Assert
-      expect(mockLogger.verbose).toHaveBeenCalledWith(
+      expect(mockLogger.debug).toHaveBeenCalledWith(
         expect.stringContaining('Fetching tree SHA')
       );
-      expect(mockLogger.verbose).toHaveBeenCalledWith(
+      expect(mockLogger.debug).toHaveBeenCalledWith(
         expect.stringContaining('Fetching repository tree')
       );
     });
 
-    it('should not log verbose messages when verbose is false', async () => {
+    it('should log debug messages even when verbose is false', async () => {
       // Arrange
       mockOctokit.rest.repos.getBranch.mockResolvedValueOnce({
         data: {
@@ -429,8 +431,8 @@ describe('TreeBasedDirectoryScanner (Task 9.1)', () => {
       // Act
       await scanDirectoriesAcrossRepo(options);
 
-      // Assert
-      expect(mockLogger.verbose).not.toHaveBeenCalled();
+      // Assert: Should log debug messages (verbose flag no longer controls whether debug is called)
+      expect(mockLogger.debug).toHaveBeenCalled();
     });
   });
 

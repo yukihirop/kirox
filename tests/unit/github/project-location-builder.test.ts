@@ -95,7 +95,7 @@ describe('Project Location Builder', () => {
         const result = buildProjectLocations(parsedItems);
 
         // Assert
-        expect(result[0].displayName).toBe('packages/libs/utils/core/deep-project');
+        expect(result[0]?.displayName).toBe('packages/libs/utils/core/deep-project');
       });
     });
 
@@ -128,8 +128,8 @@ describe('Project Location Builder', () => {
 
         // Assert: Both should have displayName with subdirectory to distinguish them
         expect(result).toHaveLength(2);
-        expect(result[0].displayName).toBe('lib/a/api-spec');
-        expect(result[1].displayName).toBe('lib/b/api-spec');
+        expect(result[0]?.displayName).toBe('lib/a/api-spec');
+        expect(result[1]?.displayName).toBe('lib/b/api-spec');
       });
 
       it('should NOT modify displayName when project names are unique', () => {
@@ -159,8 +159,8 @@ describe('Project Location Builder', () => {
         const result = buildProjectLocations(parsedItems);
 
         // Assert: displayName should follow standard rules
-        expect(result[0].displayName).toBe('project-a'); // Root project
-        expect(result[1].displayName).toBe('lib/a/project-b'); // Subdirectory project
+        expect(result[0]?.displayName).toBe('project-a'); // Root project
+        expect(result[1]?.displayName).toBe('lib/a/project-b'); // Subdirectory project
       });
 
       it('should handle duplicate project names with one in root and one in subdirectory', () => {
@@ -191,8 +191,8 @@ describe('Project Location Builder', () => {
 
         // Assert: Both should maintain standard displayName format
         // Root project stays as "core", subdirectory shows "lib/a/core"
-        expect(result[0].displayName).toBe('core'); // Root
-        expect(result[1].displayName).toBe('lib/a/core'); // Subdirectory
+        expect(result[0]?.displayName).toBe('core'); // Root
+        expect(result[1]?.displayName).toBe('lib/a/core'); // Subdirectory
       });
     });
 
@@ -243,10 +243,10 @@ describe('Project Location Builder', () => {
 
         // Assert
         expect(result).toHaveLength(4);
-        expect(result[0].displayName).toBe('auth'); // Unique root project
-        expect(result[1].displayName).toBe('lib/a/api'); // Duplicate subdirectory project
-        expect(result[2].displayName).toBe('lib/b/api'); // Duplicate subdirectory project
-        expect(result[3].displayName).toBe('packages/utils/helpers'); // Unique subdirectory project
+        expect(result[0]?.displayName).toBe('auth'); // Unique root project
+        expect(result[1]?.displayName).toBe('lib/a/api'); // Duplicate subdirectory project
+        expect(result[2]?.displayName).toBe('lib/b/api'); // Duplicate subdirectory project
+        expect(result[3]?.displayName).toBe('packages/utils/helpers'); // Unique subdirectory project
       });
 
       it('should preserve all original ParsedTreeItem properties', () => {
@@ -312,7 +312,7 @@ describe('Project Location Builder', () => {
 
         // Assert
         expect(result).toHaveLength(1);
-        expect(result[0].displayName).toBe('solo-project');
+        expect(result[0]?.displayName).toBe('solo-project');
       });
 
       it('should handle three or more projects with the same name', () => {
@@ -352,9 +352,9 @@ describe('Project Location Builder', () => {
 
         // Assert: All should be distinguished by subdirectory
         expect(result).toHaveLength(3);
-        expect(result[0].displayName).toBe('lib/a/common');
-        expect(result[1].displayName).toBe('lib/b/common');
-        expect(result[2].displayName).toBe('lib/c/common');
+        expect(result[0]?.displayName).toBe('lib/a/common');
+        expect(result[1]?.displayName).toBe('lib/b/common');
+        expect(result[2]?.displayName).toBe('lib/c/common');
       });
     });
   });
