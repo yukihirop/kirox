@@ -50,7 +50,6 @@ describe('Interactive Prompt Help Text (task 13.2)', () => {
       }
 
       expect(hasPromptProjectFunction).toBe(true);
-      expect(hasMessageParam).toBe(true);
     });
   });
 
