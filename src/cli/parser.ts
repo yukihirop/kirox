@@ -7,8 +7,18 @@
 import { Command } from 'commander';
 import chalk from 'chalk';
 import figlet from 'figlet';
+import { readFileSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
+import { dirname, join } from 'node:path';
 import type { ParsedArguments } from './types.js';
 import { parseProjects } from './project-name-parser.js';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+const packageJson = JSON.parse(
+  readFileSync(join(__dirname, '../../package.json'), 'utf-8')
+);
+const VERSION = packageJson.version;
 
 /**
  * Generate ASCII art for kirox logo
@@ -246,7 +256,7 @@ function parseMainCommand(argv: string[]): ParsedArguments {
   program
     .name('kirox')
     .description('CLI tool to fetch Kiro specification and steering files from remote GitHub repositories')
-    .version('0.1.0')
+    .version(VERSION)
     .argument('[repository]', 'GitHub repository in format "owner/repo" or "owner/repo#branch"')
     .option('-p, --project <name>', 'Project name to fetch (comma-separated for multiple projects)')
     .option('-o, --output <path>', 'Output directory (default: current directory)', '.')
