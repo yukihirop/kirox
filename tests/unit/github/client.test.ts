@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { createGitHubClient, getRateLimit } from '@/github/client';
+import { createGitHubClient, getRateLimit } from '@/github/client.js';
 
 describe('GitHubClient', () => {
   let originalEnv: NodeJS.ProcessEnv;

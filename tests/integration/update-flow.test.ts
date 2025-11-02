@@ -4,7 +4,7 @@ import * as metadataManager from '@/tracking/metadata-manager.js';
 import * as batchChecker from '@/tracking/batch-update-checker.js';
 import * as batchUpdater from '@/tracking/batch-file-updater.js';
 import type { Metadata } from '@/tracking/types.js';
-import type { UpdateStatus } from '@/tracking/update-checker.js';
+import { UpdateStatus } from '@/tracking/update-checker.js';
 
 // Unmock PinoLogger to allow actual implementation
 vi.unmock('@/reporting/pino-logger.js');
@@ -50,11 +50,13 @@ describe('--update Command Flow Integration', () => {
         files: [
           {
             path: '.kiro/specs/test-project/file1.md',
-            status: 'REMOTE_UPDATED' as UpdateStatus,
-            currentSha: 'abc123',
+            status: UpdateStatus.REMOTE_UPDATED,
+            recordedSha: 'abc123',
             remoteSha: 'xyz789',
-            localHash: 'hash123',
-            hasLocalEdits: false,
+            recordedHash: 'hash123',
+            currentHash: 'hash123',
+            hasLocalEdit: false,
+            hasRemoteUpdate: true,
           },
         ],
       };
@@ -131,19 +133,23 @@ describe('--update Command Flow Integration', () => {
         files: [
           {
             path: '.kiro/specs/test-project/file1.md',
-            status: 'REMOTE_UPDATED' as UpdateStatus,
-            currentSha: 'abc123',
+            status: UpdateStatus.REMOTE_UPDATED,
+            recordedSha: 'abc123',
             remoteSha: 'xyz789',
-            localHash: 'hash123',
-            hasLocalEdits: false,
+            recordedHash: 'hash123',
+            currentHash: 'hash123',
+            hasLocalEdit: false,
+            hasRemoteUpdate: true,
           },
           {
             path: '.kiro/specs/test-project/file2.md',
-            status: 'CONFLICT' as UpdateStatus,
-            currentSha: 'def456',
+            status: UpdateStatus.CONFLICT,
+            recordedSha: 'def456',
             remoteSha: 'uvw012',
-            localHash: 'modifiedhash',
-            hasLocalEdits: true,
+            recordedHash: 'hash456',
+            currentHash: 'modifiedhash',
+            hasLocalEdit: true,
+            hasRemoteUpdate: true,
           },
         ],
       };
@@ -227,11 +233,13 @@ describe('--update Command Flow Integration', () => {
         files: [
           {
             path: '.kiro/specs/test-project/file1.md',
-            status: 'REMOTE_UPDATED' as UpdateStatus,
-            currentSha: 'abc123',
+            status: UpdateStatus.REMOTE_UPDATED,
+            recordedSha: 'abc123',
             remoteSha: 'xyz789',
-            localHash: 'hash123',
-            hasLocalEdits: false,
+            recordedHash: 'hash123',
+            currentHash: 'hash123',
+            hasLocalEdit: false,
+            hasRemoteUpdate: true,
           },
         ],
       };

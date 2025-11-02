@@ -1210,7 +1210,7 @@ describe('executeAddCommand', () => {
 
       // Check first call contains the expected file path
       const firstCall = calls[0];
-      expect(firstCall[0]).toContain('.kiro/specs/test-project/spec.json');
+      expect(firstCall?.[0]).toContain('.kiro/specs/test-project/spec.json');
       // Second parameter (projectName) can be undefined or string, we don't care in this test
     });
 
