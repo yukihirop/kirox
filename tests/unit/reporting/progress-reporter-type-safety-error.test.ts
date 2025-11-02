@@ -6,13 +6,12 @@
  */
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import type { SpyInstance } from 'vitest';
 import { ProgressReporter } from '../../../src/reporting/progress-reporter.js';
 import type { ReporterOptions } from '../../../src/reporting/types.js';
 
 describe('ProgressReporter - Type Safety and Error Handling (Task 14.3)', () => {
-  let consoleLogSpy: SpyInstance;
-  let consoleErrorSpy: SpyInstance;
+  let consoleLogSpy: ReturnType<typeof vi.spyOn>;
+  let consoleErrorSpy: ReturnType<typeof vi.spyOn>;
 
   beforeEach(() => {
     consoleLogSpy = vi.spyOn(console, 'log').mockImplementation(() => {});

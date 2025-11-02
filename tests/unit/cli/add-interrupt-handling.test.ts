@@ -46,16 +46,13 @@ describe('Add Command Ctrl+C Interrupt Handling (Task 8.4)', () => {
     vi.spyOn(metadataManager, 'saveMetadata').mockResolvedValue(undefined);
 
     // Mock GitHub fetcher
-    vi.spyOn(fetcher, 'fetchDirectoryContents').mockResolvedValue({
-      files: [
-        { path: '.kiro/specs/test-project/requirements.md', sha: 'sha1', size: 100 },
-      ],
-      steering: [],
-    });
+    vi.spyOn(fetcher, 'fetchDirectoryContents').mockResolvedValue([
+      { name: 'requirements.md', path: '.kiro/specs/test-project/requirements.md', type: 'file' as const, sha: 'sha1', size: 100 },
+    ]);
     vi.spyOn(parallelFetcher, 'fetchFilesInParallel').mockResolvedValue({
-      successful: [
+      success: [
         {
-          remotePath: '.kiro/specs/test-project/requirements.md',
+          path: '.kiro/specs/test-project/requirements.md',
           content: 'test content',
           sha: 'sha1',
           size: 100,

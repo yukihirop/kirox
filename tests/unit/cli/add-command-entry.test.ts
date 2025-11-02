@@ -1728,6 +1728,8 @@ describe('executeAddCommand', () => {
       vi.mocked(mergeConfig).mockImplementation((args) => ({
         ...args,
         subdir: 'packages/api',
+        concurrency: 5,
+        outputDirectory: process.cwd(),
       }));
 
       vi.mocked(fetchDirectoryContents)
@@ -2669,6 +2671,7 @@ describe('executeAddCommand', () => {
           track: false,
           checkUpdates: false,
           update: false,
+          steering: false,
         };
         const shouldEnter = shouldEnterInteractiveMode(mockArgs);
         expect(shouldEnter).toBe(false); // Non-TTY environment should return false
@@ -3267,7 +3270,13 @@ describe('executeAddCommand', () => {
         projects: ['test-project'],
         output: './custom-output',
         subdir: undefined,
-        branch: undefined,
+        force: false,
+        dryRun: false,
+        verbose: false,
+        track: false,
+        checkUpdates: false,
+        update: false,
+        steering: false,
       });
 
       // Setup: Non-interactive mode should call loadMetadata early
@@ -3317,7 +3326,13 @@ describe('executeAddCommand', () => {
         projects: ['test-project'],
         output: './custom-output',
         subdir: undefined,
-        branch: undefined,
+        force: false,
+        dryRun: false,
+        verbose: false,
+        track: false,
+        checkUpdates: false,
+        update: false,
+        steering: false,
       });
 
       const mockLoadMetadata = vi.fn().mockResolvedValue({

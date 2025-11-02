@@ -16,7 +16,8 @@ import { execute } from '@/cli/entry.js';
 import * as metadataManager from '@/tracking/metadata-manager.js';
 import * as batchChecker from '@/tracking/batch-update-checker.js';
 import * as batchUpdater from '@/tracking/batch-file-updater.js';
-import type { Metadata, UpdateStatus } from '@/tracking/types.js';
+import type { Metadata } from '@/tracking/types.js';
+import { UpdateStatus } from '@/tracking/update-checker.js';
 
 // Unmock PinoLogger to allow actual implementation
 vi.unmock('@/reporting/pino-logger.js');
@@ -79,19 +80,23 @@ describe('Add Command & Update Integration (Task 9.2)', () => {
         files: [
           {
             path: '.kiro/specs/project-a/requirements.md',
-            status: 'REMOTE_UPDATED' as UpdateStatus,
-            currentSha: 'sha-a-old',
+            status: UpdateStatus.REMOTE_UPDATED,
+            recordedSha: 'sha-a-old',
             remoteSha: 'sha-a-new',
-            localHash: 'hash-a',
-            hasLocalEdits: false,
+            recordedHash: 'hash-a',
+            currentHash: 'hash-a',
+            hasLocalEdit: false,
+            hasRemoteUpdate: true,
           },
           {
             path: '.kiro/specs/project-b/requirements.md',
-            status: 'REMOTE_UPDATED' as UpdateStatus,
-            currentSha: 'sha-b-old',
+            status: UpdateStatus.REMOTE_UPDATED,
+            recordedSha: 'sha-b-old',
             remoteSha: 'sha-b-new',
-            localHash: 'hash-b',
-            hasLocalEdits: false,
+            recordedHash: 'hash-b',
+            currentHash: 'hash-b',
+            hasLocalEdit: false,
+            hasRemoteUpdate: true,
           },
         ],
       };
