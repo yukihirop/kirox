@@ -147,7 +147,7 @@ describe('execute - Interactive Mode Integration', () => {
     it('--check-updatesが指定されている場合、対話モードをスキップ', async () => {
       const mockArgs = {
         repository: '',
-        project: '',
+        projects: [],
         output: '.',
         force: false,
         dryRun: false,
@@ -155,6 +155,7 @@ describe('execute - Interactive Mode Integration', () => {
         track: false,
         checkUpdates: true,
         update: false,
+        steering: false,
       };
 
       vi.mocked(parser.parseArguments).mockReturnValue(mockArgs);

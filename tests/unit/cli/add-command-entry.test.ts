@@ -161,7 +161,11 @@ describe('executeAddCommand', () => {
 
     vi.mocked(loadConfig).mockResolvedValue({});
 
-    vi.mocked(mergeConfig).mockImplementation((args) => args);
+    vi.mocked(mergeConfig).mockImplementation((args) => ({
+      ...args,
+      concurrency: 5,
+      outputDirectory: process.cwd(),
+    }));
 
     vi.mocked(fetchDirectoryContents).mockResolvedValue([]);
 
@@ -2452,7 +2456,7 @@ describe('executeAddCommand', () => {
             { path: '.kiro/specs/proj1/design.md', content: '# Design', size: 150, sha: 'sha1b' },
           ],
           failed: [
-            { path: '.kiro/specs/proj1/tasks.md', error: new Error('Failed to fetch') },
+            { path: '.kiro/specs/proj1/tasks.md', error: 'Failed to fetch', retryable: false },
           ],
         })
         .mockResolvedValueOnce({

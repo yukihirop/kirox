@@ -134,7 +134,7 @@ describe('GitHubClient', () => {
         },
       });
 
-      client.rest.repos.get = mockGet;
+      (client.rest.repos.get as any) = mockGet;
 
       const result = await client.rest.repos.get({
         owner: 'octocat',

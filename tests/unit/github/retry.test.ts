@@ -148,7 +148,7 @@ describe('Retry Logic', () => {
       ]);
 
       expect(error).toBeInstanceOf(Error);
-      expect(error.message).toBe('ECONNRESET');
+      expect((error as Error).message).toBe('ECONNRESET');
       expect(mockFn).toHaveBeenCalledTimes(4); // Initial + 3 retries
     });
 

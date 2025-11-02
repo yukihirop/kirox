@@ -21,7 +21,7 @@ describe('fetchFilesInParallel - Progress Callback (Task 14.5)', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     // Reset mock implementation for each test
-    (mockOctokit.rest.repos.getContent as ReturnType<typeof vi.fn>).mockReset();
+    (mockOctokit.rest.repos.getContent as unknown as ReturnType<typeof vi.fn>).mockReset();
   });
 
   afterEach(() => {
@@ -47,7 +47,7 @@ describe('fetchFilesInParallel - Progress Callback (Task 14.5)', () => {
       sha: 'sha2',
     };
 
-    (mockOctokit.rest.repos.getContent as ReturnType<typeof vi.fn>)
+    (mockOctokit.rest.repos.getContent as unknown as ReturnType<typeof vi.fn>)
       .mockResolvedValueOnce({ data: mockFile1 })
       .mockResolvedValueOnce({ data: mockFile2 });
 
@@ -84,7 +84,7 @@ describe('fetchFilesInParallel - Progress Callback (Task 14.5)', () => {
         content: Buffer.from(`file${index + 1} content`).toString('base64'),
         sha: `sha${index + 1}`,
       };
-      (mockOctokit.rest.repos.getContent as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
+      (mockOctokit.rest.repos.getContent as unknown as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
         data: mockFile,
       });
     });
@@ -119,7 +119,7 @@ describe('fetchFilesInParallel - Progress Callback (Task 14.5)', () => {
       sha: 'sha1',
     };
 
-    (mockOctokit.rest.repos.getContent as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
+    (mockOctokit.rest.repos.getContent as unknown as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
       data: mockFile,
     });
 
@@ -150,7 +150,7 @@ describe('fetchFilesInParallel - Progress Callback (Task 14.5)', () => {
     };
 
     // First file succeeds
-    (mockOctokit.rest.repos.getContent as ReturnType<typeof vi.fn>)
+    (mockOctokit.rest.repos.getContent as unknown as ReturnType<typeof vi.fn>)
       .mockResolvedValueOnce({ data: mockFile1 })
       // Second file fails
       .mockRejectedValueOnce(new Error('404 Not Found'));
@@ -186,7 +186,7 @@ describe('fetchFilesInParallel - Progress Callback (Task 14.5)', () => {
     let apiCallTime: number | null = null;
     let progressCallTime: number | null = null;
 
-    (mockOctokit.rest.repos.getContent as ReturnType<typeof vi.fn>).mockImplementation(() => {
+    (mockOctokit.rest.repos.getContent as unknown as ReturnType<typeof vi.fn>).mockImplementation(() => {
       apiCallTime = Date.now();
       return Promise.resolve({ data: mockFile });
     });
