@@ -18,9 +18,10 @@ export default defineConfig({
         'dist/',
         '**/*.test.ts',
         '**/*.config.ts',
+        'docs/'
       ],
     },
-    isolate: false,
+    isolate: true,
     pool: 'threads',
     poolOptions: {
       threads: {

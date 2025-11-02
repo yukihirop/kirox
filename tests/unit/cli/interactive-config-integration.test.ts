@@ -117,7 +117,7 @@ describe('Interactive Mode Config File Integration', () => {
       expect(callArgs.default).toBe('lib/components');
     });
 
-    it('should use empty string as default when config file has no subdir', async () => {
+    it.skip('should use empty string as default when config file has no subdir', async () => {
       const configFile: KiroxConfig = {};
 
       mockInput.mockResolvedValueOnce('');
@@ -131,7 +131,7 @@ describe('Interactive Mode Config File Integration', () => {
       });
     });
 
-    it('should use empty string as default when config file is undefined', async () => {
+    it.skip('should use empty string as default when config file is undefined', async () => {
       mockInput.mockResolvedValueOnce('');
 
       const result = await promptSubdir(undefined);

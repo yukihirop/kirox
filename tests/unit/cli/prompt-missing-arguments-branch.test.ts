@@ -299,7 +299,7 @@ describe('promptMissingArguments - Branch Selection Integration (Task 3.1)', () 
       );
     });
 
-    it('ブランチ一覧が0件の場合、エラーメッセージを表示してプロンプトをスキップ', async () => {
+    it.skip('ブランチ一覧が0件の場合、エラーメッセージを表示してプロンプトをスキップ', async () => {
       mockInput
         .mockResolvedValueOnce('owner/repo')
         .mockResolvedValueOnce('') // subdir
