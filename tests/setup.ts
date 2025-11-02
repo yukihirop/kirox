@@ -14,7 +14,7 @@ import { vi } from 'vitest';
  * - All methods (info, warn, error, debug, verbose, logError, formatTimestamp, formatLogMessage) are spy functions
  */
 vi.mock('@/reporting/pino-logger.js', () => ({
-  PinoLogger: vi.fn().mockImplementation((verbose: boolean, options?: unknown) => ({
+  PinoLogger: vi.fn().mockImplementation((_verbose: boolean, _options?: unknown) => ({
     info: vi.fn(),
     warn: vi.fn(),
     error: vi.fn(),

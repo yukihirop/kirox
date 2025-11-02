@@ -17,7 +17,6 @@ import { promises as fs } from 'fs';
 import { Octokit } from 'octokit';
 import path from 'path';
 import * as interactive from '../../src/cli/interactive-prompt.js';
-import * as suggester from '../../src/cli/project-suggester.js';
 
 vi.mock('octokit');
 vi.mock('../../src/cli/interactive-prompt.js', async (importOriginal) => {
@@ -46,7 +45,6 @@ describe('E2E Project Suggestion Flow', () => {
   let mockShouldEnterInteractiveMode: ReturnType<typeof vi.fn>;
   let mockPromptMissingArguments: ReturnType<typeof vi.fn>;
   let mockCheckTTYEnvironment: ReturnType<typeof vi.fn>;
-  let mockSuggestProjects: ReturnType<typeof vi.fn>;
 
   beforeEach(async () => {
     // Clean up test output directory
@@ -61,7 +59,6 @@ describe('E2E Project Suggestion Flow', () => {
     mockShouldEnterInteractiveMode = interactive.shouldEnterInteractiveMode as ReturnType<typeof vi.fn>;
     mockPromptMissingArguments = interactive.promptMissingArguments as ReturnType<typeof vi.fn>;
     mockCheckTTYEnvironment = interactive.checkTTYEnvironment as ReturnType<typeof vi.fn>;
-    mockSuggestProjects = suggester.suggestProjects as ReturnType<typeof vi.fn>;
 
     // Default TTY check success
     mockCheckTTYEnvironment.mockReturnValue({ success: true });

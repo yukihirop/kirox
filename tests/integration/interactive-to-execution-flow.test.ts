@@ -11,8 +11,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { execute } from '../../src/cli/entry.js';
 import * as interactive from '../../src/cli/interactive-prompt.js';
-import * as validator from '../../src/cli/validator.js';
-import * as githubFetcher from '../../src/github/fetcher.js';
 
 // Mock modules
 vi.mock('../../src/cli/interactive-prompt.js');

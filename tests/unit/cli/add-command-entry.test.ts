@@ -2177,7 +2177,6 @@ describe('executeAddCommand', () => {
       const { fetchDirectoryContents } = await import('@/github/fetcher.js');
       const { fetchFilesInParallel } = await import('@/github/parallel-fetcher.js');
       const { writeFile } = await import('@/filesystem/writer.js');
-      const { upsertProject } = await import('@/tracking/metadata-manager.js');
       const { calculateFileHash } = await import('@/tracking/hash-calculator.js');
 
       vi.mocked(loadMetadata).mockResolvedValue({
@@ -2389,6 +2388,7 @@ describe('executeAddCommand', () => {
         written: true,
         filePath: 'test-file.md',
         size: 100,
+        skipped: false,
       });
 
       vi.mocked(calculateFileHash).mockResolvedValue('local-hash-123');

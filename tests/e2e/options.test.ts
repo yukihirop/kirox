@@ -362,7 +362,7 @@ describe('E2E CLI Options', () => {
 
       try {
         await execute(argv);
-      } catch (error: any) {
+      } catch (_error: any) {
         // Expected: Commander.js calls process.exit() on --help
         // We catch this to continue testing
       }
@@ -387,7 +387,7 @@ describe('E2E CLI Options', () => {
 
       try {
         await execute(argv);
-      } catch (error: any) {
+      } catch (_error: any) {
         // Expected: Commander.js calls process.exit() on --help
       }
 
@@ -411,7 +411,7 @@ describe('E2E CLI Options', () => {
 
       try {
         await execute(argv);
-      } catch (error: any) {
+      } catch (_error: any) {
         // Expected: Commander.js calls process.exit() on --help
       }
 

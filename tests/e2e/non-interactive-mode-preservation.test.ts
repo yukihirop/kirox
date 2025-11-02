@@ -32,7 +32,6 @@ describe('E2E Non-Interactive Mode Preservation', () => {
   const testOutputDir = path.join(process.cwd(), 'tests', 'e2e', 'test-output-noninteractive');
   let mockShouldEnterInteractiveMode: ReturnType<typeof vi.fn>;
   let mockPromptMissingArguments: ReturnType<typeof vi.fn>;
-  let mockCheckTTYEnvironment: ReturnType<typeof vi.fn>;
 
   beforeEach(async () => {
     // Clean up test output directory
@@ -46,7 +45,6 @@ describe('E2E Non-Interactive Mode Preservation', () => {
     // Get mocked functions
     mockShouldEnterInteractiveMode = interactive.shouldEnterInteractiveMode as ReturnType<typeof vi.fn>;
     mockPromptMissingArguments = interactive.promptMissingArguments as ReturnType<typeof vi.fn>;
-    mockCheckTTYEnvironment = interactive.checkTTYEnvironment as ReturnType<typeof vi.fn>;
 
     vi.clearAllMocks();
   });
