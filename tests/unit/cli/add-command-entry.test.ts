@@ -235,10 +235,10 @@ describe('executeAddCommand', () => {
       vi.mocked(validateInput).mockImplementation((args) => {
         // Real validation logic
         if (!args.repository || args.repository === '') {
-          return { valid: false, errors: ['Repository is required'] };
+          return { valid: false, errors: [{ field: 'repository', message: 'Repository is required' }] };
         }
         if (!args.projects || args.projects.length === 0 || args.projects[0] === '') {
-          return { valid: false, errors: ['Project name is required'] };
+          return { valid: false, errors: [{ field: 'project', message: 'Project name is required' }] };
         }
         return { valid: true, errors: [] };
       });
