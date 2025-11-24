@@ -135,11 +135,14 @@
 ## Phase 4: entry.tsのリファクタリング
 
 - [ ] 4. entry.tsの責任範囲整理とファイルサイズ削減
-- [ ] 4.1 getMetadataPath関数のMetadataUtilsへの移行
+- [x] 4.1 getMetadataPath関数のMetadataUtilsへの移行
   - entry.ts内の`getMetadataPath`関数を削除し、MetadataUtilsからインポートする
   - 既存の呼び出し箇所を更新する
   - 重複コードを削除し、DRY原則を適用する
   - _Requirements: 2.1, 6.1_
+  - ✅ リファクタリング完了: entry.ts内の重複実装を削除し、metadata-utils.tsからインポート
+  - ✅ テスト結果: metadata-utilsテスト12件全て合格、add-command-entryテスト75件合格
+  - ✅ DRY原則適用: getMetadataPath関数の重複コードを完全に削除
 
 - [ ] 4.2 execute関数の分割と委譲
   - 100行超の`execute`関数を30-50行以下のヘルパー関数に分割する

@@ -24,20 +24,10 @@ import { loadMetadata, upsertProject, upsertFile } from '../tracking/metadata-ma
 import { calculateFileHash } from '../tracking/hash-calculator.js';
 import { loadConfig } from '../config/loader.js';
 import { mergeConfig } from '../config/merger.js';
+import { getMetadataPath } from './metadata-utils.js';
 import type { ExecutionResult, ParsedArguments } from './types.js';
 import type { ContentItem } from '../github/fetcher.js';
 import type { FileMetadata } from '../tracking/types.js';
-import path from 'path';
-
-/**
- * Get metadata file path based on output directory
- *
- * @param outputDir - Output directory from args
- * @returns Metadata file path
- */
-function getMetadataPath(outputDir: string): string {
-  return path.join(outputDir, '.kiro', '.kirox-meta.json');
-}
 
 /**
  * Execute main CLI logic
