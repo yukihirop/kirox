@@ -310,9 +310,12 @@
   - ✅ オプションの再利用性とメンテナンス性を向上
   - _Requirements: 5.2, 6.1_
 
-- [ ] 6.3 (P) ASCII artジェネレーションの移動
-  - `generateKiroxAsciiArt`関数の呼び出しをAsciiArtUtilsからのインポートに変更する
-  - パーサーのメイン処理から表示ロジックを分離する
+- [x] 6.3 (P) ASCII artジェネレーションの移動
+  - ✅ `generateKiroxAsciiArt`関数は既に`utilities/ascii-art-utils.ts`からインポート済み (line 14)
+  - ✅ parser.ts内でASCII art生成を`generateKiroxAsciiArt()`呼び出しで使用 (line 262)
+  - ✅ パーサーのメイン処理から表示ロジックが分離済み
+  - ✅ テスト合格: `tests/unit/cli/utilities/ascii-art-utils.test.ts` (4テスト)
+  - ✅ タスク1.3で既に実装完了していることを確認
   - _Requirements: 5.4, 6.1_
 
 - [ ] 6.4 (P) プロジェクト名パース連携の維持確認
