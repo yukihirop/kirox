@@ -6,28 +6,12 @@
 
 import { Command } from 'commander';
 import chalk from 'chalk';
-import figlet from 'figlet';
 import type { ParsedArguments } from './types.js';
 import { parseProjects } from './project-name-parser.js';
+import { generateKiroxAsciiArt } from './utilities/ascii-art-utils.js';
 
 // Version is injected at build time via tsup define (see src/global.d.ts)
 const VERSION = __KIROX_VERSION__;
-
-/**
- * Generate ASCII art for kirox logo
- */
-function generateKiroxAsciiArt(): string {
-  try {
-    return figlet.textSync('kirox', {
-      font: 'ANSI Shadow',
-      horizontalLayout: 'default',
-      verticalLayout: 'default'
-    });
-  } catch (_error) {
-    // Fallback to simple text if figlet fails
-    return 'kirox\n';
-  }
-}
 
 /**
  * Parse command-line arguments
