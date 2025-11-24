@@ -86,12 +86,15 @@
   - ✅ テスト完了: 11テスト全て合格
   - ✅ 後方互換性: `searchable-project-prompt.ts`を再エクスポートラッパーに変更
 
-- [ ] 3.3 (P) ブランチ選択プロンプトの実装
+- [x] 3.3 (P) ブランチ選択プロンプトの実装
   - `promptBranch`関数を実装し、@inquirer/promptsを使用してブランチ選択を受け付ける
   - GitHub API統合（ブランチ一覧取得）はGitHub LayerのFetcherに委譲する
   - デフォルトブランチの提案機能を含める
   - 50行以下の単一責任関数として実装する
   - _Requirements: 3.1, 3.2, 3.4, 6.2, 6.3_
+  - ✅ 実装完了: `src/cli/prompts/branch-prompt.ts` (71行)
+  - ✅ テスト完了: 17テスト全て合格
+  - ✅ 後方互換性: `branch-prompt.ts`を再エクスポートラッパーに変更
 
 - [ ] 3.4 (P) サブディレクトリ選択プロンプトの実装
   - `promptSubdirSelection`関数を実装し、@inquirer/promptsを使用してサブディレクトリ選択を受け付ける
