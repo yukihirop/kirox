@@ -288,12 +288,16 @@
 ## Phase 6: parser.tsのリファクタリング
 
 - [ ] 6. parser.tsの責任範囲整理
-- [ ] 6.1 (P) サブコマンドパース処理の分離
-  - メインコマンド、addサブコマンド、completionサブコマンドのパース処理を独立した関数に抽出する
-  - `parseMainCommand`、`parseAddCommand`、`parseCompletionCommand`関数を実装する
-  - 各関数に明示的な戻り値型アノテーションを追加する
+- [x] 6.1 (P) サブコマンドパース処理の分離
+  - ✅ メインコマンド、addサブコマンド、completionサブコマンドのパース処理を独立した関数に抽出済み
+    - `parseMainCommand(argv: string[]): ParsedArguments` (line 251)
+    - `parseAddCommand(argv: string[]): ParsedArguments` (line 165)
+    - `parseCompletionCommand(argv: string[]): ParsedArguments` (line 78)
+  - ✅ 各関数に明示的な戻り値型アノテーション`: ParsedArguments`を追加済み
+  - ✅ テスト結果: parser.test.ts 51テスト全て合格
+  - ✅ 型チェック: parser.ts関連のエラーなし
   - _Requirements: 5.1, 6.2, 6.3_
-  - **⚠️ 実装前に`typescript-clean-code`スキルを使用**: 複数のパース関数を新規作成するため
+  - **注記**: このタスクは既に以前の実装で完了していることを確認
 
 - [ ] 6.2 (P) オプション定義の外部化適用
   - ParserConfigからオプション定義をインポートする
