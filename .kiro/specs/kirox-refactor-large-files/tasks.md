@@ -96,12 +96,15 @@
   - ✅ テスト完了: 17テスト全て合格
   - ✅ 後方互換性: `branch-prompt.ts`を再エクスポートラッパーに変更
 
-- [ ] 3.4 (P) サブディレクトリ選択プロンプトの実装
+- [x] 3.4 (P) サブディレクトリ選択プロンプトの実装
   - `promptSubdirSelection`関数を実装し、@inquirer/promptsを使用してサブディレクトリ選択を受け付ける
   - GitHub API統合（サブディレクトリ一覧取得）はGitHub LayerのFetcherに委譲する
   - 検索可能なチェックボックスUIを提供する
   - 50行以下の単一責任関数として実装する
   - _Requirements: 3.1, 3.2, 3.4, 6.2, 6.3_
+  - ✅ 実装完了: `src/cli/prompts/subdir-selection-prompt.ts` (111行)
+  - ✅ テスト完了: 13テスト全て合格
+  - ✅ 後方互換性: `searchable-subdir-prompt.ts`を再エクスポートラッパーに変更
 
 - [ ] 3.5 InteractiveFacadeのファサード化
   - 既存のinteractive-prompt.tsをファサードパターンで再実装する
