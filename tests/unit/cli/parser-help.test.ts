@@ -6,12 +6,17 @@ import { describe, it, expect } from 'vitest';
 import { readFileSync } from 'fs';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
+import { mainCommandOptions } from '@/cli/parser-config.js';
 
 // Read the parser source file to verify help text configuration
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 const parserSource = readFileSync(
   join(__dirname, '../../../src/cli/parser.ts'),
+  'utf-8'
+);
+const parserConfigSource = readFileSync(
+  join(__dirname, '../../../src/cli/parser-config.ts'),
   'utf-8'
 );
 
@@ -49,44 +54,21 @@ describe('CLI Help Message (task 13.1)', () => {
     });
 
     it('should have updated -p option description', () => {
+      // Task 6.2: After refactoring, check parser-config.ts instead of parser.ts
       // Verify: -p option description mentions it can accept multiple projects
-      // Look for the option definition line
-      const optionIndex = parserSource.indexOf('.option(');
-      expect(optionIndex).toBeGreaterThanOrEqual(0);
-      
-      if (optionIndex >= 0) {
-        // Find the closing parenthesis for this .option( call
-        let depth = 0;
-        let currentIndex = optionIndex + '.option('.length;
-        let optionEndIndex = -1;
-        
-        for (let i = currentIndex; i < parserSource.length; i++) {
-          if (parserSource[i] === '(') depth++;
-          if (parserSource[i] === ')') {
-            if (depth === 0) {
-              optionEndIndex = i;
-              break;
-            }
-            depth--;
-          }
-        }
-        
-        expect(optionEndIndex).toBeGreaterThanOrEqual(0);
-        if (optionEndIndex >= 0) {
-          const optionText = parserSource.substring(optionIndex, optionEndIndex + 1);
-          expect(optionText.includes('-p')).toBe(true);
-          expect(optionText.includes('--project')).toBe(true);
-          
-          // Description should mention multiple projects or comma-separated
-          const mentionsMultiple =
-            optionText.includes('複数') ||
-            optionText.includes('multiple') ||
-            optionText.includes('カンマ') ||
-            optionText.includes('comma');
+      const projectOption = mainCommandOptions.find(opt => opt.flags.includes('--project'));
+      expect(projectOption).toBeDefined();
+      expect(projectOption?.flags).toContain('-p');
+      expect(projectOption?.flags).toContain('--project');
 
-          expect(mentionsMultiple).toBe(true);
-        }
-      }
+      // Description should mention multiple projects or comma-separated
+      const mentionsMultiple =
+        projectOption?.description.includes('複数') ||
+        projectOption?.description.includes('multiple') ||
+        projectOption?.description.includes('カンマ') ||
+        projectOption?.description.includes('comma');
+
+      expect(mentionsMultiple).toBe(true);
     });
   });
 
@@ -105,14 +87,18 @@ describe('CLI Help Message (task 13.1)', () => {
   // Task 6.1: --steering option help message tests (Requirements 1.1, 8.1, 8.2)
   describe('--steering option help text (Task 6.1)', () => {
     it('should have --steering option definition with description', () => {
-      // Verify: --steering option is defined in the parser
-      const hasSteeringOption = parserSource.includes('.option') && parserSource.includes('--steering');
-      expect(hasSteeringOption).toBe(true);
+      // Task 6.2: After refactoring, check parser-config.ts instead of parser.ts
+      // Verify: --steering option is defined in the parser configuration
+      const steeringOption = mainCommandOptions.find(opt => opt.flags.includes('--steering'));
+      expect(steeringOption).toBeDefined();
+      expect(steeringOption?.description).toBeDefined();
     });
 
     it('should have description "Fetch only .kiro/steering directory (skip project specs)" for --steering option', () => {
+      // Task 6.2: After refactoring, check parser-config.ts instead of parser.ts
       // Verify: Description text is accurate (Requirement 8.3)
-      expect(parserSource).toContain('Fetch only .kiro/steering directory (skip project specs)');
+      const steeringOption = mainCommandOptions.find(opt => opt.flags.includes('--steering'));
+      expect(steeringOption?.description).toBe('Fetch only .kiro/steering directory (skip project specs)');
     });
 
     it.skip('should have example of --steering in non-interactive mode', () => {
@@ -136,11 +122,10 @@ describe('CLI Help Message (task 13.1)', () => {
     });
 
     it('should set default value to false for --steering option', () => {
+      // Task 6.2: After refactoring, check parser-config.ts instead of parser.ts
       // Verify: Default value is false (Requirement 1.1)
-      // Look for the option definition with default value
-      // Pattern: .option('--steering', '...', false) or .option("--steering", "...", false)
-      const hasDefaultFalse = parserSource.includes("'--steering', 'Fetch only .kiro/steering directory (skip project specs)', false");
-      expect(hasDefaultFalse).toBe(true);
+      const steeringOption = mainCommandOptions.find(opt => opt.flags.includes('--steering'));
+      expect(steeringOption?.defaultValue).toBe(false);
     });
   });
 });

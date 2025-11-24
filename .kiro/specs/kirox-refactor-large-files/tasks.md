@@ -300,10 +300,14 @@
   - _Requirements: 5.1, 6.2, 6.3_
   - **注記**: このタスクは既に以前の実装で完了していることを確認
 
-- [ ] 6.2 (P) オプション定義の外部化適用
-  - ParserConfigからオプション定義をインポートする
-  - Commander.jsの`option()`メソッドに設定オブジェクトを適用する
-  - オプションの再利用性とメンテナンス性を向上させる
+- [x] 6.2 (P) オプション定義の外部化適用
+  - ✅ `applyCommandOptions`ヘルパー関数を実装し、Commander.jsのCommand instanceにオプション定義を適用
+  - ✅ parseMainCommand関数とparseAddCommand関数をリファクタリングし、mainCommandOptions/addCommandOptionsを適用
+  - ✅ parser-config.tsから`mainCommandOptions`, `addCommandOptions`, `applyCommandOptions`をインポート
+  - ✅ 新規テスト作成: `tests/unit/cli/parser-config-integration.test.ts` (8テスト全て合格)
+  - ✅ 既存テスト修正: `parser-help.test.ts`, `add-help-text.test.ts`をparser-config参照に更新
+  - ✅ 全parserテスト合格: 96テスト (3 skipped)
+  - ✅ オプションの再利用性とメンテナンス性を向上
   - _Requirements: 5.2, 6.1_
 
 - [ ] 6.3 (P) ASCII artジェネレーションの移動

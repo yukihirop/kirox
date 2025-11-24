@@ -11,12 +11,17 @@ import { describe, it, expect } from 'vitest';
 import { readFileSync } from 'fs';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
+import { addCommandOptions } from '@/cli/parser-config.js';
 
 // Read parser source file
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 const parserSource = readFileSync(
   join(__dirname, '../../../src/cli/parser.ts'),
+  'utf-8'
+);
+const parserConfigSource = readFileSync(
+  join(__dirname, '../../../src/cli/parser-config.ts'),
   'utf-8'
 );
 
@@ -98,39 +103,50 @@ describe('Add Command Help Text (Task 10.1)', () => {
   });
 
   describe('Options documentation', () => {
+    // Task 6.2: After refactoring, check parser-config.ts instead of parser.ts
     it('should document -p, --project option', () => {
-      expect(parserSource).toContain('-p, --project');
-      expect(parserSource).toContain('Project names');
+      const projectOption = addCommandOptions.find(opt => opt.flags.includes('--project'));
+      expect(projectOption).toBeDefined();
+      expect(projectOption?.flags).toContain('-p, --project');
+      expect(projectOption?.description).toContain('Project names');
     });
 
     it('should document -o, --output option', () => {
-      expect(parserSource).toContain('-o, --output');
-      expect(parserSource).toContain('Output directory');
+      const outputOption = addCommandOptions.find(opt => opt.flags.includes('--output'));
+      expect(outputOption).toBeDefined();
+      expect(outputOption?.flags).toContain('-o, --output');
+      expect(outputOption?.description).toContain('Output directory');
     });
 
     it('should document -s, --subdir option', () => {
-      expect(parserSource).toContain('-s, --subdir');
-      expect(parserSource).toContain('Subdirectory path');
+      const subdirOption = addCommandOptions.find(opt => opt.flags.includes('--subdir'));
+      expect(subdirOption).toBeDefined();
+      expect(subdirOption?.flags).toContain('-s, --subdir');
+      expect(subdirOption?.description).toContain('Subdirectory path');
     });
 
     it('should document --force option', () => {
-      expect(parserSource).toContain('--force');
-      expect(parserSource).toContain('Overwrite existing projects');
+      const forceOption = addCommandOptions.find(opt => opt.flags.includes('--force'));
+      expect(forceOption).toBeDefined();
+      expect(forceOption?.description).toContain('Overwrite existing projects');
     });
 
     it('should document --dry-run option', () => {
-      expect(parserSource).toContain('--dry-run');
-      expect(parserSource).toContain('Dry-run mode');
+      const dryRunOption = addCommandOptions.find(opt => opt.flags.includes('--dry-run'));
+      expect(dryRunOption).toBeDefined();
+      expect(dryRunOption?.description).toContain('Dry-run mode');
     });
 
     it('should document --verbose option', () => {
-      expect(parserSource).toContain('--verbose');
-      expect(parserSource).toContain('Verbose logging');
+      const verboseOption = addCommandOptions.find(opt => opt.flags.includes('--verbose'));
+      expect(verboseOption).toBeDefined();
+      expect(verboseOption?.description).toContain('Verbose logging');
     });
 
     it('should document --config option', () => {
-      expect(parserSource).toContain('--config');
-      expect(parserSource).toContain('Custom config file path');
+      const configOption = addCommandOptions.find(opt => opt.flags.includes('--config'));
+      expect(configOption).toBeDefined();
+      expect(configOption?.description).toContain('Custom config file path');
     });
   });
 

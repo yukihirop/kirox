@@ -11,7 +11,7 @@
 export interface CommandOption {
   flags: string;
   description: string;
-  defaultValue?: string | boolean | number;
+  defaultValue?: string | boolean;
 }
 
 /**
@@ -138,3 +138,24 @@ export const completionCommandConfig: CompletionCommandConfig = {
     description: 'Shell type: bash, zsh, fish, powershell, elvish',
   },
 };
+
+/**
+ * Apply command options to Commander.js Command instance
+ *
+ * @param command - Commander.js Command instance
+ * @param options - Array of CommandOption definitions
+ * @returns The Command instance with options applied (for chaining)
+ */
+export function applyCommandOptions(
+  command: import('commander').Command,
+  options: CommandOption[]
+): import('commander').Command {
+  options.forEach((opt) => {
+    if (opt.defaultValue !== undefined) {
+      command.option(opt.flags, opt.description, opt.defaultValue);
+    } else {
+      command.option(opt.flags, opt.description);
+    }
+  });
+  return command;
+}
