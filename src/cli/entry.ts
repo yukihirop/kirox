@@ -25,6 +25,7 @@ import { calculateFileHash } from '../tracking/hash-calculator.js';
 import { loadConfig } from '../config/loader.js';
 import { mergeConfig } from '../config/merger.js';
 import { getMetadataPath } from './metadata-utils.js';
+import { withSilentErrorHandling } from './error-handler-middleware.js';
 import type { ExecutionResult, ParsedArguments } from './types.js';
 import type { ContentItem } from '../github/fetcher.js';
 import type { FileMetadata } from '../tracking/types.js';
@@ -93,13 +94,16 @@ async function processProject(
 
     if (isFirstProject) {
       const steeringPath = buildRemotePath(subdir, '', 'steering');
-      try {
-        steeringContents = await fetchDirectoryContents(octokit, owner, repo, steeringPath, effectiveBranch);
-      } catch (_error) {
-        logger.debug('Steering directory not found, skipping', {
-          path: steeringPath,
-        });
-      }
+      const fetchedSteering = await withSilentErrorHandling(
+        async () => {
+          return await fetchDirectoryContents(octokit, owner, repo, steeringPath, effectiveBranch);
+        },
+        errorHandler,
+        logger,
+        { path: steeringPath, operation: 'fetch-steering-directory' },
+        []
+      );
+      steeringContents = fetchedSteering || [];
     }
   }
 
@@ -204,67 +208,74 @@ async function processProject(
   }
 
   if (args.track && writtenFiles.length > 0) {
-    try {
-      logger.debug('Saving tracking metadata', {
-        filesCount: writtenFiles.length,
-      });
-
-      const metadataPath = getMetadataPath(args.output);
-
-      try {
-        const existingMetadata = await loadMetadata(metadataPath);
-        logger.debug('Loaded existing metadata', {
-          projectsCount: existingMetadata.projects.length,
+    const metadataSaved = await withSilentErrorHandling(
+      async () => {
+        logger.debug('Saving tracking metadata', {
+          filesCount: writtenFiles.length,
         });
-      } catch (_error) {
-        logger.debug('Creating new metadata file');
-      }
 
-      await upsertProject({
-        repository: args.repository,
-        projectName: projectName,
-        subdir: args.subdir,
-        fetchedAt: new Date().toISOString(),
-        files: [],
-      }, metadataPath);
+        const metadataPath = getMetadataPath(args.output);
 
-      for (const file of writtenFiles) {
         try {
-          const localHash = await calculateFileHash(file.localPath);
-
-          const fileMetadata: FileMetadata = {
-            path: file.path,
-            sha: file.sha,
-            size: file.size,
-            localHash,
-            fetchedAt: new Date().toISOString(),
-          };
-
-          await upsertFile(args.repository, projectName, fileMetadata, metadataPath);
-
-          logger.debug('File metadata saved', {
-            path: file.path,
-            sha: file.sha,
-            hash: localHash,
+          const existingMetadata = await loadMetadata(metadataPath);
+          logger.debug('Loaded existing metadata', {
+            projectsCount: existingMetadata.projects.length,
           });
-        } catch (error) {
-          logger.warn('Failed to calculate file hash', {
-            path: file.path,
-            error: error instanceof Error ? error.message : String(error),
-          });
+        } catch (_error) {
+          logger.debug('Creating new metadata file');
         }
-      }
 
-      reporter.reportSuccess(`Saved metadata: ${metadataPath}`);
+        await upsertProject({
+          repository: args.repository,
+          projectName: projectName,
+          subdir: args.subdir,
+          fetchedAt: new Date().toISOString(),
+          files: [],
+        }, metadataPath);
 
-      logger.debug('Metadata saved successfully', {
-        path: metadataPath,
-        filesTracked: writtenFiles.length,
-      });
-    } catch (error) {
-      logger.warn('Failed to save tracking metadata', {
-        error: error instanceof Error ? error.message : String(error),
-      });
+        for (const file of writtenFiles) {
+          await withSilentErrorHandling(
+            async () => {
+              const localHash = await calculateFileHash(file.localPath);
+
+              const fileMetadata: FileMetadata = {
+                path: file.path,
+                sha: file.sha,
+                size: file.size,
+                localHash,
+                fetchedAt: new Date().toISOString(),
+              };
+
+              await upsertFile(args.repository, projectName, fileMetadata, metadataPath);
+
+              logger.debug('File metadata saved', {
+                path: file.path,
+                sha: file.sha,
+                hash: localHash,
+              });
+            },
+            errorHandler,
+            logger,
+            { path: file.path, operation: 'calculate-file-hash' }
+          );
+        }
+
+        reporter.reportSuccess(`Saved metadata: ${metadataPath}`);
+
+        logger.debug('Metadata saved successfully', {
+          path: metadataPath,
+          filesTracked: writtenFiles.length,
+        });
+
+        return true;
+      },
+      errorHandler,
+      logger,
+      { operation: 'save-metadata', projectName },
+      false
+    );
+
+    if (!metadataSaved) {
       reporter.reportVerbose(
         'Warning: Failed to save tracking metadata, but files were downloaded successfully'
       );
