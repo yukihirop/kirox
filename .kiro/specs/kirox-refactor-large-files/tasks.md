@@ -245,6 +245,7 @@
   - メタデータ更新・レポート処理を`updateMetadataAndReport`関数に抽出する
   - 各ヘルパー関数に明示的な戻り値型アノテーションを追加する
   - _Requirements: 1.3, 6.2, 6.3_
+  - **⚠️ 実装前に`typescript-clean-code`スキルを使用**: 複数のヘルパー関数を新規作成するため
 
 - [ ] 5.3 型定義の統合
   - add-command-entry.ts内で重複している型定義を`cli/types.ts`に統合する
@@ -273,6 +274,7 @@
   - `parseMainCommand`、`parseAddCommand`、`parseCompletionCommand`関数を実装する
   - 各関数に明示的な戻り値型アノテーションを追加する
   - _Requirements: 5.1, 6.2, 6.3_
+  - **⚠️ 実装前に`typescript-clean-code`スキルを使用**: 複数のパース関数を新規作成するため
 
 - [ ] 6.2 (P) オプション定義の外部化適用
   - ParserConfigからオプション定義をインポートする
@@ -313,6 +315,7 @@
   - Promptsモジュール（RepoPrompt、ProjectPrompt、BranchPrompt、SubdirPrompt）の単体テストを追加する
   - SpinnerMgrとFormatterの単体テストを追加する
   - _Requirements: 1.4, 6.5_
+  - **⚠️ 新規テスト作成時に`typescript-clean-code`スキルを使用**: 複数の新規テストファイルを作成する場合
 
 - [ ] 7.2 統合テストの実行と修正
   - 全ての統合テスト（`tests/integration/`）を実行し、合格を確認する
