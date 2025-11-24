@@ -118,6 +118,18 @@
   - ✅ 公開APIシグネチャを維持: 既存の呼び出し元コードは変更不要
   - ✅ テスト結果: 75個のpromptsモジュールテスト全て合格
 
+- [ ] 3.6 Phase 3の自明なコメント削除
+  - Phase 3で作成・修正した全ファイルから自明なコメントを削除する
+  - 対象ファイル:
+    - `src/cli/interactive-prompt.ts`
+    - `src/cli/prompts/repository-prompt.ts`
+    - `src/cli/prompts/project-selection-prompt.ts`
+    - `src/cli/prompts/branch-prompt.ts`
+    - `src/cli/prompts/subdir-selection-prompt.ts`
+  - 削除対象: "Task X.X: ..." のような実装内容を説明するだけのコメント
+  - 保持対象: WHYを説明する有意義なコメント（アルゴリズムの理由、制約条件など）
+  - _Requirements: 6.8_
+
 ---
 
 ## Phase 4: entry.tsのリファクタリング
