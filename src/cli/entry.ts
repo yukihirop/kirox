@@ -4,7 +4,10 @@
  * Main execution logic that orchestrates all components
  */
 
+// External libraries
 import { Octokit } from 'octokit';
+
+// Internal modules - CLI layer
 import { parseArguments } from './parser.js';
 import { validateInput } from './validator.js';
 import {
@@ -13,20 +16,32 @@ import {
   checkTTYEnvironment,
   handleInteractiveError,
 } from './interactive-prompt.js';
-import { parseRepositoryPath, fetchDirectoryContents } from '../github/fetcher.js';
-import { fetchFilesInParallel } from '../github/parallel-fetcher.js';
-import { writeFile } from '../filesystem/writer.js';
-import { ProgressReporter } from '../reporting/progress-reporter.js';
-import { ErrorHandler } from '../reporting/error-handler.js';
-import { PinoLogger } from '../reporting/pino-logger.js';
-import { resolveOutputPath, buildRemotePath } from '../filesystem/path-utils.js';
-import { loadMetadata, upsertProject, upsertFile } from '../tracking/metadata-manager.js';
-import { calculateFileHash } from '../tracking/hash-calculator.js';
-import { loadConfig } from '../config/loader.js';
-import { mergeConfig } from '../config/merger.js';
 import { getMetadataPath } from './metadata-utils.js';
 import { withSilentErrorHandling } from './error-handler-middleware.js';
 import { determineExecutionMode } from './execution-mode.js';
+
+// Internal modules - GitHub layer
+import { parseRepositoryPath, fetchDirectoryContents } from '../github/fetcher.js';
+import { fetchFilesInParallel } from '../github/parallel-fetcher.js';
+
+// Internal modules - FileSystem layer
+import { writeFile } from '../filesystem/writer.js';
+import { resolveOutputPath, buildRemotePath } from '../filesystem/path-utils.js';
+
+// Internal modules - Reporting layer
+import { ProgressReporter } from '../reporting/progress-reporter.js';
+import { ErrorHandler } from '../reporting/error-handler.js';
+import { PinoLogger } from '../reporting/pino-logger.js';
+
+// Internal modules - Tracking layer
+import { loadMetadata, upsertProject, upsertFile } from '../tracking/metadata-manager.js';
+import { calculateFileHash } from '../tracking/hash-calculator.js';
+
+// Internal modules - Config layer
+import { loadConfig } from '../config/loader.js';
+import { mergeConfig } from '../config/merger.js';
+
+// Type-only imports
 import type { ExecutionResult, ParsedArguments } from './types.js';
 import type { ContentItem } from '../github/fetcher.js';
 import type { FileMetadata } from '../tracking/types.js';
