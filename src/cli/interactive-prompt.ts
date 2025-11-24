@@ -14,7 +14,7 @@ import { input, confirm } from '@inquirer/prompts';
 import { Octokit } from 'octokit';
 import chalk from 'chalk';
 import type { ParsedArguments } from './types.js';
-import { validateRepositoryFormat, validateProjectName } from './validator.js';
+import { validateProjectName } from './validator.js';
 import { parseProjects } from './project-name-parser.js';
 import { PinoLogger } from '../reporting/pino-logger.js';
 import type { KiroxConfig } from '../config/types.js';
@@ -30,6 +30,10 @@ import { promptProjectSelection } from './searchable-project-prompt.js';
 import { promptBranch } from './branch-prompt.js';
 import { scanDirectoriesAcrossRepo } from '../github/tree-based-dir-scanner.js';
 import { promptSubdirSelection } from './searchable-subdir-prompt.js';
+// Task 3.5: Import and re-export promptRepository from new prompts module
+import { promptRepository } from './prompts/repository-prompt.js';
+
+export { promptRepository };
 
 /**
  * Determine if interactive mode should be entered
@@ -63,53 +67,6 @@ export function shouldEnterInteractiveMode(args: ParsedArguments): boolean {
 
   // Enter interactive mode if either is missing
   return !hasRepository || !hasProject;
-}
-
-/**
- * Prompt for repository input
- *
- * If a valid repository value is already provided, returns it immediately.
- * Otherwise, displays an interactive prompt with real-time validation.
- *
- * Task 7.2: 既存メタデータからのリポジトリ提案機能
- * When metadata is provided, suggests the last used repository as the default value.
- *
- * @param currentValue - Current repository value (may be empty or whitespace)
- * @param metadata - Optional metadata object for suggesting last repository
- * @returns Validated repository string in format "owner/repo" or "owner/repo#branch"
- */
-export async function promptRepository(currentValue: string, metadata?: Metadata): Promise<string> {
-  // Skip prompt if value is already provided (non-empty after trim)
-  if (currentValue && currentValue.trim() !== '') {
-    return currentValue;
-  }
-
-  // Extract default repository from metadata if available
-  // Task 7.2: 最後に使用したリポジトリをデフォルト値として提案
-  let defaultRepository: string | undefined;
-  if (metadata && metadata.projects.length > 0) {
-    // Get the last project's repository
-    const lastProject = metadata.projects[metadata.projects.length - 1];
-    if (lastProject) {
-      defaultRepository = lastProject.repository;
-    }
-  }
-
-  // Display interactive prompt with validation
-  // If defaultRepository is defined, include it in the input options
-  return await input({
-    message: chalk.bold.cyan('📦 Enter GitHub repository (owner/repo or owner/repo#branch)') +
-      (defaultRepository ? chalk.dim(` (default: ${defaultRepository})`) : ''),
-    ...(defaultRepository && { default: defaultRepository }),
-    validate: (value: string) => {
-      const errors = validateRepositoryFormat(value);
-      if (errors.length > 0) {
-        // Return first error message, or fallback message if array is somehow empty
-        return chalk.red(errors[0]?.message || 'Invalid repository format');
-      }
-      return true;
-    },
-  });
 }
 
 /**

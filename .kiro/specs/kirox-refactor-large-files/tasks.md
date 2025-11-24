@@ -106,7 +106,7 @@
   - ✅ テスト完了: 13テスト全て合格
   - ✅ 後方互換性: `searchable-subdir-prompt.ts`を再エクスポートラッパーに変更
 
-- [ ] 3.5 InteractiveFacadeのファサード化
+- [x] 3.5 InteractiveFacadeのファサード化
   - 既存のinteractive-prompt.tsをファサードパターンで再実装する
   - 公開API関数（`shouldEnterInteractiveMode`、`promptMissingArguments`）のシグネチャを維持する
   - 内部実装を各Promptsモジュール（RepoPrompt、ProjectPrompt、BranchPrompt、SubdirPrompt）に委譲する
@@ -114,6 +114,9 @@
   - 既存の呼び出し元コード（MainEntry、AddEntry）への影響を最小化する
   - バリデーションロジックを既存の`validator.ts`モジュールに集約する
   - _Requirements: 3.1, 3.2, 3.3, 3.5, 6.1, 6.6_
+  - ✅ リファクタリング完了: `promptRepository`を`prompts/repository-prompt.ts`から再エクスポート
+  - ✅ 公開APIシグネチャを維持: 既存の呼び出し元コードは変更不要
+  - ✅ テスト結果: 75個のpromptsモジュールテスト全て合格
 
 ---
 
