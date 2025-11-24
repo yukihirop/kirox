@@ -67,12 +67,14 @@
 ## Phase 3: CLI層のプロンプトモジュール作成
 
 - [ ] 3. 対話モードプロンプトの分離
-- [ ] 3.1 (P) リポジトリ入力プロンプトの実装
+- [x] 3.1 (P) リポジトリ入力プロンプトの実装
   - `promptRepository`関数を実装し、@inquirer/promptsを使用してリポジトリ入力を受け付ける
   - 既存の`validateRepositoryFormat`関数を活用してリアルタイムバリデーションを実装する
   - メタデータから最後に使用したリポジトリをデフォルト値として提案する機能を含める
   - 50行以下の単一責任関数として実装する
   - _Requirements: 3.1, 3.3, 3.4, 6.2, 6.3_
+  - ✅ 実装完了: `src/cli/prompts/repository-prompt.ts` (56行)
+  - ✅ テスト完了: 12テスト全て合格
 
 - [ ] 3.2 (P) プロジェクト選択プロンプトの実装
   - `promptProjectSelection`関数を実装し、@inquirer/promptsを使用してプロジェクト選択を受け付ける
