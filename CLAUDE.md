@@ -70,6 +70,7 @@ Note: Optional for new features or small additions. You can proceed directly to 
 5. **Update task status**: Mark tasks as completed when working on them
 6. **Keep steering current**: Run `/kiro:steering` after significant changes
 7. **Check spec compliance**: Use `/kiro:spec-status` to verify alignment
+8. **Use typescript-clean-code skill**: When implementing new features, modules, or files, use the `typescript-clean-code` skill to ensure clean, maintainable code from the start
 
 ## Steering Configuration
 
@@ -139,6 +140,7 @@ Kiro-style Spec Driven Development implementation on AI-DLC (AI Development Life
 - Human review required each phase; use `-y` only for intentional fast-track
 - Keep steering current and verify alignment with `/kiro:spec-status`
 - Follow the user's instructions precisely, and within that scope act autonomously: gather the necessary context and complete the requested work end-to-end in this run, asking questions only when essential information is missing or the instructions are critically ambiguous.
+- **Use typescript-clean-code skill**: When implementing new features, modules, or files, use the `typescript-clean-code` skill to ensure clean, maintainable code from the start
 
 ## Steering Configuration
 - Load entire `.kiro/steering/` as project memory
