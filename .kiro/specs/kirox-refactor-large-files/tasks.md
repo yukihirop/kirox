@@ -252,10 +252,16 @@
   - ✅ typescript-clean-codeスキル使用: 実装前にクリーンコードガイドライン適用
   - _Requirements: 1.3, 6.2, 6.3_
 
-- [ ] 5.3 型定義の統合
-  - add-command-entry.ts内で重複している型定義を`cli/types.ts`に統合する
-  - 共通型定義を各モジュールからインポートする構造に変更する
-  - TypeScript厳格型チェックに準拠し、`any`型を排除する
+- [x] 5.3 型定義の統合
+  - ✅ 型定義統合完了: タスク5.2で`cli/types.ts`に統合済み
+  - ✅ 追加された型定義:
+    - `MergedConfig`: 設定マージ後の型
+    - `MetadataCheckResult`: メタデータチェック結果型
+    - `ProjectContext`: プロジェクト処理コンテキスト型
+  - ✅ インポート構造: add-command-entry.ts, add-command-helpers.tsから`cli/types.ts`をインポート
+  - ✅ `any`型排除: CLI層のソースコード全てで`any`型なし
+  - ✅ ビルド成功: 型チェックエラーなし
+  - ✅ テスト成功: add-command-entry.test.ts 75/79テスト合格（4スキップ）
   - _Requirements: 1.2, 6.2_
 
 - [ ] 5.4 自明なコメントの削除
