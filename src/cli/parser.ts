@@ -6,12 +6,33 @@
 
 import { Command } from 'commander';
 import chalk from 'chalk';
+import { readFileSync } from 'fs';
+import { fileURLToPath } from 'url';
+import { dirname, join } from 'path';
 import type { ParsedArguments } from './types.js';
 import { parseProjects } from './project-name-parser.js';
 import { generateKiroxAsciiArt } from './utilities/ascii-art-utils.js';
 
-// Version is injected at build time via tsup define (see src/global.d.ts)
-const VERSION = __KIROX_VERSION__;
+// Get version from package.json or build-time define
+function getVersion(): string {
+  // In production build, __KIROX_VERSION__ is defined by tsup
+  if (typeof __KIROX_VERSION__ !== 'undefined') {
+    return __KIROX_VERSION__;
+  }
+
+  // In development (tsx), read from package.json
+  try {
+    const __filename = fileURLToPath(import.meta.url);
+    const __dirname = dirname(__filename);
+    const packageJsonPath = join(__dirname, '../../package.json');
+    const packageJson = JSON.parse(readFileSync(packageJsonPath, 'utf-8'));
+    return packageJson.version || '0.0.0-dev';
+  } catch (_error) {
+    return '0.0.0-dev';
+  }
+}
+
+const VERSION = getVersion();
 
 /**
  * Parse command-line arguments

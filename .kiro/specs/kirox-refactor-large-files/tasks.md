@@ -297,3 +297,18 @@
 - **Requirement 4 (progress-reporter.ts)**: Tasks 2.1, 2.2, 2.3
 - **Requirement 5 (parser.ts)**: Tasks 1.2, 1.3, 6.1, 6.2, 6.3, 6.4, 6.5, 6.6
 - **Requirement 6 (横断的品質要件)**: Tasks 2.3, 3.5, 4.1, 4.2, 4.3, 4.4, 4.5, 4.6, 5.1, 5.2, 5.3, 5.4, 5.5, 6.1, 6.2, 6.3, 6.4, 6.5, 6.6, 7.1, 7.2, 7.3, 7.4, 8.1, 8.2, 8.3, 8.4
+
+---
+
+## 修正タスク
+
+### 開発環境エラー修正
+
+- [x] 9.1 `npm run dev`で`__KIROX_VERSION__`未定義エラーの修正
+  - **問題**: `src/cli/parser.ts:14`で`ReferenceError: __KIROX_VERSION__ is not defined`が発生
+  - **原因**: 開発環境（tsx）では`__KIROX_VERSION__`がビルド時定義されないため、実行時にエラーになる
+  - **対応方法**:
+    1. `src/cli/parser.ts`で`__KIROX_VERSION__`のフォールバック処理を追加
+    2. `package.json`のバージョンを動的にインポートするか、開発環境用のデフォルト値を設定
+  - **検証**: `npm run dev`が正常に動作することを確認
+  - **影響範囲**: 開発環境のみ（ビルド後の動作には影響なし）
