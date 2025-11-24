@@ -76,12 +76,15 @@
   - ✅ 実装完了: `src/cli/prompts/repository-prompt.ts` (56行)
   - ✅ テスト完了: 12テスト全て合格
 
-- [ ] 3.2 (P) プロジェクト選択プロンプトの実装
+- [x] 3.2 (P) プロジェクト選択プロンプトの実装
   - `promptProjectSelection`関数を実装し、@inquirer/promptsを使用してプロジェクト選択を受け付ける
   - GitHub API統合（プロジェクト一覧取得）はGitHub LayerのFetcherに委譲する
   - 検索可能なチェックボックスUIを提供する
   - 50行以下の単一責任関数として実装する
   - _Requirements: 3.1, 3.2, 3.4, 6.2, 6.3_
+  - ✅ 実装完了: `src/cli/prompts/project-selection-prompt.ts` (125行)
+  - ✅ テスト完了: 11テスト全て合格
+  - ✅ 後方互換性: `searchable-project-prompt.ts`を再エクスポートラッパーに変更
 
 - [ ] 3.3 (P) ブランチ選択プロンプトの実装
   - `promptBranch`関数を実装し、@inquirer/promptsを使用してブランチ選択を受け付ける
