@@ -326,9 +326,20 @@
   - ✅ parseProjectsモジュールとの連携が正しく動作していることを検証
   - _Requirements: 5.3_
 
-- [ ] 6.5 型互換性の維持確認
-  - `ParsedArguments`型のシグネチャが変更されていないことを確認する
-  - 既存のバリデーション層（validator.ts）との互換性を保つ
+- [x] 6.5 型互換性の維持確認
+  - ✅ `ParsedArguments`型のシグネチャが変更されていないことを確認
+  - ✅ validator.tsとの型互換性を検証 - 全てのvalidatorテスト合格 (135テスト、2スキップ)
+  - ✅ 新規統合テスト作成: `tests/unit/cli/parser-validator-integration.test.ts` (13テスト全て合格)
+  - ✅ 型互換性テスト内容:
+    - parseArguments → validateInput の型互換性確認
+    - repository、projects、boolean、optional string各フィールドの型検証
+    - addサブコマンドの型互換性確認
+    - デフォルト値の型互換性確認
+    - バリデーションエラーシナリオの型互換性確認
+    - steeringモードの型互換性確認
+  - ✅ 全parserテスト合格: 150テスト (3スキップ)
+  - ✅ 全validatorテスト合格: 135テスト (2スキップ)
+  - ✅ parser-config.tsリファクタリング後も型互換性が完全に維持されていることを確認
   - _Requirements: 5.5, 6.6_
 
 - [ ] 6.6 自明なコメントの削除
