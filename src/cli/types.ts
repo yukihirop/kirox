@@ -69,3 +69,49 @@ export interface ExecutionResult {
   /** Exit code (0=success, 1=user error, 2=system error) */
   exitCode: number;
 }
+
+/**
+ * Configuration after merging CLI args with file config
+ */
+export interface MergedConfig {
+  /** Subdirectory path containing .kiro folder */
+  subdir?: string;
+  /** Branch name */
+  branch?: string;
+  /** Force overwrite without confirmation */
+  force: boolean;
+  /** Dry-run mode (no actual writes) */
+  dryRun: boolean;
+  /** Verbose logging */
+  verbose: boolean;
+}
+
+/**
+ * Metadata checking result
+ */
+export interface MetadataCheckResult {
+  /** Metadata file path */
+  metadataPath: string;
+  /** Loaded or newly created metadata */
+  metadata: import('../tracking/types.js').Metadata;
+  /** Whether metadata is newly created (empty) */
+  isNewMetadata: boolean;
+}
+
+/**
+ * Project processing context
+ */
+export interface ProjectContext {
+  /** Parsed arguments */
+  args: ParsedArguments;
+  /** Merged configuration */
+  config: MergedConfig;
+  /** Repository owner */
+  owner: string;
+  /** Repository name */
+  repo: string;
+  /** Effective branch (from CLI or config) */
+  effectiveBranch?: string;
+  /** Metadata check result (undefined if --track is disabled) */
+  metadataCheck?: MetadataCheckResult;
+}
