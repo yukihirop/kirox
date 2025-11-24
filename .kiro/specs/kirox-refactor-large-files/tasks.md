@@ -270,9 +270,17 @@
   - WHYを説明するコメント（例: `// Business requirement: Duplicate projects are allowed in different subdirectories`）は保持する
   - _Requirements: 6.8_
 
-- [ ] 5.5 公開APIシグネチャの維持確認
-  - `executeAddCommand`関数のシグネチャが変更されていないことを確認する
-  - 既存の呼び出し元コードへの影響がないことを検証する
+- [x] 5.5 公開APIシグネチャの維持確認
+  - ✅ `executeAddCommand`関数のシグネチャが変更されていないことを確認済み
+    - リファクタリング前: `export async function executeAddCommand(argv: string[]): Promise<ExecutionResult>`
+    - リファクタリング後: `export async function executeAddCommand(argv: string[]): Promise<ExecutionResult>`
+    - シグネチャは完全に一致
+  - ✅ 既存の呼び出し元コードへの影響がないことを検証済み
+    - `src/index.ts`: executeAddCommandをインポートして使用（変更なし）
+    - `src/cli/parser.ts`: parseAddCommand内で利用（変更なし）
+    - テスト結果: add-command-entry.test.ts 75/79テスト合格（4スキップ）
+  - ✅ ビルド成功: 型チェックエラーなし
+  - ✅ 統合テスト: 37テスト全て合格
   - _Requirements: 1.5, 6.6_
 
 ---
