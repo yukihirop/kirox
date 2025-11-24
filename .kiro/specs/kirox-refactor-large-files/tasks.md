@@ -288,6 +288,7 @@
 ## Phase 6: parser.tsのリファクタリング
 
 - [ ] 6. parser.tsの責任範囲整理
+- **⚠️ リファクタリング実施時に`refactoring-patterns`スキルを使用**: parser.tsは大規模ファイルでファサードパターン適用が必要
 - [x] 6.1 (P) サブコマンドパース処理の分離
   - ✅ メインコマンド、addサブコマンド、completionサブコマンドのパース処理を独立した関数に抽出済み
     - `parseMainCommand(argv: string[]): ParsedArguments` (line 251)
@@ -338,7 +339,7 @@
   - Promptsモジュール（RepoPrompt、ProjectPrompt、BranchPrompt、SubdirPrompt）の単体テストを追加する
   - SpinnerMgrとFormatterの単体テストを追加する
   - _Requirements: 1.4, 6.5_
-  - **⚠️ 新規テスト作成時に`typescript-clean-code`スキルを使用**: 複数の新規テストファイルを作成する場合
+  - **⚠️ 新規テスト作成時に`vitest-testing`スキルを使用**: 単体・統合・E2Eテストの作成と修正に推奨
 
 - [ ] 7.2 統合テストの実行と修正
   - 全ての統合テスト（`tests/integration/`）を実行し、合格を確認する
@@ -433,3 +434,4 @@
     1. 公開APIのみをテストするようにテストを修正
     2. または、テスト用にSpinnerManagerへのアクセサーを追加（後方互換性）
   - **優先度**: 高（現在49テスト失敗中）
+  - **⚠️ テスト修正時に`refactoring-patterns`と`vitest-testing`スキルを使用**: ファサード後のテスト設計と実装に推奨
