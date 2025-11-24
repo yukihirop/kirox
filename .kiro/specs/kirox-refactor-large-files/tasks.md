@@ -174,11 +174,21 @@
   - ✅ 統合テスト: 37テスト全て合格 (tests/integration)
   - ✅ ビルド成功: 型チェックエラーなし
 
-- [ ] 4.4 対話モードと非対話モードの実行パス分離
+- [x] 4.4 対話モードと非対話モードの実行パス分離
   - 対話モード判定後の処理を独立した実行パスに分離する
   - 条件分岐を最小化し、各モードのフローを明確化する
   - InteractiveFacadeへの委譲を適切に配置する
   - _Requirements: 2.3, 6.1_
+  - ✅ 実装完了: 実行モード判定ユーティリティ (`src/cli/execution-mode.ts`) を作成
+  - ✅ `determineExecutionMode`: 引数に基づいて4つのモード（interactive/non-interactive/check-updates/update）を判定
+  - ✅ `executeInteractiveMode`: 対話モード専用のヘルパー関数を抽出（TTYチェック、プロンプト処理）
+  - ✅ execute関数のリファクタリング:
+    - モードルーティングを最初に実行（lines 347-365）
+    - 重複した条件分岐を削除（checkUpdates/updateの重複チェック）
+    - 対話モード処理を独立した関数に委譲
+  - ✅ テスト完了: 11テスト全て合格 (`tests/unit/cli/entry-mode-separation.test.ts`)
+  - ✅ 統合テスト: 37テスト全て合格 (tests/integration)
+  - ✅ ビルド成功: 型チェックエラーなし
 
 - [ ] 4.5 依存注入パターンの維持確認
   - ProgressReporter、ErrorHandler、PinoLoggerの依存注入パターンが維持されていることを確認する

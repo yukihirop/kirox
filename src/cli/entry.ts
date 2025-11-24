@@ -26,6 +26,7 @@ import { loadConfig } from '../config/loader.js';
 import { mergeConfig } from '../config/merger.js';
 import { getMetadataPath } from './metadata-utils.js';
 import { withSilentErrorHandling } from './error-handler-middleware.js';
+import { determineExecutionMode } from './execution-mode.js';
 import type { ExecutionResult, ParsedArguments } from './types.js';
 import type { ContentItem } from '../github/fetcher.js';
 import type { FileMetadata } from '../tracking/types.js';
@@ -290,58 +291,77 @@ async function processProject(
 }
 
 /**
+ * Handle interactive mode execution
+ * Prompts user for missing arguments and validates TTY environment
+ *
+ * @param args - Initial parsed arguments
+ * @param logger - Logger instance
+ * @returns Completed arguments or execution result if failed
+ */
+async function executeInteractiveMode(
+  args: ParsedArguments,
+  logger: PinoLogger
+): Promise<ParsedArguments | ExecutionResult> {
+  const ttyCheck = checkTTYEnvironment(logger);
+  if (!ttyCheck.success) {
+    return {
+      success: false,
+      filesDownloaded: 0,
+      filesFailed: 0,
+      exitCode: ttyCheck.exitCode,
+    };
+  }
+
+  const fileConfig = await loadConfig(args.config);
+
+  try {
+    return await promptMissingArguments(args, fileConfig, logger, args.verbose);
+  } catch (error) {
+    const errorResult = handleInteractiveError(error, logger);
+    return {
+      success: false,
+      filesDownloaded: 0,
+      filesFailed: 0,
+      exitCode: errorResult.exitCode,
+    };
+  }
+}
+
+/**
  * Execute main CLI logic
  *
  * Orchestrates the complete flow:
  * 1. Parse arguments
- * 2. Validate input
- * 3. Fetch files from GitHub
- * 4. Write files to local filesystem
- * 5. Report progress and summary
+ * 2. Route to appropriate execution mode
+ * 3. Execute mode-specific logic
  *
  * @param argv - Command-line arguments
  * @returns Execution result with success status and file counts
  */
 export async function execute(argv: string[]): Promise<ExecutionResult> {
-  // Step 1: Parse arguments (needed early for PinoLogger initialization with verbose flag)
   let args = parseArguments(argv);
-
-  // Initialize logger with verbose flag from parsed arguments
   const logger = new PinoLogger(args.verbose);
   const errorHandler = new ErrorHandler();
 
   try {
+    const mode = determineExecutionMode(args);
 
-    // Step 1.5: Check if interactive mode is needed
-    if (shouldEnterInteractiveMode(args)) {
-      // Check TTY environment
-      const ttyCheck = checkTTYEnvironment(logger);
-      if (!ttyCheck.success) {
-        return {
-          success: false,
-          filesDownloaded: 0,
-          filesFailed: 0,
-          exitCode: ttyCheck.exitCode,
-        };
+    if (mode === 'check-updates') {
+      return await handleCheckUpdates(args, logger);
+    }
+
+    if (mode === 'update') {
+      return await handleUpdate(args, logger);
+    }
+
+    if (mode === 'interactive') {
+      const result = await executeInteractiveMode(args, logger);
+
+      if ('exitCode' in result) {
+        return result;
       }
 
-      // Load config file for interactive mode defaults
-      const fileConfig = await loadConfig(args.config);
-
-      // Prompt for missing arguments with config file defaults
-      // Pass logger and verbose flag for project suggestion feature
-      try {
-        args = await promptMissingArguments(args, fileConfig, logger, args.verbose);
-      } catch (error) {
-        // Handle interactive mode errors
-        const errorResult = handleInteractiveError(error, logger);
-        return {
-          success: false,
-          filesDownloaded: 0,
-          filesFailed: 0,
-          exitCode: errorResult.exitCode,
-        };
-      }
+      args = result;
     }
 
     // Step 2: Validate input
@@ -357,28 +377,15 @@ export async function execute(argv: string[]): Promise<ExecutionResult> {
       };
     }
 
-    // Step 2.3: Load and merge configuration
     const fileConfig = await loadConfig(args.config);
     const mergedConfig = mergeConfig(args, fileConfig);
-
-    // Get subdir from merged config (default to empty string if undefined)
     const subdir = mergedConfig.subdir || '';
 
     if (subdir) {
       logger.debug('Using subdirectory', { subdir });
     }
 
-    // Step 2.5: Handle --check-updates command
-    if (args.checkUpdates) {
-      return await handleCheckUpdates(args, logger);
-    }
-
-    // Step 2.6: Handle --update command
-    if (args.update) {
-      return await handleUpdate(args, logger);
-    }
-
-    // Step 3: Parse repository and determine effective branch
+    // Parse repository and determine effective branch
     const { owner, repo, branch } = parseRepositoryPath(args.repository);
 
     // Get branch from merged config (CLI branch takes precedence over config file)
