@@ -318,9 +318,12 @@
   - ✅ タスク1.3で既に実装完了していることを確認
   - _Requirements: 5.4, 6.1_
 
-- [ ] 6.4 (P) プロジェクト名パース連携の維持確認
-  - 既存の`project-name-parser.ts`モジュールとの連携が維持されていることを確認する
-  - 重複ロジックが削除されていることを検証する
+- [x] 6.4 (P) プロジェクト名パース連携の維持確認
+  - ✅ parser.tsで`parseProjects`を正しくインポート・使用していることを確認 (line 13, 229, 344)
+  - ✅ parser.ts内に重複するプロジェクト名パースロジックが存在しないことを確認
+  - ✅ 新規統合テスト作成: `tests/unit/cli/parser-project-name-integration.test.ts` (12テスト全て合格)
+  - ✅ 既存テスト合格: `project-name-parser.test.ts` (15テスト), `parser.test.ts` (51テスト)
+  - ✅ parseProjectsモジュールとの連携が正しく動作していることを検証
   - _Requirements: 5.3_
 
 - [ ] 6.5 型互換性の維持確認
