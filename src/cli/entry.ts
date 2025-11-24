@@ -30,6 +30,255 @@ import type { ContentItem } from '../github/fetcher.js';
 import type { FileMetadata } from '../tracking/types.js';
 
 /**
+ * Project processing result
+ */
+interface ProjectProcessingResult {
+  filesDownloaded: number;
+  filesFailed: number;
+  success: boolean;
+}
+
+/**
+ * Process a single project: fetch files, write to filesystem, and save metadata
+ *
+ * @param projectName - Project name to process
+ * @param args - Parsed arguments
+ * @param config - Merged configuration
+ * @param octokit - Octokit instance
+ * @param owner - Repository owner
+ * @param repo - Repository name
+ * @param subdir - Subdirectory path
+ * @param effectiveBranch - Effective branch to use
+ * @param reporter - Progress reporter instance
+ * @param logger - Logger instance
+ * @param errorHandler - Error handler instance
+ * @param isFirstProject - Whether this is the first project in multi-project execution
+ * @param displayProjectName - Project name for display (undefined for single-project mode)
+ * @returns Project processing result
+ */
+async function processProject(
+  projectName: string,
+  args: ParsedArguments,
+  octokit: Octokit,
+  owner: string,
+  repo: string,
+  subdir: string,
+  effectiveBranch: string | undefined,
+  reporter: ProgressReporter,
+  logger: PinoLogger,
+  errorHandler: ErrorHandler,
+  isFirstProject: boolean,
+  displayProjectName: string | undefined
+): Promise<ProjectProcessingResult> {
+  logger.debug('Fetching directory listings from GitHub', {
+    repository: args.repository,
+    project: projectName,
+    ...(effectiveBranch && { branch: effectiveBranch }),
+  });
+
+  let specContents: ContentItem[] = [];
+  let steeringContents: ContentItem[] = [];
+
+  if (args.steering) {
+    const steeringPath = buildRemotePath(subdir, '', 'steering');
+    try {
+      steeringContents = await fetchDirectoryContents(octokit, owner, repo, steeringPath, effectiveBranch);
+    } catch (_error) {
+      const pathInfo = subdir ? `${args.repository}/${subdir}` : args.repository;
+      throw new Error(`.kiro/steering directory not found in ${pathInfo}`);
+    }
+  } else {
+    const specPath = buildRemotePath(subdir, projectName, 'specs');
+    specContents = await fetchDirectoryContents(octokit, owner, repo, specPath, effectiveBranch);
+
+    if (isFirstProject) {
+      const steeringPath = buildRemotePath(subdir, '', 'steering');
+      try {
+        steeringContents = await fetchDirectoryContents(octokit, owner, repo, steeringPath, effectiveBranch);
+      } catch (_error) {
+        logger.debug('Steering directory not found, skipping', {
+          path: steeringPath,
+        });
+      }
+    }
+  }
+
+  const specFiles = specContents.filter((item) => item.type === 'file');
+  const steeringFiles = steeringContents.filter((item) => item.type === 'file');
+  const allFiles: ContentItem[] = [...specFiles, ...steeringFiles];
+
+  logger.debug('Directory listings fetched', {
+    specFiles: specFiles.length,
+    steeringFiles: steeringFiles.length,
+    total: allFiles.length,
+    ...(subdir && { subdir }),
+  });
+
+  if (args.steering && allFiles.length === 0) {
+    const pathInfo = subdir ? ` in subdirectory ${subdir}` : '';
+    reporter.reportVerbose(`No files found in .kiro/steering${pathInfo}`);
+    logger.info('No files found in .kiro/steering', {
+      repository: args.repository,
+      ...(subdir && { subdir }),
+    });
+    return { filesDownloaded: 0, filesFailed: 0, success: true };
+  }
+
+  logger.debug('Fetching file contents', { count: allFiles.length });
+
+  const filePaths = allFiles.map((item) => item.path);
+  const fetchResult = await fetchFilesInParallel(
+    octokit,
+    owner,
+    repo,
+    filePaths,
+    5,
+    effectiveBranch,
+    (current, total, filePath) => {
+      reporter.reportProgress(current, total, filePath, displayProjectName);
+    }
+  );
+
+  logger.debug('Files fetched', {
+    success: fetchResult.success.length,
+    failed: fetchResult.failed.length,
+  });
+
+  let filesDownloaded = 0;
+  let filesFailed = fetchResult.failed.length;
+  const writtenFiles: Array<{ path: string; sha: string; size: number; localPath: string }> = [];
+
+  for (const file of fetchResult.success) {
+    if (effectiveBranch) {
+      const branchInfo = `${owner}/${repo}#${effectiveBranch}/${file.path}`;
+      logger.debug(`取得中: ${branchInfo}`, { project: displayProjectName });
+    }
+
+    try {
+      const localPath = resolveOutputPath(args.output, file.path);
+      reporter.pauseSpinner(displayProjectName);
+
+      const writeResult = await writeFile(localPath, file.content, {
+        force: args.force,
+        prompt: !args.force,
+        dryRun: args.dryRun,
+        verbose: args.verbose,
+      });
+
+      if (writeResult.written) {
+        filesDownloaded++;
+        reporter.reportSuccess(`Saved: ${file.path}`, displayProjectName);
+
+        if (args.track) {
+          writtenFiles.push({
+            path: file.path,
+            sha: file.sha,
+            size: file.size,
+            localPath,
+          });
+        }
+      } else if (writeResult.skipped) {
+        reporter.reportVerbose(
+          `Skipped: ${file.path} (${writeResult.reason})`,
+          displayProjectName
+        );
+      }
+    } catch (error) {
+      filesFailed++;
+      const errorResult = errorHandler.handle(error, {
+        filePath: file.path,
+        details: error instanceof Error ? error.message : String(error),
+      });
+      reporter.reportError(`Failed: ${file.path} - ${errorResult.message}`, displayProjectName);
+      logger.logError(errorResult);
+    }
+  }
+
+  for (const failedFile of fetchResult.failed) {
+    const errorResult = errorHandler.handle(new Error(failedFile.error), {
+      filePath: failedFile.path,
+      details: failedFile.error,
+    });
+    reporter.reportError(`Failed to fetch: ${failedFile.path} - ${errorResult.message}`, displayProjectName);
+    logger.logError(errorResult);
+  }
+
+  if (args.track && writtenFiles.length > 0) {
+    try {
+      logger.debug('Saving tracking metadata', {
+        filesCount: writtenFiles.length,
+      });
+
+      const metadataPath = getMetadataPath(args.output);
+
+      try {
+        const existingMetadata = await loadMetadata(metadataPath);
+        logger.debug('Loaded existing metadata', {
+          projectsCount: existingMetadata.projects.length,
+        });
+      } catch (_error) {
+        logger.debug('Creating new metadata file');
+      }
+
+      await upsertProject({
+        repository: args.repository,
+        projectName: projectName,
+        subdir: args.subdir,
+        fetchedAt: new Date().toISOString(),
+        files: [],
+      }, metadataPath);
+
+      for (const file of writtenFiles) {
+        try {
+          const localHash = await calculateFileHash(file.localPath);
+
+          const fileMetadata: FileMetadata = {
+            path: file.path,
+            sha: file.sha,
+            size: file.size,
+            localHash,
+            fetchedAt: new Date().toISOString(),
+          };
+
+          await upsertFile(args.repository, projectName, fileMetadata, metadataPath);
+
+          logger.debug('File metadata saved', {
+            path: file.path,
+            sha: file.sha,
+            hash: localHash,
+          });
+        } catch (error) {
+          logger.warn('Failed to calculate file hash', {
+            path: file.path,
+            error: error instanceof Error ? error.message : String(error),
+          });
+        }
+      }
+
+      reporter.reportSuccess(`Saved metadata: ${metadataPath}`);
+
+      logger.debug('Metadata saved successfully', {
+        path: metadataPath,
+        filesTracked: writtenFiles.length,
+      });
+    } catch (error) {
+      logger.warn('Failed to save tracking metadata', {
+        error: error instanceof Error ? error.message : String(error),
+      });
+      reporter.reportVerbose(
+        'Warning: Failed to save tracking metadata, but files were downloaded successfully'
+      );
+    }
+  }
+
+  return {
+    filesDownloaded,
+    filesFailed,
+    success: filesFailed === 0,
+  };
+}
+
+/**
  * Execute main CLI logic
  *
  * Orchestrates the complete flow:
@@ -158,290 +407,44 @@ export async function execute(argv: string[]): Promise<ExecutionResult> {
     // Step 5: Loop through projects
     for (const [index, projectName] of projects.entries()) {
       const isFirstProject = index === 0;
-      let projectFilesDownloaded = 0;
-      let projectFilesFailed = 0;
+      const displayProjectName = projects.length > 1 ? projectName : undefined;
 
       try {
-        // Step 5.1: Fetch directory listings for current project
-        logger.debug('Fetching directory listings from GitHub', {
-          repository: args.repository,
-          project: projectName,
-          ...(effectiveBranch && { branch: effectiveBranch }),
-        });
-
-        // Task 4.1: Conditional directory fetching based on --steering mode
-        let specContents: ContentItem[] = [];
-        let steeringContents: ContentItem[] = [];
-
-        if (args.steering) {
-          // In --steering mode: only fetch .kiro/steering directory
-          const steeringPath = buildRemotePath(subdir, '', 'steering');
-          try {
-            steeringContents = await fetchDirectoryContents(octokit, owner, repo, steeringPath, effectiveBranch);
-          } catch (_error) {
-            // Task 4.3: In --steering mode, throw error when steering directory is not found
-            // Include repository path and subdirectory path in error message (Requirement 7.2)
-            const pathInfo = subdir ? `${args.repository}/${subdir}` : args.repository;
-            throw new Error(`.kiro/steering directory not found in ${pathInfo}`);
-          }
-        } else {
-          // In normal mode: fetch both specs and steering directories
-          const specPath = buildRemotePath(subdir, projectName, 'specs');
-
-          // Fetch spec directory (required)
-          specContents = await fetchDirectoryContents(octokit, owner, repo, specPath, effectiveBranch);
-
-          // Fetch steering directory only for first project (to avoid duplication)
-          if (isFirstProject) {
-            const steeringPath = buildRemotePath(subdir, '', 'steering');
-            try {
-              steeringContents = await fetchDirectoryContents(octokit, owner, repo, steeringPath, effectiveBranch);
-            } catch (_error) {
-              logger.debug('Steering directory not found, skipping', {
-                path: steeringPath,
-              });
-            }
-          }
-        }
-
-        // Collect all file items
-        const specFiles = specContents.filter((item) => item.type === 'file');
-        const steeringFiles = steeringContents.filter((item) => item.type === 'file');
-        const allFiles: ContentItem[] = [...specFiles, ...steeringFiles];
-
-        logger.debug('Directory listings fetched', {
-          specFiles: specFiles.length,
-          steeringFiles: steeringFiles.length,
-          total: allFiles.length,
-          ...(subdir && { subdir }),
-        });
-
-        // Task 4.4: Empty directory handling for --steering mode
-        // When steering directory is empty, display info message and exit with code 0 (Requirement 7.5)
-        if (args.steering && allFiles.length === 0) {
-          const pathInfo = subdir ? ` in subdirectory ${subdir}` : '';
-          reporter.reportVerbose(`No files found in .kiro/steering${pathInfo}`);
-          logger.info('No files found in .kiro/steering', {
-            repository: args.repository,
-            ...(subdir && { subdir }),
-          });
-
-          // Continue to the summary reporting (exit code 0, no files downloaded/failed)
-          // This is considered a successful operation (business logic perspective)
-        }
-
-        // Step 5.2: Fetch all file contents in parallel
-        logger.debug('Fetching file contents', { count: allFiles.length });
-
-        const filePaths = allFiles.map((item) => item.path);
-
-        // Task 14.5: Pass progress callback to display spinner during file fetch
-        const displayProjectName = projects.length > 1 ? projectName : undefined;
-        const fetchResult = await fetchFilesInParallel(
+        const result = await processProject(
+          projectName,
+          args,
           octokit,
           owner,
           repo,
-          filePaths,
-          5, // maxConcurrency
+          subdir,
           effectiveBranch,
-          // Progress callback - called before fetching each file
-          (current, total, filePath) => {
-            reporter.reportProgress(current, total, filePath, displayProjectName);
-          }
+          reporter,
+          logger,
+          errorHandler,
+          isFirstProject,
+          displayProjectName
         );
 
-        logger.debug('Files fetched', {
-          success: fetchResult.success.length,
-          failed: fetchResult.failed.length,
-        });
+        totalFilesDownloaded += result.filesDownloaded;
+        totalFilesFailed += result.filesFailed;
+        successfulProjects++;
+        successfulProjectsList.push(projectName);
 
-        // Step 5.3: Write files to local filesystem
-        let filesDownloaded = 0;
-        let filesFailed = fetchResult.failed.length;
-
-        // Track written files for metadata (when --track is used)
-        const writtenFiles: Array<{ path: string; sha: string; size: number; localPath: string }> = [];
-
-        for (const file of fetchResult.success) {
-          // Task 14.5: Progress is now reported during file fetch (in fetchFilesInParallel callback)
-          // No need to call reportProgress here
-
-          // Show project name prefix for multi-project operations
-          const displayProjectName = projects.length > 1 ? projectName : undefined;
-
-          // Verbose: Show detailed fetch information with branch
-          if (effectiveBranch) {
-            const branchInfo = `${owner}/${repo}#${effectiveBranch}/${file.path}`;
-            logger.debug(`取得中: ${branchInfo}`, { project: displayProjectName });
-          }
-
-          try {
-            // Resolve output path
-            const localPath = resolveOutputPath(args.output, file.path);
-
-            // Task 14.7: Pause spinner before writeFile to prevent hidden readline prompts
-            // When prompt=true and file exists, writeFile() shows readline confirmation prompt
-            // If spinner is active, the prompt is hidden from user, making it appear frozen
-            reporter.pauseSpinner(displayProjectName);
-
-            // Write file
-            const writeResult = await writeFile(localPath, file.content, {
-              force: args.force,
-              prompt: !args.force,
-              dryRun: args.dryRun,
-              verbose: args.verbose,
-            });
-
-            // Task 14.7: No need to resume spinner here
-            // reportSuccess() / reportError() will use the paused spinner and clean it up
-
-            if (writeResult.written) {
-              filesDownloaded++;
-              reporter.reportSuccess(`Saved: ${file.path}`, displayProjectName);
-
-              // Track written file for metadata
-              if (args.track) {
-                writtenFiles.push({
-                  path: file.path,
-                  sha: file.sha,
-                  size: file.size,
-                  localPath,
-                });
-              }
-            } else if (writeResult.skipped) {
-              reporter.reportVerbose(
-                `Skipped: ${file.path} (${writeResult.reason})`,
-                displayProjectName
-              );
-            }
-          } catch (error) {
-            filesFailed++;
-            const errorResult = errorHandler.handle(error, {
-              filePath: file.path,
-              details: error instanceof Error ? error.message : String(error),
-            });
-            reporter.reportError(`Failed: ${file.path} - ${errorResult.message}`, displayProjectName);
-            logger.logError(errorResult);
-          }
-        }
-
-        // Report fetch failures
-        for (const failedFile of fetchResult.failed) {
-          const errorResult = errorHandler.handle(new Error(failedFile.error), {
-            filePath: failedFile.path,
-            details: failedFile.error,
-          });
-          reporter.reportError(`Failed to fetch: ${failedFile.path} - ${errorResult.message}`, displayProjectName);
-          logger.logError(errorResult);
-        }
-
-        // Step 5.4: Update project counters
-        projectFilesDownloaded = filesDownloaded;
-        projectFilesFailed = filesFailed;
-
-        // Step 5.5: Save metadata if --track option is used
-        if (args.track && writtenFiles.length > 0) {
-          try {
-            logger.debug('Saving tracking metadata', {
-              filesCount: writtenFiles.length,
-            });
-
-            const metadataPath = getMetadataPath(args.output);
-
-            // Check if metadata exists
-            try {
-              const existingMetadata = await loadMetadata(metadataPath);
-              logger.debug('Loaded existing metadata', {
-                projectsCount: existingMetadata.projects.length,
-              });
-            } catch (_error) {
-              // Metadata doesn't exist
-              logger.debug('Creating new metadata file');
-            }
-
-            // Upsert project
-            await upsertProject({
-              repository: args.repository,
-              projectName: projectName,
-              subdir: args.subdir,
-              fetchedAt: new Date().toISOString(),
-              files: [],
-            }, metadataPath);
-
-            // Calculate hashes and upsert files
-            for (const file of writtenFiles) {
-              try {
-                // Calculate local file hash
-                const localHash = await calculateFileHash(file.localPath);
-
-                const fileMetadata: FileMetadata = {
-                  path: file.path,
-                  sha: file.sha,
-                  size: file.size,
-                  localHash,
-                  fetchedAt: new Date().toISOString(),
-                };
-
-                await upsertFile(args.repository, projectName, fileMetadata, metadataPath);
-
-                logger.debug('File metadata saved', {
-                  path: file.path,
-                  sha: file.sha,
-                  hash: localHash,
-                });
-              } catch (error) {
-                // Log hash calculation error but continue
-                logger.warn('Failed to calculate file hash', {
-                  path: file.path,
-                  error: error instanceof Error ? error.message : String(error),
-                });
-              }
-            }
-
-            // Success message for metadata save
-            reporter.reportSuccess(`Saved metadata: ${metadataPath}`);
-
-            logger.debug('Metadata saved successfully', {
-              path: metadataPath,
-              filesTracked: writtenFiles.length,
-            });
-          } catch (error) {
-            // Metadata save failure should not fail the entire operation
-            // Files were already successfully downloaded
-            logger.warn('Failed to save tracking metadata', {
-              error: error instanceof Error ? error.message : String(error),
-            });
-            reporter.reportVerbose(
-              'Warning: Failed to save tracking metadata, but files were downloaded successfully'
-            );
-          }
-        }
-
-        // Step 5.6: Update total counters
-        totalFilesDownloaded += projectFilesDownloaded;
-        totalFilesFailed += projectFilesFailed;
-        successfulProjects++; // Increment successful project count (task 9.2)
-        successfulProjectsList.push(projectName); // Track successful project (task 9.3)
-
-        // Step 5.7: Display project summary for multi-project operations
         if (projects.length > 1) {
-          reporter.reportProjectSummary(projectName, projectFilesDownloaded, projectFilesFailed);
+          reporter.reportProjectSummary(projectName, result.filesDownloaded, result.filesFailed);
         }
 
       } catch (error) {
-        // Handle project-specific errors (task 9.1)
         const errorResult = errorHandler.handle(error, {
           project: projectName,
           details: error instanceof Error ? error.message : String(error),
         });
         reporter.reportProjectError(projectName, errorResult.message);
         logger.logError(errorResult);
-        // Note: Do not increment successfulProjects here (project failed)
-        // Track failure for proper success/failure determination
         totalFilesFailed++;
-        failedProjectsList.push(projectName); // Track failed project (task 9.3)
+        failedProjectsList.push(projectName);
       }
-    } // End of project loop
+    }
 
     // Step 5.8: Check if all projects failed (task 9.2)
     if (projects.length > 1 && successfulProjects === 0) {
