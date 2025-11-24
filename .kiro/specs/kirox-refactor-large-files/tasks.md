@@ -225,11 +225,15 @@
 ## Phase 5: add-command-entry.tsのリファクタリング
 
 - [ ] 5. add-command-entry.tsの責任範囲整理
-- [ ] 5.1 getMetadataPathとisDuplicateProjectのMetadataUtilsへの移行
-  - add-command-entry.ts内の`getMetadataPath`と`isDuplicateProject`関数を削除する
-  - MetadataUtilsからインポートする
-  - 既存の呼び出し箇所を更新する
-  - 重複コードを削除し、DRY原則を適用する
+- [x] 5.1 getMetadataPathとisDuplicateProjectのMetadataUtilsへの移行
+  - ✅ metadata-utils.tsの関数確認: 既に両方の関数が存在（Task 1.1で作成済み）
+  - ✅ add-command-entry.tsの修正完了:
+    - `import path from 'path';` を削除（不要になった）
+    - `import { getMetadataPath, isDuplicateProject } from './metadata-utils.js';` を追加
+    - 重複する関数定義を削除（約35行削除）
+  - ✅ ビルド成功: `npm run build`
+  - ✅ テスト成功: 75/79テスト合格（4スキップ）
+  - ✅ ファイルサイズ削減: 880行 → 851行
   - _Requirements: 1.1, 1.2, 6.1_
 
 - [ ] 5.2 executeAddCommand関数の分割と委譲

@@ -6,11 +6,11 @@
  * Task 7.1: Interactive mode entry condition detection
  */
 
-import path from 'path';
 import { existsSync } from 'fs';
 import { Octokit } from 'octokit';
 import { parseArguments } from './parser.js';
 import { validateInput } from './validator.js';
+import { getMetadataPath, isDuplicateProject } from './metadata-utils.js';
 import { PinoLogger } from '../reporting/pino-logger.js';
 import { ErrorHandler } from '../reporting/error-handler.js';
 import { ProgressReporter } from '../reporting/progress-reporter.js';
@@ -27,43 +27,6 @@ import { shouldEnterInteractiveMode, promptMissingArguments } from './interactiv
 import type { ExecutionResult } from './types.js';
 import type { Metadata, ProjectMetadata, FileMetadata } from '../tracking/types.js';
 import type { ContentItem } from '../github/fetcher.js';
-
-/**
- * Get metadata file path based on output directory
- *
- * @param outputDir - Output directory from args
- * @returns Metadata file path
- */
-function getMetadataPath(outputDir: string): string {
-  return path.join(outputDir, '.kiro', '.kirox-meta.json');
-}
-
-/**
- * Check if a project with the same repository, projectName, and subdir exists in metadata
- *
- * Task 2.3: Duplicate project detection
- * - Same repository + projectName + subdir = duplicate
- * - Different subdir = separate project
- *
- * @param metadata - Existing metadata
- * @param repository - Repository to check
- * @param projectName - Project name to check
- * @param subdir - Optional subdirectory to check
- * @returns True if duplicate exists, false otherwise
- */
-function isDuplicateProject(
-  metadata: Metadata,
-  repository: string,
-  projectName: string,
-  subdir?: string
-): boolean {
-  return metadata.projects.some(
-    (project) =>
-      project.repository === repository &&
-      project.projectName === projectName &&
-      project.subdir === subdir
-  );
-}
 
 /**
  * Execute add command with provided arguments
