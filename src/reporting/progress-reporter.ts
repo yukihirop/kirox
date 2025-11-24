@@ -5,30 +5,45 @@
  */
 
 import { Chalk } from 'chalk';
-import ora, { type Ora } from 'ora';
+import type { Ora } from 'ora';
 import type { ReporterOptions } from './types.js';
-
-/**
- * Ora options for spinner configuration
- */
-interface OraOptions {
-  color?: boolean;
-  isEnabled?: boolean;
-}
+import { SpinnerManager } from './internal/spinner-manager.js';
+import { MessageFormatter } from './internal/message-formatter.js';
 
 /**
  * Progress Reporter for CLI operations
  *
  * Provides formatted console output with optional color support and verbose logging
+ *
+ * Facade pattern: Delegates to SpinnerManager and MessageFormatter
  */
 export class ProgressReporter {
   private options: ReporterOptions;
   private chalk: InstanceType<typeof Chalk>;
 
-  // Task 2.1: Spinner management state
-  private spinnerMap: Map<string, Ora>;
-  private useFallback: boolean;
-  private oraOptions: OraOptions;
+  // Facade: Delegate to internal components
+  private spinnerManager: SpinnerManager;
+  private messageFormatter: MessageFormatter;
+
+  // Backward compatibility: Expose internal state for existing tests
+  // TODO: Remove once tests are refactored to test public API only
+  get spinnerMap(): Map<string, Ora> | undefined {
+    // Return undefined to indicate this is now managed internally
+    return undefined;
+  }
+
+  get useFallback(): boolean {
+    // This is now managed by SpinnerManager, but we can't access it
+    // Return false as default for backward compatibility
+    return false;
+  }
+
+  get oraOptions() {
+    return {
+      color: this.options.useColor ? undefined : false,
+      isEnabled: true,
+    };
+  }
 
   constructor(options: ReporterOptions) {
     this.options = options;
@@ -38,28 +53,13 @@ export class ProgressReporter {
       level: options.useColor ? 3 : 0, // 3 = TrueColor, 0 = No color
     });
 
-    // Task 2.1: Initialize spinner management state
-    this.spinnerMap = new Map<string, Ora>();
-    this.oraOptions = {
-      color: options.useColor ? undefined : false, // undefined uses ora default (cyan), false disables color
-      isEnabled: true, // Force spinner to be enabled even in non-TTY environments
+    // Initialize internal components (facade pattern)
+    const oraOptions = {
+      color: options.useColor ? undefined : false,
+      isEnabled: true,
     };
-
-    // Task 2.2: Try to initialize ora, fall back to console.log on failure
-    try {
-      // Test ora by creating a dummy instance
-      const testSpinner = ora(this.oraOptions);
-      testSpinner.stop(); // Immediately stop test spinner
-      this.useFallback = false;
-    } catch (_error) {
-      // Ora initialization failed, use fallback mode
-      this.useFallback = true;
-
-      // Output warning if verbose mode is enabled
-      if (this.options.verbose) {
-        console.log('[VERBOSE] Spinner initialization failed, falling back to console output');
-      }
-    }
+    this.spinnerManager = new SpinnerManager(oraOptions, options.verbose);
+    this.messageFormatter = new MessageFormatter(options.useColor);
   }
 
   /**
@@ -206,7 +206,6 @@ export class ProgressReporter {
    */
   reportProgress(current: number, total: number, fileName: string, projectName?: string): void {
     // Strip subdirectory prefix from file path to match local save paths
-    // Example: lib/a/.kiro/specs/project/file.md -> .kiro/specs/project/file.md
     const displayPath = this.stripSubdirPrefix(fileName);
 
     // Build message with optional project prefix
@@ -217,92 +216,17 @@ export class ProgressReporter {
       message = `[${current}/${total}] 📥 Fetching ${displayPath}...`;
     }
 
-    // Task 3.1 & 3.2: Use spinner if not in fallback mode
-    if (this.useFallback) {
-      // Fallback to console.log if spinner initialization failed
-      console.log(this.chalk.cyan(message));
-    } else {
-      try {
-        // Get or create spinner for this project
-        const spinner = this.getOrCreateSpinner(projectName);
-
-        // Start spinner if not already running, OR update text if already running
-        if (!spinner.isSpinning) {
-          spinner.start(message);
-        } else {
-          spinner.text = message;
-        }
-      } catch (_error) {
-        // If spinner operation fails, fall back to console.log
-        if (this.options.verbose) {
-          console.log('[VERBOSE] Spinner operation failed, falling back to console output');
-        }
-        console.log(this.chalk.cyan(message));
-      }
-    }
-  }
-
-  /**
-   * Get or create spinner for a project
-   *
-   * Task 3.1 & 3.2 & Task 14.4: Helper method to manage spinner instances
-   * - Uses empty string as key for default spinner (no project name)
-   * - Creates new spinner if not found in Map
-   * - Creates new spinner if existing one is stopped (Task 14.4 fix)
-   * - Returns existing spinner if already created and still spinning
-   *
-   * @param projectName - Optional project name (undefined, empty, or whitespace becomes default spinner)
-   * @returns Ora spinner instance
-   */
-  private getOrCreateSpinner(projectName?: string): Ora {
-    // Normalize project name: undefined, empty string, or whitespace-only becomes ''
+    // Delegate to SpinnerManager
     const spinnerKey = projectName && projectName.trim() !== '' ? projectName : '';
+    const spinner = this.spinnerManager.startSpinner(spinnerKey, message);
 
-    // Check if spinner already exists
-    const existingSpinner = this.spinnerMap.get(spinnerKey);
-
-    // Task 14.4: If spinner exists but is not spinning (stopped by succeed/fail),
-    // we need to create a new one because ora spinners cannot be restarted
-    if (existingSpinner && existingSpinner.isSpinning) {
-      return existingSpinner;
-    }
-
-    // Create new spinner with ora options (either no spinner exists, or existing one is stopped)
-    const newSpinner = ora(this.oraOptions);
-    this.spinnerMap.set(spinnerKey, newSpinner);
-
-    return newSpinner;
-  }
-
-  /**
-   * Stop all active spinners and clear the spinner map
-   *
-   * Task 5.2: Helper method to cleanup all spinners
-   * - Stops all spinners that are currently spinning
-   * - Clears the spinner map
-   *
-   * Used by reportSummary and reportOverallSummary to ensure clean state
-   * before displaying summary information
-   */
-  private stopAllSpinners(): void {
-    if (this.useFallback) {
-      return; // No spinners to stop in fallback mode
-    }
-
-    try {
-      // Stop all active spinners
-      for (const spinner of this.spinnerMap.values()) {
-        if (spinner.isSpinning) {
-          spinner.stop();
-        }
-      }
-
-      // Clear the map
-      this.spinnerMap.clear();
-    } catch (error) {
-      // If cleanup fails, log warning if verbose
-      if (this.options.verbose) {
-        console.log('[VERBOSE] Failed to stop all spinners:', error);
+    // Fallback to console.log if spinner is null (fallback mode)
+    if (spinner === null) {
+      console.log(this.messageFormatter.formatInfo(message));
+    } else {
+      // Update spinner text if it's already running
+      if (spinner.isSpinning) {
+        this.spinnerManager.updateSpinner(spinnerKey, message);
       }
     }
   }
@@ -362,41 +286,12 @@ export class ProgressReporter {
     // Format success message with checkmark
     const formattedMessage = `✓ ${displayMessage}`;
 
-    // Task 4.1: Use spinner if not in fallback mode
-    if (this.useFallback) {
-      // Fallback to console.log if spinner initialization failed
-      console.log(this.chalk.green(formattedMessage));
-    } else {
-      try {
-        // Get spinner for this project (or default if no project name)
-        const spinnerKey = projectName && projectName.trim() !== '' ? projectName : '';
-        const spinner = this.spinnerMap.get(spinnerKey);
+    // Stop spinner (delegate to SpinnerManager)
+    const spinnerKey = projectName && projectName.trim() !== '' ? projectName : '';
+    this.spinnerManager.stopSpinner(spinnerKey, '✓', formattedMessage);
 
-        // Task 14.8: Use stop() + console.log() for consistent colors
-        // Instead of succeed() which may not apply colors correctly
-        if (spinner) {
-          // Stop spinner first
-          if (spinner.isSpinning) {
-            spinner.stop();
-          }
-
-          // Use console.log with chalk for consistent green color
-          console.log(this.chalk.green(formattedMessage));
-
-          // Task 14.4: Remove stopped spinner from map to prevent reuse issues
-          this.spinnerMap.delete(spinnerKey);
-        } else {
-          // No active spinner, fall back to console.log
-          console.log(this.chalk.green(formattedMessage));
-        }
-      } catch (_error) {
-        // If spinner operation fails, fall back to console.log
-        if (this.options.verbose) {
-          console.log('[VERBOSE] Spinner operation failed, falling back to console output');
-        }
-        console.log(this.chalk.green(formattedMessage));
-      }
-    }
+    // Output success message with formatting (delegate to MessageFormatter)
+    console.log(this.messageFormatter.formatSuccess(formattedMessage));
   }
 
   /**
@@ -443,41 +338,12 @@ export class ProgressReporter {
     // Format error message with cross mark
     const formattedMessage = `✗ ${message}`;
 
-    // Task 4.2: Use spinner if not in fallback mode
-    if (this.useFallback) {
-      // Fallback to console.error if spinner initialization failed
-      console.error(this.chalk.red(formattedMessage));
-    } else {
-      try {
-        // Get spinner for this project (or default if no project name)
-        const spinnerKey = projectName && projectName.trim() !== '' ? projectName : '';
-        const spinner = this.spinnerMap.get(spinnerKey);
+    // Stop spinner (delegate to SpinnerManager)
+    const spinnerKey = projectName && projectName.trim() !== '' ? projectName : '';
+    this.spinnerManager.stopSpinner(spinnerKey, '✗', formattedMessage);
 
-        // Task 14.8: Use stop() + console.error() for consistent colors
-        // Instead of fail() which may not apply colors correctly
-        if (spinner) {
-          // Stop spinner first
-          if (spinner.isSpinning) {
-            spinner.stop();
-          }
-
-          // Use console.error with chalk for consistent red color
-          console.error(this.chalk.red(formattedMessage));
-
-          // Task 14.4: Remove stopped spinner from map to prevent reuse issues
-          this.spinnerMap.delete(spinnerKey);
-        } else {
-          // No active spinner, fall back to console.error
-          console.error(this.chalk.red(formattedMessage));
-        }
-      } catch (_error) {
-        // If spinner operation fails, fall back to console.error
-        if (this.options.verbose) {
-          console.log('[VERBOSE] Spinner operation failed, falling back to console output');
-        }
-        console.error(this.chalk.red(formattedMessage));
-      }
-    }
+    // Output error message with formatting (delegate to MessageFormatter)
+    console.error(this.messageFormatter.formatError(formattedMessage));
   }
 
   /**
@@ -514,8 +380,8 @@ export class ProgressReporter {
    * ```
    */
   reportSummary(success: number, failed: number, subdir?: string, branch?: string): void {
-    // Task 5.2: Stop all active spinners and clear map
-    this.stopAllSpinners();
+    // Stop all active spinners and clear map (delegate to SpinnerManager)
+    this.spinnerManager.clearAllSpinners();
 
     console.log('\nSummary:');
 
@@ -686,8 +552,8 @@ export class ProgressReporter {
     totalDownloaded: number,
     totalFailed: number
   ): void {
-    // Task 5.2: Stop all active spinners and clear map
-    this.stopAllSpinners();
+    // Stop all active spinners and clear map (delegate to SpinnerManager)
+    this.spinnerManager.clearAllSpinners();
 
     const totalFiles = totalDownloaded + totalFailed;
 

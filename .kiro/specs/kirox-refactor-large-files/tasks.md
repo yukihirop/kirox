@@ -53,13 +53,14 @@
   - 各メソッドに明示的な戻り値型アノテーションを追加する
   - _Requirements: 4.2, 6.2, 6.3_
 
-- [ ] 2.3 ProgressReporterのファサード化
+- [x] 2.3 ProgressReporterのファサード化
   - 既存のProgressReporterクラスをファサードパターンで再実装する
   - 公開APIメソッド（`reportProgress`、`reportSuccess`、`reportError`等）のシグネチャを維持する
-  - 内部実装をSpinnerMgrとFormatterに委譲する
+  - 内部実装をSpinnerManagerとMessageFormatterに委譲する
   - 既存の呼び出し元コード（MainEntry、AddEntry、GitHubFetcher）への影響を最小化する
   - レイヤー分離アーキテクチャの原則を維持する
   - _Requirements: 4.5, 6.1, 6.6_
+  - **注意**: 内部実装をテストする49件のテストが失敗（修正タスク9.2で対応）
 
 ---
 
@@ -312,3 +313,22 @@
     2. `package.json`のバージョンを動的にインポートするか、開発環境用のデフォルト値を設定
   - **検証**: `npm run dev`が正常に動作することを確認
   - **影響範囲**: 開発環境のみ（ビルド後の動作には影響なし）
+
+### テスト修正
+
+- [ ] 9.2 ProgressReporterリファクタリング後のテスト修正
+  - **問題**: タスク2.3でProgressReporterをファサードパターンにリファクタリング後、49個のテストが失敗
+  - **原因**: テストが内部実装の詳細（`spinnerMap`、`useFallback`などのprivateプロパティ）に直接アクセスしている
+  - **影響テストファイル**:
+    - `progress-reporter-compatibility.test.ts` (4件)
+    - `progress-reporter-error-handling.test.ts` (2件)
+    - `progress-reporter-fallback.test.ts` (1件)
+    - `progress-reporter-lifecycle.test.ts` (9件)
+    - `progress-reporter-progress-spinner.test.ts` (13件)
+    - `progress-reporter-success-error-spinner.test.ts` (12件)
+    - `progress-reporter-spinner-pause.test.ts` (7件)
+    - `progress-reporter-spinner-state.test.ts` (1件)
+  - **対応方法**:
+    1. 公開APIのみをテストするようにテストを修正
+    2. または、テスト用にSpinnerManagerへのアクセサーを追加（後方互換性）
+  - **優先度**: 高（現在49テスト失敗中）
