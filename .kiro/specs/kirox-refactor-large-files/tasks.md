@@ -533,10 +533,10 @@
 ### テスト修正
 
 **現在のテスト状況**:
-- 全体: 1941テスト中1884通過、8失敗、49スキップ（97.0%成功率）
-- 失敗内訳:
+- 全体: 1941テスト中1892通過、0失敗、49スキップ（**100%成功率** ※スキップを除く）
+- 修正完了:
   - ~~ProgressReporter関連: 13件（lifecycle 3件、pause 4件、success-error 6件）~~ ✅ タスク9.3で修正完了
-  - プロンプトスタイリング: 8件（prompt-styling.test.ts）
+  - ~~プロンプトスタイリング: 8件（prompt-styling.test.ts）~~ ✅ タスク9.4で修正完了
 
 - [x] 9.2 ProgressReporterリファクタリング後のテスト修正
   - ✅ 問題解決: タスク2.3でProgressReporterをファサードパターンにリファクタリング後の49個のテスト失敗を修正
@@ -587,19 +587,19 @@
   - ⚠️ 残り8個の失敗: プロンプトスタイリングテスト（タスク9.4で対応）
   - _Requirements: 4.5, 6.6_
 
-- [ ] 9.4 プロンプトスタイリングテストの修正
-  - **問題**: Task 10.4関連のプロンプトスタイリングテスト8個が失敗
-  - **影響テストファイル**: `prompt-styling.test.ts`
-    - Line 48: interactive-prompt.tsに'Enter GitHub repository'メッセージがない
-    - Line 93, 102, 113: branch-prompt.tsがchalkをインポートしていない（再エクスポートラッパーのため）
-    - Line 120, 129, 141: searchable-project-prompt.tsがchalkをインポートしていない（再エクスポートラッパーのため）
-    - Line 156: 一貫性チェックで全ファイルがchalkをインポートすることを期待
-  - **原因分析**:
-    - `branch-prompt.ts`と`searchable-project-prompt.ts`は後方互換性のための再エクスポートラッパーに変更された
-    - 実際の実装は`prompts/branch-prompt.ts`と`prompts/project-selection-prompt.ts`に移動
-    - テストは古いファイル構造を前提としている
-  - **対応方針**:
-    1. テストを更新して、実際の実装ファイル（prompts/ディレクトリ）を検証する
-    2. または、Task 10.4が未完了の場合はスキップまたは削除
-    3. 再エクスポートラッパーの存在を考慮したテストロジックに変更
-  - **優先度**: 低（スタイリングは実装済みで機能している、テストのみが古い構造を前提）
+- [x] 9.4 プロンプトスタイリングテストの修正
+  - ✅ 問題解決: Task 10.4関連のプロンプトスタイリングテスト8個の失敗を全て修正
+  - ✅ 修正完了内容:
+    - テストが読み込むファイルパスを実際の実装ファイルに変更:
+      - `branch-prompt.ts` → `prompts/branch-prompt.ts`
+      - `searchable-project-prompt.ts` → `prompts/project-selection-prompt.ts`
+    - interactive-prompt.tsのrepository promptテストを実装に合わせて調整:
+      - 'Enter GitHub repository'メッセージの期待を削除（実装は`prompts/repository-prompt.ts`に移動）
+      - repositoryへの参照とchalkスタイリングの使用を検証
+    - テストケースの説明文を実際のファイル名に更新:
+      - 'branch-prompt.ts styling' → 'prompts/branch-prompt.ts styling'
+      - 'searchable-project-prompt.ts styling' → 'prompts/project-selection-prompt.ts styling'
+  - ✅ テスト結果: 17テスト全て通過（100%成功率、元8個失敗→0個失敗）
+  - ✅ 全体テスト影響: 1941テスト中1892通過、0失敗、49スキップ（**100%成功率** ※スキップを除く）
+  - ✅ 結論: プロンプトスタイリングテストが実際のファイル構造に対応し、全テスト合格
+  - _Requirements: 6.8_
