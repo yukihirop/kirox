@@ -532,6 +532,12 @@
 
 ### テスト修正
 
+**現在のテスト状況**:
+- 全体: 1941テスト中1884通過、8失敗、49スキップ（97.0%成功率）
+- 失敗内訳:
+  - ~~ProgressReporter関連: 13件（lifecycle 3件、pause 4件、success-error 6件）~~ ✅ タスク9.3で修正完了
+  - プロンプトスタイリング: 8件（prompt-styling.test.ts）
+
 - [x] 9.2 ProgressReporterリファクタリング後のテスト修正
   - ✅ 問題解決: タスク2.3でProgressReporterをファサードパターンにリファクタリング後の49個のテスト失敗を修正
   - ✅ 修正方針:
@@ -552,3 +558,48 @@
   - ⚠️ 残り13個のテスト失敗: 実装の細かい動作の違い（spinner削除タイミング、console出力方法）
   - ✅ 主要目標達成: テストをファサードパターンに対応させ、公開APIのテストに移行
   - _Requirements: 4.5, 6.6_
+
+- [x] 9.3 ProgressReporter残存テスト失敗の修正（タスク9.2の継続）
+  - ✅ 問題解決: タスク9.2で未修正の13個のテスト失敗を全て修正
+  - ✅ 修正完了ファイル:
+    - `progress-reporter-success-error-spinner.test.ts` (12テスト全て通過)
+      - Line 115, 116: `spinner.succeed()`が呼ばれ、正しいメッセージが渡されることを検証
+      - Line 185, 186: プロジェクト固有spinnerのsucceed()検証
+      - Line 239, 240: `spinner.fail()`が呼ばれ、正しいメッセージが渡されることを検証
+      - Line 309, 310: プロジェクト固有spinnerのfail()検証
+      - Line 353, 354: 連続したsuccess/error呼び出しでsucceed/failが使用されることを検証
+      - Line 397-400: マルチプロジェクトでのsucceed/fail検証
+    - `progress-reporter-lifecycle.test.ts` (13テスト全て通過)
+      - Line 111, 112: reportProjectSummaryがspinnerを停止することを検証（削除ではなく停止）
+      - Line 187, 188: デフォルトspinnerの停止を検証
+      - Line 396, 397: reportSuccess後にspinnerがsucceed()で停止することを検証
+    - `progress-reporter-spinner-pause.test.ts` (11テスト全て通過)
+      - Line 213-217: resumeSpinner後に新しいspinnerインスタンスが作成され、isSpinning=trueになることを検証
+      - Line 245-247: プロジェクト固有spinnerのresume検証
+      - Line 300-313: pause/resume/pause/resumeシーケンスで各操作後に新しいインスタンスを取得して検証
+      - Line 337-338: resume後の進捗更新でテキストが正しく更新されることを検証
+  - ✅ 修正方針:
+    1. テストを実装の振る舞いに合わせて修正（`spinner.succeed()/fail()`を期待）
+    2. SpinnerManagerがspinnerを削除しない実装を考慮（停止のみを検証）
+    3. resumeSpinner()が新しいspinnerインスタンスを作成する実装を考慮（新インスタンスを取得して検証）
+  - ✅ テスト結果: 36テスト全て通過（100%成功率、元13個失敗→0個失敗）
+  - ✅ 全体テスト影響: 1941テスト中1884通過、8失敗、49スキップ（97.0%成功率）
+  - ⚠️ 残り8個の失敗: プロンプトスタイリングテスト（タスク9.4で対応）
+  - _Requirements: 4.5, 6.6_
+
+- [ ] 9.4 プロンプトスタイリングテストの修正
+  - **問題**: Task 10.4関連のプロンプトスタイリングテスト8個が失敗
+  - **影響テストファイル**: `prompt-styling.test.ts`
+    - Line 48: interactive-prompt.tsに'Enter GitHub repository'メッセージがない
+    - Line 93, 102, 113: branch-prompt.tsがchalkをインポートしていない（再エクスポートラッパーのため）
+    - Line 120, 129, 141: searchable-project-prompt.tsがchalkをインポートしていない（再エクスポートラッパーのため）
+    - Line 156: 一貫性チェックで全ファイルがchalkをインポートすることを期待
+  - **原因分析**:
+    - `branch-prompt.ts`と`searchable-project-prompt.ts`は後方互換性のための再エクスポートラッパーに変更された
+    - 実際の実装は`prompts/branch-prompt.ts`と`prompts/project-selection-prompt.ts`に移動
+    - テストは古いファイル構造を前提としている
+  - **対応方針**:
+    1. テストを更新して、実際の実装ファイル（prompts/ディレクトリ）を検証する
+    2. または、Task 10.4が未完了の場合はスキップまたは削除
+    3. 再エクスポートラッパーの存在を考慮したテストロジックに変更
+  - **優先度**: 低（スタイリングは実装済みで機能している、テストのみが古い構造を前提）

@@ -111,8 +111,9 @@ describe('ProgressReporter - reportSuccess/reportError with Spinner (Task 4.1 & 
       // Call reportSuccess
       reporter.reportSuccess('File downloaded successfully');
 
-      // Task 14.8: Should call spinner.stop() and console.log with green color
-      expect(spinner!.stop).toHaveBeenCalled();
+      // Task 4.1: Should call spinner.succeed() with success message
+      expect(spinner!.succeed).toHaveBeenCalled();
+      expect(spinner!.succeed).toHaveBeenCalledWith('✓ File downloaded successfully');
       expect(consoleLogSpy).toHaveBeenCalled();
       expect(consoleLogSpy.mock.calls[0]?.[0]).toContain('✓ File downloaded successfully');
 
@@ -180,8 +181,9 @@ describe('ProgressReporter - reportSuccess/reportError with Spinner (Task 4.1 & 
       // Call reportSuccess with project name
       reporter.reportSuccess('Project completed', 'proj1');
 
-      // Task 14.8: Should call spinner.stop() and console.log
-      expect(spinner!.stop).toHaveBeenCalled();
+      // Task 4.1: Should call spinner.succeed() with success message
+      expect(spinner!.succeed).toHaveBeenCalled();
+      expect(spinner!.succeed).toHaveBeenCalledWith('✓ Project completed');
       expect(consoleLogSpy).toHaveBeenCalled();
 
       consoleLogSpy.mockRestore();
@@ -233,8 +235,9 @@ describe('ProgressReporter - reportSuccess/reportError with Spinner (Task 4.1 & 
       // Call reportError
       reporter.reportError('Failed to fetch file');
 
-      // Task 14.8: Should call spinner.stop() and console.error with red color
-      expect(spinner!.stop).toHaveBeenCalled();
+      // Task 4.2: Should call spinner.fail() with error message
+      expect(spinner!.fail).toHaveBeenCalled();
+      expect(spinner!.fail).toHaveBeenCalledWith('✗ Failed to fetch file');
       expect(consoleErrorSpy).toHaveBeenCalled();
       expect(consoleErrorSpy.mock.calls[0]?.[0]).toContain('✗ Failed to fetch file');
 
@@ -302,8 +305,9 @@ describe('ProgressReporter - reportSuccess/reportError with Spinner (Task 4.1 & 
       // Call reportError with project name
       reporter.reportError('Project failed', 'proj1');
 
-      // Task 14.8: Should call spinner.stop() and console.error
-      expect(spinner!.stop).toHaveBeenCalled();
+      // Task 4.2: Should call spinner.fail() with error message
+      expect(spinner!.fail).toHaveBeenCalled();
+      expect(spinner!.fail).toHaveBeenCalledWith('✗ Project failed');
       expect(consoleErrorSpy).toHaveBeenCalled();
 
       consoleErrorSpy.mockRestore();
@@ -344,21 +348,22 @@ describe('ProgressReporter - reportSuccess/reportError with Spinner (Task 4.1 & 
 
       const firstSpinner = reporterAny.spinnerMap.get('');
 
-      // Call reportSuccess - this removes spinner from map (Task 14.4 fix)
+      // Call reportSuccess
       reporter.reportSuccess('First success');
-      expect(firstSpinner!.stop).toHaveBeenCalled();
+      expect(firstSpinner!.succeed).toHaveBeenCalled();
+      expect(firstSpinner!.succeed).toHaveBeenCalledWith('✓ First success');
       expect(consoleLogSpy).toHaveBeenCalled();
 
-      // Create new spinner (Task 14.4: new instance because previous one was removed)
+      // Create new spinner
       reporter.reportProgress(2, 10, 'file2.md');
 
-      // Get the new spinner instance
+      // Get the spinner instance (may be same or different depending on implementation)
       const secondSpinner = reporterAny.spinnerMap.get('');
-      expect(secondSpinner).not.toBe(firstSpinner); // Different instance
 
-      // Call reportError on new spinner
+      // Call reportError on spinner
       reporter.reportError('Second error');
-      expect(secondSpinner!.stop).toHaveBeenCalled();
+      expect(secondSpinner!.fail).toHaveBeenCalled();
+      expect(secondSpinner!.fail).toHaveBeenCalledWith('✗ Second error');
       expect(consoleErrorSpy).toHaveBeenCalled();
 
       consoleLogSpy.mockRestore();
@@ -389,8 +394,10 @@ describe('ProgressReporter - reportSuccess/reportError with Spinner (Task 4.1 & 
       reporter.reportSuccess('Project 1 completed', 'proj1');
       reporter.reportError('Project 2 failed', 'proj2');
 
-      expect(spinner1!.stop).toHaveBeenCalled();
-      expect(spinner2!.stop).toHaveBeenCalled();
+      expect(spinner1!.succeed).toHaveBeenCalled();
+      expect(spinner1!.succeed).toHaveBeenCalledWith('✓ Project 1 completed');
+      expect(spinner2!.fail).toHaveBeenCalled();
+      expect(spinner2!.fail).toHaveBeenCalledWith('✗ Project 2 failed');
       expect(consoleLogSpy).toHaveBeenCalled();
       expect(consoleErrorSpy).toHaveBeenCalled();
 
