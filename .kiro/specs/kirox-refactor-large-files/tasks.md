@@ -416,10 +416,20 @@
 ## Phase 8: 最終検証とドキュメント更新
 
 - [ ] 8. 最終検証
-- [ ] 8.1 レイヤー分離アーキテクチャの検証
-  - CLI → GitHub → FileSystem → Reportingの依存方向が維持されていることを確認する
-  - 下位レイヤーが上位レイヤーに依存していないことを検証する
-  - 循環依存が発生していないことをツール（例: madge）で確認する
+- [x] 8.1 レイヤー分離アーキテクチャの検証
+  - ✅ 新規アーキテクチャ検証テスト作成: `tests/architecture/layer-separation.test.ts`
+  - ✅ レイヤー階層定義:
+    - レベル1: CLI, Config（設定管理はCLIをサポート）
+    - レベル2: GitHub, FileSystem, Tracking
+    - レベル3: Reporting（横断的関心事、全レイヤーで利用可能）
+  - ✅ 循環依存チェック（madge使用）: 循環依存なし
+  - ✅ レイヤー分離違反チェック: 違反なし（6テスト全て合格）
+    - 下位レイヤーが上位レイヤーに依存していない
+    - GitHubレイヤーがCLIレイヤーに依存していない
+    - FileSystemレイヤーがCLIレイヤーに依存していない
+    - ReportingレイヤーがCLIレイヤーに依存していない
+  - ✅ Steering準拠確認: `.kiro/steering/structure.md`のLayer-Based Architecture定義に準拠
+  - ✅ リファクタリング後もレイヤー分離アーキテクチャを維持
   - _Requirements: 6.1_
 
 - [ ] 8.2 公開API互換性の最終確認
