@@ -1,31 +1,11 @@
-/**
- * Error Handler
- *
- * Classifies errors and generates user-friendly messages
- */
-
 import type { ErrorType, ErrorResult, ErrorContext } from './types.js';
 
-/**
- * Error Handler for CLI operations
- *
- * Provides error classification, message formatting, and error handling logic
- */
 export class ErrorHandler {
-  /**
-   * Classify error by type
-   *
-   * Analyzes error object and determines appropriate error type
-   *
-   * @param error - Error object to classify
-   * @returns Classification result with error type
-   */
   classifyError(error: unknown): { type: ErrorType } {
     if (!(error instanceof Error)) {
       return { type: 'UNKNOWN' };
     }
 
-    // Check HTTP status codes
     const errorWithStatus = error as Error & { status?: number };
     if (errorWithStatus.status) {
       if (errorWithStatus.status === 404) {
@@ -39,7 +19,6 @@ export class ErrorHandler {
       }
     }
 
-    // Check error codes
     const errorWithCode = error as Error & { code?: string };
     if (errorWithCode.code) {
       if (
@@ -56,7 +35,6 @@ export class ErrorHandler {
       }
     }
 
-    // Check error message patterns
     const message = error.message.toLowerCase();
     if (
       message.includes('invalid') ||
@@ -69,15 +47,6 @@ export class ErrorHandler {
     return { type: 'UNKNOWN' };
   }
 
-  /**
-   * Format error message with context
-   *
-   * Generates user-friendly message based on error type and context
-   *
-   * @param type - Error type
-   * @param context - Error context information
-   * @returns Formatted error message
-   */
   formatMessage(type: ErrorType, context: ErrorContext): string {
     switch (type) {
       case 'REPOSITORY_NOT_FOUND':
@@ -115,30 +84,19 @@ export class ErrorHandler {
     }
   }
 
-  /**
-   * Handle error and generate result
-   *
-   * Classifies error, formats message, and determines exit code and recoverability
-   *
-   * @param error - Error object
-   * @param context - Optional error context
-   * @returns Error result with type, message, exit code, and recoverability
-   */
   handle(error: unknown, context: ErrorContext = {}): ErrorResult {
     const { type } = this.classifyError(error);
     const message = this.formatMessage(type, context);
 
-    // Determine exit code based on error type
-    let exitCode = 1; // Default: user error
+    let exitCode = 1;
     if (
       type === 'NETWORK_ERROR' ||
       type === 'FILESYSTEM_ERROR' ||
       type === 'UNKNOWN'
     ) {
-      exitCode = 2; // System error
+      exitCode = 2;
     }
 
-    // Determine recoverability
     const recoverable =
       type === 'NETWORK_ERROR' ||
       type === 'RATE_LIMIT';

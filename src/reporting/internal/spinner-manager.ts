@@ -1,32 +1,15 @@
-/**
- * Spinner Manager
- *
- * Manages ora spinner lifecycle and state
- */
-
 import ora, { type Ora } from 'ora';
 
-/**
- * Ora options for spinner configuration
- */
 export interface OraOptions {
   color?: boolean;
   isEnabled?: boolean;
 }
 
-/**
- * Spinner state model
- */
 interface SpinnerState {
   spinnerMap: Map<string, Ora>;
   useFallback: boolean;
 }
 
-/**
- * SpinnerManager
- *
- * Manages ora spinner instances with fallback to console.log
- */
 export class SpinnerManager {
   private readonly options: OraOptions;
   private readonly verbose: boolean;
@@ -40,7 +23,6 @@ export class SpinnerManager {
       useFallback: false,
     };
 
-    // Test ora initialization
     try {
       const testSpinner = ora(this.options);
       testSpinner.stop();
@@ -54,26 +36,17 @@ export class SpinnerManager {
     }
   }
 
-  /**
-   * Start a spinner with the given key and text
-   *
-   * @param key - Unique identifier for the spinner
-   * @param text - Text to display
-   * @returns Ora spinner instance or null in fallback mode
-   */
   startSpinner(key: string, text: string): Ora | null {
     if (this.state.useFallback) {
       return null;
     }
 
     try {
-      // Check if spinner already exists and is spinning
       const existingSpinner = this.state.spinnerMap.get(key);
       if (existingSpinner && existingSpinner.isSpinning) {
         return existingSpinner;
       }
 
-      // Create new spinner
       const newSpinner = ora(this.options);
       this.state.spinnerMap.set(key, newSpinner);
       newSpinner.start(text);
@@ -87,12 +60,6 @@ export class SpinnerManager {
     }
   }
 
-  /**
-   * Update spinner text
-   *
-   * @param key - Unique identifier for the spinner
-   * @param text - New text to display
-   */
   updateSpinner(key: string, text: string): void {
     if (this.state.useFallback) {
       return;
@@ -110,13 +77,6 @@ export class SpinnerManager {
     }
   }
 
-  /**
-   * Stop spinner
-   *
-   * @param key - Unique identifier for the spinner
-   * @param symbol - Optional symbol ('✓' for success, '✗' for failure)
-   * @param text - Optional final text
-   */
   stopSpinner(key: string, symbol?: string, text?: string): void {
     if (this.state.useFallback) {
       return;
@@ -142,9 +102,6 @@ export class SpinnerManager {
     }
   }
 
-  /**
-   * Stop all active spinners and clear the map
-   */
   clearAllSpinners(): void {
     if (this.state.useFallback) {
       return;
@@ -165,18 +122,10 @@ export class SpinnerManager {
     }
   }
 
-  /**
-   * Get spinner map (for testing only)
-   * @internal
-   */
   getSpinnerMap(): Map<string, Ora> {
     return this.state.spinnerMap;
   }
 
-  /**
-   * Get fallback mode status (for testing only)
-   * @internal
-   */
   getUseFallback(): boolean {
     return this.state.useFallback;
   }

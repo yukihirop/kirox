@@ -1,22 +1,12 @@
-/**
- * Local Edit Detector
- *
- * Detects local file edits by comparing current hash with recorded hash
- */
-
 import { calculateFileHash, HashError, HashErrorType } from './hash-calculator.js';
 
-/**
- * Edit status enum
- */
 export enum EditStatus {
-  NO_EDIT = 'NO_EDIT', // File unchanged
-  EDITED = 'EDITED', // File has been edited locally
-  DELETED = 'DELETED', // File has been deleted
-  UNKNOWN = 'UNKNOWN', // Hash calculation failed
+  NO_EDIT = 'NO_EDIT',
+  EDITED = 'EDITED',
+  DELETED = 'DELETED',
+  UNKNOWN = 'UNKNOWN',
 }
 
-/** Local edit detection result - @internal Internal type - not exported */
 interface EditDetectionResult {
   status: EditStatus;
   currentHash?: string;
@@ -25,22 +15,13 @@ interface EditDetectionResult {
   error?: string;
 }
 
-/**
- * Detect if a file has been edited locally
- *
- * @param filePath - Absolute path to the file
- * @param recordedHash - Hash value recorded in metadata
- * @returns Edit detection result
- */
 export async function detectLocalEdit(
   filePath: string,
   recordedHash: string
 ): Promise<EditDetectionResult> {
   try {
-    // Calculate current file hash
     const currentHash = await calculateFileHash(filePath);
 
-    // Compare hashes
     if (currentHash === recordedHash) {
       return {
         status: EditStatus.NO_EDIT,
@@ -57,10 +38,8 @@ export async function detectLocalEdit(
       };
     }
   } catch (error) {
-    // Handle file not found or read errors
     if (error instanceof HashError) {
       if (error.code === HashErrorType.FILE_NOT_FOUND || error.code === HashErrorType.READ_ERROR) {
-        // Check if it's a directory (EISDIR) or file not found
         if (error.details?.includes('EISDIR') || error.code === HashErrorType.FILE_NOT_FOUND) {
           return {
             status: EditStatus.DELETED,
@@ -69,7 +48,6 @@ export async function detectLocalEdit(
           };
         }
 
-        // Permission errors or other read errors -> UNKNOWN
         return {
           status: EditStatus.UNKNOWN,
           recordedHash,
@@ -79,7 +57,6 @@ export async function detectLocalEdit(
       }
     }
 
-    // Unexpected error -> UNKNOWN
     return {
       status: EditStatus.UNKNOWN,
       recordedHash,

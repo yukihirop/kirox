@@ -1,10 +1,3 @@
-/**
- * Helper functions for add command execution
- *
- * Task 5.2: Extract helper functions from executeAddCommand
- * Following Single Responsibility Principle and clean code guidelines
- */
-
 import { existsSync } from 'fs';
 import type { Octokit } from 'octokit';
 import { loadConfig } from '../config/loader.js';
@@ -23,13 +16,6 @@ import type { ParsedArguments, MergedConfig, MetadataCheckResult } from './types
 import type { FileMetadata, ProjectMetadata, Metadata } from '../tracking/types.js';
 import type { ContentItem } from '../github/fetcher.js';
 
-/**
- * Load configuration file and merge with CLI arguments
- *
- * @param args - Parsed command-line arguments
- * @param logger - Logger instance for verbose output
- * @returns Merged configuration
- */
 export async function loadAndMergeConfig(
   args: ParsedArguments,
   logger: PinoLogger
@@ -48,21 +34,12 @@ export async function loadAndMergeConfig(
   return merged;
 }
 
-/**
- * Check metadata existence and detect duplicate projects
- *
- * @param args - Parsed command-line arguments
- * @param config - Merged configuration
- * @param logger - Logger instance
- * @param errorHandler - Error handler instance
- * @returns Metadata check result or error execution result
- */
 export async function checkMetadataAndDuplicates(
   args: ParsedArguments,
   config: MergedConfig,
   logger: PinoLogger
 ): Promise<MetadataCheckResult | null> {
-  // Skip metadata operations when --track is disabled
+  
   if (!args.track) {
     logger.info('Metadata tracking is disabled. Use --track to enable.');
 
@@ -87,7 +64,7 @@ export async function checkMetadataAndDuplicates(
       logger.info('Metadata file found', { path: metadataPath });
     }
   } catch (error) {
-    // Handle metadata not found error - create empty metadata
+    
     if (error instanceof MetadataError && error.type === MetadataErrorType.NOT_FOUND) {
       metadata = {
         version: '1.0',
@@ -107,12 +84,11 @@ export async function checkMetadataAndDuplicates(
         });
       }
     } else {
-      // Re-throw other metadata errors
+      
       throw error;
     }
   }
 
-  // Check for duplicate projects (skip if metadata is new)
   if (!isNewMetadata) {
     for (const projectName of args.projects) {
       const isDuplicate = isDuplicateProject(
@@ -155,23 +131,6 @@ export async function checkMetadataAndDuplicates(
   };
 }
 
-/**
- * Fetch files from GitHub and write to local filesystem
- *
- * @param octokit - Octokit instance for GitHub API
- * @param owner - Repository owner
- * @param repo - Repository name
- * @param projectName - Project name to fetch
- * @param effectiveBranch - Branch to fetch from
- * @param subdir - Subdirectory path
- * @param args - Parsed arguments
- * @param config - Merged configuration
- * @param reporter - Progress reporter
- * @param logger - Logger instance
- * @param isFirstProject - Whether this is the first project in multi-project operation
- * @param steeringFetched - Whether steering directory has been fetched
- * @returns Fetch and write result with success/failed file counts
- */
 export async function fetchAndWriteFiles(
   octokit: Octokit,
   owner: string,
@@ -197,12 +156,11 @@ export async function fetchAndWriteFiles(
 
   const specPath = buildRemotePath(subdir, projectName, 'specs');
 
-  // Fetch spec directory (required)
   let specContents: ContentItem[];
   try {
     specContents = await fetchDirectoryContents(octokit, owner, repo, specPath, effectiveBranch);
   } catch (error) {
-    // Check if error is 404 (Not Found)
+    
     if (error && typeof error === 'object' && 'status' in error && error.status === 404) {
       const branchInfo = effectiveBranch ? ` on branch "${effectiveBranch}"` : '';
       const subdirInfo = subdir ? ` in subdirectory "${subdir}"` : '';
@@ -218,7 +176,6 @@ export async function fetchAndWriteFiles(
     throw error;
   }
 
-  // Fetch steering directory only for first project
   let steeringContents: ContentItem[] = [];
   if (isFirstProject && !steeringFetched.value) {
     const steeringPath = buildRemotePath(subdir, '', 'steering');
@@ -241,11 +198,9 @@ export async function fetchAndWriteFiles(
     }
   }
 
-  // Collect all file items
   const specFiles = specContents.filter((item) => item.type === 'file');
   let steeringFiles = steeringContents.filter((item) => item.type === 'file');
 
-  // Filter out existing steering files unless --force is specified
   if (steeringFiles.length > 0 && !config.force) {
     steeringFiles = steeringFiles.filter((steeringFile) => {
       const localPath = resolveOutputPath(args.output, steeringFile.path);
@@ -273,7 +228,6 @@ export async function fetchAndWriteFiles(
     });
   }
 
-  // Fetch file contents in parallel
   const filePaths = allFiles.map((item) => item.path);
 
   if (args.verbose) {
@@ -299,7 +253,6 @@ export async function fetchAndWriteFiles(
     });
   }
 
-  // Log network errors for failed file fetches
   if (fetchResult.failed.length > 0) {
     for (const failedFile of fetchResult.failed) {
       logger.error(failedFile.error, {
@@ -309,7 +262,6 @@ export async function fetchAndWriteFiles(
     }
   }
 
-  // Write files to local filesystem
   const writeOptions = {
     force: config.force,
     prompt: false,
@@ -396,18 +348,6 @@ export async function fetchAndWriteFiles(
   };
 }
 
-/**
- * Update metadata with fetched files and report success
- *
- * @param projectName - Project name
- * @param fetchResult - Fetch result with success/failed files
- * @param args - Parsed arguments
- * @param config - Merged configuration
- * @param metadataCheck - Metadata check result
- * @param logger - Logger instance
- * @param reporter - Progress reporter
- * @returns Number of files processed
- */
 export async function updateMetadataAndReport(
   projectName: string,
   fetchResult: {
@@ -421,7 +361,7 @@ export async function updateMetadataAndReport(
   reporter: ProgressReporter,
   projectsLength: number
 ): Promise<void> {
-  // Skip metadata operations when --track is disabled
+  
   if (!args.track || !metadataCheck) {
     if (args.verbose) {
       logger.info('Project files downloaded (metadata tracking disabled)', {
@@ -432,7 +372,6 @@ export async function updateMetadataAndReport(
     return;
   }
 
-  // Create FileMetadata array
   const fileMetadataList: FileMetadata[] = [];
   const currentTimestamp = new Date().toISOString();
 
@@ -467,7 +406,6 @@ export async function updateMetadataAndReport(
     }
   }
 
-  // Create ProjectMetadata
   const projectMetadata: ProjectMetadata = {
     repository: args.repository,
     projectName,
@@ -476,7 +414,6 @@ export async function updateMetadataAndReport(
     files: fileMetadataList,
   };
 
-  // Save metadata
   await upsertProject(projectMetadata, metadataCheck.metadataPath);
 
   logger.info(`Project '${projectName}' successfully added with ${fileMetadataList.length} file(s)`, {
@@ -491,7 +428,6 @@ export async function updateMetadataAndReport(
     });
   }
 
-  // Display project summary for multi-project operations
   if (projectsLength > 1) {
     reporter.reportProjectSummary(projectName, fetchResult.success.length, fetchResult.failed);
   }

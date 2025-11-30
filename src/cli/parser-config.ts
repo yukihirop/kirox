@@ -1,22 +1,9 @@
-/**
- * Parser Configuration
- *
- * Declarative configuration objects for Commander.js options
- * Centralized option definitions for main command, add subcommand, and completion subcommand
- */
-
-/**
- * Command option definition
- */
 export interface CommandOption {
   flags: string;
   description: string;
   defaultValue?: string | boolean;
 }
 
-/**
- * Completion command configuration
- */
 export interface CompletionCommandConfig {
   name: string;
   description: string;
@@ -26,9 +13,6 @@ export interface CompletionCommandConfig {
   };
 }
 
-/**
- * Main command options
- */
 export const mainCommandOptions: CommandOption[] = [
   {
     flags: '-p, --project <name>',
@@ -84,9 +68,6 @@ export const mainCommandOptions: CommandOption[] = [
   },
 ];
 
-/**
- * Add subcommand options
- */
 export const addCommandOptions: CommandOption[] = [
   {
     flags: '-p, --project <name>',
@@ -127,9 +108,6 @@ export const addCommandOptions: CommandOption[] = [
   },
 ];
 
-/**
- * Completion command configuration
- */
 export const completionCommandConfig: CompletionCommandConfig = {
   name: 'kirox completion',
   description: 'Generate shell completion script',
@@ -139,13 +117,6 @@ export const completionCommandConfig: CompletionCommandConfig = {
   },
 };
 
-/**
- * Apply command options to Commander.js Command instance
- *
- * @param command - Commander.js Command instance
- * @param options - Array of CommandOption definitions
- * @returns The Command instance with options applied (for chaining)
- */
 export function applyCommandOptions(
   command: import('commander').Command,
   options: CommandOption[]

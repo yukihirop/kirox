@@ -1,12 +1,3 @@
-/**
- * Searchable Checkbox Custom Prompt
- *
- * A custom @inquirer/prompts implementation that combines real-time search filtering
- * with checkbox selection in a single step UI.
- *
- * Based on design: .kiro/specs/kirox-searchable-checkbox-upgrade/design-1.2.md
- */
-
 import {
   createPrompt,
   useState,
@@ -29,9 +20,6 @@ import { cursorHide } from '@inquirer/ansi';
 import figures from '@inquirer/figures';
 import chalk from 'chalk';
 
-/**
- * Theme customization for searchable checkbox
- */
 interface SearchableCheckboxTheme {
   icon: {
     checked: string;
@@ -52,9 +40,6 @@ interface SearchableCheckboxTheme {
   helpMode: 'always' | 'never' | 'auto';
 }
 
-/**
- * Choice definition for searchable checkbox
- */
 interface Choice<Value> {
   value: Value;
   name?: string;
@@ -64,9 +49,6 @@ interface Choice<Value> {
   checked?: boolean;
 }
 
-/**
- * Normalized choice with all properties defined
- */
 interface NormalizedChoice<Value> {
   value: Value;
   name: string;
@@ -76,9 +58,6 @@ interface NormalizedChoice<Value> {
   checked: boolean;
 }
 
-/**
- * Configuration for searchable checkbox prompt
- */
 interface SearchableCheckboxConfig<Value> {
   message: string;
   prefix?: string;
@@ -93,9 +72,6 @@ interface SearchableCheckboxConfig<Value> {
   theme?: PartialDeep<SearchableCheckboxTheme>;
 }
 
-/**
- * Normalize choice input to NormalizedChoice format
- */
 function normalizeChoices<Value>(
   choices: readonly (string | Separator | Choice<Value>)[]
 ): NormalizedChoice<Value>[] {
@@ -129,15 +105,6 @@ function normalizeChoices<Value>(
     });
 }
 
-/**
- * Filter choices based on search text
- *
- * @param items - Normalized choices to filter
- * @param searchText - Search query (case-insensitive partial match)
- * @returns Filtered choices matching the search text
- *
- * @internal Exported for testing purposes
- */
 export function filterChoices<Value>(
   items: NormalizedChoice<Value>[],
   searchText: string
@@ -145,10 +112,9 @@ export function filterChoices<Value>(
   if (!searchText) return items;
 
   return items.filter((item) => {
-    // Skip separators (though normalizeChoices already removes them)
+    
     if (Separator.isSeparator(item)) return false;
 
-    // Case-insensitive partial match on name
     const normalizedSearch = searchText.toLowerCase();
     const normalizedName = item.name.toLowerCase();
 
@@ -156,9 +122,6 @@ export function filterChoices<Value>(
   });
 }
 
-/**
- * Default theme for searchable checkbox
- */
 const checkboxTheme: SearchableCheckboxTheme = {
   icon: {
     checked: chalk.green(figures.circleFilled),
@@ -177,73 +140,53 @@ const checkboxTheme: SearchableCheckboxTheme = {
   helpMode: 'auto',
 };
 
-/**
- * Searchable Checkbox Prompt
- *
- * Allows users to search and select multiple items in a single step.
- */
 export default function searchableCheckbox<Value>(
   config: SearchableCheckboxConfig<Value>
 ): Promise<Value[]> {
   return createPrompt<Value[], SearchableCheckboxConfig<Value>>(
     (config, done) => {
-    // Initialize theme
+    
     const theme = makeTheme<SearchableCheckboxTheme>(checkboxTheme, config.theme);
 
-    // State: Prompt status
     const [status, setStatus] = useState<'idle' | 'done'>('idle');
 
-    // Use prefix with status parameter for dynamic completion indicator
     const prefix = usePrefix({ status, theme });
 
-    // State: Search text for filtering
     const [searchText, setSearchText] = useState<string>('');
 
-    // State: Items with selection state
     const [items, setItems] = useState<NormalizedChoice<Value>[]>(normalizeChoices(config.choices));
 
-    // State: Active cursor position (index in filtered list)
     const [active, setActive] = useState<number>(0);
 
-    // State: Error message from validation
     const [errorMsg, setError] = useState<string | undefined>(undefined);
 
-    // Track first render for cursor hide
     const firstRender = useRef(true);
 
-    // Computed: Filtered items based on search text
     const filteredItems = useMemo(() => filterChoices(items, searchText), [items, searchText]);
 
-    // Keyboard event handler
     useKeypress(async (key, rl) => {
-      // Priority 1: Character input (update search text)
-      // Handle normal alphanumeric characters via key.name
+      
       if (key.name && /^[a-zA-Z0-9 \-_.]$/.test(key.name)) {
         setSearchText(searchText + key.name);
-        setActive(0); // Reset cursor to top
-        setError(undefined); // Clear error
+        setActive(0); 
+        setError(undefined); 
         return;
       }
 
-      // Special case: "/" key has no key.name property in some terminals
-      // We need to check the readline buffer to detect it
-      // When "/" is pressed, it gets added to rl.line but key.name is undefined
       if (!key.name && !key.ctrl && rl.line.length > 0) {
-        // Check if a new character was added to readline buffer
+        
         const lastChar = rl.line[rl.line.length - 1];
 
-        // Only accept "/" character (and potentially other special chars in the future)
         if (lastChar === '/') {
           setSearchText(searchText + lastChar);
-          // Clear readline buffer to prevent it from interfering with our state
+          
           rl.line = '';
-          setActive(0); // Reset cursor to top
-          setError(undefined); // Clear error
+          setActive(0); 
+          setError(undefined); 
           return;
         }
       }
 
-      // Priority 2: Backspace/Delete (remove from search text)
       if (isBackspaceKey(key)) {
         if (searchText.length > 0) {
           setSearchText(searchText.slice(0, -1));
@@ -253,7 +196,6 @@ export default function searchableCheckbox<Value>(
         return;
       }
 
-      // Priority 3: Enter (confirm selection with validation)
       if (isEnterKey(key)) {
         const selection = items.filter((item) => !Separator.isSeparator(item) && item.checked);
         const isValid = config.validate ? await config.validate(selection) : true;
@@ -267,12 +209,11 @@ export default function searchableCheckbox<Value>(
         return;
       }
 
-      // Priority 4: Space (toggle selection)
       if (isSpaceKey(key)) {
-        if (filteredItems.length === 0) return; // No items to toggle
+        if (filteredItems.length === 0) return; 
 
         const currentFilteredItem = filteredItems[active];
-        if (!currentFilteredItem) return; // Safety check
+        if (!currentFilteredItem) return; 
 
         const realIndex = items.findIndex((item) => item === currentFilteredItem);
 
@@ -287,7 +228,6 @@ export default function searchableCheckbox<Value>(
         return;
       }
 
-      // Priority 5: Arrow keys (cursor movement)
       if (isUpKey(key)) {
         const newActive = active > 0 ? active - 1 : config.loop ? filteredItems.length - 1 : 0;
         setActive(newActive);
@@ -301,13 +241,11 @@ export default function searchableCheckbox<Value>(
         return;
       }
 
-      // Priority 6: Escape (cancel)
       if (key.name === 'escape') {
         throw new CancelPromptError();
       }
     });
 
-    // Rendering: Final answer (done state)
     const message = chalk.bold(config.message);
 
     if (status === 'done') {
@@ -316,7 +254,6 @@ export default function searchableCheckbox<Value>(
       return `${prefix} ${message} ${answer}`;
     }
 
-    // Rendering: Interactive UI (idle state)
     const searchBar = searchText ? chalk.dim(` (Search: "${searchText}")`) : '';
 
     const page = usePagination({
@@ -341,16 +278,13 @@ export default function searchableCheckbox<Value>(
       loop: config.loop ?? true,
     });
 
-    // No results message
     const noResultsMsg =
       filteredItems.length === 0 && searchText
         ? `\n${chalk.dim('No matching items found')}`
         : '';
 
-    // Error message
     const error = errorMsg ? `\n${theme.style.error(errorMsg)}` : '';
 
-    // Help text
     const helpTip =
       theme.helpMode === 'auto'
         ? chalk.dim('\n(Press space to select, enter to proceed)')

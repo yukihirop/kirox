@@ -1,9 +1,3 @@
-/**
- * Batch File Updater
- *
- * Applies updates to all updatable files and generates summary
- */
-
 import path from 'path';
 import type { Octokit } from 'octokit';
 import { filterUpdatableFiles, type FilterOptions } from './update-filter.js';
@@ -11,7 +5,6 @@ import { updateFile, type UpdateResult } from './file-updater.js';
 import type { UpdateCheckResult } from './update-checker.js';
 import type { FileMetadata } from './types.js';
 
-/** Updated file information - @internal Internal type - not exported */
 interface UpdatedFileInfo {
   path: string;
   oldSha: string;
@@ -20,49 +13,26 @@ interface UpdatedFileInfo {
   newSize: number;
 }
 
-/** Skipped file information - @internal Internal type - not exported */
 interface SkippedFileInfo {
   path: string;
   reason: string;
 }
 
-/** Failed file information - @internal Internal type - not exported */
 interface FailedFileInfo {
   path: string;
   error: string;
 }
 
-/**
- * Apply summary
- */
 interface ApplySummary {
-  /** Total number of files processed */
   totalFiles: number;
-  /** Number of successfully updated files */
   updated: number;
-  /** Number of skipped files */
   skipped: number;
-  /** Number of failed files */
   failed: number;
-  /** Detailed information about updated files */
   updatedFiles: UpdatedFileInfo[];
-  /** Detailed information about skipped files */
   skippedFiles: SkippedFileInfo[];
-  /** Detailed information about failed files */
   failedFiles: FailedFileInfo[];
 }
 
-/**
- * Apply updates to all updatable files
- *
- * @param client - Octokit client instance
- * @param owner - Repository owner
- * @param repo - Repository name
- * @param baseDir - Base directory for local files
- * @param results - Update check results with file paths
- * @param options - Filter options (e.g., force)
- * @returns Apply summary with counts and details
- */
 export async function applyUpdates(
   client: Octokit,
   owner: string,
@@ -71,7 +41,6 @@ export async function applyUpdates(
   results: Array<UpdateCheckResult & { path: string }>,
   options: FilterOptions = {}
 ): Promise<ApplySummary> {
-  // Initialize summary
   const summary: ApplySummary = {
     totalFiles: results.length,
     updated: 0,
@@ -82,15 +51,12 @@ export async function applyUpdates(
     failedFiles: [],
   };
 
-  // Handle empty results
   if (results.length === 0) {
     return summary;
   }
 
-  // Filter updatable files
   const filtered = filterUpdatableFiles(results, options);
 
-  // Record skipped files
   for (const { result, reason } of filtered.skipped) {
     const fileWithPath = results.find((r) => r.recordedSha === result.recordedSha);
     if (fileWithPath) {
@@ -102,9 +68,7 @@ export async function applyUpdates(
     }
   }
 
-  // Update each updatable file
   const updatePromises = filtered.updatable.map(async (result) => {
-    // Find the corresponding file with path
     const fileWithPath = results.find((r) => r.recordedSha === result.recordedSha);
     if (!fileWithPath) {
       return null;
@@ -112,20 +76,18 @@ export async function applyUpdates(
 
     const localPath = path.join(baseDir, fileWithPath.path);
 
-    // Create file metadata from result
     const fileMetadata: FileMetadata = {
       path: fileWithPath.path,
       sha: result.recordedSha,
-      size: 0, // Size not used in update
+      size: 0,
       localHash: result.recordedHash,
-      fetchedAt: '', // Not used in update
+      fetchedAt: '',
     };
 
     try {
       const updateResult = await updateFile(client, owner, repo, localPath, fileMetadata);
       return { fileWithPath, updateResult };
     } catch (error) {
-      // Unexpected error (should not happen as updateFile handles errors)
       return {
         fileWithPath,
         updateResult: {
@@ -137,10 +99,8 @@ export async function applyUpdates(
     }
   });
 
-  // Wait for all updates to complete
   const updateResults = await Promise.all(updatePromises);
 
-  // Process update results
   for (const updateInfo of updateResults) {
     if (!updateInfo) {
       continue;
@@ -149,7 +109,6 @@ export async function applyUpdates(
     const { fileWithPath, updateResult } = updateInfo;
 
     if (updateResult.success) {
-      // Record successful update
       summary.updatedFiles.push({
         path: fileWithPath.path,
         oldSha: updateResult.oldSha,
@@ -159,7 +118,6 @@ export async function applyUpdates(
       });
       summary.updated++;
     } else {
-      // Record failed update
       summary.failedFiles.push({
         path: fileWithPath.path,
         error: updateResult.error || 'Unknown error',

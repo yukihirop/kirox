@@ -1,20 +1,5 @@
-/**
- * GitHub Tree SHA Fetcher
- *
- * Retrieves Tree SHA from repository branches for GitHub Tree API calls
- */
-
 import type { Octokit } from 'octokit';
 
-/**
- * Handle GitHub API errors and throw user-friendly error messages
- *
- * @param error - Original error from GitHub API
- * @param owner - Repository owner
- * @param repo - Repository name
- * @param branch - Optional branch name
- * @throws Error with specific message based on error type
- */
 function handleTreeShaError(
   error: unknown,
   owner: string,
@@ -33,7 +18,6 @@ function handleTreeShaError(
 
   const status = errorWithStatus.status;
 
-  // 404: Not Found
   if (status === 404) {
     throw new Error(
       branch
@@ -42,12 +26,10 @@ function handleTreeShaError(
     );
   }
 
-  // 401: Unauthorized
   if (status === 401) {
     throw new Error('Authentication error: Please set GITHUB_TOKEN environment variable');
   }
 
-  // 403: Forbidden
   if (status === 403) {
     throw new Error(
       branch
@@ -56,24 +38,9 @@ function handleTreeShaError(
     );
   }
 
-  // Generic error
   throw new Error(`Failed to retrieve tree SHA: ${error.message}`);
 }
 
-/**
- * Get Tree SHA from repository
- *
- * @param client - Octokit client instance
- * @param owner - Repository owner
- * @param repo - Repository name
- * @param branch - Optional branch name (if not specified, uses default branch)
- * @returns Tree SHA (commit SHA) for the branch
- * @throws Error with specific message based on error type:
- *   - 404: Branch or repository not found
- *   - 401: Authentication required
- *   - 403: Permission denied
- *   - Other: Generic failure message
- */
 export async function getTreeSha(
   client: Octokit,
   owner: string,
@@ -81,7 +48,6 @@ export async function getTreeSha(
   branch?: string
 ): Promise<string> {
   try {
-    // If branch is specified, get Tree SHA directly
     if (branch) {
       const branchInfo = await client.rest.repos.getBranch({
         owner,
@@ -92,7 +58,6 @@ export async function getTreeSha(
       return branchInfo.data.commit.sha;
     }
 
-    // If branch is not specified, get default branch first
     const repoInfo = await client.rest.repos.get({
       owner,
       repo,
@@ -100,7 +65,6 @@ export async function getTreeSha(
 
     const defaultBranch = repoInfo.data.default_branch;
 
-    // Get Tree SHA from default branch
     const branchInfo = await client.rest.repos.getBranch({
       owner,
       repo,
