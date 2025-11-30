@@ -164,4 +164,20 @@ export class SpinnerManager {
       }
     }
   }
+
+  /**
+   * Get spinner map (for testing only)
+   * @internal
+   */
+  getSpinnerMap(): Map<string, Ora> {
+    return this.state.spinnerMap;
+  }
+
+  /**
+   * Get fallback mode status (for testing only)
+   * @internal
+   */
+  getUseFallback(): boolean {
+    return this.state.useFallback;
+  }
 }

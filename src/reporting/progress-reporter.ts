@@ -27,15 +27,28 @@ export class ProgressReporter {
 
   // Backward compatibility: Expose internal state for existing tests
   // TODO: Remove once tests are refactored to test public API only
-  get spinnerMap(): Map<string, Ora> | undefined {
-    // Return undefined to indicate this is now managed internally
-    return undefined;
+  get spinnerMap(): Map<string, Ora> {
+    // Delegate to SpinnerManager for backward compatibility with tests
+    return this.spinnerManager.getSpinnerMap();
   }
 
   get useFallback(): boolean {
-    // This is now managed by SpinnerManager, but we can't access it
-    // Return false as default for backward compatibility
-    return false;
+    // Delegate to SpinnerManager for backward compatibility with tests
+    return this.spinnerManager.getUseFallback();
+  }
+
+  set useFallback(value: boolean) {
+    // Allow tests to set useFallback mode
+    // This is a temporary solution for backward compatibility
+    // TODO: Remove once tests are refactored to test public API only
+    if (value) {
+      // Force fallback mode by setting internal state
+      // Note: This is a hacky workaround for testing purposes
+      (this.spinnerManager as any).state = {
+        ...(this.spinnerManager as any).state,
+        useFallback: value,
+      };
+    }
   }
 
   get oraOptions() {
