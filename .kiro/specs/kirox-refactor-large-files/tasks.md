@@ -432,9 +432,25 @@
   - ✅ リファクタリング後もレイヤー分離アーキテクチャを維持
   - _Requirements: 6.1_
 
-- [ ] 8.2 公開API互換性の最終確認
-  - 全ての公開API関数（`execute`、`executeAddCommand`、`shouldEnterInteractiveMode`、`promptMissingArguments`、`ProgressReporter`クラス）のシグネチャが変更されていないことを確認する
-  - 既存の呼び出し元コードへの影響がないことを最終検証する
+- [x] 8.2 公開API互換性の最終確認
+  - ✅ 新規アーキテクチャ検証テスト作成: `tests/architecture/public-api-compatibility.test.ts`
+  - ✅ 検証した公開API:
+    - `execute` 関数シグネチャ (entry.ts): `async function execute(argv: string[]): Promise<ExecutionResult>`
+    - `executeAddCommand` 関数シグネチャ (add-command-entry.ts): `async function executeAddCommand(argv: string[]): Promise<ExecutionResult>`
+    - `shouldEnterInteractiveMode` 関数シグネチャ (interactive-prompt.ts): `function shouldEnterInteractiveMode(args: ParsedArguments): boolean`
+    - `promptMissingArguments` 関数シグネチャ (interactive-prompt.ts): `async function promptMissingArguments(...): Promise<ParsedArguments>`
+    - `ProgressReporter` クラス: constructor、reportStart、reportProgress、reportSuccess、reportError
+  - ✅ 型エクスポート検証:
+    - `ParsedArguments` インターフェース (cli/types.ts)
+    - `ExecutionResult` インターフェース (cli/types.ts)
+    - `ReporterOptions` インターフェース (reporting/types.ts)
+  - ✅ 既存の呼び出し元検証:
+    - index.tsでexecuteをインポート確認
+    - index.tsでexecuteAddCommandをインポート確認
+  - ✅ テスト結果: 11テスト全て合格
+    - 全ての公開API関数シグネチャが変更されていないことを確認
+    - 既存の呼び出し元コードへの影響なし
+  - ✅ リファクタリング後も後方互換性を完全に維持
   - _Requirements: 1.5, 6.6_
 
 - [ ] 8.3 ファイルサイズ削減の確認
