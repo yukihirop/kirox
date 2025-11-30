@@ -1,18 +1,8 @@
-/**
- * Reporting Layer Type Definitions
- */
-
-/**
- * Progress reporter options
- */
 export interface ReporterOptions {
-  verbose: boolean; // Show verbose logging
-  useColor: boolean; // Use colored output (default: true)
+  verbose: boolean;
+  useColor: boolean;
 }
 
-/**
- * Error types for classification
- */
 export type ErrorType =
   | 'REPOSITORY_NOT_FOUND'
   | 'PROJECT_NOT_FOUND'
@@ -25,9 +15,6 @@ export type ErrorType =
   | 'VALIDATION_ERROR'
   | 'UNKNOWN';
 
-/**
- * Error result with type and formatted message
- */
 export interface ErrorResult {
   type: ErrorType;
   message: string;
@@ -35,9 +22,6 @@ export interface ErrorResult {
   recoverable: boolean;
 }
 
-/**
- * Error context for message formatting
- */
 export interface ErrorContext {
   repository?: string;
   project?: string;

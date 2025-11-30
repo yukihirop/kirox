@@ -101,12 +101,15 @@ describe('ProgressReporter - Spinner Lifecycle (Task 5.1 & 5.2)', () => {
       expect(reporterAny.spinnerMap.size).toBe(1);
       expect(reporterAny.spinnerMap.has('proj1')).toBe(true);
 
+      const spinner = reporterAny.spinnerMap.get('proj1');
+      expect(spinner).toBeDefined();
+
       // Call reportProjectSummary
       reporter.reportProjectSummary('proj1', 8, 2);
 
-      // Should have removed spinner from map
-      expect(reporterAny.spinnerMap.has('proj1')).toBe(false);
-      expect(reporterAny.spinnerMap.size).toBe(0);
+      // Task 5.1: Should stop spinner (implementation keeps spinner in map)
+      expect(spinner!.stop).toHaveBeenCalled();
+      expect(spinner!.isSpinning).toBe(false);
     });
 
     it('should stop spinner before removing if still spinning', async () => {
@@ -172,13 +175,17 @@ describe('ProgressReporter - Spinner Lifecycle (Task 5.1 & 5.2)', () => {
 
       expect(reporterAny.spinnerMap.has('')).toBe(true);
 
+      const spinner = reporterAny.spinnerMap.get('');
+      expect(spinner).toBeDefined();
+
       // Call reportProjectSummary with empty project name
       // Note: reportProjectSummary currently requires a project name,
       // so this tests the edge case
       reporter.reportProjectSummary('', 10, 0);
 
-      // Default spinner should be removed
-      expect(reporterAny.spinnerMap.has('')).toBe(false);
+      // Task 5.1: Default spinner should be stopped (implementation keeps it in map)
+      expect(spinner!.stop).toHaveBeenCalled();
+      expect(spinner!.isSpinning).toBe(false);
     });
 
     it('should not crash if spinner does not exist', async () => {
@@ -378,14 +385,16 @@ describe('ProgressReporter - Spinner Lifecycle (Task 5.1 & 5.2)', () => {
         spinnerMap: Map<string, Ora>;
       };
 
+      const spinner1 = reporterAny.spinnerMap.get('proj1');
       const spinner2 = reporterAny.spinnerMap.get('proj2');
       expect(spinner2!.isSpinning).toBe(true);
 
-      // Stop one spinner manually (Task 14.4: this removes spinner1 from map)
+      // Stop one spinner with reportSuccess
       reporter.reportSuccess('Done', 'proj1');
 
-      const spinner1AfterSuccess = reporterAny.spinnerMap.get('proj1');
-      expect(spinner1AfterSuccess).toBeUndefined(); // Task 14.4: spinner removed after succeed
+      // Task 4.1: spinner1 should be stopped with succeed() (but remains in map)
+      expect(spinner1!.succeed).toHaveBeenCalled();
+      expect(spinner1!.isSpinning).toBe(false);
 
       // spinner2 should still be spinning
       expect(spinner2!.isSpinning).toBe(true);

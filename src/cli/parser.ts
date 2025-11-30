@@ -6,28 +6,38 @@
 
 import { Command } from 'commander';
 import chalk from 'chalk';
-import figlet from 'figlet';
+import { readFileSync } from 'fs';
+import { fileURLToPath } from 'url';
+import { dirname, join } from 'path';
 import type { ParsedArguments } from './types.js';
 import { parseProjects } from './project-name-parser.js';
+import { generateKiroxAsciiArt } from './utilities/ascii-art-utils.js';
+import {
+  mainCommandOptions,
+  addCommandOptions,
+  applyCommandOptions,
+} from './parser-config.js';
 
-// Version is injected at build time via tsup define (see src/global.d.ts)
-const VERSION = __KIROX_VERSION__;
+// Get version from package.json or build-time define
+function getVersion(): string {
+  // In production build, __KIROX_VERSION__ is defined by tsup
+  if (typeof __KIROX_VERSION__ !== 'undefined') {
+    return __KIROX_VERSION__;
+  }
 
-/**
- * Generate ASCII art for kirox logo
- */
-function generateKiroxAsciiArt(): string {
+  // In development (tsx), read from package.json
   try {
-    return figlet.textSync('kirox', {
-      font: 'ANSI Shadow',
-      horizontalLayout: 'default',
-      verticalLayout: 'default'
-    });
+    const __filename = fileURLToPath(import.meta.url);
+    const __dirname = dirname(__filename);
+    const packageJsonPath = join(__dirname, '../../package.json');
+    const packageJson = JSON.parse(readFileSync(packageJsonPath, 'utf-8'));
+    return packageJson.version || '0.0.0-dev';
   } catch (_error) {
-    // Fallback to simple text if figlet fails
-    return 'kirox\n';
+    return '0.0.0-dev';
   }
 }
+
+const VERSION = getVersion();
 
 /**
  * Parse command-line arguments
@@ -160,18 +170,13 @@ ${chalk.bold.blue('Installation:')}
 function parseAddCommand(argv: string[]): ParsedArguments {
   const program = new Command();
 
-  program
-    .name('kirox add')
-    .description('Add new projects to existing metadata')
-    .argument('[repository]', 'GitHub repository in format "owner/repo" or "owner/repo#branch"')
-    .option('-p, --project <name>', 'Project names - comma-separated for multiple projects')
-    .option('-o, --output <path>', 'Output directory (default: current directory)', '.')
-    .option('-s, --subdir <path>', 'Subdirectory path containing .kiro folder')
-    .option('--force', 'Overwrite existing projects', false)
-    .option('--dry-run', 'Dry-run mode (no actual writes)', false)
-    .option('--verbose', 'Verbose logging', false)
-    .option('--config <path>', 'Custom config file path')
-    .option('--track', 'Track fetched files in metadata for update detection', false)
+  applyCommandOptions(
+    program
+      .name('kirox add')
+      .description('Add new projects to existing metadata')
+      .argument('[repository]', 'GitHub repository in format "owner/repo" or "owner/repo#branch"'),
+    addCommandOptions
+  )
     .addHelpText('after', `
 ${chalk.bold.blue('Examples:')}
   ${chalk.dim('# Add new project to existing metadata')}
@@ -246,22 +251,14 @@ ${chalk.bold.yellow('Note:')}
 function parseMainCommand(argv: string[]): ParsedArguments {
   const program = new Command();
 
-  program
-    .name('kirox')
-    .description('CLI tool to fetch Kiro specification and steering files from remote GitHub repositories')
-    .version(VERSION)
-    .argument('[repository]', 'GitHub repository in format "owner/repo" or "owner/repo#branch"')
-    .option('-p, --project <name>', 'Project name to fetch (comma-separated for multiple projects)')
-    .option('-o, --output <path>', 'Output directory (default: current directory)', '.')
-    .option('-s, --subdir <path>', 'Subdirectory path containing .kiro folder')
-    .option('--force', 'Force overwrite without confirmation', false)
-    .option('--dry-run', 'Dry-run mode (no actual writes)', false)
-    .option('--verbose', 'Verbose logging', false)
-    .option('--config <path>', 'Custom config file path')
-    .option('--track', 'Track fetched files for update detection', false)
-    .option('--check-updates', 'Check for updates to tracked files', false)
-    .option('--update', 'Apply updates to tracked files', false)
-    .option('--steering', 'Fetch only .kiro/steering directory (skip project specs)', false)
+  applyCommandOptions(
+    program
+      .name('kirox')
+      .description('CLI tool to fetch Kiro specification and steering files from remote GitHub repositories')
+      .version(VERSION)
+      .argument('[repository]', 'GitHub repository in format "owner/repo" or "owner/repo#branch"'),
+    mainCommandOptions
+  )
     .addHelpText('before', `${chalk.cyan(generateKiroxAsciiArt())}\n`)
     .addHelpText('after', `
 ${chalk.bold.blue('Interactive Mode:')}

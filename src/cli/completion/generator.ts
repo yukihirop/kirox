@@ -1,50 +1,18 @@
-/**
- * Completion Script Generator
- *
- * Generates shell completion scripts based on metadata and shell type
- * Task 3.1: Generator implementation
- */
-
 import type { SupportedShell } from './shell-validator.js';
 
-/**
- * Metadata for completion script generation
- */
 export interface CompletionMetadata {
-  /** Program name (e.g., 'kirox') */
+  
   programName: string;
-  /** List of subcommands with their options */
+  
   subcommands: Array<{
     name: string;
     description: string;
     options: Array<{ flag: string; description: string }>;
   }>;
-  /** Global options available for all subcommands */
+  
   globalOptions: Array<{ flag: string; description: string }>;
 }
 
-/**
- * Generate shell completion script
- *
- * @param shell - Target shell type
- * @param metadata - Completion metadata (program name, subcommands, options)
- * @returns Generated completion script
- *
- * Preconditions: shell must be a valid SupportedShell type
- * Postconditions: Returns non-empty completion script string
- * Invariants: Script includes program name and metadata
- *
- * @example
- * ```typescript
- * const metadata = {
- *   programName: 'kirox',
- *   subcommands: [{ name: 'add', description: 'Add project', options: [] }],
- *   globalOptions: [{ flag: '--help', description: 'Display help' }]
- * };
- * const script = generateCompletionScript('bash', metadata);
- * console.log(script);
- * ```
- */
 export function generateCompletionScript(shell: SupportedShell, metadata: CompletionMetadata): string {
   switch (shell) {
     case 'bash':
@@ -58,26 +26,18 @@ export function generateCompletionScript(shell: SupportedShell, metadata: Comple
     case 'elvish':
       return generateElvishScript(metadata);
     default: {
-      // TypeScript exhaustiveness check
+      
       const _exhaustive: never = shell;
       throw new Error(`Unsupported shell: ${_exhaustive}`);
     }
   }
 }
 
-/**
- * Generate Bash completion script
- *
- * @param metadata - Completion metadata
- * @returns Bash completion script
- */
 function generateBashScript(metadata: CompletionMetadata): string {
   const { programName, subcommands, globalOptions } = metadata;
 
-  // Extract subcommand names
   const subcommandNames = subcommands.map((sub) => sub.name).join(' ');
 
-  // Extract all option flags (global + subcommand-specific)
   const allOptions = new Set<string>();
   globalOptions.forEach((opt) => extractFlags(opt.flag).forEach((flag) => allOptions.add(flag)));
   subcommands.forEach((sub) => {
@@ -114,21 +74,13 @@ complete -F _${programName}_completion ${programName}
 `;
 }
 
-/**
- * Generate Zsh completion script
- *
- * @param metadata - Completion metadata
- * @returns Zsh completion script
- */
 function generateZshScript(metadata: CompletionMetadata): string {
   const { programName, subcommands, globalOptions } = metadata;
 
-  // Build subcommand descriptions
   const subcommandDesc = subcommands
     .map((sub) => `    '${sub.name}:${sub.description}'`)
     .join('\n');
 
-  // Build global option arguments
   const globalArgs = globalOptions
     .map((opt) => {
       const flags = extractFlags(opt.flag).join('[');
@@ -163,21 +115,13 @@ _${programName}
 `;
 }
 
-/**
- * Generate Fish completion script
- *
- * @param metadata - Completion metadata
- * @returns Fish completion script
- */
 function generateFishScript(metadata: CompletionMetadata): string {
   const { programName, subcommands, globalOptions } = metadata;
 
-  // Generate subcommand completions
   const subcommandLines = subcommands
     .map((sub) => `complete -c ${programName} -n "__fish_use_subcommand" -a "${sub.name}" -d "${sub.description}"`)
     .join('\n');
 
-  // Generate global option completions
   const globalOptionLines = globalOptions
     .map((opt) => {
       const flags = extractFlags(opt.flag);
@@ -202,19 +146,11 @@ ${globalOptionLines}
 `;
 }
 
-/**
- * Generate PowerShell completion script
- *
- * @param metadata - Completion metadata
- * @returns PowerShell completion script
- */
 function generatePowerShellScript(metadata: CompletionMetadata): string {
   const { programName, subcommands, globalOptions } = metadata;
 
-  // Extract subcommand names
   const subcommandNames = subcommands.map((sub) => `'${sub.name}'`).join(', ');
 
-  // Extract all option flags
   const allFlags = new Set<string>();
   globalOptions.forEach((opt) => extractFlags(opt.flag).forEach((flag) => allFlags.add(flag)));
   subcommands.forEach((sub) => {
@@ -248,19 +184,11 @@ Register-ArgumentCompleter -CommandName ${programName} -ScriptBlock {
 `;
 }
 
-/**
- * Generate Elvish completion script
- *
- * @param metadata - Completion metadata
- * @returns Elvish completion script
- */
 function generateElvishScript(metadata: CompletionMetadata): string {
   const { programName, subcommands, globalOptions } = metadata;
 
-  // Extract subcommand names
   const subcommandNames = subcommands.map((sub) => sub.name).join(' ');
 
-  // Extract all option flags
   const allFlags = new Set<string>();
   globalOptions.forEach((opt) => extractFlags(opt.flag).forEach((flag) => allFlags.add(flag)));
   subcommands.forEach((sub) => {
@@ -293,21 +221,9 @@ set edit:completion:arg-completer[${programName}] = {|@args|
 `;
 }
 
-/**
- * Extract individual flags from flag string
- *
- * Examples:
- * - "-h, --help" → ["-h", "--help"]
- * - "--verbose" → ["--verbose"]
- * - "-p, --project <name>" → ["-p", "--project"]
- *
- * @param flagString - Flag string from metadata
- * @returns Array of individual flags
- */
 function extractFlags(flagString: string): string[] {
-  // Remove parameter placeholders like <name>, [value], etc.
+  
   const cleaned = flagString.replace(/\s+[<[].*?[>\]]/g, '');
 
-  // Split by comma and trim
   return cleaned.split(',').map((flag) => flag.trim());
 }
