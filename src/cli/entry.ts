@@ -11,7 +11,6 @@ import { Octokit } from 'octokit';
 import { parseArguments } from './parser.js';
 import { validateInput } from './validator.js';
 import {
-  shouldEnterInteractiveMode,
   promptMissingArguments,
   checkTTYEnvironment,
   handleInteractiveError,

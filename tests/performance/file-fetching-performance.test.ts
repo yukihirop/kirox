@@ -15,7 +15,7 @@ import { Octokit } from 'octokit';
 vi.mock('octokit');
 
 describe('File Fetching Performance Tests (Task 7.3)', () => {
-  const createMockOctokit = (fileCount: number) => {
+  const createMockOctokit = () => {
     const mockGetContent = vi.fn().mockImplementation(async ({ path }: { path: string }) => {
       // Simulate network delay (10ms per file)
       await new Promise((resolve) => setTimeout(resolve, 10));
@@ -51,7 +51,7 @@ describe('File Fetching Performance Tests (Task 7.3)', () => {
 
   describe('Requirement 6.7: 50ファイル取得が30秒以内に完了する', () => {
     it('should fetch 50 files within 30 seconds', async () => {
-      const { mockGetContent } = createMockOctokit(50);
+      const { mockGetContent } = createMockOctokit();
       const client = new Octokit();
       const filePaths = Array.from({ length: 50 }, (_, i) => `file${i}.md`);
 
@@ -74,7 +74,7 @@ describe('File Fetching Performance Tests (Task 7.3)', () => {
 
   describe('Requirement 6.7: 100ファイル取得時のメモリ使用量が100MB以内', () => {
     it('should keep memory usage under 100MB for 100 files', async () => {
-      const { mockGetContent } = createMockOctokit(100);
+      const { mockGetContent } = createMockOctokit();
       const client = new Octokit();
       const filePaths = Array.from({ length: 100 }, (_, i) => `file${i}.md`);
 

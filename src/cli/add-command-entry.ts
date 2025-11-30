@@ -134,7 +134,7 @@ export async function executeAddCommand(argv: string[]): Promise<ExecutionResult
     let metadataCheck;
     try {
       metadataCheck = await checkMetadataAndDuplicates(args, config, logger);
-    } catch (error) {
+    } catch (_error) {
       // Duplicate project error
       return {
         success: false,

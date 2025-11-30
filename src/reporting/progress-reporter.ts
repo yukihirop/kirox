@@ -463,26 +463,15 @@ export class ProgressReporter {
     filesFailed: number
   ): void {
     // Task 5.1: Stop and remove spinner for this project
-    if (!this.useFallback) {
-      try {
-        // Normalize project name to match spinner key
-        const spinnerKey = projectName && projectName.trim() !== '' ? projectName : '';
-        const spinner = this.spinnerMap.get(spinnerKey);
-
-        if (spinner) {
-          // Stop spinner if it's still spinning
-          if (spinner.isSpinning) {
-            spinner.stop();
-          }
-
-          // Remove spinner from map
-          this.spinnerMap.delete(spinnerKey);
-        }
-      } catch (_error) {
-        // If spinner cleanup fails, log warning if verbose
-        if (this.options.verbose) {
-          console.log('[VERBOSE] Spinner cleanup failed for project:', projectName);
-        }
+    try {
+      // Normalize project name to match spinner key
+      const spinnerKey = projectName && projectName.trim() !== '' ? projectName : '';
+      // Use SpinnerManager to stop the spinner
+      this.spinnerManager.stopSpinner(spinnerKey);
+    } catch (_error) {
+      // If spinner cleanup fails, log warning if verbose
+      if (this.options.verbose) {
+        console.log('[VERBOSE] Spinner cleanup failed for project:', projectName);
       }
     }
 
@@ -660,18 +649,10 @@ export class ProgressReporter {
    * ```
    */
   pauseSpinner(projectName?: string): void {
-    // In fallback mode, no spinner to pause
-    if (this.useFallback) {
-      return;
-    }
-
     try {
       const spinnerKey = projectName && projectName.trim() !== '' ? projectName : '';
-      const spinner = this.spinnerMap.get(spinnerKey);
-
-      if (spinner && spinner.isSpinning) {
-        spinner.stop();
-      }
+      // Use SpinnerManager to stop the spinner temporarily
+      this.spinnerManager.stopSpinner(spinnerKey);
     } catch (_error) {
       // Silently ignore errors - spinner pause is optional UX improvement
       if (this.options.verbose) {
@@ -702,19 +683,11 @@ export class ProgressReporter {
    * ```
    */
   resumeSpinner(projectName?: string): void {
-    // In fallback mode, no spinner to resume
-    if (this.useFallback) {
-      return;
-    }
-
     try {
       const spinnerKey = projectName && projectName.trim() !== '' ? projectName : '';
-      const spinner = this.spinnerMap.get(spinnerKey);
-
-      if (spinner && !spinner.isSpinning) {
-        // Restart spinner with its current text
-        spinner.start(spinner.text);
-      }
+      // Resume spinner by starting it again
+      // Note: SpinnerManager will handle the restart internally
+      this.spinnerManager.startSpinner(spinnerKey, '');
     } catch (_error) {
       // Silently ignore errors - spinner resume is optional UX improvement
       if (this.options.verbose) {
